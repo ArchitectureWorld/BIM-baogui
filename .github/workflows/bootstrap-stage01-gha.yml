@@ -7,6 +7,12 @@ on:
     paths:
       - "bootstrap/stage01-gha/**"
       - ".github/workflows/bootstrap-stage01-gha.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "bootstrap/stage01-gha/**"
+      - ".github/workflows/bootstrap-stage01-gha.yml"
   workflow_dispatch:
 
 permissions:
@@ -20,6 +26,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: feat/stage01-gha-file-initialization
 
       - name: Reconstruct reviewed source package
         shell: bash
