@@ -42,6 +42,7 @@ jobs:
           rm -rf bootstrap
           rm -f .github/workflows/bootstrap-stage01-gha.yml
           rm -f .github/workflows/bootstrap-baseline.yml
+          rm -f .github/workflows/build-stage01-gha.yml
 
       - name: Commit expanded source
         shell: bash
