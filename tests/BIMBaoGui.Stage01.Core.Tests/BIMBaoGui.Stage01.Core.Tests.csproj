@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\CanonicalPayload.cs" Link="Core\CanonicalPayload.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\FieldDefinition.cs" Link="Core\FieldDefinition.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Keys.cs" Link="Core\Stage01Keys.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Model.cs" Link="Core\Stage01Model.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Validation.cs" Link="Core\Stage01Validation.cs" />
+  </ItemGroup>
+</Project>
