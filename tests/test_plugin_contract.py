@@ -51,3 +51,9 @@ def test_component_has_no_external_inputs_and_exposes_workflow_outputs():
     assert re.search(r"RegisterInputParams\([^)]*\)\s*\{\s*\}", component, re.S)
     for output in ("初始化通过", "状态", "文件上下文", "消息"):
         assert output in component
+
+
+def test_revit2020_blank_gate_does_not_reference_inaccessible_datastorage_type():
+    gate = read("src/BIMBaoGui.Stage01/Revit/BlankFileGate.cs")
+    assert "element is DataStorage" not in gate
+    assert "element.Category == null" in gate
