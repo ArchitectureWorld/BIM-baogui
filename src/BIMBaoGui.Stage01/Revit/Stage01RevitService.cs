@@ -16,6 +16,18 @@ namespace BIMBaoGui.Stage01.Revit
 
     public static RevitDocumentSnapshot ReadSnapshot(Stage01Model model)
     {
+      if (RevitHost.RunReadInHostContext(() => ReadSnapshotCore(model), out RevitDocumentSnapshot snapshot, out string error))
+        return snapshot;
+
+      return new RevitDocumentSnapshot
+      {
+        Status = error,
+        Messages = new[] { error }
+      };
+    }
+
+    private static RevitDocumentSnapshot ReadSnapshotCore(Stage01Model model)
+    {
       var snapshot = new RevitDocumentSnapshot();
       var messages = new List<string>();
       if (!RevitHost.TryGetContext(out UIApplication uiapp, out _, out Document document, out string hostError))
@@ -60,6 +72,13 @@ namespace BIMBaoGui.Stage01.Revit
     }
 
     public static IReadOnlyList<string> PopulateModelFromDocument(Stage01Model model)
+    {
+      if (RevitHost.RunReadInHostContext(() => PopulateModelFromDocumentCore(model), out IReadOnlyList<string> messages, out string error))
+        return messages;
+      return new[] { error };
+    }
+
+    private static IReadOnlyList<string> PopulateModelFromDocumentCore(Stage01Model model)
     {
       var messages = new List<string>();
       if (!RevitHost.TryGetContext(out UIApplication uiapp, out _, out Document document, out string hostError))
