@@ -34,7 +34,6 @@ namespace BIMBaoGui.Stage01.Revit
     private static bool IsAllowedTemplateElement(Element element)
     {
       if (element == null) return true;
-      if (element is DataStorage) return true;
       if (element is ProjectInfo) return true;
       if (element is View) return true;
       if (element is Level) return true;
