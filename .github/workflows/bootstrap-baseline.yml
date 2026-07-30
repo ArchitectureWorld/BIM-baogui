@@ -1,5 +1,6 @@
 name: Bootstrap repository baseline
 
+# Temporary self-removing workflow used once to expand the reviewed baseline archive.
 on:
   push:
     branches:
