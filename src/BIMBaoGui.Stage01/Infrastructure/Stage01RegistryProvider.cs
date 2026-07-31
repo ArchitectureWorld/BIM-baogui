@@ -50,7 +50,7 @@ namespace BIMBaoGui.Stage01.Infrastructure
     {
       IEnumerable<FieldDefinition> query = Fields.Where(x => string.Equals(x.Group, group, StringComparison.Ordinal));
       if (!showAll)
-        query = query.Where(x => x.Essential);
+        query = query.Where(x => x.Essential || PlanningTargetCatalog.IsManagedMvdField(x.Key));
       return query.ToList();
     }
 
@@ -61,9 +61,9 @@ namespace BIMBaoGui.Stage01.Infrastructure
         model.SetValue(pair.Key, pair.Value);
 
       SetIfEmpty(model, Stage01Keys.FileGuid, Guid.NewGuid().ToString("D"));
-      SetIfEmpty(model, Stage01Keys.WorkflowVersion, "0.2.0");
+      SetIfEmpty(model, Stage01Keys.WorkflowVersion, "0.5.0");
       SetIfEmpty(model, Stage01Keys.InitializationStatus, "未初始化");
-      SetIfEmpty(model, Stage01Keys.ModelFileType, "总平模型");
+      SetIfEmpty(model, Stage01Keys.ModelFileType, PlanningTargetRequirementPolicy.SiteModel);
       SetIfEmpty(model, Stage01Keys.ModelScope, "项目总平面报规模型");
       SetIfEmpty(model, Stage01Keys.Stage, "规划报建");
       SetIfEmpty(model, Stage01Keys.CoordinateSystem, "CGCS2000");
@@ -128,16 +128,19 @@ namespace BIMBaoGui.Stage01.Infrastructure
 
     private static FieldDefinition MapMvd(MvdFieldDto source)
     {
+      bool structuredPlanningTarget = PlanningTargetCatalog.IsManagedMvdField(source.field_key);
       return new FieldDefinition
       {
         Key = source.field_key,
         Label = source.property,
         Group = source.ui_group,
-        Kind = ParseIfcKind(source.declared_ifc_type),
-        ReadOnly = !source.write_in_stage01 || source.source_kind == "later_model_calculation_or_external_value",
+        Kind = structuredPlanningTarget ? FieldKind.Text : ParseIfcKind(source.declared_ifc_type),
+        ReadOnly = structuredPlanningTarget
+          ? false
+          : !source.write_in_stage01 || source.source_kind == "later_model_calculation_or_external_value",
         Essential = EssentialKeys.Contains(source.field_key),
-        Deferred = !source.write_in_stage01,
-        Source = source.source_kind,
+        Deferred = structuredPlanningTarget ? false : !source.write_in_stage01,
+        Source = structuredPlanningTarget ? "structured_planning_target" : source.source_kind,
         Entity = source.entity,
         Pset = source.pset,
         AllowedValues = Array.Empty<string>()
