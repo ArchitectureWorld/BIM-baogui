@@ -9,6 +9,7 @@ namespace BIMBaoGui.Stage01.Core
     private static readonly string[] HiddenSystemGroups =
     {
       "00_当前Revit文件",
+      "01_文件与阶段",
       "09_提交与回读"
     };
 
