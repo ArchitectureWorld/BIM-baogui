@@ -11,13 +11,15 @@ namespace BIMBaoGui.Stage01.Core
   {
     public static string Build(Stage01Model model)
     {
-      var builder = new StringBuilder(8192);
+      var builder = new StringBuilder(12288);
       builder.Append('{');
-      AppendProperty(builder, "schemaVersion", "0.2.0", true);
+      AppendProperty(builder, "schemaVersion", "0.5.0", true);
       AppendProperty(builder, "workflowVersion", model.GetValue(Stage01Keys.WorkflowVersion), false);
       builder.Append(",\"values\":");
       AppendStringDictionary(builder, model.Values.Where(x => !string.Equals(x.Key, Stage01Keys.InitializationStatus, StringComparison.Ordinal))
         .ToDictionary(x => x.Key, x => x.Value, StringComparer.Ordinal));
+      builder.Append(",\"planningTargets\":");
+      AppendPlanningTargets(builder, model.PlanningTargets);
       builder.Append(",\"conditions\":");
       AppendBooleanDictionary(builder, model.Conditions);
       builder.Append(",\"organizations\":[");
@@ -41,6 +43,30 @@ namespace BIMBaoGui.Stage01.Core
           builder.Append(value.ToString("x2", CultureInfo.InvariantCulture));
         return builder.ToString();
       }
+    }
+
+    private static void AppendPlanningTargets(StringBuilder builder, IDictionary<string, PlanningTargetValue> targets)
+    {
+      builder.Append('{');
+      bool firstTarget = true;
+      foreach (KeyValuePair<string, PlanningTargetValue> pair in (targets ?? new Dictionary<string, PlanningTargetValue>())
+        .OrderBy(x => x.Key, StringComparer.Ordinal))
+      {
+        PlanningTargetValue target = pair.Value;
+        if (target == null) continue;
+        if (!firstTarget) builder.Append(',');
+        AppendEscaped(builder, pair.Key);
+        builder.Append(':').Append('{');
+        AppendProperty(builder, "operator", target.Operator.ToString(), true);
+        AppendProperty(builder, "value1", target.Value1.ToString(CultureInfo.InvariantCulture), false);
+        AppendProperty(builder, "value2", target.Value2.HasValue ? target.Value2.Value.ToString(CultureInfo.InvariantCulture) : string.Empty, false);
+        AppendProperty(builder, "unit", target.Unit.ToString(), false);
+        AppendProperty(builder, "source", target.Source, false);
+        AppendProperty(builder, "mvdText", target.ToMvdText(), false);
+        builder.Append('}');
+        firstTarget = false;
+      }
+      builder.Append('}');
     }
 
     private static void AppendStringDictionary(StringBuilder builder, IDictionary<string, string> values)
@@ -77,7 +103,7 @@ namespace BIMBaoGui.Stage01.Core
       AppendEscaped(builder, value ?? string.Empty);
     }
 
-    private static void AppendEscaped(StringBuilder builder, string value)
+    internal static void AppendEscaped(StringBuilder builder, string value)
     {
       builder.Append('"');
       foreach (char character in value ?? string.Empty)
