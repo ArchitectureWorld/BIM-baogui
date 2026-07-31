@@ -66,7 +66,10 @@ namespace BIMBaoGui.Stage01.Core
       }
 
       if (!model.ConfirmBlankProject)
-        messages.Add(new ValidationMessage(ValidationSeverity.Error, "HBR|Precheck|BlankProject", "必须确认当前文件为空白或刚拆分文件。"));
+        messages.Add(new ValidationMessage(
+          ValidationSeverity.Error,
+          "HBR|Precheck|BlankProject",
+          "必须确认当前文件尚未开始正式建模；Revit 模板默认内容允许保留。"));
 
       foreach (FieldDefinition definition in definitions)
       {
