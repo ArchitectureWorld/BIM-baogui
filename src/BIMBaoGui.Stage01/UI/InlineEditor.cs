@@ -9,27 +9,131 @@ namespace BIMBaoGui.Stage01.UI
   {
     private static Form _active;
 
-    public static void ShowText(GH_Canvas canvas, RectangleF canvasBounds, string value, Action<string> accepted)
+    public static void ShowText(
+      GH_Canvas canvas,
+      RectangleF canvasBounds,
+      string value,
+      string guide,
+      Func<string, string> validate,
+      Action<string> accepted)
     {
       CloseActive();
-      var form = CreateHost(canvas, canvasBounds);
+      Form form = CreateHost(canvas, canvasBounds, 88);
+      var guideLabel = CreateLabel(guide, Color.FromArgb(86, 103, 122), 7, 4, form.ClientSize.Width - 14, 20);
       var editor = new TextBox
       {
         BorderStyle = BorderStyle.FixedSingle,
-        Dock = DockStyle.Fill,
         Font = new Font("Microsoft YaHei UI", 9f, FontStyle.Regular, GraphicsUnit.Point),
         Text = value ?? string.Empty,
         BackColor = Color.White,
-        ForeColor = Color.FromArgb(32, 42, 56)
+        ForeColor = Color.FromArgb(32, 42, 56),
+        Location = new Point(7, 26),
+        Size = new Size(Math.Max(120, form.ClientSize.Width - 84), 25)
       };
+      var ok = CreateButton("确定", form.ClientSize.Width - 71, 25, 64, 27);
+      var errorLabel = CreateLabel(string.Empty, Color.FromArgb(190, 53, 53), 7, 56, form.ClientSize.Width - 14, 24);
+
       bool finished = false;
       Action<bool> finish = commit =>
       {
         if (finished) return;
+        if (commit)
+        {
+          string error = validate?.Invoke(editor.Text);
+          if (!string.IsNullOrWhiteSpace(error))
+          {
+            errorLabel.Text = error;
+            editor.BackColor = Color.FromArgb(255, 244, 244);
+            editor.Focus();
+            editor.SelectAll();
+            return;
+          }
+          accepted?.Invoke(editor.Text);
+        }
         finished = true;
-        string result = editor.Text;
         form.Close();
-        if (commit) accepted?.Invoke(result);
+      };
+
+      ok.Click += (sender, args) => finish(true);
+      editor.KeyDown += (sender, args) =>
+      {
+        if (args.KeyCode == Keys.Enter)
+        {
+          args.SuppressKeyPress = true;
+          finish(true);
+        }
+        else if (args.KeyCode == Keys.Escape)
+        {
+          args.SuppressKeyPress = true;
+          finish(false);
+        }
+      };
+      form.Deactivate += (sender, args) => finish(false);
+      form.FormClosed += (sender, args) => { if (ReferenceEquals(_active, form)) _active = null; };
+      form.Controls.Add(guideLabel);
+      form.Controls.Add(editor);
+      form.Controls.Add(ok);
+      form.Controls.Add(errorLabel);
+      Show(form, canvas, () =>
+      {
+        editor.Focus();
+        editor.SelectAll();
+      });
+    }
+
+    public static void ShowChoice(
+      GH_Canvas canvas,
+      RectangleF canvasBounds,
+      string value,
+      string guide,
+      string[] choices,
+      Func<string, string> validate,
+      Action<string> accepted)
+    {
+      CloseActive();
+      Form form = CreateHost(canvas, canvasBounds, 88);
+      var guideLabel = CreateLabel(guide, Color.FromArgb(86, 103, 122), 7, 4, form.ClientSize.Width - 14, 20);
+      var editor = new ComboBox
+      {
+        DropDownStyle = ComboBoxStyle.DropDownList,
+        IntegralHeight = true,
+        Font = new Font("Microsoft YaHei UI", 9f, FontStyle.Regular, GraphicsUnit.Point),
+        Location = new Point(7, 26),
+        Size = new Size(Math.Max(120, form.ClientSize.Width - 84), 25)
+      };
+      editor.Items.AddRange(choices ?? Array.Empty<string>());
+      int selected = editor.FindStringExact(value ?? string.Empty);
+      editor.SelectedIndex = selected >= 0 ? selected : -1;
+      var ok = CreateButton("确定", form.ClientSize.Width - 71, 25, 64, 27);
+      var errorLabel = CreateLabel(string.Empty, Color.FromArgb(190, 53, 53), 7, 56, form.ClientSize.Width - 14, 24);
+
+      bool finished = false;
+      Action<bool> finish = commit =>
+      {
+        if (finished) return;
+        string result = Convert.ToString(editor.SelectedItem) ?? string.Empty;
+        if (commit)
+        {
+          string error = validate?.Invoke(result);
+          if (!string.IsNullOrWhiteSpace(error))
+          {
+            errorLabel.Text = error;
+            editor.BackColor = Color.FromArgb(255, 244, 244);
+            editor.Focus();
+            editor.DroppedDown = true;
+            return;
+          }
+          accepted?.Invoke(result);
+        }
+        finished = true;
+        form.Close();
+      };
+
+      ok.Click += (sender, args) => finish(true);
+      editor.SelectionChangeCommitted += (sender, args) =>
+      {
+        errorLabel.Text = string.Empty;
+        editor.BackColor = Color.White;
       };
       editor.KeyDown += (sender, args) =>
       {
@@ -44,51 +148,12 @@ namespace BIMBaoGui.Stage01.UI
           finish(false);
         }
       };
-      form.Deactivate += (sender, args) => finish(true);
+      form.Deactivate += (sender, args) => finish(false);
       form.FormClosed += (sender, args) => { if (ReferenceEquals(_active, form)) _active = null; };
+      form.Controls.Add(guideLabel);
       form.Controls.Add(editor);
-      Show(form, canvas, () =>
-      {
-        editor.Focus();
-        editor.SelectAll();
-      });
-    }
-
-    public static void ShowChoice(GH_Canvas canvas, RectangleF canvasBounds, string value, string[] choices, Action<string> accepted)
-    {
-      CloseActive();
-      var form = CreateHost(canvas, canvasBounds);
-      var editor = new ComboBox
-      {
-        Dock = DockStyle.Fill,
-        DropDownStyle = ComboBoxStyle.DropDownList,
-        IntegralHeight = true,
-        Font = new Font("Microsoft YaHei UI", 9f, FontStyle.Regular, GraphicsUnit.Point)
-      };
-      editor.Items.AddRange(choices ?? Array.Empty<string>());
-      int selected = editor.FindStringExact(value ?? string.Empty);
-      editor.SelectedIndex = selected >= 0 ? selected : (editor.Items.Count > 0 ? 0 : -1);
-      bool finished = false;
-      Action<bool> finish = commit =>
-      {
-        if (finished) return;
-        finished = true;
-        string result = Convert.ToString(editor.SelectedItem) ?? string.Empty;
-        form.Close();
-        if (commit) accepted?.Invoke(result);
-      };
-      editor.SelectionChangeCommitted += (sender, args) => finish(true);
-      editor.KeyDown += (sender, args) =>
-      {
-        if (args.KeyCode == Keys.Escape)
-        {
-          args.SuppressKeyPress = true;
-          finish(false);
-        }
-      };
-      form.Deactivate += (sender, args) => finish(true);
-      form.FormClosed += (sender, args) => { if (ReferenceEquals(_active, form)) _active = null; };
-      form.Controls.Add(editor);
+      form.Controls.Add(ok);
+      form.Controls.Add(errorLabel);
       Show(form, canvas, () =>
       {
         editor.Focus();
@@ -104,23 +169,52 @@ namespace BIMBaoGui.Stage01.UI
       _active = null;
     }
 
-    private static Form CreateHost(GH_Canvas canvas, RectangleF canvasBounds)
+    private static Label CreateLabel(string text, Color color, int x, int y, int width, int height)
+    {
+      return new Label
+      {
+        AutoEllipsis = true,
+        Font = new Font("Microsoft YaHei UI", 7.6f, FontStyle.Regular, GraphicsUnit.Point),
+        ForeColor = color,
+        Location = new Point(x, y),
+        Size = new Size(Math.Max(40, width), height),
+        Text = text ?? string.Empty,
+        TextAlign = ContentAlignment.MiddleLeft
+      };
+    }
+
+    private static Button CreateButton(string text, int x, int y, int width, int height)
+    {
+      return new Button
+      {
+        FlatStyle = FlatStyle.Flat,
+        Font = new Font("Microsoft YaHei UI", 8f, FontStyle.Bold, GraphicsUnit.Point),
+        ForeColor = Color.FromArgb(31, 92, 166),
+        BackColor = Color.FromArgb(235, 242, 251),
+        Location = new Point(x, y),
+        Size = new Size(width, height),
+        Text = text
+      };
+    }
+
+    private static Form CreateHost(GH_Canvas canvas, RectangleF canvasBounds, int height)
     {
       PointF topLeft = canvas.Viewport.ProjectPoint(new PointF(canvasBounds.Left, canvasBounds.Top));
       PointF bottomRight = canvas.Viewport.ProjectPoint(new PointF(canvasBounds.Right, canvasBounds.Bottom));
       Point screenPoint = canvas.PointToScreen(Point.Round(topLeft));
-      int width = Math.Max(150, (int) Math.Round(bottomRight.X - topLeft.X));
-      int height = Math.Max(26, (int) Math.Round(bottomRight.Y - topLeft.Y));
+      int width = Math.Max(310, (int) Math.Round(bottomRight.X - topLeft.X));
       return new Form
       {
-        FormBorderStyle = FormBorderStyle.None,
+        FormBorderStyle = FormBorderStyle.FixedSingle,
         ShowInTaskbar = false,
         StartPosition = FormStartPosition.Manual,
         Location = screenPoint,
         ClientSize = new Size(width, height),
         TopMost = true,
         MinimizeBox = false,
-        MaximizeBox = false
+        MaximizeBox = false,
+        ControlBox = false,
+        BackColor = Color.White
       };
     }
 
