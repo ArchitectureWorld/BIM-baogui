@@ -72,10 +72,11 @@ namespace BIMBaoGui.Stage01.Context
     public string SourcePayloadHash { get; }
     public string FileContextHash { get; }
 
-    public bool IsValid => InitializationPassed
-      && !string.IsNullOrWhiteSpace(FileGuid)
+    public bool IsValid => !string.IsNullOrWhiteSpace(FileGuid)
       && !string.IsNullOrWhiteSpace(RevitDocumentFingerprint)
       && !string.IsNullOrWhiteSpace(FileContextHash);
+
+    public bool IsReady => IsValid && InitializationPassed;
 
     internal HBRFileContext WithHash(string hash)
     {
