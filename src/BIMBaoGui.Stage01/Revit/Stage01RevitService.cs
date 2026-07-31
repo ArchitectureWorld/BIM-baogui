@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using BIMBaoGui.Stage01.Context;
 using BIMBaoGui.Stage01.Core;
 using BIMBaoGui.Stage01.Infrastructure;
 
@@ -59,7 +60,7 @@ namespace BIMBaoGui.Stage01.Revit
       if (!snapshot.IsProjectDocument) messages.Add("当前文档是族文件，不支持初始化。");
       if (!snapshot.IsSaved) messages.Add("请先保存当前 RVT 文件。");
       if (snapshot.IsReadOnly) messages.Add("当前文档为只读状态。");
-      if (!snapshot.IsBlank && !snapshot.IsInitialized) messages.Add("当前文件已存在正式模型或链接内容，不符合第一代空白文件条件。");
+      if (!snapshot.IsBlank && !snapshot.IsInitialized) messages.Add("当前文件已存在正式建模内容或外部链接，不符合“尚未开始正式建模”的初始化条件。");
 
       if (snapshot.IsInitialized)
         snapshot.Status = snapshot.PayloadMatches ? "初始化通过" : "已修改待重新提交";
@@ -114,8 +115,8 @@ namespace BIMBaoGui.Stage01.Revit
 
       model.SetValue(Stage01Keys.LengthUnit, "m");
       model.SetValue(Stage01Keys.AreaUnit, "m²");
-      model.SetValue(Stage01Keys.AngleUnit, "°");
-      model.SetValue(Stage01Keys.WorkflowVersion, "0.2.0");
+      model.SetValue(Stage01Keys.AngUnit, "°");
+      model.SetValue(Stage01Keys.WorkflowVersion, HBRContextVersions.FileContextSchema);
       if (string.IsNullOrWhiteSpace(model.GetValue(Stage01Keys.FileGuid)))
         model.SetValue(Stage01Keys.FileGuid, stored?.FileGuid ?? Guid.NewGuid().ToString("D"));
       messages.Add("当前宿主：Revit " + uiapp.Application.VersionNumber + " / " + document.Title);
@@ -166,7 +167,7 @@ namespace BIMBaoGui.Stage01.Revit
 
       IReadOnlyList<string> blockers = BlankFileGate.FindBlockingElements(document);
       if (blockers.Count > 0 && existing == null)
-        return Failure(new[] { "空白文件门禁未通过。" }.Concat(blockers).ToArray());
+        return Failure(new[] { "实质模型门禁未通过。" }.Concat(blockers).ToArray());
 
       string fileGuid = model.GetValue(Stage01Keys.FileGuid);
       if (string.IsNullOrWhiteSpace(fileGuid))
@@ -174,7 +175,7 @@ namespace BIMBaoGui.Stage01.Revit
         fileGuid = Guid.NewGuid().ToString("D");
         model.SetValue(Stage01Keys.FileGuid, fileGuid);
       }
-      model.SetValue(Stage01Keys.WorkflowVersion, "0.2.0");
+      model.SetValue(Stage01Keys.WorkflowVersion, HBRContextVersions.FileContextSchema);
       string payloadJson = CanonicalPayload.Build(model);
       string payloadHash = CanonicalPayload.Sha256(payloadJson);
 
