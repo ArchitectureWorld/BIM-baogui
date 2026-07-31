@@ -10,6 +10,7 @@ namespace BIMBaoGui.Stage01.Core
     {
       Values = new Dictionary<string, string>(StringComparer.Ordinal);
       Conditions = new Dictionary<string, bool>(StringComparer.Ordinal);
+      PlanningTargets = new Dictionary<string, PlanningTargetValue>(StringComparer.Ordinal);
       Organizations = new List<Dictionary<string, string>>
       {
         new Dictionary<string, string>(StringComparer.Ordinal)
@@ -18,6 +19,7 @@ namespace BIMBaoGui.Stage01.Core
 
     public Dictionary<string, string> Values { get; }
     public Dictionary<string, bool> Conditions { get; }
+    public Dictionary<string, PlanningTargetValue> PlanningTargets { get; }
     public List<Dictionary<string, string>> Organizations { get; }
     public bool ConfirmBlankProject { get; set; }
     public bool AllowReinitialize { get; set; }
@@ -44,6 +46,31 @@ namespace BIMBaoGui.Stage01.Core
     public void SetCondition(string key, bool value)
     {
       Conditions[key] = value;
+    }
+
+    public PlanningTargetValue GetPlanningTarget(string metricCode)
+    {
+      return metricCode != null && PlanningTargets.TryGetValue(metricCode, out PlanningTargetValue value)
+        ? value
+        : null;
+    }
+
+    public void SetPlanningTarget(PlanningTargetValue target)
+    {
+      if (target == null || string.IsNullOrWhiteSpace(target.MetricCode)) return;
+      PlanningTargets[target.MetricCode] = target;
+      PlanningTargetDefinition definition = PlanningTargetCatalog.Get(target.MetricCode);
+      if (definition != null)
+        Values[definition.MvdFieldKey] = target.ToMvdText();
+    }
+
+    public void RemovePlanningTarget(string metricCode)
+    {
+      if (string.IsNullOrWhiteSpace(metricCode)) return;
+      PlanningTargets.Remove(metricCode);
+      PlanningTargetDefinition definition = PlanningTargetCatalog.Get(metricCode);
+      if (definition != null)
+        Values[definition.MvdFieldKey] = string.Empty;
     }
 
     public Dictionary<string, string> CurrentOrganization
@@ -85,6 +112,9 @@ namespace BIMBaoGui.Stage01.Core
       clone.Conditions.Clear();
       foreach (KeyValuePair<string, bool> pair in Conditions)
         clone.Conditions[pair.Key] = pair.Value;
+      clone.PlanningTargets.Clear();
+      foreach (KeyValuePair<string, PlanningTargetValue> pair in PlanningTargets)
+        clone.PlanningTargets[pair.Key] = pair.Value;
       clone.Organizations.Clear();
       foreach (Dictionary<string, string> record in Organizations)
         clone.Organizations.Add(record.ToDictionary(x => x.Key, x => x.Value, StringComparer.Ordinal));
