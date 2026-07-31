@@ -32,7 +32,11 @@ namespace BIMBaoGui.Stage01.Infrastructure
         new ConditionDefinition("site.green", "绿地", "10_项目条件"),
         new ConditionDefinition("site.outdoor_parking", "室外停车场／车位", "10_项目条件"),
         new ConditionDefinition("site.civil_defense", "人防区域", "10_项目条件"),
-        new ConditionDefinition("site.structures", "室外构筑物与设施", "10_项目条件")
+        new ConditionDefinition("site.structures", "室外构筑物与设施", "10_项目条件"),
+        new ConditionDefinition("building.roof", "屋顶及屋面构件", "10_项目条件"),
+        new ConditionDefinition("building.balcony", "阳台", "10_项目条件"),
+        new ConditionDefinition("building.canopy", "雨篷或挑檐", "10_项目条件"),
+        new ConditionDefinition("underground.parking", "地下停车空间", "10_项目条件")
       };
     }
 
