@@ -120,6 +120,62 @@ namespace BIMBaoGui.Stage01.Core
       return true;
     }
 
+    public static bool TryParseMvdText(
+      string metricCode,
+      string text,
+      PlanningTargetUnit unit,
+      string source,
+      out PlanningTargetValue target,
+      out string error)
+    {
+      target = null;
+      error = string.Empty;
+      string normalized = (text ?? string.Empty).Trim().Replace("％", "%");
+      if (unit == PlanningTargetUnit.Percent && normalized.EndsWith("%", StringComparison.Ordinal))
+        normalized = normalized.Substring(0, normalized.Length - 1).Trim();
+      if (normalized.Length == 0)
+      {
+        error = "规划指标值为空。";
+        return false;
+      }
+
+      PlanningTargetOperator @operator;
+      string firstText;
+      string secondText = null;
+      if (normalized.StartsWith("≤", StringComparison.Ordinal) || normalized.StartsWith("<=", StringComparison.Ordinal))
+      {
+        @operator = PlanningTargetOperator.LessOrEqual;
+        firstText = normalized.StartsWith("<=", StringComparison.Ordinal) ? normalized.Substring(2) : normalized.Substring(1);
+      }
+      else if (normalized.StartsWith("≥", StringComparison.Ordinal) || normalized.StartsWith(">=", StringComparison.Ordinal))
+      {
+        @operator = PlanningTargetOperator.GreaterOrEqual;
+        firstText = normalized.StartsWith(">=", StringComparison.Ordinal) ? normalized.Substring(2) : normalized.Substring(1);
+      }
+      else if (normalized.StartsWith("=", StringComparison.Ordinal))
+      {
+        @operator = PlanningTargetOperator.Equal;
+        firstText = normalized.Substring(1);
+      }
+      else
+      {
+        string[] range = normalized.Split(new[] { '–', '—', '~', '～' }, StringSplitOptions.RemoveEmptyEntries);
+        if (range.Length == 2)
+        {
+          @operator = PlanningTargetOperator.Range;
+          firstText = range[0];
+          secondText = range[1];
+        }
+        else
+        {
+          @operator = PlanningTargetOperator.Equal;
+          firstText = normalized;
+        }
+      }
+
+      return TryCreate(metricCode, @operator, firstText.Trim(), secondText?.Trim(), unit, source, out target, out error);
+    }
+
     public string ToMvdText()
     {
       if (Operator == PlanningTargetOperator.Range)
