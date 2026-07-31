@@ -82,8 +82,27 @@ def test_stage01_uses_left_directory_and_internal_scroll_instead_of_paging():
 
 def test_required_and_optional_fields_are_visually_distinguished():
     attributes = read("src/BIMBaoGui.Stage01/UI/Stage01ComponentAttributes.cs")
-    component = read("src/BIMBaoGui.Stage01/Stage01Component.cs")
     assert "必填" in attributes
     assert "选填" in attributes
-    assert "Essential" in attributes
-    assert "GroupHasRequiredFields" in component
+    assert "FieldInputRules.IsRequired" in attributes
+
+
+def test_input_fields_show_type_examples_and_reject_invalid_values_before_closing():
+    attributes = read("src/BIMBaoGui.Stage01/UI/Stage01ComponentAttributes.cs")
+    editor = read("src/BIMBaoGui.Stage01/UI/InlineEditor.cs")
+    rules = read("src/BIMBaoGui.Stage01/Core/FieldInputRules.cs")
+    assert "FieldInputRules.BuildPlaceholder" in attributes
+    assert "FieldInputRules.Validate" in attributes
+    assert "示例" in rules
+    assert "Func<string, string> validate" in editor
+    assert "errorLabel" in editor
+
+
+def test_blocking_reasons_are_actionable_and_can_navigate_to_first_problem():
+    attributes = read("src/BIMBaoGui.Stage01/UI/Stage01ComponentAttributes.cs")
+    feedback = read("src/BIMBaoGui.Stage01/Core/Stage01Feedback.cs")
+    assert "当前阻断原因" in attributes
+    assert "定位首个问题" in attributes
+    assert "Stage01Feedback.Build" in attributes
+    assert "Stage01Feedback.FirstProblemGroup" in attributes
+    assert "提交与校验" in feedback
