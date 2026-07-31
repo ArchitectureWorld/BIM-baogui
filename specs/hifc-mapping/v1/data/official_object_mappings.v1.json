@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "1.0.0",
+  "mappings": [
+    {
+      "mappingIndex": 0,
+      "revitNameZh": "项目信息",
+      "group": null,
+      "revitNameEn": "ProjectInfo",
+      "matchExpression": ".(OST_ProjectInformation/*/*[~*])",
+      "category": "OST_ProjectInformation",
+      "family": "*",
+      "type": "*",
+      "instance": "*",
+      "hifcExpression": "IfcProject/*",
+      "ifcEntity": "IfcProject",
+      "hifcName": "项目信息",
+      "classificationCode": "10-13.40.00",
+      "evidenceStatus": "OFFICIAL_EXTRACTED"
+    },
+    {
+      "mappingIndex": 1,
+      "revitNameZh": "建筑",
+      "group": null,
+      "revitNameEn": null,
+      "matchExpression": ".(OST_ProjectInformation)",
+      "category": "OST_ProjectInformation",
+      "family": null,
+      "type": null,
+      "instance": null,
+      "hifcExpression": "IfcBuilding/建筑",
+      "ifcEntity": "IfcBuilding",
+      "hifcName": "建筑",
+      "classificationCode": "14-10.00.00",
+      "evidenceStatus": "OFFICIAL_EXTRACTED"
+    },
+    {
+      "mappingIndex": 2,
+      "revitNameZh": "楼层",
+      "group": "构件",
+      "revitNameEn": "Level",
+      "matchExpression": ".(OST_Levels/*/*[~*])",
+      "category": "OST_Levels",
+      "family": "*",
+      "type": "*",
+      "instance": "*",
+      "hifcExpression": "IfcBuildingStorey/楼层",
+      "ifcEntity": "IfcBuildingStorey",
+      "hifcName": "楼层",
+      "classificationCode": "13-01.20.00",
+      "evidenceStatus": "OFFICIAL_EXTRACTED"
+    },
+    {
+      "mappingIndex": 3,
+      "revitNameZh": "房间",
+      "group": "空间",
+      "revitNameEn": "Room",
+      "matchExpression": ".(OST_Rooms/*/*[~*])",
+      "category": "OST_Rooms",
+      "family": null,
+      "type": null,
+      "instance": null,
+      "hifcExpression": "IfcSpace/房间",
+      "ifcEntity": "IfcSpace",
+      "hifcName": "房间",
+      "classificationCode": "13-01.10.00",
+      "evidenceStatus": "OFFICIAL_EXTRACTED"
+    }
+  ]
+}

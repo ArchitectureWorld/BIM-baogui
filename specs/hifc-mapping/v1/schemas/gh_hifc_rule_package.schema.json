@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:architectureworld:gh-hifc:rule-package:v1",
+  "title": "GH HIFC Rule Package",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "packageId",
+    "packageVersion",
+    "source",
+    "properties"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "packageId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "packageVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generatedAt": {
+      "type": "string"
+    },
+    "idNamespace": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "source": {
+      "type": "object"
+    },
+    "officialSummary": {
+      "type": "object"
+    },
+    "properties": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/propertyRule"
+      }
+    }
+  },
+  "$defs": {
+    "propertyRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "propertyId",
+        "canonicalKey",
+        "order",
+        "official",
+        "canonical",
+        "implementation"
+      ],
+      "properties": {
+        "propertyId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "canonicalKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "official": {
+          "type": "object",
+          "required": [
+            "ifcEntity",
+            "propertySet",
+            "ifcProperty",
+            "ifcDataType",
+            "psetScope",
+            "evidenceStatus"
+          ],
+          "properties": {
+            "ifcEntity": {
+              "type": "string",
+              "pattern": "^Ifc"
+            },
+            "propertySet": {
+              "type": "string",
+              "minLength": 1
+            },
+            "ifcProperty": {
+              "type": "string",
+              "minLength": 1
+            },
+            "ifcDataType": {
+              "enum": [
+                "IfcLabel",
+                "IfcText",
+                "IfcInteger",
+                "IfcReal",
+                "IfcBoolean",
+                "IfcDate",
+                "IfcDateTime"
+              ]
+            },
+            "unit": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "exampleValue": {},
+            "psetScope": {
+              "const": "INSTANCE"
+            },
+            "sourceParameterOverride": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "evidenceStatus": {
+              "const": "OFFICIAL_EXTRACTED"
+            },
+            "standard": {
+              "type": "string"
+            },
+            "scenario": {
+              "type": "string"
+            },
+            "crosscheck": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": true
+        },
+        "canonical": {
+          "type": "object",
+          "required": [
+            "revitParameterGuid",
+            "revitParameterName",
+            "bindingScope",
+            "storageType",
+            "specType",
+            "ownerObjectKind",
+            "persistenceMode"
+          ],
+          "properties": {
+            "revitParameterGuid": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "revitParameterName": {
+              "type": "string",
+              "pattern": "^HIFC\\."
+            },
+            "displayName": {
+              "type": "string"
+            },
+            "bindingScope": {
+              "const": "INSTANCE"
+            },
+            "storageType": {
+              "enum": [
+                "String",
+                "Integer",
+                "Double"
+              ]
+            },
+            "specType": {
+              "type": "string"
+            },
+            "sharedParameterType": {
+              "type": "string"
+            },
+            "unitType": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "ownerObjectKind": {
+              "type": "string"
+            },
+            "persistenceMode": {
+              "enum": [
+                "SHARED_PARAMETER_AND_DATASTORE",
+                "DATASTORE_ONLY",
+                "HYBRID_AREA_AND_DATASTORE"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "implementation": {
+          "type": "object",
+          "required": [
+            "revitCarrier",
+            "exportStrategy",
+            "recommendedValueSource",
+            "requirementLevel",
+            "evidenceStatus"
+          ],
+          "properties": {
+            "revitCarrier": {
+              "type": "string"
+            },
+            "revitCategory": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "selector": {
+              "type": "string"
+            },
+            "exportStrategy": {
+              "type": "string"
+            },
+            "recommendedValueSource": {
+              "type": "string"
+            },
+            "requirementLevel": {
+              "enum": [
+                "UNCLASSIFIED",
+                "REQUIRED",
+                "CONDITIONAL",
+                "RECOMMENDED",
+                "NOT_APPLICABLE"
+              ]
+            },
+            "applicability": {
+              "type": "string"
+            },
+            "evidenceStatus": {
+              "const": "IMPLEMENTATION_DECISION"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  }
+}
