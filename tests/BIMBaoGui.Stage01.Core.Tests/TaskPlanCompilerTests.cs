@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BIMBaoGui.Stage01.Context;
 using BIMBaoGui.Stage01.Core;
 using BIMBaoGui.Stage01.TaskPlanning;
@@ -74,8 +75,8 @@ namespace BIMBaoGui.Stage01.Core.Tests
         ready.ModelFileType,
         ready.ModelScope,
         ready.SpatialReference,
-        new Dictionary<string, PlanningTargetValue>(ready.PlanningTargets, StringComparer.Ordinal),
-        new Dictionary<string, bool>(ready.ProjectConditions, StringComparer.Ordinal),
+        ready.PlanningTargets.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal),
+        ready.ProjectConditions.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal),
         ready.ActivatedRuleIds,
         ready.NotApplicableRuleIds,
         false,
@@ -101,7 +102,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
       }
       RuleActivationResult activation = RuleActivationCatalog.Compile(modelFileType, conditions);
       var provisional = new HBRFileContext(
-        HBRFileContextFactory.SchemaVersion,
+        HBRContextVersions.FileContextSchema,
         "0.5.0",
         "file-guid",
         "document-fingerprint",
@@ -118,7 +119,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
         activation.Activated,
         activation.NotApplicable,
         true,
-        HBRFileContextFactory.RulePackVersion,
+        HBRContextVersions.RulePack,
         "payload-hash",
         string.Empty);
       return provisional.WithHash(HBRFileContextCanonicalizer.ComputeHash(provisional));
