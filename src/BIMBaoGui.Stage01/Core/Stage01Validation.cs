@@ -76,6 +76,7 @@ namespace BIMBaoGui.Stage01.Core
       foreach (FieldDefinition definition in uniqueDefinitions)
       {
         if (RequiredKeys.Contains(definition.Key, StringComparer.Ordinal)) continue;
+        if (PlanningTargetCatalog.IsManagedMvdField(definition.Key)) continue;
         string value = definition.Entity == "IfcOrganization"
           ? model.GetOrganizationValue(definition.Key)
           : model.GetValue(definition.Key);
@@ -83,6 +84,8 @@ namespace BIMBaoGui.Stage01.Core
         if (!string.IsNullOrWhiteSpace(error))
           messages.Add(new ValidationMessage(ValidationSeverity.Error, definition.Key, error));
       }
+
+      ValidatePlanningTargets(model, messages);
 
       if (!model.ConfirmBlankProject)
       {
@@ -107,6 +110,30 @@ namespace BIMBaoGui.Stage01.Core
     public static bool TryDouble(string value, out double result)
     {
       return FieldInputRules.TryDouble(value, out result);
+    }
+
+    private static void ValidatePlanningTargets(Stage01Model model, ICollection<ValidationMessage> messages)
+    {
+      string modelFileType = model.GetValue(Stage01Keys.ModelFileType);
+      foreach (PlanningTargetDefinition definition in PlanningTargetCatalog.All)
+      {
+        PlanningTargetRequirement requirement = PlanningTargetRequirementPolicy.GetRequirement(modelFileType, definition.MetricCode);
+        PlanningTargetValue target = model.GetPlanningTarget(definition.MetricCode);
+        if (requirement == PlanningTargetRequirement.Required && target == null)
+        {
+          messages.Add(new ValidationMessage(
+            ValidationSeverity.Error,
+            definition.MvdFieldKey,
+            definition.Label + "为总平模型必填的规划控制目标，请设置运算符和数值。"));
+        }
+        else if (target != null && target.Unit != definition.Unit)
+        {
+          messages.Add(new ValidationMessage(
+            ValidationSeverity.Error,
+            definition.MvdFieldKey,
+            definition.Label + "的单位与指标定义不一致。"));
+        }
+      }
     }
 
     private static FieldDefinition CreateFallbackDefinition(string key)
