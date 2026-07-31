@@ -13,13 +13,13 @@ namespace BIMBaoGui.Stage01.UI
 {
   internal sealed class Stage01ComponentAttributes : GH_ComponentAttributes
   {
-    private const float CardWidth = 820f;
-    private const float CardHeight = 720f;
-    private const float DirectoryWidth = 196f;
+    private const float CardWidth = 840f;
+    private const float CardHeight = 736f;
+    private const float DirectoryWidth = 202f;
     private const float WorkspaceTop = 90f;
-    private const float WorkspaceHeight = 500f;
+    private const float WorkspaceHeight = 510f;
     private const float WorkspaceGap = 12f;
-    private const float FieldRowHeight = 54f;
+    private const float FieldRowHeight = 56f;
 
     private static readonly Color Primary = Color.FromArgb(31, 92, 166);
     private static readonly Color PrimaryDark = Color.FromArgb(22, 68, 124);
@@ -32,6 +32,7 @@ namespace BIMBaoGui.Stage01.UI
     private static readonly Color Warning = Color.FromArgb(202, 124, 28);
     private static readonly Color Error = Color.FromArgb(190, 53, 53);
     private static readonly Color Required = Color.FromArgb(206, 62, 62);
+    private static readonly Color Inherited = Color.FromArgb(95, 82, 168);
 
     private readonly Stage01Component _owner;
     private readonly List<DirectoryHit> _directoryHits = new List<DirectoryHit>();
@@ -220,13 +221,27 @@ namespace BIMBaoGui.Stage01.UI
     private void EditField(GH_Canvas canvas, FieldDefinition definition, RectangleF bounds)
     {
       if (!_owner.IsFieldEditable(definition)) return;
+
+      PlanningTargetDefinition targetDefinition = _owner.GetPlanningTargetDefinition(definition);
+      if (targetDefinition != null)
+      {
+        PlanningTargetEditor.Show(
+          canvas,
+          bounds,
+          targetDefinition,
+          _owner.GetPlanningTarget(targetDefinition.MetricCode),
+          _owner.SetPlanningTarget,
+          () => _owner.RemovePlanningTarget(targetDefinition.MetricCode));
+        return;
+      }
+
       if (definition.Kind == FieldKind.Boolean)
       {
         _owner.ToggleBooleanField(definition);
         return;
       }
 
-      bool required = FieldInputRules.IsRequired(definition);
+      bool required = _owner.IsFieldRequired(definition);
       string guide = FieldInputRules.BuildPlaceholder(definition);
       Func<string, string> validate = value => FieldInputRules.Validate(definition, value, required);
       string current = _owner.GetFieldValue(definition);
@@ -317,7 +332,7 @@ namespace BIMBaoGui.Stage01.UI
       int problemCount = TotalProblemCount();
       string statusText = problemCount > 0 ? status + " · " + problemCount + "项" : status;
       Color statusColor = StatusColor(status);
-      _statusPill = new RectangleF(_cardBounds.Right - 174, _cardBounds.Y + 18, 150, 32);
+      _statusPill = new RectangleF(_cardBounds.Right - 178, _cardBounds.Y + 18, 154, 32);
       FillRounded(graphics, _statusPill, Color.FromArgb(238, Color.White), 16);
       using (var dot = new SolidBrush(statusColor)) graphics.FillEllipse(dot, _statusPill.X + 11, _statusPill.Y + 11, 10, 10);
       using (var statusFont = new Font("Microsoft YaHei UI", 8.2f, FontStyle.Bold, GraphicsUnit.Point))
@@ -351,32 +366,30 @@ namespace BIMBaoGui.Stage01.UI
 
       IReadOnlyList<string> groups = _owner.GetVisibleGroups();
       float top = _directoryBounds.Y + 43;
-      float itemHeight = 36f;
-      using (var itemFont = new Font("Microsoft YaHei UI", 7.9f, FontStyle.Regular, GraphicsUnit.Point))
-      using (var activeFont = new Font("Microsoft YaHei UI", 7.9f, FontStyle.Bold, GraphicsUnit.Point))
+      using (var itemFont = new Font("Microsoft YaHei UI", 7.8f, FontStyle.Regular, GraphicsUnit.Point))
+      using (var activeFont = new Font("Microsoft YaHei UI", 7.8f, FontStyle.Bold, GraphicsUnit.Point))
       {
         for (int index = 0; index < groups.Count; ++index)
         {
           string group = groups[index];
           RectangleF item = new RectangleF(_directoryBounds.X + 10, top + index * 41f,
-            _directoryBounds.Width - 20, itemHeight);
+            _directoryBounds.Width - 20, 36f);
           bool active = string.Equals(group, _owner.Model.ActiveGroup, StringComparison.Ordinal);
           bool required = GroupHasRequired(group);
           int errors = Stage01Feedback.CountErrorsForGroup(_owner.Validation, _owner.Registry.Fields, group);
           Color fill = active ? Primary : Color.FromArgb(247, 250, 253);
-          Color border = active ? Primary : Border;
           Color foreground = active ? Color.White : Text;
           FillRounded(graphics, item, fill, 6);
-          DrawBorder(graphics, item, border, 6);
+          DrawBorder(graphics, item, active ? Primary : Border, 6);
 
           string label = (index + 1).ToString("00") + "  " + _owner.GetGroupDisplayName(group) + (required ? " *" : string.Empty);
           using (var brush = new SolidBrush(foreground))
             DrawLeftCentered(graphics, label, active ? activeFont : itemFont, brush,
-              new RectangleF(item.X + 10, item.Y, item.Width - 47, item.Height));
+              new RectangleF(item.X + 10, item.Y, item.Width - 48, item.Height));
 
           if (errors > 0)
           {
-            RectangleF badge = new RectangleF(item.Right - 31, item.Y + 8, 22, 20);
+            RectangleF badge = new RectangleF(item.Right - 32, item.Y + 8, 23, 20);
             FillRounded(graphics, badge, active ? Color.White : Color.FromArgb(255, 232, 232), 10);
             using (var badgeFont = new Font("Microsoft YaHei UI", 7.2f, FontStyle.Bold, GraphicsUnit.Point))
             using (var badgeBrush = new SolidBrush(active ? Error : Required))
@@ -387,38 +400,38 @@ namespace BIMBaoGui.Stage01.UI
             using (var dot = new SolidBrush(active ? Color.White : Success))
               graphics.FillEllipse(dot, item.Right - 22, item.Y + 14, 8, 8);
           }
-
           _directoryHits.Add(new DirectoryHit(group, item));
         }
       }
 
-      using (var legendFont = new Font("Microsoft YaHei UI", 7.2f, FontStyle.Regular, GraphicsUnit.Point))
+      using (var legendFont = new Font("Microsoft YaHei UI", 7.1f, FontStyle.Regular, GraphicsUnit.Point))
       using (var requiredBrush = new SolidBrush(Required))
       using (var mutedBrush = new SolidBrush(Muted))
       {
         graphics.DrawString("* 必填目录", legendFont, requiredBrush, _directoryBounds.X + 12, _directoryBounds.Bottom - 36);
-        graphics.DrawString("红色数字 = 待处理项", legendFont, mutedBrush, _directoryBounds.X + 76, _directoryBounds.Bottom - 36);
+        graphics.DrawString("红色数字 = 待处理项", legendFont, mutedBrush, _directoryBounds.X + 79, _directoryBounds.Bottom - 36);
       }
     }
 
     private bool GroupHasRequired(string group)
     {
-      return _owner.GetFieldsForGroup(group).Any(FieldInputRules.IsRequired)
+      return _owner.GroupHasRequiredFields(group)
         || string.Equals(group, "11_提交与校验", StringComparison.Ordinal);
     }
 
     private void DrawContent(Graphics graphics)
     {
       float headerY = _contentBounds.Y + 12;
-      string title = _owner.GetGroupDisplayName(_owner.Model.ActiveGroup);
       using (var headingFont = new Font("Microsoft YaHei UI", 10f, FontStyle.Bold, GraphicsUnit.Point))
       using (var headingBrush = new SolidBrush(Text))
-        graphics.DrawString(title, headingFont, headingBrush, _contentBounds.X + 16, headerY);
+        graphics.DrawString(_owner.GetGroupDisplayName(_owner.Model.ActiveGroup), headingFont, headingBrush,
+          _contentBounds.X + 16, headerY);
 
-      float tagX = _contentBounds.Right - 179;
+      float tagX = _contentBounds.Right - 234;
       DrawTag(graphics, new RectangleF(tagX, headerY - 1, 49, 22), "* 必填", Color.FromArgb(255, 235, 235), Required);
       DrawTag(graphics, new RectangleF(tagX + 56, headerY - 1, 49, 22), "选填", Color.FromArgb(240, 244, 249), Muted);
-      DrawTag(graphics, new RectangleF(tagX + 112, headerY - 1, 49, 22), "系统", Color.FromArgb(232, 238, 245), Color.FromArgb(79, 98, 118));
+      DrawTag(graphics, new RectangleF(tagX + 112, headerY - 1, 49, 22), "继承", Color.FromArgb(239, 236, 252), Inherited);
+      DrawTag(graphics, new RectangleF(tagX + 168, headerY - 1, 49, 22), "系统", Color.FromArgb(232, 238, 245), Color.FromArgb(79, 98, 118));
 
       using (var pen = new Pen(Color.FromArgb(224, 230, 237), 1f))
         graphics.DrawLine(pen, _contentBounds.X + 14, _contentBounds.Y + 45, _contentBounds.Right - 14, _contentBounds.Y + 45);
@@ -461,7 +474,7 @@ namespace BIMBaoGui.Stage01.UI
 
       GraphicsState state = graphics.Save();
       graphics.SetClip(new RectangleF(viewport.X, top, viewport.Width, availableHeight));
-      float labelWidth = 170f;
+      float labelWidth = 184f;
       using (var labelFont = new Font("Microsoft YaHei UI", 8.1f, FontStyle.Regular, GraphicsUnit.Point))
       using (var labelRequiredFont = new Font("Microsoft YaHei UI", 8.1f, FontStyle.Bold, GraphicsUnit.Point))
       using (var valueFont = new Font("Microsoft YaHei UI", 8.2f, FontStyle.Regular, GraphicsUnit.Point))
@@ -470,21 +483,28 @@ namespace BIMBaoGui.Stage01.UI
         for (int index = 0; index < visible.Count; ++index)
         {
           FieldDefinition definition = visible[index];
+          PlanningTargetDefinition targetDefinition = _owner.GetPlanningTargetDefinition(definition);
+          PlanningTargetRequirement targetRequirement = targetDefinition == null
+            ? PlanningTargetRequirement.NotApplicable
+            : _owner.GetPlanningTargetRequirement(targetDefinition.MetricCode);
+          bool inherited = targetDefinition != null && targetRequirement == PlanningTargetRequirement.Inherited;
           bool editable = _owner.IsFieldEditable(definition);
-          bool required = FieldInputRules.IsRequired(definition);
+          bool required = _owner.IsFieldRequired(definition);
           string value = _owner.GetFieldValue(definition);
           string fieldError = Stage01Feedback.ErrorForField(_owner.Validation, definition.Key);
           RectangleF row = new RectangleF(viewport.X, top + index * FieldRowHeight,
             viewport.Width - 14, FieldRowHeight - 5);
           FillRounded(graphics, row, index % 2 == 0 ? Color.FromArgb(250, 252, 254) : Color.FromArgb(246, 249, 252), 5);
 
-          RectangleF labelRect = new RectangleF(row.X + 8, row.Y, labelWidth - 54, row.Height);
+          RectangleF labelRect = new RectangleF(row.X + 8, row.Y, labelWidth - 58, row.Height);
           string decorated = Stage01UiPolicy.DecorateRequiredLabel(definition.Label, required);
           using (var labelBrush = new SolidBrush(definition.Deferred ? Color.FromArgb(155, Muted) : Text))
             DrawLeftCentered(graphics, decorated, required ? labelRequiredFont : labelFont, labelBrush, labelRect);
 
-          RectangleF typeTag = new RectangleF(row.X + labelWidth - 48, row.Y + 14, 42, 21);
-          if (!editable)
+          RectangleF typeTag = new RectangleF(row.X + labelWidth - 52, row.Y + 14, 46, 21);
+          if (inherited)
+            DrawTag(graphics, typeTag, "继承", Color.FromArgb(239, 236, 252), Inherited);
+          else if (!editable)
             DrawTag(graphics, typeTag, "系统", Color.FromArgb(232, 238, 245), Color.FromArgb(79, 98, 118));
           else if (!string.IsNullOrWhiteSpace(fieldError))
             DrawTag(graphics, typeTag, "错误", Color.FromArgb(255, 232, 232), Required);
@@ -502,12 +522,10 @@ namespace BIMBaoGui.Stage01.UI
           FillRounded(graphics, valueRect, valueBackground, 5);
           DrawBorder(graphics, valueRect, valueBorder, 5);
 
-          string display = string.IsNullOrWhiteSpace(value)
-            ? FieldInputRules.BuildPlaceholder(definition)
-            : (definition.Kind == FieldKind.Boolean
-              ? (string.Equals(value, "True", StringComparison.OrdinalIgnoreCase) ? "是" : "否")
-              : Compact(value, 42));
-          Color valueColor = string.IsNullOrWhiteSpace(value) ? Color.FromArgb(135, 151, 166) : Text;
+          string display = BuildFieldDisplay(definition, targetDefinition, targetRequirement, value);
+          Color valueColor = inherited
+            ? Inherited
+            : (string.IsNullOrWhiteSpace(value) ? Color.FromArgb(135, 151, 166) : Text);
           using (var valueBrush = new SolidBrush(valueColor))
             DrawLeftCentered(graphics, display, valueFont, valueBrush,
               new RectangleF(valueRect.X + 8, valueRect.Y, valueRect.Width - 29, valueRect.Height));
@@ -525,12 +543,38 @@ namespace BIMBaoGui.Stage01.UI
           {
             using (var errorBrush = new SolidBrush(Error))
               DrawLeftCentered(graphics, fieldError, errorFont, errorBrush,
-                new RectangleF(valueRect.X + 4, valueRect.Bottom + 1, valueRect.Width - 8, row.Bottom - valueRect.Bottom - 1));
+                new RectangleF(valueRect.X + 4, valueRect.Bottom + 1,
+                  valueRect.Width - 8, row.Bottom - valueRect.Bottom - 1));
           }
         }
       }
       graphics.Restore(state);
       DrawScrollBar(graphics, new RectangleF(viewport.Right - 8, top, 7, availableHeight), allFields.Count, visibleCount, offset);
+    }
+
+    private string BuildFieldDisplay(
+      FieldDefinition definition,
+      PlanningTargetDefinition targetDefinition,
+      PlanningTargetRequirement targetRequirement,
+      string value)
+    {
+      if (targetDefinition != null)
+      {
+        if (targetRequirement == PlanningTargetRequirement.Inherited)
+          return "从项目级 HBR_FileContext 继承；本文件不重复填写";
+        if (targetRequirement == PlanningTargetRequirement.NotApplicable)
+          return "当前模型类型不适用";
+        return string.IsNullOrWhiteSpace(value)
+          ? "结构化目标｜示例：" + targetDefinition.Example
+          : value;
+      }
+      if (!string.IsNullOrWhiteSpace(value))
+      {
+        if (definition.Kind == FieldKind.Boolean)
+          return string.Equals(value, "True", StringComparison.OrdinalIgnoreCase) ? "是" : "否";
+        return Compact(value, 46);
+      }
+      return FieldInputRules.BuildPlaceholder(definition);
     }
 
     private void DrawOrganizationBar(Graphics graphics, RectangleF bounds)
@@ -565,14 +609,15 @@ namespace BIMBaoGui.Stage01.UI
 
     private void DrawConditions(Graphics graphics, RectangleF viewport)
     {
+      IReadOnlyList<ConditionDefinition> conditions = _owner.GetVisibleConditions();
       float columnGap = 10f;
       float columnWidth = (viewport.Width - columnGap) / 2f;
       using (var font = new Font("Microsoft YaHei UI", 8.5f, FontStyle.Regular, GraphicsUnit.Point))
       using (var textBrush = new SolidBrush(Text))
       {
-        for (int index = 0; index < _owner.Registry.Conditions.Count; ++index)
+        for (int index = 0; index < conditions.Count; ++index)
         {
-          ConditionDefinition condition = _owner.Registry.Conditions[index];
+          ConditionDefinition condition = conditions[index];
           int column = index % 2;
           int row = index / 2;
           RectangleF bounds = new RectangleF(viewport.X + column * (columnWidth + columnGap),
@@ -588,8 +633,8 @@ namespace BIMBaoGui.Stage01.UI
 
       using (var noteFont = new Font("Microsoft YaHei UI", 7.8f, FontStyle.Regular, GraphicsUnit.Point))
       using (var noteBrush = new SolidBrush(Muted))
-        graphics.DrawString("项目条件均为按实际情况选择；未勾选表示当前文件不涉及该对象。", noteFont, noteBrush,
-          new RectangleF(viewport.X + 2, viewport.Bottom - 48, viewport.Width - 4, 34));
+        graphics.DrawString("这里仅显示当前模型类型可触发的条件；勾选结果将进入 HBR_FileContext 并驱动 02 任务分流。",
+          noteFont, noteBrush, new RectangleF(viewport.X + 2, viewport.Bottom - 48, viewport.Width - 4, 36));
     }
 
     private void DrawExecution(Graphics graphics, RectangleF viewport)
@@ -621,19 +666,20 @@ namespace BIMBaoGui.Stage01.UI
       DrawActionButton(graphics, _commitButton, _owner.IsCommitting ? "提交中…" : "写入并回读", Primary, Color.White, _owner.IsCommitting);
       DrawActionButton(graphics, _resetButton, "重置表单", Color.FromArgb(247, 238, 238), Error, false);
 
-      RectangleF summary = new RectangleF(x, buttonY + 57, viewport.Width, 126);
+      RectangleF summary = new RectangleF(x, buttonY + 57, viewport.Width, 136);
       FillRounded(graphics, summary, Color.FromArgb(246, 249, 252), 6);
       DrawBorder(graphics, summary, Color.FromArgb(222, 229, 237), 6);
-      IReadOnlyList<string> blockers = BuildActionableBlockers(4);
+      IReadOnlyList<string> blockers = BuildActionableBlockers(5);
       using (var headingFont = new Font("Microsoft YaHei UI", 8.4f, FontStyle.Bold, GraphicsUnit.Point))
       using (var bodyFont = new Font("Microsoft YaHei UI", 7.5f, FontStyle.Regular, GraphicsUnit.Point))
       using (var headingBrush = new SolidBrush(blockers.Count > 0 ? Error : Success))
       using (var bodyBrush = new SolidBrush(Text))
       {
-        graphics.DrawString(blockers.Count > 0 ? "提交前还需处理" : "提交条件已满足", headingFont, headingBrush, summary.X + 11, summary.Y + 9);
+        graphics.DrawString(blockers.Count > 0 ? "提交前还需处理" : "提交条件已满足", headingFont, headingBrush,
+          summary.X + 11, summary.Y + 9);
         string text = blockers.Count > 0
-          ? string.Join("\n", blockers.Select(message => "• " + Compact(message, 84)))
-          : "• 环境与必填项未发现阻断问题。\n• 点击“写入并回读”后才会修改 Revit。";
+          ? string.Join("\n", blockers.Select(message => "• " + Compact(message, 90)))
+          : "• 环境、规划控制目标与必填项未发现阻断问题。\n• 写入并回读通过后，将输出可供 02 使用的 HBR_FileContext。";
         graphics.DrawString(text, bodyFont, bodyBrush,
           new RectangleF(summary.X + 11, summary.Y + 32, summary.Width - 22, summary.Height - 38));
       }
@@ -641,8 +687,8 @@ namespace BIMBaoGui.Stage01.UI
 
     private void DrawFooter(Graphics graphics)
     {
-      RectangleF messageBox = new RectangleF(_cardBounds.X + 16, _cardBounds.Y + 602,
-        _cardBounds.Width - 32, 96);
+      RectangleF messageBox = new RectangleF(_cardBounds.X + 16, _cardBounds.Y + 612,
+        _cardBounds.Width - 32, 101);
       FillRounded(graphics, messageBox, Surface, 8);
       DrawBorder(graphics, messageBox, Border, 8);
 
@@ -656,8 +702,8 @@ namespace BIMBaoGui.Stage01.UI
         graphics.DrawString(hasBlockers ? "当前阻断原因" : "当前状态", headingFont, headingBrush,
           messageBox.X + 12, messageBox.Y + 9);
         string text = hasBlockers
-          ? string.Join("\n", blockers.Select(message => "• " + Compact(message, 110)))
-          : "• 环境、必填项与格式检查均未发现阻断问题。";
+          ? string.Join("\n", blockers.Select(message => "• " + Compact(message, 112)))
+          : "• 初始化记录与当前输入一致；HBR_FileContext 已可连接下一阶段。";
         graphics.DrawString(text, bodyFont, bodyBrush,
           new RectangleF(messageBox.X + 12, messageBox.Y + 32,
             messageBox.Width - (hasBlockers ? 154 : 24), messageBox.Height - 37));
@@ -665,14 +711,14 @@ namespace BIMBaoGui.Stage01.UI
 
       if (hasBlockers)
       {
-        _firstProblemButton = new RectangleF(messageBox.Right - 132, messageBox.Y + 31, 116, 36);
+        _firstProblemButton = new RectangleF(messageBox.Right - 132, messageBox.Y + 33, 116, 36);
         DrawActionButton(graphics, _firstProblemButton, "定位首个问题",
           Color.FromArgb(255, 239, 239), Error, false);
       }
 
       using (var versionFont = new Font("Microsoft YaHei UI", 7f, FontStyle.Regular, GraphicsUnit.Point))
       using (var versionBrush = new SolidBrush(Color.FromArgb(145, 155, 165)))
-        graphics.DrawString("Revit 2020 · Rhino 8 · BIMBaoGui Stage 01 v0.4.0", versionFont, versionBrush,
+        graphics.DrawString("Revit 2020 · Rhino 8 · BIMBaoGui Stage 01 v0.5.0", versionFont, versionBrush,
           _cardBounds.X + 18, _cardBounds.Bottom - 15);
     }
 
