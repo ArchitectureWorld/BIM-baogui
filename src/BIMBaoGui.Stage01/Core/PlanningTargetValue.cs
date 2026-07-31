@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace BIMBaoGui.Stage01.Core
 {
-  internal enum PlanningTargetOperator
+  public enum PlanningTargetOperator
   {
     LessOrEqual,
     GreaterOrEqual,
@@ -11,14 +11,14 @@ namespace BIMBaoGui.Stage01.Core
     Range
   }
 
-  internal enum PlanningTargetUnit
+  public enum PlanningTargetUnit
   {
     Percent,
     Ratio,
     Count
   }
 
-  internal enum PlanningTargetRequirement
+  public enum PlanningTargetRequirement
   {
     Required,
     Conditional,
@@ -27,7 +27,7 @@ namespace BIMBaoGui.Stage01.Core
     NotApplicable
   }
 
-  internal sealed class PlanningTargetValue
+  public sealed class PlanningTargetValue
   {
     internal PlanningTargetValue(
       string metricCode,
