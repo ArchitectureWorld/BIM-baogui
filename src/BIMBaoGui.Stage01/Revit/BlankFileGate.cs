@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Autodesk.Revit.DB;
+using BIMBaoGui.Stage01.Core;
 
 namespace BIMBaoGui.Stage01.Revit
 {
@@ -13,34 +14,60 @@ namespace BIMBaoGui.Stage01.Revit
 
       foreach (Element element in new FilteredElementCollector(document).WhereElementIsNotElementType())
       {
-        if (!HasBlockingModelContent(element)) continue;
-        Add(result, element, element.Category);
+        if (!HasBlockingModelContent(element, out string reason)) continue;
+        Add(result, element, element.Category, reason);
         if (result.Count >= maximum) break;
       }
 
       return result;
     }
 
-    private static bool HasBlockingModelContent(Element element)
+    private static bool HasBlockingModelContent(Element element, out string reason)
     {
+      reason = string.Empty;
       if (element == null) return false;
       if (IsAllowedTemplateElement(element)) return false;
 
-      // These objects represent real external/model content even when their
-      // geometry cannot be evaluated in the current view.
-      if (element is ImportInstance || element is RevitLinkInstance || element is DirectShape)
-        return true;
+      bool explicitModelContent =
+        element is ImportInstance ||
+        element is RevitLinkInstance ||
+        element is DirectShape;
 
+      bool knownPlacedModelContent = IsKnownPlacedModelContent(element);
       Category category = element.Category;
-      if (category == null || category.CategoryType != CategoryType.Model)
-        return false;
+      bool isModelCategory = category != null && category.CategoryType == CategoryType.Model;
+      bool isViewSpecific = false;
+      try { isViewSpecific = element.ViewSpecific; }
+      catch { }
 
-      // Real placed model elements normally have a location. Revit template
-      // metadata such as contour line styles and line patterns does not.
-      if (element.Location != null)
-        return true;
+      bool hasSpatialExtent = HasSpatialExtent(element);
+      bool hasPhysicalGeometry = hasSpatialExtent && HasPhysicalGeometry(element);
+      var facts = new BlankGateFacts(
+        explicitModelContent,
+        knownPlacedModelContent,
+        isViewSpecific,
+        isModelCategory,
+        element.Location != null,
+        hasSpatialExtent,
+        hasPhysicalGeometry);
 
-      return HasPhysicalGeometry(element);
+      bool blocking = BlankGatePolicy.IsBlocking(facts);
+      if (!blocking) return false;
+
+      if (explicitModelContent) reason = "外部链接、导入或 DirectShape";
+      else if (knownPlacedModelContent) reason = "已放置的模型对象";
+      else reason = "具有模型空间范围与实体几何";
+      return true;
+    }
+
+    private static bool IsKnownPlacedModelContent(Element element)
+    {
+      return element is HostObject
+        || element is FamilyInstance
+        || element is TopographySurface
+        || element is SpatialElement
+        || element is ModelCurve
+        || element is Group;
     }
 
     private static bool IsAllowedTemplateElement(Element element)
@@ -55,11 +82,32 @@ namespace BIMBaoGui.Stage01.Revit
       if (element is ReferencePlane) return true;
       if (element is Material) return true;
       if (element is GraphicsStyle) return true;
+      if (element is LinePatternElement) return true;
+      if (element is FillPatternElement) return true;
+      if (element is ProjectLocation) return true;
+      if (element is SiteLocation) return true;
       if (element is Phase) return true;
       if (element is DesignOption) return true;
       if (element is Family) return true;
       if (element.Category == null) return true;
       return element.Category.CategoryType != CategoryType.Model;
+    }
+
+    private static bool HasSpatialExtent(Element element)
+    {
+      try
+      {
+        BoundingBoxXYZ box = element.get_BoundingBox(null);
+        if (box == null || box.Min == null || box.Max == null) return false;
+        double x = Math.Abs(box.Max.X - box.Min.X);
+        double y = Math.Abs(box.Max.Y - box.Min.Y);
+        double z = Math.Abs(box.Max.Z - box.Min.Z);
+        return x > 1e-9 || y > 1e-9 || z > 1e-9;
+      }
+      catch
+      {
+        return false;
+      }
     }
 
     private static bool HasPhysicalGeometry(Element element)
@@ -79,8 +127,8 @@ namespace BIMBaoGui.Stage01.Revit
       }
       catch
       {
-        // A metadata element that does not expose geometry must not become a
-        // false blocker. Explicit model/link/import classes are handled above.
+        // Template metadata that does not expose physical geometry is allowed.
+        // Explicit model/link/import classes are handled before this method.
       }
       return false;
     }
@@ -134,7 +182,7 @@ namespace BIMBaoGui.Stage01.Revit
       return false;
     }
 
-    private static void Add(ICollection<string> result, Element element, Category category)
+    private static void Add(ICollection<string> result, Element element, Category category, string reason)
     {
       string categoryName = category?.Name ?? "无类别";
       string typeName = element.GetType().Name;
@@ -142,7 +190,7 @@ namespace BIMBaoGui.Stage01.Revit
       try { elementName = element.Name; }
       catch { elementName = string.Empty; }
       string suffix = string.IsNullOrWhiteSpace(elementName) ? string.Empty : " / " + elementName;
-      result.Add(categoryName + suffix + " / " + typeName + " / Id=" + element.Id.IntegerValue);
+      result.Add(categoryName + suffix + " / " + typeName + " / Id=" + element.Id.IntegerValue + " / 原因=" + reason);
     }
   }
 }
