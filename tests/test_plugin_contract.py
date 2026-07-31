@@ -35,7 +35,7 @@ def test_direct_revit_api_and_rhinoinside_host_detection_exist():
     assert "TransactionGroup" in service
     assert "RhinoInside.Revit.Revit" in host
     assert "ActiveDBDocument" in host
-    assert "EnqueueAction" in host
+    assert "InvokeInHostContext" in host
 
 
 def test_registry_is_embedded_and_old_ghx_is_not_product():
@@ -57,3 +57,33 @@ def test_revit2020_blank_gate_does_not_reference_inaccessible_datastorage_type()
     gate = read("src/BIMBaoGui.Stage01/Revit/BlankFileGate.cs")
     assert "element is DataStorage" not in gate
     assert "element.Category == null" in gate
+
+
+def test_blank_gate_ignores_template_metadata_and_checks_actual_model_content():
+    gate = read("src/BIMBaoGui.Stage01/Revit/BlankFileGate.cs")
+    assert "HasBlockingModelContent" in gate
+    assert "get_Geometry" in gate
+    assert "GeometryElement" in gate
+    assert "else if (category != null && category.CategoryType == CategoryType.Model)" not in gate
+    assert "element.GetType().Name" in gate
+
+
+def test_stage01_uses_left_directory_and_internal_scroll_instead_of_paging():
+    attributes = read("src/BIMBaoGui.Stage01/UI/Stage01ComponentAttributes.cs")
+    assert "DrawDirectory" in attributes
+    assert "DirectoryWidth" in attributes
+    assert "MouseWheel" in attributes
+    assert "DrawScrollBar" in attributes
+    assert "DrawGroupNavigation" not in attributes
+    assert "_previousPage" not in attributes
+    assert "_nextPage" not in attributes
+    assert "PageSize" not in attributes
+
+
+def test_required_and_optional_fields_are_visually_distinguished():
+    attributes = read("src/BIMBaoGui.Stage01/UI/Stage01ComponentAttributes.cs")
+    component = read("src/BIMBaoGui.Stage01/Stage01Component.cs")
+    assert "必填" in attributes
+    assert "选填" in attributes
+    assert "Essential" in attributes
+    assert "GroupHasRequiredFields" in component
