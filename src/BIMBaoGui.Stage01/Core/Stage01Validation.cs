@@ -40,6 +40,21 @@ namespace BIMBaoGui.Stage01.Core
 
   internal static class Stage01Validator
   {
+    private static readonly string[] RequiredKeys =
+    {
+      Stage01Keys.ProjectNumber,
+      Stage01Keys.ProjectName,
+      Stage01Keys.SubitemName,
+      Stage01Keys.ModelFileType,
+      Stage01Keys.ModelScope,
+      Stage01Keys.BaseX,
+      Stage01Keys.BaseY,
+      Stage01Keys.BaseElevation,
+      Stage01Keys.CoordinateSystem,
+      Stage01Keys.ElevationSystem,
+      Stage01Keys.TrueNorthAngle
+    };
+
     public static ValidationResult Validate(Stage01Model model, IReadOnlyList<FieldDefinition> definitions)
     {
       var messages = new List<ValidationMessage>();
@@ -49,13 +64,22 @@ namespace BIMBaoGui.Stage01.Core
         .Select(group => group.First())
         .ToList();
 
+      foreach (string key in RequiredKeys)
+      {
+        FieldDefinition definition = uniqueDefinitions.FirstOrDefault(item => string.Equals(item.Key, key, StringComparison.Ordinal))
+          ?? CreateFallbackDefinition(key);
+        string error = FieldInputRules.Validate(definition, model.GetValue(key), true);
+        if (!string.IsNullOrWhiteSpace(error))
+          messages.Add(new ValidationMessage(ValidationSeverity.Error, key, error));
+      }
+
       foreach (FieldDefinition definition in uniqueDefinitions)
       {
+        if (RequiredKeys.Contains(definition.Key, StringComparer.Ordinal)) continue;
         string value = definition.Entity == "IfcOrganization"
           ? model.GetOrganizationValue(definition.Key)
           : model.GetValue(definition.Key);
-        bool required = FieldInputRules.IsRequired(definition);
-        string error = FieldInputRules.Validate(definition, value, required);
+        string error = FieldInputRules.Validate(definition, value, false);
         if (!string.IsNullOrWhiteSpace(error))
           messages.Add(new ValidationMessage(ValidationSeverity.Error, definition.Key, error));
       }
@@ -83,6 +107,23 @@ namespace BIMBaoGui.Stage01.Core
     public static bool TryDouble(string value, out double result)
     {
       return FieldInputRules.TryDouble(value, out result);
+    }
+
+    private static FieldDefinition CreateFallbackDefinition(string key)
+    {
+      FieldKind kind = key == Stage01Keys.BaseX
+        || key == Stage01Keys.BaseY
+        || key == Stage01Keys.BaseElevation
+        || key == Stage01Keys.TrueNorthAngle
+        ? FieldKind.Number
+        : FieldKind.Text;
+      return new FieldDefinition
+      {
+        Key = key,
+        Label = key == Stage01Keys.TrueNorthAngle ? "真北角度" : key,
+        Kind = kind,
+        Essential = true
+      };
     }
   }
 }
