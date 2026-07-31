@@ -62,12 +62,15 @@ namespace BIMBaoGui.Stage01.Revit
 
     private static bool IsKnownPlacedModelContent(Element element)
     {
+      string runtimeTypeName = element.GetType().Name;
       return element is HostObject
         || element is FamilyInstance
-        || element is TopographySurface
         || element is SpatialElement
         || element is ModelCurve
-        || element is Group;
+        || element is Group
+        || string.Equals(runtimeTypeName, "TopographySurface", StringComparison.Ordinal)
+        || string.Equals(runtimeTypeName, "SiteSubRegion", StringComparison.Ordinal)
+        || string.Equals(runtimeTypeName, "Toposolid", StringComparison.Ordinal);
     }
 
     private static bool IsAllowedTemplateElement(Element element)
