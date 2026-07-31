@@ -18,6 +18,8 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\BlankGatePolicy.cs" Link="Core\BlankGatePolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\CanonicalPayload.cs" Link="Core\CanonicalPayload.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\FieldDefinition.cs" Link="Core\FieldDefinition.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\FieldInputRules.cs" Link="Core\FieldInputRules.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Feedback.cs" Link="Core\Stage01Feedback.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Keys.cs" Link="Core\Stage01Keys.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Model.cs" Link="Core\Stage01Model.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01UiPolicy.cs" Link="Core\Stage01UiPolicy.cs" />
