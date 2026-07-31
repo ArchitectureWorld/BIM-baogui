@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using BIMBaoGui.Stage01.Core;
@@ -9,9 +8,6 @@ namespace BIMBaoGui.Stage01.Context
 {
   internal static class HBRFileContextFactory
   {
-    public const string SchemaVersion = "0.5.0";
-    public const string RulePackVersion = "0.1.0";
-
     public static HBRFileContext Create(Stage01Model model, RevitDocumentSnapshot snapshot, bool initializationPassed)
     {
       model = model ?? new Stage01Model();
@@ -30,7 +26,7 @@ namespace BIMBaoGui.Stage01.Context
         model.GetValue(Stage01Keys.AngleUnit));
       string payload = CanonicalPayload.Build(model);
       var provisional = new HBRFileContext(
-        SchemaVersion,
+        HBRContextVersions.FileContextSchema,
         model.GetValue(Stage01Keys.WorkflowVersion),
         model.GetValue(Stage01Keys.FileGuid),
         HBRDocumentFingerprint.Compute(snapshot.DocumentPath, snapshot.DocumentTitle, snapshot.RevitVersion),
@@ -47,7 +43,7 @@ namespace BIMBaoGui.Stage01.Context
         activation.Activated,
         activation.NotApplicable,
         initializationPassed,
-        RulePackVersion,
+        HBRContextVersions.RulePack,
         CanonicalPayload.Sha256(payload),
         string.Empty);
       return provisional.WithHash(HBRFileContextCanonicalizer.ComputeHash(provisional));
