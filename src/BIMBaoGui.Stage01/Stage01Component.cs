@@ -444,11 +444,13 @@ namespace BIMBaoGui.Stage01
       var serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
       try
       {
-        bool loadedPayload = reader.ItemExists(PayloadKeyV05)
-          && Stage01PayloadCodec.TryApply(reader.GetString(PayloadKeyV05), _model, out string payloadError);
+        string payloadError = string.Empty;
+        bool loadedPayload = false;
+        if (reader.ItemExists(PayloadKeyV05))
+          loadedPayload = Stage01PayloadCodec.TryApply(reader.GetString(PayloadKeyV05), _model, out payloadError);
         if (!loadedPayload)
         {
-          if (reader.ItemExists(PayloadKeyV05) && !string.IsNullOrWhiteSpace(payloadError))
+          if (!string.IsNullOrWhiteSpace(payloadError))
             _operationMessages = new[] { payloadError };
           ReadLegacyForm(reader, serializer);
         }
