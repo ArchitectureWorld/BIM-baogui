@@ -39,26 +39,26 @@ namespace BIMBaoGui.Stage01.Context
         IDictionary<string, PlanningTargetValue> targets = ParseTargets(ReadDictionary(root, "planningTargets"));
         IDictionary<string, bool> conditions = ParseConditions(ReadDictionary(root, "projectConditions"));
         var parsed = new HBRFileContext(
-          ReadString(root, "schemaVersion"),
-          ReadString(root, "workflowVersion"),
-          ReadString(root, "fileGuid"),
-          ReadString(root, "revitDocumentFingerprint"),
-          ReadString(root, "revitDocumentTitle"),
-          ReadString(root, "projectNumber"),
-          ReadString(root, "projectName"),
-          ReadString(root, "subitemCode"),
-          ReadString(root, "subitemName"),
-          ReadString(root, "modelFileType"),
-          ReadString(root, "modelScope"),
+          ReadRootString(root, "schemaVersion"),
+          ReadRootString(root, "workflowVersion"),
+          ReadRootString(root, "fileGuid"),
+          ReadRootString(root, "revitDocumentFingerprint"),
+          ReadRootString(root, "revitDocumentTitle"),
+          ReadRootString(root, "projectNumber"),
+          ReadRootString(root, "projectName"),
+          ReadRootString(root, "subitemCode"),
+          ReadRootString(root, "subitemName"),
+          ReadRootString(root, "modelFileType"),
+          ReadRootString(root, "modelScope"),
           spatial,
           targets,
           conditions,
           ReadStrings(root, "activatedRuleIds"),
           ReadStrings(root, "notApplicableRuleIds"),
           ReadBoolean(root, "initializationPassed"),
-          ReadString(root, "rulePackVersion"),
-          ReadString(root, "sourcePayloadHash"),
-          ReadString(root, "fileContextHash"));
+          ReadRootString(root, "rulePackVersion"),
+          ReadRootString(root, "sourcePayloadHash"),
+          ReadRootString(root, "fileContextHash"));
 
         string expected = ComputeHash(parsed);
         if (!string.IsNullOrWhiteSpace(parsed.FileContextHash)
@@ -187,15 +187,15 @@ namespace BIMBaoGui.Stage01.Context
     private static HBRSpatialReference ParseSpatial(IDictionary dictionary)
     {
       return new HBRSpatialReference(
-        ReadString(dictionary, "coordinateSystem"),
-        ReadString(dictionary, "elevationSystem"),
+        ReadNestedString(dictionary, "coordinateSystem"),
+        ReadNestedString(dictionary, "elevationSystem"),
         ReadDecimal(dictionary, "baseX"),
         ReadDecimal(dictionary, "baseY"),
         ReadDecimal(dictionary, "baseElevation"),
         ReadDecimal(dictionary, "trueNorthAngleDegrees"),
-        ReadString(dictionary, "lengthUnit"),
-        ReadString(dictionary, "areaUnit"),
-        ReadString(dictionary, "angleUnit"));
+        ReadNestedString(dictionary, "lengthUnit"),
+        ReadNestedString(dictionary, "areaUnit"),
+        ReadNestedString(dictionary, "angleUnit"));
     }
 
     private static IDictionary<string, PlanningTargetValue> ParseTargets(IDictionary dictionary)
@@ -206,15 +206,15 @@ namespace BIMBaoGui.Stage01.Context
       {
         string metricCode = Convert.ToString(entry.Key) ?? string.Empty;
         if (!(entry.Value is IDictionary value)) continue;
-        if (!Enum.TryParse(ReadString(value, "operator"), true, out PlanningTargetOperator @operator)) continue;
-        if (!Enum.TryParse(ReadString(value, "unit"), true, out PlanningTargetUnit unit)) continue;
+        if (!Enum.TryParse(ReadNestedString(value, "operator"), true, out PlanningTargetOperator @operator)) continue;
+        if (!Enum.TryParse(ReadNestedString(value, "unit"), true, out PlanningTargetUnit unit)) continue;
         if (PlanningTargetValue.TryCreate(
           metricCode,
           @operator,
-          ReadString(value, "value1"),
-          ReadString(value, "value2"),
+          ReadNestedString(value, "value1"),
+          ReadNestedString(value, "value2"),
           unit,
-          ReadString(value, "source"),
+          ReadNestedString(value, "source"),
           out PlanningTargetValue target,
           out _))
           result[metricCode] = target;
@@ -240,7 +240,7 @@ namespace BIMBaoGui.Stage01.Context
       return root != null && root.TryGetValue(key, out object value) ? value as IDictionary : null;
     }
 
-    private static string ReadString(IDictionary<string, object> root, string key)
+    private static string ReadRootString(IDictionary<string, object> root, string key)
     {
       return root != null && root.TryGetValue(key, out object value) ? Convert.ToString(value) ?? string.Empty : string.Empty;
     }
@@ -259,14 +259,14 @@ namespace BIMBaoGui.Stage01.Context
       return result;
     }
 
-    private static string ReadString(IDictionary dictionary, string key)
+    private static string ReadNestedString(IDictionary dictionary, string key)
     {
       return dictionary != null && dictionary.Contains(key) ? Convert.ToString(dictionary[key]) ?? string.Empty : string.Empty;
     }
 
     private static decimal ReadDecimal(IDictionary dictionary, string key)
     {
-      decimal.TryParse(ReadString(dictionary, key), NumberStyles.Number, CultureInfo.InvariantCulture, out decimal value);
+      decimal.TryParse(ReadNestedString(dictionary, key), NumberStyles.Number, CultureInfo.InvariantCulture, out decimal value);
       return value;
     }
   }
