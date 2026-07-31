@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 
 namespace BIMBaoGui.Stage01.Core
@@ -34,56 +33,39 @@ namespace BIMBaoGui.Stage01.Core
     }
 
     public IReadOnlyList<ValidationMessage> Messages { get; }
-    public bool IsValid => Messages.All(x => x.Severity != ValidationSeverity.Error);
-    public int ErrorCount => Messages.Count(x => x.Severity == ValidationSeverity.Error);
-    public int WarningCount => Messages.Count(x => x.Severity == ValidationSeverity.Warning);
+    public bool IsValid => Messages.All(message => message.Severity != ValidationSeverity.Error);
+    public int ErrorCount => Messages.Count(message => message.Severity == ValidationSeverity.Error);
+    public int WarningCount => Messages.Count(message => message.Severity == ValidationSeverity.Warning);
   }
 
   internal static class Stage01Validator
   {
-    private static readonly string[] RequiredKeys =
-    {
-      Stage01Keys.ProjectNumber,
-      Stage01Keys.ProjectName,
-      Stage01Keys.SubitemName,
-      Stage01Keys.ModelFileType,
-      Stage01Keys.ModelScope,
-      Stage01Keys.BaseX,
-      Stage01Keys.BaseY,
-      Stage01Keys.BaseElevation,
-      Stage01Keys.CoordinateSystem,
-      Stage01Keys.ElevationSystem,
-      Stage01Keys.TrueNorthAngle
-    };
-
     public static ValidationResult Validate(Stage01Model model, IReadOnlyList<FieldDefinition> definitions)
     {
       var messages = new List<ValidationMessage>();
-      foreach (string key in RequiredKeys)
-      {
-        if (string.IsNullOrWhiteSpace(model.GetValue(key)))
-          messages.Add(new ValidationMessage(ValidationSeverity.Error, key, "必填项尚未填写。"));
-      }
+      IReadOnlyList<FieldDefinition> uniqueDefinitions = (definitions ?? Array.Empty<FieldDefinition>())
+        .Where(definition => definition != null)
+        .GroupBy(definition => definition.Key ?? string.Empty, StringComparer.Ordinal)
+        .Select(group => group.First())
+        .ToList();
 
-      if (!model.ConfirmBlankProject)
-        messages.Add(new ValidationMessage(
-          ValidationSeverity.Error,
-          "HBR|Precheck|BlankProject",
-          "必须确认当前文件尚未开始正式建模；Revit 模板默认内容允许保留。"));
-
-      foreach (FieldDefinition definition in definitions)
+      foreach (FieldDefinition definition in uniqueDefinitions)
       {
         string value = definition.Entity == "IfcOrganization"
           ? model.GetOrganizationValue(definition.Key)
           : model.GetValue(definition.Key);
-        if (string.IsNullOrWhiteSpace(value)) continue;
-        ValidateTypedValue(definition, value, messages);
+        bool required = FieldInputRules.IsRequired(definition);
+        string error = FieldInputRules.Validate(definition, value, required);
+        if (!string.IsNullOrWhiteSpace(error))
+          messages.Add(new ValidationMessage(ValidationSeverity.Error, definition.Key, error));
       }
 
-      if (TryDouble(model.GetValue(Stage01Keys.TrueNorthAngle), out double angle))
+      if (!model.ConfirmBlankProject)
       {
-        if (angle < -180.0 || angle > 180.0)
-          messages.Add(new ValidationMessage(ValidationSeverity.Error, Stage01Keys.TrueNorthAngle, "真北角度必须位于 -180° 到 180°。"));
+        messages.Add(new ValidationMessage(
+          ValidationSeverity.Error,
+          "HBR|Precheck|BlankProject",
+          "必须确认当前文件尚未开始正式建模；Revit 模板默认内容允许保留。"));
       }
 
       foreach (Dictionary<string, string> organization in model.Organizations)
@@ -100,40 +82,7 @@ namespace BIMBaoGui.Stage01.Core
 
     public static bool TryDouble(string value, out double result)
     {
-      return double.TryParse(value, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out result)
-        || double.TryParse(value, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.CurrentCulture, out result);
-    }
-
-    private static void ValidateTypedValue(FieldDefinition definition, string value, ICollection<ValidationMessage> messages)
-    {
-      switch (definition.Kind)
-      {
-        case FieldKind.Number:
-          if (!TryDouble(value, out _))
-            messages.Add(new ValidationMessage(ValidationSeverity.Error, definition.Key, "应填写数值。"));
-          break;
-        case FieldKind.Integer:
-          if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out _))
-            messages.Add(new ValidationMessage(ValidationSeverity.Error, definition.Key, "应填写整数。"));
-          break;
-        case FieldKind.Boolean:
-          if (!bool.TryParse(value, out _))
-            messages.Add(new ValidationMessage(ValidationSeverity.Error, definition.Key, "应填写布尔值。"));
-          break;
-        case FieldKind.DateTime:
-          if (!DateTime.TryParse(value, CultureInfo.CurrentCulture, DateTimeStyles.None, out _)
-            && !DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out _))
-            messages.Add(new ValidationMessage(ValidationSeverity.Error, definition.Key, "日期时间格式无效。"));
-          break;
-        case FieldKind.Guid:
-          if (!Guid.TryParse(value, out _))
-            messages.Add(new ValidationMessage(ValidationSeverity.Error, definition.Key, "GUID 格式无效。"));
-          break;
-        case FieldKind.Enum:
-          if (definition.AllowedValues.Count > 0 && !definition.AllowedValues.Contains(value))
-            messages.Add(new ValidationMessage(ValidationSeverity.Error, definition.Key, "不在允许的选项范围内。"));
-          break;
-      }
+      return FieldInputRules.TryDouble(value, out result);
     }
   }
 }
