@@ -16,9 +16,10 @@ def test_compiled_gha_project_exists():
     assert "Grasshopper" in text
     assert "Revit_All_Main_Versions_API_x64" in text
     assert "BIMBaoGui.Stage01.gha" in text
+    assert "<Version>0.5.0</Version>" in text
 
 
-def test_single_custom_component_and_attributes_exist():
+def test_stage01_custom_component_and_attributes_exist():
     component = read("src/BIMBaoGui.Stage01/Stage01Component.cs")
     attributes = read("src/BIMBaoGui.Stage01/UI/Stage01ComponentAttributes.cs")
     assert "class Stage01Component : GH_Component" in component
@@ -26,6 +27,7 @@ def test_single_custom_component_and_attributes_exist():
     assert "湖北BIM报规" in component
     assert "文件初始化" in component
     assert "InlineEditor" in attributes
+    assert "PlanningTargetEditor" in attributes
 
 
 def test_direct_revit_api_and_rhinoinside_host_detection_exist():
@@ -45,11 +47,13 @@ def test_registry_is_embedded_and_old_ghx_is_not_product():
     assert not (ROOT / "gh/01_文件初始化.ghx").exists()
 
 
-def test_component_has_no_external_inputs_and_exposes_workflow_outputs():
+def test_stage01_has_no_external_inputs_and_exposes_strong_context_output():
     component = read("src/BIMBaoGui.Stage01/Stage01Component.cs")
     assert "RegisterInputParams" in component
     assert re.search(r"RegisterInputParams\([^)]*\)\s*\{\s*\}", component, re.S)
-    for output in ("初始化通过", "状态", "文件上下文", "消息"):
+    assert "new HBRFileContextParam()" in component
+    assert "new HBRFileContextGoo(context)" in component
+    for output in ("初始化通过", "状态", "文件上下文", "消息", "上下文JSON"):
         assert output in component
 
 
@@ -80,11 +84,14 @@ def test_stage01_uses_left_directory_and_internal_scroll_instead_of_paging():
     assert "PageSize" not in attributes
 
 
-def test_required_and_optional_fields_are_visually_distinguished():
+def test_required_optional_inherited_and_system_fields_are_distinguished():
     attributes = read("src/BIMBaoGui.Stage01/UI/Stage01ComponentAttributes.cs")
-    assert "必填" in attributes
-    assert "选填" in attributes
-    assert "FieldInputRules.IsRequired" in attributes
+    component = read("src/BIMBaoGui.Stage01/Stage01Component.cs")
+    for label in ("必填", "选填", "继承", "系统"):
+        assert label in attributes
+    assert "_owner.IsFieldRequired" in attributes
+    assert "PlanningTargetRequirement.Inherited" in attributes
+    assert "IsFieldRequired" in component
 
 
 def test_input_fields_show_type_examples_and_reject_invalid_values_before_closing():
@@ -98,6 +105,21 @@ def test_input_fields_show_type_examples_and_reject_invalid_values_before_closin
     assert "errorLabel" in editor
 
 
+def test_planning_targets_use_structured_operator_value_and_unit_editor():
+    target = read("src/BIMBaoGui.Stage01/Core/PlanningTargetValue.cs")
+    catalog = read("src/BIMBaoGui.Stage01/Core/PlanningTargetCatalog.cs")
+    editor = read("src/BIMBaoGui.Stage01/UI/PlanningTargetEditor.cs")
+    validation = read("src/BIMBaoGui.Stage01/Core/Stage01Validation.cs")
+    assert "PlanningTargetOperator" in target
+    assert "PlanningTargetUnit" in target
+    assert "≤" in editor and "≥" in editor and "区间" in editor
+    assert "BuildingDensityCode" in catalog
+    assert "FloorAreaRatioCode" in catalog
+    assert "GreenRateCode" in catalog
+    assert "ValidatePlanningTargets" in validation
+    assert "总平模型必填" in validation
+
+
 def test_blocking_reasons_are_actionable_and_can_navigate_to_first_problem():
     attributes = read("src/BIMBaoGui.Stage01/UI/Stage01ComponentAttributes.cs")
     feedback = read("src/BIMBaoGui.Stage01/Core/Stage01Feedback.cs")
@@ -106,3 +128,45 @@ def test_blocking_reasons_are_actionable_and_can_navigate_to_first_problem():
     assert "Stage01Feedback.Build" in attributes
     assert "Stage01Feedback.FirstProblemGroup" in attributes
     assert "提交与校验" in feedback
+
+
+def test_file_context_and_task_plan_are_strong_grasshopper_types():
+    context_goo = read("src/BIMBaoGui.Stage01/GrasshopperTypes/HBRFileContextGoo.cs")
+    context_param = read("src/BIMBaoGui.Stage01/GrasshopperTypes/HBRFileContextParam.cs")
+    plan_goo = read("src/BIMBaoGui.Stage01/GrasshopperTypes/HBRTaskPlanGoo.cs")
+    plan_param = read("src/BIMBaoGui.Stage01/GrasshopperTypes/HBRTaskPlanParam.cs")
+    assert "GH_Goo<HBRFileContext>" in context_goo
+    assert "GH_PersistentParam<HBRFileContextGoo>" in context_param
+    assert "GH_Goo<HBRTaskPlan>" in plan_goo
+    assert "GH_PersistentParam<HBRTaskPlanGoo>" in plan_param
+    assert "HBR.FileContext.Json" in context_goo
+    assert "HBR.TaskPlan.Json" in plan_goo
+
+
+def test_stage02_requires_file_context_and_outputs_task_plan():
+    component = read("src/BIMBaoGui.Stage01/Stage02TaskPlanComponent.cs")
+    attributes = read("src/BIMBaoGui.Stage01/UI/Stage02ComponentAttributes.cs")
+    service = read("src/BIMBaoGui.Stage01/Revit/Stage02RevitContextService.cs")
+    compiler = read("src/BIMBaoGui.Stage01/TaskPlanning/TaskPlanCompiler.cs")
+    assert "class Stage02TaskPlanComponent : GH_Component" in component
+    assert "new HBRFileContextParam()" in component
+    assert "new HBRTaskPlanParam()" in component
+    assert "TaskPlanCompiler.Compile" in component
+    assert "RevitDocumentFingerprint" in component
+    assert "模型任务与骨架分流" in component
+    assert "class Stage02ComponentAttributes : GH_ComponentAttributes" in attributes
+    assert "HBRDocumentFingerprint.Compute" in service
+    assert "请连接 01 文件初始化" in compiler
+
+
+def test_task_plan_compiler_routes_site_above_and_underground_paths():
+    catalog = read("src/BIMBaoGui.Stage01/TaskPlanning/TaskRuleCatalog.cs")
+    compiler = read("src/BIMBaoGui.Stage01/TaskPlanning/TaskPlanCompiler.cs")
+    plan = read("src/BIMBaoGui.Stage01/TaskPlanning/HBRTaskPlan.cs")
+    assert "SITE.TOTAL_LAND" in catalog
+    assert "ABOVE.BODY" in catalog
+    assert "UNDERGROUND.BODY" in catalog
+    assert "site.green" in catalog
+    assert "ResolveSkeletonPath" in compiler
+    assert "RequiresRecompile" in plan
+    assert "FileContextHash" in plan
