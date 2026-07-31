@@ -12,7 +12,7 @@ namespace BIMBaoGui.Stage01
     public override string Description => "湖北省 BIM 规划报建：Revit 2020 单文件初始化组件。";
     public override Guid Id => new Guid("9f7b1bd4-fb6a-4853-b60f-6576193e1601");
     public override string AuthorName => "ArchitectureWorld";
-    public override string AuthorContact => "https://github.com/ArchitectureWorld/BIM-baogui";
-    public override string Version => "0.3.0";
+    public override string AuthorContact => "ArchitectureWorld/BIM-baogui";
+    public override string Version => "0.4.0";
   }
 }
