@@ -81,20 +81,7 @@ namespace BIMBaoGui.Stage01
 
     internal IReadOnlyList<string> GetVisibleGroups()
     {
-      var groups = new List<string>();
-      if (_model.ShowAllFields)
-      {
-        groups.AddRange(_registry.Groups.Where(group => group != "00_当前Revit文件" && group != "09_提交与回读"));
-      }
-      else
-      {
-        groups.Add("01_文件与项目身份");
-        groups.Add("02_坐标与高程");
-        groups.Add("06_参建组织");
-      }
-      groups.Add("10_项目条件");
-      groups.Add("11_提交与校验");
-      return groups.Distinct(StringComparer.Ordinal).ToList();
+      return Stage01UiPolicy.BuildDirectoryGroups(_registry.Groups);
     }
 
     internal string GetGroupDisplayName(string group)
@@ -104,25 +91,48 @@ namespace BIMBaoGui.Stage01
       return separator >= 0 && separator + 1 < group.Length ? group.Substring(separator + 1) : group;
     }
 
-    internal IReadOnlyList<FieldDefinition> GetFieldsForActiveGroup()
+    internal IReadOnlyList<FieldDefinition> GetFieldsForGroup(string group)
     {
-      string group = _model.ActiveGroup;
-      if (group == "10_项目条件" || group == "11_提交与校验")
+      if (string.IsNullOrWhiteSpace(group) || group == "10_项目条件" || group == "11_提交与校验")
         return Array.Empty<FieldDefinition>();
 
       var fields = new List<FieldDefinition>();
-      fields.AddRange(_registry.FieldsForGroup(group, _model.ShowAllFields));
-      if (!_model.ShowAllFields && group == "01_文件与项目身份")
-        fields.AddRange(_registry.FieldsForGroup("01_文件与阶段", false));
+      fields.AddRange(_registry.Fields.Where(field => string.Equals(field.Group, group, StringComparison.Ordinal)));
+      if (group == "01_文件与项目身份")
+        fields.AddRange(_registry.Fields.Where(field => string.Equals(field.Group, "01_文件与阶段", StringComparison.Ordinal)));
+
       return fields
-        .Where(field => !field.Deferred || _model.ShowAllFields)
+        .Where(field => _model.ShowAllFields || !field.Deferred)
         .GroupBy(field => field.Key, StringComparer.Ordinal)
         .Select(grouping => grouping.First())
         .ToList();
     }
 
+    internal IReadOnlyList<FieldDefinition> GetFieldsForActiveGroup()
+    {
+      return GetFieldsForGroup(_model.ActiveGroup);
+    }
+
+    internal bool GroupHasRequiredFields(string group)
+    {
+      return GetFieldsForGroup(group).Any(field => field.Essential && !field.Deferred);
+    }
+
+    internal int GetMissingRequiredCount(string group)
+    {
+      return GetFieldsForGroup(group)
+        .Where(field => field.Essential && !field.Deferred)
+        .Count(field => string.IsNullOrWhiteSpace(GetFieldValue(field)));
+    }
+
+    internal bool IsFieldEditable(FieldDefinition definition)
+    {
+      return definition != null && !definition.ReadOnly && !definition.Deferred;
+    }
+
     internal string GetFieldValue(FieldDefinition definition)
     {
+      if (definition == null) return string.Empty;
       return definition.Entity == "IfcOrganization"
         ? _model.GetOrganizationValue(definition.Key)
         : _model.GetValue(definition.Key);
@@ -130,7 +140,7 @@ namespace BIMBaoGui.Stage01
 
     internal void SetFieldValue(FieldDefinition definition, string value)
     {
-      if (definition == null || definition.ReadOnly) return;
+      if (!IsFieldEditable(definition)) return;
       if (definition.Entity == "IfcOrganization")
         _model.SetOrganizationValue(definition.Key, value);
       else
@@ -140,7 +150,7 @@ namespace BIMBaoGui.Stage01
 
     internal void ToggleBooleanField(FieldDefinition definition)
     {
-      if (definition == null || definition.ReadOnly) return;
+      if (!IsFieldEditable(definition)) return;
       bool current = bool.TryParse(GetFieldValue(definition), out bool parsed) && parsed;
       SetFieldValue(definition, (!current).ToString());
     }
@@ -163,11 +173,19 @@ namespace BIMBaoGui.Stage01
       SetActiveGroup(groups[index]);
     }
 
-    internal void SetScrollOffset(int offset, int pageSize)
+    internal void SetScrollOffset(int offset, int visibleCount)
     {
       int count = GetFieldsForActiveGroup().Count;
-      int maximum = Math.Max(0, count - Math.Max(1, pageSize));
-      _model.ScrollOffset = Math.Max(0, Math.Min(offset, maximum));
+      _model.ScrollOffset = Stage01UiPolicy.ClampScrollOffset(offset, count, visibleCount);
+      ExpireDisplay();
+    }
+
+    internal void ScrollFieldsByWheel(int delta, int visibleCount)
+    {
+      int count = GetFieldsForActiveGroup().Count;
+      int next = Stage01UiPolicy.ScrollByWheel(_model.ScrollOffset, delta, count, visibleCount);
+      if (next == _model.ScrollOffset) return;
+      _model.ScrollOffset = next;
       ExpireDisplay();
     }
 
@@ -194,7 +212,8 @@ namespace BIMBaoGui.Stage01
       _model.ShowAllFields = !_model.ShowAllFields;
       _model.ScrollOffset = 0;
       IReadOnlyList<string> groups = GetVisibleGroups();
-      if (!groups.Contains(_model.ActiveGroup)) _model.ActiveGroup = groups.FirstOrDefault() ?? "01_文件与项目身份";
+      if (!groups.Contains(_model.ActiveGroup))
+        _model.ActiveGroup = groups.FirstOrDefault() ?? "01_文件与项目身份";
       ExpireDisplay();
     }
 
@@ -202,6 +221,7 @@ namespace BIMBaoGui.Stage01
     {
       _model.Organizations.Add(new Dictionary<string, string>(StringComparer.Ordinal));
       _model.OrganizationIndex = _model.Organizations.Count - 1;
+      _model.ScrollOffset = 0;
       NotifyModelEdited();
     }
 
@@ -215,6 +235,7 @@ namespace BIMBaoGui.Stage01
       }
       _model.Organizations.RemoveAt(_model.OrganizationIndex);
       _model.OrganizationIndex = Math.Max(0, Math.Min(_model.OrganizationIndex, _model.Organizations.Count - 1));
+      _model.ScrollOffset = 0;
       NotifyModelEdited();
     }
 
@@ -222,6 +243,7 @@ namespace BIMBaoGui.Stage01
     {
       if (_model.Organizations.Count == 0) return;
       _model.OrganizationIndex = (_model.OrganizationIndex + delta + _model.Organizations.Count) % _model.Organizations.Count;
+      _model.ScrollOffset = 0;
       ExpireDisplay();
     }
 
@@ -310,13 +332,15 @@ namespace BIMBaoGui.Stage01
         {
           Dictionary<string, string> values = serializer.Deserialize<Dictionary<string, string>>(reader.GetString("HBR.Stage01.Values"));
           _model.Values.Clear();
-          foreach (KeyValuePair<string, string> pair in values ?? new Dictionary<string, string>()) _model.Values[pair.Key] = pair.Value;
+          foreach (KeyValuePair<string, string> pair in values ?? new Dictionary<string, string>())
+            _model.Values[pair.Key] = pair.Value;
         }
         if (reader.ItemExists("HBR.Stage01.Conditions"))
         {
           Dictionary<string, bool> conditions = serializer.Deserialize<Dictionary<string, bool>>(reader.GetString("HBR.Stage01.Conditions"));
           _model.Conditions.Clear();
-          foreach (KeyValuePair<string, bool> pair in conditions ?? new Dictionary<string, bool>()) _model.Conditions[pair.Key] = pair.Value;
+          foreach (KeyValuePair<string, bool> pair in conditions ?? new Dictionary<string, bool>())
+            _model.Conditions[pair.Key] = pair.Value;
         }
         if (reader.ItemExists("HBR.Stage01.Organizations"))
         {
@@ -324,7 +348,8 @@ namespace BIMBaoGui.Stage01
           _model.Organizations.Clear();
           foreach (Dictionary<string, string> organization in organizations ?? new List<Dictionary<string, string>>())
             _model.Organizations.Add(new Dictionary<string, string>(organization, StringComparer.Ordinal));
-          if (_model.Organizations.Count == 0) _model.Organizations.Add(new Dictionary<string, string>(StringComparer.Ordinal));
+          if (_model.Organizations.Count == 0)
+            _model.Organizations.Add(new Dictionary<string, string>(StringComparer.Ordinal));
         }
         if (reader.ItemExists("HBR.Stage01.ConfirmBlank")) _model.ConfirmBlankProject = reader.GetBoolean("HBR.Stage01.ConfirmBlank");
         if (reader.ItemExists("HBR.Stage01.AllowReinitialize")) _model.AllowReinitialize = reader.GetBoolean("HBR.Stage01.AllowReinitialize");
@@ -366,7 +391,7 @@ namespace BIMBaoGui.Stage01
       if (string.IsNullOrWhiteSpace(_model.GetValue(Stage01Keys.FileGuid)))
         _model.SetValue(Stage01Keys.FileGuid, Guid.NewGuid().ToString("D"));
       if (string.IsNullOrWhiteSpace(_model.GetValue(Stage01Keys.WorkflowVersion)))
-        _model.SetValue(Stage01Keys.WorkflowVersion, "0.2.0");
+        _model.SetValue(Stage01Keys.WorkflowVersion, "0.3.0");
       _model.SetValue(Stage01Keys.LengthUnit, "m");
       _model.SetValue(Stage01Keys.AreaUnit, "m²");
       _model.SetValue(Stage01Keys.AngleUnit, "°");
@@ -395,7 +420,7 @@ namespace BIMBaoGui.Stage01
       if (_validation?.Messages != null)
         messages.AddRange(_validation.Messages.Select(x => x.Message));
       if (_operationMessages != null) messages.AddRange(_operationMessages);
-      if (messages.Count == 0) messages.Add("环境与输入未发现阻断问题。可执行写入并回读。" );
+      if (messages.Count == 0) messages.Add("环境与输入未发现阻断问题。可执行写入并回读。");
       return messages.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToArray();
     }
 
