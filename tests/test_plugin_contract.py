@@ -16,7 +16,7 @@ def test_compiled_gha_project_exists():
     assert "Grasshopper" in text
     assert "Revit_All_Main_Versions_API_x64" in text
     assert "BIMBaoGui.Stage01.gha" in text
-    assert "<Version>0.5.0</Version>" in text
+    assert "<Version>0.6.0</Version>" in text
 
 
 def test_stage01_custom_component_and_attributes_exist():
