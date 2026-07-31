@@ -1,12 +1,15 @@
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
+  "baselineId": "gh-hifc-mapping-v1",
+  "branch": "feat/hifc-mapping-gh-baseline-v1",
+  "upstreamBranch": "feat/stage01-stage02-context-pipeline",
   "sourceArchiveSha256": "341db436faa8410fb19695a727810dba262e3ab73c11b0c54566d502f3c759b9",
-  "fileCount": 15,
+  "fileCount": 13,
   "files": [
     {
       "path": "README.md",
-      "size": 756,
-      "sha256": "b71e38c4056a94536a26db3c5863c81d511f1e482978216e2c8b60658776b873"
+      "size": 1539,
+      "sha256": "24fc99e33d36b1dcb5ba5d8d7888f09e649e9e5acc6c71ad2f0223ceed81e70c"
     },
     {
       "path": "data/gh_command_contracts.v1.json",
@@ -64,19 +67,9 @@
       "sha256": "446b469f74465590d95151d7558e6023ca928852ed5d1dd59250fca21a8c944c"
     },
     {
-      "path": "materialize.py",
-      "size": 4752,
-      "sha256": "0291de0d81a5ec1039a708ee6e2a6b62fdddc6cdde2030b25b43d8cbf30e50dc"
-    },
-    {
       "path": "schemas/gh_hifc_rule_package.schema.json",
       "size": 5824,
       "sha256": "cb6f9c3ce1af502c58a9a755dd5afdd62d3611e2c6676fd63eb91946d560ffe9"
-    },
-    {
-      "path": "source-manifest.json",
-      "size": 2280,
-      "sha256": "78a5c73211fe23c4c97db614ab0fff85cef9aa32e207081d05852912ae856203"
     }
   ]
 }
