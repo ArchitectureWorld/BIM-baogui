@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Web.Script.Serialization;
+using BIMBaoGui.Stage01.Context;
 using BIMBaoGui.Stage01.Core;
+using BIMBaoGui.Stage01.GrasshopperTypes;
 using BIMBaoGui.Stage01.Infrastructure;
 using BIMBaoGui.Stage01.Revit;
 using BIMBaoGui.Stage01.UI;
@@ -14,6 +16,7 @@ namespace BIMBaoGui.Stage01
 {
   public sealed class Stage01Component : GH_Component
   {
+    private const string PayloadKeyV05 = "HBR.Stage01.PayloadV05";
     private readonly Stage01RegistryProvider _registry = Stage01RegistryProvider.Instance;
     private Stage01Model _model;
     private RevitDocumentSnapshot _snapshot = new RevitDocumentSnapshot();
@@ -28,7 +31,7 @@ namespace BIMBaoGui.Stage01
       : base(
         "湖北BIM报规｜文件初始化",
         "报规初始化",
-        "在 Rhino.Inside.Revit 中填写、校验并写入 Revit 2020 单文件初始化数据。",
+        "在 Rhino.Inside.Revit 中填写、校验并写入 Revit 2020 单文件初始化数据，并输出 HBR_FileContext。",
         "湖北BIM报规",
         "报规工作流")
     {
@@ -58,10 +61,16 @@ namespace BIMBaoGui.Stage01
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
+      pManager.AddParameter(
+        new HBRFileContextParam(),
+        "文件上下文",
+        "Context",
+        "供 02 模型任务与骨架分流使用的强类型 HBR_FileContext。",
+        GH_ParamAccess.item);
       pManager.AddBooleanParameter("初始化通过", "OK", "写入与回读均通过时为 True。", GH_ParamAccess.item);
       pManager.AddTextParameter("状态", "S", "当前文件初始化状态。", GH_ParamAccess.item);
-      pManager.AddTextParameter("文件上下文", "C", "当前文件初始化载荷 JSON。", GH_ParamAccess.item);
       pManager.AddTextParameter("消息", "M", "环境检查、字段校验、写入和回读消息。", GH_ParamAccess.list);
+      pManager.AddTextParameter("上下文JSON", "JSON", "HBR_FileContext 的确定性 JSON，仅用于调试和外部检查。", GH_ParamAccess.item);
     }
 
     protected override void SolveInstance(IGH_DataAccess dataAccess)
@@ -71,17 +80,39 @@ namespace BIMBaoGui.Stage01
       TryAutomaticallyLoadStoredPayload();
       _validation = Stage01Validator.Validate(_model, _registry.Fields);
 
-      bool initialized = _snapshot.IsInitialized && _snapshot.PayloadMatches && !_isCommitting;
-      string payload = CanonicalPayload.Build(_model);
-      dataAccess.SetData(0, initialized);
-      dataAccess.SetData(1, ResolveStatus());
-      dataAccess.SetData(2, payload);
+      bool initialized = IsInitializationPassed();
+      HBRFileContext context = HBRFileContextFactory.Create(_model, _snapshot, initialized);
+      dataAccess.SetData(0, new HBRFileContextGoo(context));
+      dataAccess.SetData(1, initialized);
+      dataAccess.SetData(2, ResolveStatus());
       dataAccess.SetDataList(3, ResolveMessages());
+      dataAccess.SetData(4, HBRFileContextCanonicalizer.ToJson(context));
     }
 
     internal IReadOnlyList<string> GetVisibleGroups()
     {
       return Stage01UiPolicy.BuildDirectoryGroups(_registry.Groups);
+    }
+
+    internal IReadOnlyList<ConditionDefinition> GetVisibleConditions()
+    {
+      string modelFileType = _model.GetValue(Stage01Keys.ModelFileType);
+      if (string.Equals(modelFileType, PlanningTargetRequirementPolicy.AboveGroundModel, StringComparison.Ordinal))
+      {
+        return _registry.Conditions
+          .Where(condition => condition.Key == "building.roof"
+            || condition.Key == "building.balcony"
+            || condition.Key == "building.canopy")
+          .ToArray();
+      }
+      if (string.Equals(modelFileType, PlanningTargetRequirementPolicy.UndergroundModel, StringComparison.Ordinal))
+      {
+        return _registry.Conditions
+          .Where(condition => condition.Key == "underground.parking"
+            || condition.Key == "site.civil_defense")
+          .ToArray();
+      }
+      return _registry.Conditions.Where(condition => condition.Key.StartsWith("site.", StringComparison.Ordinal)).ToArray();
     }
 
     internal string GetGroupDisplayName(string group)
@@ -115,24 +146,80 @@ namespace BIMBaoGui.Stage01
 
     internal bool GroupHasRequiredFields(string group)
     {
-      return GetFieldsForGroup(group).Any(field => field.Essential && !field.Deferred);
+      return GetFieldsForGroup(group).Any(IsFieldRequired);
     }
 
     internal int GetMissingRequiredCount(string group)
     {
       return GetFieldsForGroup(group)
-        .Where(field => field.Essential && !field.Deferred)
+        .Where(IsFieldRequired)
         .Count(field => string.IsNullOrWhiteSpace(GetFieldValue(field)));
+    }
+
+    internal bool IsFieldRequired(FieldDefinition definition)
+    {
+      PlanningTargetDefinition targetDefinition = definition == null
+        ? null
+        : PlanningTargetCatalog.GetByMvdFieldKey(definition.Key);
+      if (targetDefinition != null)
+      {
+        PlanningTargetRequirement requirement = GetPlanningTargetRequirement(targetDefinition.MetricCode);
+        return requirement == PlanningTargetRequirement.Required
+          || requirement == PlanningTargetRequirement.Conditional;
+      }
+      return FieldInputRules.IsRequired(definition);
     }
 
     internal bool IsFieldEditable(FieldDefinition definition)
     {
-      return definition != null && !definition.ReadOnly && !definition.Deferred;
+      if (definition == null || definition.ReadOnly || definition.Deferred) return false;
+      PlanningTargetDefinition targetDefinition = PlanningTargetCatalog.GetByMvdFieldKey(definition.Key);
+      if (targetDefinition == null) return true;
+      PlanningTargetRequirement requirement = GetPlanningTargetRequirement(targetDefinition.MetricCode);
+      return requirement == PlanningTargetRequirement.Required
+        || requirement == PlanningTargetRequirement.Conditional
+        || requirement == PlanningTargetRequirement.Optional;
+    }
+
+    internal PlanningTargetRequirement GetPlanningTargetRequirement(string metricCode)
+    {
+      return PlanningTargetRequirementPolicy.GetRequirement(
+        _model.GetValue(Stage01Keys.ModelFileType),
+        metricCode);
+    }
+
+    internal PlanningTargetDefinition GetPlanningTargetDefinition(FieldDefinition field)
+    {
+      return field == null ? null : PlanningTargetCatalog.GetByMvdFieldKey(field.Key);
+    }
+
+    internal PlanningTargetValue GetPlanningTarget(string metricCode)
+    {
+      return _model.GetPlanningTarget(metricCode);
+    }
+
+    internal void SetPlanningTarget(PlanningTargetValue target)
+    {
+      if (target == null) return;
+      _model.SetPlanningTarget(target);
+      NotifyModelEdited();
+    }
+
+    internal void RemovePlanningTarget(string metricCode)
+    {
+      _model.RemovePlanningTarget(metricCode);
+      NotifyModelEdited();
     }
 
     internal string GetFieldValue(FieldDefinition definition)
     {
       if (definition == null) return string.Empty;
+      PlanningTargetDefinition targetDefinition = PlanningTargetCatalog.GetByMvdFieldKey(definition.Key);
+      if (targetDefinition != null)
+      {
+        PlanningTargetValue target = _model.GetPlanningTarget(targetDefinition.MetricCode);
+        return target?.ToMvdText() ?? string.Empty;
+      }
       return definition.Entity == "IfcOrganization"
         ? _model.GetOrganizationValue(definition.Key)
         : _model.GetValue(definition.Key);
@@ -141,10 +228,38 @@ namespace BIMBaoGui.Stage01
     internal void SetFieldValue(FieldDefinition definition, string value)
     {
       if (!IsFieldEditable(definition)) return;
+      PlanningTargetDefinition targetDefinition = PlanningTargetCatalog.GetByMvdFieldKey(definition.Key);
+      if (targetDefinition != null)
+      {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+          RemovePlanningTarget(targetDefinition.MetricCode);
+          return;
+        }
+        if (PlanningTargetValue.TryParseMvdText(
+          targetDefinition.MetricCode,
+          value,
+          targetDefinition.Unit,
+          "项目初始化",
+          out PlanningTargetValue target,
+          out _))
+          SetPlanningTarget(target);
+        return;
+      }
+
       if (definition.Entity == "IfcOrganization")
         _model.SetOrganizationValue(definition.Key, value);
       else
+      {
+        string previous = _model.GetValue(definition.Key);
         _model.SetValue(definition.Key, value);
+        if (definition.Key == Stage01Keys.ModelFileType
+          && !string.Equals(previous, value, StringComparison.Ordinal))
+        {
+          foreach (PlanningTargetDefinition planningTarget in PlanningTargetCatalog.All)
+            _model.RemovePlanningTarget(planningTarget.MetricCode);
+        }
+      }
       NotifyModelEdited();
     }
 
@@ -257,7 +372,7 @@ namespace BIMBaoGui.Stage01
 
     internal void ValidateNow()
     {
-      _operationMessages = new[] { "已重新执行文件环境与字段校验。" };
+      _operationMessages = new[] { "已重新执行文件环境、规划目标和字段校验。" };
       ExpireSolution(true);
     }
 
@@ -268,7 +383,7 @@ namespace BIMBaoGui.Stage01
       _validation = Stage01Validator.Validate(_model, _registry.Fields);
       _snapshot = Stage01RevitService.ReadSnapshot(_model);
       var blockers = new List<string>();
-      blockers.AddRange(_validation.Messages.Where(x => x.Severity == ValidationSeverity.Error).Select(x => x.Message));
+      blockers.AddRange(_validation.Messages.Where(message => message.Severity == ValidationSeverity.Error).Select(message => message.Message));
       blockers.AddRange(_snapshot.Messages);
       if (blockers.Count > 0)
       {
@@ -310,6 +425,7 @@ namespace BIMBaoGui.Stage01
     public override bool Write(GH_IWriter writer)
     {
       var serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
+      writer.SetString(PayloadKeyV05, CanonicalPayload.Build(_model));
       writer.SetString("HBR.Stage01.Values", serializer.Serialize(_model.Values));
       writer.SetString("HBR.Stage01.Conditions", serializer.Serialize(_model.Conditions));
       writer.SetString("HBR.Stage01.Organizations", serializer.Serialize(_model.Organizations));
@@ -328,29 +444,15 @@ namespace BIMBaoGui.Stage01
       var serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
       try
       {
-        if (reader.ItemExists("HBR.Stage01.Values"))
+        bool loadedPayload = reader.ItemExists(PayloadKeyV05)
+          && Stage01PayloadCodec.TryApply(reader.GetString(PayloadKeyV05), _model, out string payloadError);
+        if (!loadedPayload)
         {
-          Dictionary<string, string> values = serializer.Deserialize<Dictionary<string, string>>(reader.GetString("HBR.Stage01.Values"));
-          _model.Values.Clear();
-          foreach (KeyValuePair<string, string> pair in values ?? new Dictionary<string, string>())
-            _model.Values[pair.Key] = pair.Value;
+          if (reader.ItemExists(PayloadKeyV05) && !string.IsNullOrWhiteSpace(payloadError))
+            _operationMessages = new[] { payloadError };
+          ReadLegacyForm(reader, serializer);
         }
-        if (reader.ItemExists("HBR.Stage01.Conditions"))
-        {
-          Dictionary<string, bool> conditions = serializer.Deserialize<Dictionary<string, bool>>(reader.GetString("HBR.Stage01.Conditions"));
-          _model.Conditions.Clear();
-          foreach (KeyValuePair<string, bool> pair in conditions ?? new Dictionary<string, bool>())
-            _model.Conditions[pair.Key] = pair.Value;
-        }
-        if (reader.ItemExists("HBR.Stage01.Organizations"))
-        {
-          List<Dictionary<string, string>> organizations = serializer.Deserialize<List<Dictionary<string, string>>>(reader.GetString("HBR.Stage01.Organizations"));
-          _model.Organizations.Clear();
-          foreach (Dictionary<string, string> organization in organizations ?? new List<Dictionary<string, string>>())
-            _model.Organizations.Add(new Dictionary<string, string>(organization, StringComparer.Ordinal));
-          if (_model.Organizations.Count == 0)
-            _model.Organizations.Add(new Dictionary<string, string>(StringComparer.Ordinal));
-        }
+
         if (reader.ItemExists("HBR.Stage01.ConfirmBlank")) _model.ConfirmBlankProject = reader.GetBoolean("HBR.Stage01.ConfirmBlank");
         if (reader.ItemExists("HBR.Stage01.AllowReinitialize")) _model.AllowReinitialize = reader.GetBoolean("HBR.Stage01.AllowReinitialize");
         if (reader.ItemExists("HBR.Stage01.ShowAll")) _model.ShowAllFields = reader.GetBoolean("HBR.Stage01.ShowAll");
@@ -365,6 +467,46 @@ namespace BIMBaoGui.Stage01
       }
       EnsureSystemValues();
       return result;
+    }
+
+    private void ReadLegacyForm(GH_IReader reader, JavaScriptSerializer serializer)
+    {
+      if (reader.ItemExists("HBR.Stage01.Values"))
+      {
+        Dictionary<string, string> values = serializer.Deserialize<Dictionary<string, string>>(reader.GetString("HBR.Stage01.Values"));
+        _model.Values.Clear();
+        foreach (KeyValuePair<string, string> pair in values ?? new Dictionary<string, string>())
+          _model.Values[pair.Key] = pair.Value;
+      }
+      if (reader.ItemExists("HBR.Stage01.Conditions"))
+      {
+        Dictionary<string, bool> conditions = serializer.Deserialize<Dictionary<string, bool>>(reader.GetString("HBR.Stage01.Conditions"));
+        _model.Conditions.Clear();
+        foreach (KeyValuePair<string, bool> pair in conditions ?? new Dictionary<string, bool>())
+          _model.Conditions[pair.Key] = pair.Value;
+      }
+      if (reader.ItemExists("HBR.Stage01.Organizations"))
+      {
+        List<Dictionary<string, string>> organizations = serializer.Deserialize<List<Dictionary<string, string>>>(reader.GetString("HBR.Stage01.Organizations"));
+        _model.Organizations.Clear();
+        foreach (Dictionary<string, string> organization in organizations ?? new List<Dictionary<string, string>>())
+          _model.Organizations.Add(new Dictionary<string, string>(organization, StringComparer.Ordinal));
+        if (_model.Organizations.Count == 0)
+          _model.Organizations.Add(new Dictionary<string, string>(StringComparer.Ordinal));
+      }
+      foreach (PlanningTargetDefinition definition in PlanningTargetCatalog.All)
+      {
+        string legacy = _model.GetValue(definition.MvdFieldKey);
+        if (string.IsNullOrWhiteSpace(legacy)) continue;
+        if (PlanningTargetValue.TryParseMvdText(
+          definition.MetricCode,
+          legacy,
+          definition.Unit,
+          "兼容旧版 GH 文件",
+          out PlanningTargetValue target,
+          out _))
+          _model.SetPlanningTarget(target);
+      }
     }
 
     private void TryAutomaticallyLoadStoredPayload()
@@ -390,12 +532,22 @@ namespace BIMBaoGui.Stage01
     {
       if (string.IsNullOrWhiteSpace(_model.GetValue(Stage01Keys.FileGuid)))
         _model.SetValue(Stage01Keys.FileGuid, Guid.NewGuid().ToString("D"));
-      if (string.IsNullOrWhiteSpace(_model.GetValue(Stage01Keys.WorkflowVersion)))
-        _model.SetValue(Stage01Keys.WorkflowVersion, "0.3.0");
+      _model.SetValue(Stage01Keys.WorkflowVersion, HBRContextVersions.FileContextSchema);
       _model.SetValue(Stage01Keys.LengthUnit, "m");
       _model.SetValue(Stage01Keys.AreaUnit, "m²");
       _model.SetValue(Stage01Keys.AngleUnit, "°");
       _model.SetValue(Stage01Keys.InitializationStatus, ResolveStatus());
+    }
+
+    private bool IsInitializationPassed()
+    {
+      return _snapshot != null
+        && _snapshot.IsInitialized
+        && _snapshot.PayloadMatches
+        && (_snapshot.Messages == null || _snapshot.Messages.Count == 0)
+        && _validation != null
+        && _validation.IsValid
+        && !_isCommitting;
     }
 
     private string ResolveStatus()
@@ -416,12 +568,12 @@ namespace BIMBaoGui.Stage01
       var messages = new List<string>();
       if (_snapshot?.Messages != null) messages.AddRange(_snapshot.Messages);
       if (_snapshot?.BlockingElements != null && !_snapshot.IsBlank && !_snapshot.IsInitialized)
-        messages.AddRange(_snapshot.BlockingElements.Take(8).Select(x => "阻断对象：" + x));
+        messages.AddRange(_snapshot.BlockingElements.Take(8).Select(value => "阻断对象：" + value));
       if (_validation?.Messages != null)
-        messages.AddRange(_validation.Messages.Select(x => x.Message));
+        messages.AddRange(_validation.Messages.Select(message => message.Message));
       if (_operationMessages != null) messages.AddRange(_operationMessages);
-      if (messages.Count == 0) messages.Add("环境与输入未发现阻断问题。可执行写入并回读。");
-      return messages.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToArray();
+      if (messages.Count == 0) messages.Add("环境、规划目标与输入未发现阻断问题。可执行写入并回读。");
+      return messages.Where(value => !string.IsNullOrWhiteSpace(value)).Distinct().ToArray();
     }
 
     private void NotifyModelEdited()
@@ -443,8 +595,8 @@ namespace BIMBaoGui.Stage01
   {
     public static int IndexOf<T>(this IReadOnlyList<T> values, T value)
     {
-      for (int i = 0; i < values.Count; ++i)
-        if (EqualityComparer<T>.Default.Equals(values[i], value)) return i;
+      for (int index = 0; index < values.Count; ++index)
+        if (EqualityComparer<T>.Default.Equals(values[index], value)) return index;
       return -1;
     }
   }
