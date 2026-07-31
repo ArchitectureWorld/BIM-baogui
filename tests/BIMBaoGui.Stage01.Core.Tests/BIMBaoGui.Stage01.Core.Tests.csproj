@@ -13,8 +13,14 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRDocumentFingerprint.cs" Link="Context\HBRDocumentFingerprint.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRFileContext.cs" Link="Context\HBRFileContext.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRFileContextCanonicalizer.cs" Link="Context\HBRFileContextCanonicalizer.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRSpatialReference.cs" Link="Context\HBRSpatialReference.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\RuleActivationCatalog.cs" Link="Context\RuleActivationCatalog.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\BlankGatePolicy.cs" Link="Core\BlankGatePolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\CanonicalPayload.cs" Link="Core\CanonicalPayload.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\FieldDefinition.cs" Link="Core\FieldDefinition.cs" />
