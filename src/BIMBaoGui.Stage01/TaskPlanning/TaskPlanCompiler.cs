@@ -24,11 +24,9 @@ namespace BIMBaoGui.Stage01.TaskPlanning
 
   internal static class TaskPlanCompiler
   {
-    public const string SchemaVersion = "0.5.0";
-
     public static TaskPlanCompilationResult Compile(HBRFileContext context)
     {
-      var blockers = ValidateContext(context);
+      IReadOnlyList<string> blockers = ValidateContext(context);
       if (blockers.Count > 0)
         return new TaskPlanCompilationResult(null, blockers);
 
@@ -56,7 +54,7 @@ namespace BIMBaoGui.Stage01.TaskPlanning
 
       string skeletonPath = ResolveSkeletonPath(context.ModelFileType);
       var provisional = new HBRTaskPlan(
-        SchemaVersion,
+        HBRContextVersions.TaskPlanSchema,
         context.FileContextHash,
         context.ModelFileType,
         skeletonPath,
@@ -68,7 +66,7 @@ namespace BIMBaoGui.Stage01.TaskPlanning
         Array.Empty<string>());
     }
 
-    private static IReadOnlyList<string> ValidateContext(HBRFileContext context)
+    public static IReadOnlyList<string> ValidateContext(HBRFileContext context)
     {
       var blockers = new List<string>();
       if (context == null)
@@ -90,10 +88,10 @@ namespace BIMBaoGui.Stage01.TaskPlanning
         if (!string.Equals(expected, context.FileContextHash, StringComparison.OrdinalIgnoreCase))
           blockers.Add("文件上下文哈希无效，请重新运行 01 文件初始化。");
       }
-      if (!string.Equals(context.SchemaVersion, HBRFileContextFactory.SchemaVersion, StringComparison.Ordinal))
-        blockers.Add("文件上下文版本不兼容：" + context.SchemaVersion + "，当前需要 " + HBRFileContextFactory.SchemaVersion + "。");
-      if (!string.Equals(context.RulePackVersion, HBRFileContextFactory.RulePackVersion, StringComparison.Ordinal))
-        blockers.Add("规则包版本不兼容：" + context.RulePackVersion + "，当前需要 " + HBRFileContextFactory.RulePackVersion + "。");
+      if (!string.Equals(context.SchemaVersion, HBRContextVersions.FileContextSchema, StringComparison.Ordinal))
+        blockers.Add("文件上下文版本不兼容：" + context.SchemaVersion + "，当前需要 " + HBRContextVersions.FileContextSchema + "。");
+      if (!string.Equals(context.RulePackVersion, HBRContextVersions.RulePack, StringComparison.Ordinal))
+        blockers.Add("规则包版本不兼容：" + context.RulePackVersion + "，当前需要 " + HBRContextVersions.RulePack + "。");
       if (TaskRuleCatalog.ForModelType(context.ModelFileType).Count == 0)
         blockers.Add("不支持的模型文件类型：" + context.ModelFileType);
       return blockers;
