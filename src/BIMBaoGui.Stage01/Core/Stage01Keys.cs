@@ -13,6 +13,7 @@ namespace BIMBaoGui.Stage01.Core
     public const string LengthUnit = "HBR|ProjectUnits|Length";
     public const string AreaUnit = "HBR|ProjectUnits|Area";
     public const string AngleUnit = "HBR|ProjectUnits|Angle";
+    public const string AngUnit = AngleUnit;
 
     public const string ProjectNumber = "IfcProject|Pset_申报信息属性集|项目编号";
     public const string ProjectName = "IfcProject|Pset_申报信息属性集|项目名称";
