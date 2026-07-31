@@ -27,10 +27,13 @@ namespace BIMBaoGui.Stage01.Core
         Dictionary<string, object> root = serializer.Deserialize<Dictionary<string, object>>(payloadJson);
         model.Values.Clear();
         model.Conditions.Clear();
+        model.PlanningTargets.Clear();
         model.Organizations.Clear();
 
         if (root.TryGetValue("values", out object valuesObject))
           CopyStrings(valuesObject, model.Values);
+        if (root.TryGetValue("planningTargets", out object planningTargetsObject))
+          CopyPlanningTargets(planningTargetsObject, model);
         if (root.TryGetValue("conditions", out object conditionsObject))
           CopyBooleans(conditionsObject, model.Conditions);
         if (root.TryGetValue("organizations", out object organizationsObject) && organizationsObject is IEnumerable organizations)
@@ -44,6 +47,8 @@ namespace BIMBaoGui.Stage01.Core
         }
         if (model.Organizations.Count == 0)
           model.Organizations.Add(new Dictionary<string, string>(StringComparer.Ordinal));
+
+        RestoreLegacyPlanningTargets(model);
         return true;
       }
       catch (Exception exception)
@@ -51,6 +56,59 @@ namespace BIMBaoGui.Stage01.Core
         error = "初始化载荷解析失败：" + exception.Message;
         return false;
       }
+    }
+
+    private static void CopyPlanningTargets(object source, Stage01Model model)
+    {
+      if (!(source is IDictionary dictionary)) return;
+      foreach (DictionaryEntry entry in dictionary)
+      {
+        string metricCode = Convert.ToString(entry.Key) ?? string.Empty;
+        if (metricCode.Length == 0 || !(entry.Value is IDictionary targetData)) continue;
+
+        string operatorText = ReadString(targetData, "operator");
+        string unitText = ReadString(targetData, "unit");
+        if (!Enum.TryParse(operatorText, true, out PlanningTargetOperator @operator))
+          throw new InvalidOperationException(metricCode + " 的运算符无效：" + operatorText);
+        if (!Enum.TryParse(unitText, true, out PlanningTargetUnit unit))
+          throw new InvalidOperationException(metricCode + " 的单位无效：" + unitText);
+
+        if (!PlanningTargetValue.TryCreate(
+          metricCode,
+          @operator,
+          ReadString(targetData, "value1"),
+          ReadString(targetData, "value2"),
+          unit,
+          ReadString(targetData, "source"),
+          out PlanningTargetValue target,
+          out string error))
+          throw new InvalidOperationException(metricCode + "：" + error);
+
+        model.SetPlanningTarget(target);
+      }
+    }
+
+    private static void RestoreLegacyPlanningTargets(Stage01Model model)
+    {
+      foreach (PlanningTargetDefinition definition in PlanningTargetCatalog.All)
+      {
+        if (model.GetPlanningTarget(definition.MetricCode) != null) continue;
+        string legacy = model.GetValue(definition.MvdFieldKey);
+        if (string.IsNullOrWhiteSpace(legacy)) continue;
+        if (PlanningTargetValue.TryParseMvdText(
+          definition.MetricCode,
+          legacy,
+          definition.Unit,
+          "兼容旧版初始化载荷",
+          out PlanningTargetValue target,
+          out _))
+          model.SetPlanningTarget(target);
+      }
+    }
+
+    private static string ReadString(IDictionary dictionary, string key)
+    {
+      return dictionary.Contains(key) ? Convert.ToString(dictionary[key]) ?? string.Empty : string.Empty;
     }
 
     private static void CopyStrings(object source, IDictionary<string, string> target)
