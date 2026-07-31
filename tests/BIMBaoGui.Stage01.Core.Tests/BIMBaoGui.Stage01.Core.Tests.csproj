@@ -16,6 +16,7 @@
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRContextVersions.cs" Link="Context\HBRContextVersions.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRDocumentFingerprint.cs" Link="Context\HBRDocumentFingerprint.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRFileContext.cs" Link="Context\HBRFileContext.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRFileContextCanonicalizer.cs" Link="Context\HBRFileContextCanonicalizer.cs" />
@@ -34,5 +35,10 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01PayloadCodec.cs" Link="Core\Stage01PayloadCodec.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01UiPolicy.cs" Link="Core\Stage01UiPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Validation.cs" Link="Core\Stage01Validation.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\HBRTaskPlan.cs" Link="TaskPlanning\HBRTaskPlan.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\HBRTaskPlanCanonicalizer.cs" Link="TaskPlanning\HBRTaskPlanCanonicalizer.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\TaskPlanCompiler.cs" Link="TaskPlanning\TaskPlanCompiler.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\TaskRuleCatalog.cs" Link="TaskPlanning\TaskRuleCatalog.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\TaskRuleDefinition.cs" Link="TaskPlanning\TaskRuleDefinition.cs" />
   </ItemGroup>
 </Project>
