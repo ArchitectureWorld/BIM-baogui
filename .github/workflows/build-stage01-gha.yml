@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feat/stage01-gha-file-initialization
+      - feat/stage01-stage02-context-pipeline
     paths:
       - "src/**"
       - "tests/**"
@@ -11,6 +12,7 @@ on:
   pull_request:
     branches:
       - main
+      - feat/stage01-gha-file-initialization
   workflow_dispatch:
 
 permissions:
