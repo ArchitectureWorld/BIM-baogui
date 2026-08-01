@@ -16,7 +16,16 @@ def test_compiled_gha_project_exists():
     assert "Grasshopper" in text
     assert "Revit_All_Main_Versions_API_x64" in text
     assert "BIMBaoGui.Stage01.gha" in text
-    assert "<Version>0.6.0</Version>" in text
+    assert "<Version>0.7.0</Version>" in text
+
+
+def test_plugin_display_and_file_context_versions_are_consistent():
+    assembly = read("src/BIMBaoGui.Stage01/AssemblyInfo.cs")
+    versions = read("src/BIMBaoGui.Stage01/Context/HBRContextVersions.cs")
+    payload = read("src/BIMBaoGui.Stage01/Core/CanonicalPayload.cs")
+    assert 'public override string Version => "0.7.0"' in assembly
+    assert 'FileContextSchema = "0.7.0"' in versions
+    assert "HBRContextVersions.FileContextSchema" in payload
 
 
 def test_stage01_custom_component_and_attributes_exist():
