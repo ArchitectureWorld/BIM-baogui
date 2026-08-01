@@ -20,6 +20,10 @@ def canonical_parameter_name(field: dict) -> str:
     return f"HIFC.{pset}.{field['property']}"
 
 
+def normalized_alias(value: str) -> str:
+    return "".join(value.split()).casefold()
+
+
 def test_stage01_project_fields_have_parameter_mapping_or_explicit_exception():
     registry = load_json(
         "src/BIMBaoGui.Stage01/Resources/stage01_file_initialization_registry_v0.1.json"
@@ -31,17 +35,32 @@ def test_stage01_project_fields_have_parameter_mapping_or_explicit_exception():
         "specs/hifc-mapping/v1/data/official_plugin_compatibility_status.v1.json"
     )
 
-    mapped_names = {item["parameterName"] for item in bindings["bindings"]}
+    mapped_names = {
+        normalized_alias(item["parameterName"]) for item in bindings["bindings"]
+    }
     explicit_exceptions = set(status["stage01ProjectFieldExceptions"])
     missing = []
     for field in registry["mvd_fields"]:
         if not field.get("write_in_stage01") or field.get("entity") != "IfcProject":
             continue
-        name = canonical_parameter_name(field)
+        name = normalized_alias(canonical_parameter_name(field))
         if name not in mapped_names and field["field_key"] not in explicit_exceptions:
             missing.append(field["field_key"])
 
     assert not missing, "Stage 01 project fields lack mapping or explicit exception:\n" + "\n".join(missing)
+
+
+def test_stage01_exceptions_are_explicitly_reasoned():
+    status = load_json(
+        "specs/hifc-mapping/v1/data/official_plugin_compatibility_status.v1.json"
+    )
+    exceptions = status["stage01ProjectFieldExceptions"]
+    reasons = status["stage01ProjectFieldExceptionReasons"]
+    assert exceptions
+    assert set(exceptions) == set(reasons)
+    assert all(reasons[key].strip() for key in exceptions)
+    assert any("规划控制目标" in key for key in exceptions)
+    assert any("Pset_Manifest" in key for key in exceptions)
 
 
 def test_organization_fields_are_not_silently_claimed_as_officially_exportable():
