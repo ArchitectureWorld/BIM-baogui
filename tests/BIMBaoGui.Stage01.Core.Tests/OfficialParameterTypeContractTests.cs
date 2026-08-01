@@ -81,7 +81,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
     {
       bool semanticRead = false;
 
-      bool compatible = OfficialParameterTypeContract.IsCompatible(
+      OfficialParameterCompatibilityResult result = OfficialParameterTypeContract.CheckCompatibility(
         "TEXT",
         OfficialParameterStorageKind.Double,
         () =>
@@ -90,8 +90,18 @@ namespace BIMBaoGui.Stage01.Core.Tests
           throw new Xunit.Sdk.XunitException("语义 accessor 不应被调用。");
         });
 
-      Assert.False(compatible);
+      Assert.False(result.StorageMatches);
       Assert.False(semanticRead);
+    }
+
+    [Fact]
+    public void IsCompatible_RejectsNullSemanticAccessorBeforeStorageShortCircuit()
+    {
+      Assert.Throws<ArgumentNullException>(() =>
+        OfficialParameterTypeContract.CheckCompatibility(
+          "TEXT",
+          OfficialParameterStorageKind.Double,
+          null));
     }
   }
 }

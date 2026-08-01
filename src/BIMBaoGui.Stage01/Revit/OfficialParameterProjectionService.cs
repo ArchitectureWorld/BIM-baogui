@@ -460,28 +460,28 @@ namespace BIMBaoGui.Stage01.Revit
         throw ParameterTypeMismatch(
           projection.Name,
           sharedParameterType,
-          GetActualSemantic(parameter));
+          GetActualStorageDescription(parameter));
       }
       if (parameter == null)
         throw ParameterTypeMismatch(
           projection.Name,
           decision.SemanticType,
-          GetActualSemantic(parameter));
-      try
-      {
-        if (OfficialParameterTypeContract.IsCompatible(
+          GetActualStorageDescription(parameter));
+      OfficialParameterCompatibilityResult compatibility =
+        OfficialParameterTypeContract.CheckCompatibility(
           decision.SemanticType,
           GetStorageKind(parameter.StorageType),
-          () => GetActualSemantic(parameter)))
-          return decision;
-      }
-      catch (InvalidOperationException)
-      {
-      }
+          () => GetActualSemantic(parameter));
+      if (!compatibility.StorageMatches)
+        throw ParameterTypeMismatch(
+          projection.Name,
+          decision.SemanticType,
+          GetActualStorageDescription(parameter));
+      if (compatibility.SemanticMatches) return decision;
       throw ParameterTypeMismatch(
         projection.Name,
         decision.SemanticType,
-        GetActualSemantic(parameter));
+        compatibility.ActualSemantic);
     }
 
     private static InvalidOperationException ParameterTypeMismatch(
@@ -501,6 +501,13 @@ namespace BIMBaoGui.Stage01.Revit
       return parameter?.Definition == null
         ? "Missing"
         : parameter.Definition.ParameterType.ToString();
+    }
+
+    private static string GetActualStorageDescription(Parameter parameter)
+    {
+      return parameter == null
+        ? "Missing"
+        : "StorageType." + parameter.StorageType;
     }
 
     private static OfficialParameterStorageKind GetStorageKind(

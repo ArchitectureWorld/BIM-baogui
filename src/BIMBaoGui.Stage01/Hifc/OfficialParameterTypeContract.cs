@@ -47,6 +47,23 @@ namespace BIMBaoGui.Stage01.Hifc
     public OfficialParameterUnitRoute UnitRoute { get; }
   }
 
+  internal readonly struct OfficialParameterCompatibilityResult
+  {
+    public OfficialParameterCompatibilityResult(
+      bool storageMatches,
+      bool semanticMatches,
+      string actualSemantic)
+    {
+      StorageMatches = storageMatches;
+      SemanticMatches = semanticMatches;
+      ActualSemantic = actualSemantic;
+    }
+
+    public bool StorageMatches { get; }
+    public bool SemanticMatches { get; }
+    public string ActualSemantic { get; }
+  }
+
   internal static class OfficialParameterTypeContract
   {
     public static string Normalize(string sharedParameterType)
@@ -116,19 +133,22 @@ namespace BIMBaoGui.Stage01.Hifc
         StringComparison.Ordinal);
     }
 
-    public static bool IsCompatible(
+    public static OfficialParameterCompatibilityResult CheckCompatibility(
       string expectedSharedParameterType,
       OfficialParameterStorageKind actualStorageKind,
       Func<string> actualRevitParameterTypeAccessor)
     {
-      OfficialParameterTypeDecision expected = Resolve(
-        expectedSharedParameterType);
-      if (expected.StorageKind != actualStorageKind) return false;
       if (actualRevitParameterTypeAccessor == null)
         throw new ArgumentNullException(nameof(actualRevitParameterTypeAccessor));
-      return IsCompatible(
-        expected.SemanticType,
-        actualRevitParameterTypeAccessor());
+      OfficialParameterTypeDecision expected = Resolve(
+        expectedSharedParameterType);
+      if (expected.StorageKind != actualStorageKind)
+        return new OfficialParameterCompatibilityResult(false, false, null);
+      string actual = actualRevitParameterTypeAccessor();
+      bool semanticMatches;
+      try { semanticMatches = IsCompatible(expected.SemanticType, actual); }
+      catch (InvalidOperationException) { semanticMatches = false; }
+      return new OfficialParameterCompatibilityResult(true, semanticMatches, actual);
     }
 
     private static OfficialParameterTypeDecision DoubleDecision(
