@@ -75,12 +75,12 @@ def test_old_stage01_initialization_is_migrated_without_manual_reinitialize():
     assert "无需启用“允许重新初始化”" in service
 
 
-def test_v081_plugin_patch_keeps_v080_context_schema():
+def test_v082_plugin_patch_keeps_v080_context_schema():
     project = read("src/BIMBaoGui.Stage01/BIMBaoGui.Stage01.csproj")
     assembly = read("src/BIMBaoGui.Stage01/AssemblyInfo.cs")
     versions = read("src/BIMBaoGui.Stage01/Context/HBRContextVersions.cs")
     workflow = read(".github/workflows/build-stage01-gha.yml")
-    assert "<Version>0.8.1</Version>" in project
-    assert 'public override string Version => "0.8.1"' in assembly
+    assert "<Version>0.8.2</Version>" in project
+    assert 'public override string Version => "0.8.2"' in assembly
     assert 'FileContextSchema = "0.8.0"' in versions
-    assert '0.8.1.0' in workflow
+    assert '0.8.2.0' in workflow
