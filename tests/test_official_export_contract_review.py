@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -55,12 +56,13 @@ def test_organization_fields_are_not_silently_claimed_as_officially_exportable()
 
 def test_standard_coordinate_semantics_x_is_northsouth_y_is_eastwest():
     service = read("src/BIMBaoGui.Stage01/Revit/Stage01RevitService.cs")
-    assert "Stage01Keys.BaseX, Format(UnitUtils.ConvertFromInternalUnits(position.NorthSouth" in service
-    assert "Stage01Keys.BaseY, Format(UnitUtils.ConvertFromInternalUnits(position.EastWest" in service
-    assert "double northMeters = ParseRequiredNumber(model, Stage01Keys.BaseX);" in service
-    assert "double eastMeters = ParseRequiredNumber(model, Stage01Keys.BaseY);" in service
-    assert 'CompareNumber(errors, "基点坐标 X（南北）"' in service
-    assert 'CompareNumber(errors, "基点坐标 Y（东西）"' in service
+    compact = re.sub(r"\s+", "", service)
+    assert "Stage01Keys.BaseX,Format(UnitUtils.ConvertFromInternalUnits(position.NorthSouth" in compact
+    assert "Stage01Keys.BaseY,Format(UnitUtils.ConvertFromInternalUnits(position.EastWest" in compact
+    assert "doublenorthMeters=ParseRequiredNumber(model,Stage01Keys.BaseX);" in compact
+    assert "doubleeastMeters=ParseRequiredNumber(model,Stage01Keys.BaseY);" in compact
+    assert '"基点坐标X（南北）",ParseRequiredNumber(model,Stage01Keys.BaseX),north' in compact
+    assert '"基点坐标Y（东西）",ParseRequiredNumber(model,Stage01Keys.BaseY),east' in compact
 
 
 def test_storage_layer_has_no_hifc_projection_side_effect():
