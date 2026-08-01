@@ -3,6 +3,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT = ROOT / "src" / "BIMBaoGui.Stage01" / "BIMBaoGui.Stage01.csproj"
 SERVICE = ROOT / "src" / "BIMBaoGui.Stage01" / "Revit" / "OfficialHifcWriteService.cs"
+PROJECTION = ROOT / "src" / "BIMBaoGui.Stage01" / "Revit" / "OfficialParameterProjectionService.cs"
 COMPONENT = ROOT / "src" / "BIMBaoGui.Stage01" / "Stage03OfficialHifcWriteComponent.cs"
 CATALOG = ROOT / "src" / "BIMBaoGui.Stage01" / "Hifc" / "OfficialHifcMappingCatalog.cs"
 POLICIES = ROOT / "src" / "BIMBaoGui.Stage01" / "Hifc" / "OfficialPluginCompatibilityCatalog.cs"
@@ -20,9 +21,10 @@ def test_mapping_catalog_combines_bindings_with_official_rule_metadata():
     text = CATALOG.read_text(encoding="utf-8")
     assert "BindingResourceName" in text
     assert "RuleResourceName" in text
-    assert "IfcEntity = rule.official.ifcEntity" in text
+    assert "IfcEntity = ifcEntity" in text
     assert "IfcDataType = rule.official.ifcDataType" in text
     assert "SharedParameterType = rule.canonical.sharedParameterType" in text
+    assert "OfficialSourceParameterName" in text
 
 
 def test_compatibility_catalog_blocks_unverified_entities():
@@ -32,15 +34,17 @@ def test_compatibility_catalog_blocks_unverified_entities():
     assert "AllowsProjectInformationDefault" in text
 
 
-def test_writer_uses_atomic_revit_transaction_and_readback():
-    text = SERVICE.read_text(encoding="utf-8")
-    assert "TransactionGroup" in text
-    assert "document.Regenerate()" in text
-    assert "VerifyReadback" in text
-    assert "get_Parameter(item.Mapping.ParameterGuid)" in text
-    assert "group.RollBack()" in text
-    assert "UnitUtils.ConvertToInternalUnits" in text
-    assert "DUT_DECIMAL_DEGREES" in text
+def test_writer_uses_atomic_transaction_and_shared_projection_service():
+    service = SERVICE.read_text(encoding="utf-8")
+    projection = PROJECTION.read_text(encoding="utf-8")
+    assert "TransactionGroup" in service
+    assert "OfficialParameterProjectionService.WriteAndVerify" in service
+    assert "group.RollBack()" in service
+    assert "document.Regenerate()" in projection
+    assert "ReadbackMatches" in projection
+    assert "get_Parameter(projection.Guid)" in projection
+    assert "UnitUtils.ConvertToInternalUnits" in projection
+    assert "DUT_DECIMAL_DEGREES" in projection
 
 
 def test_writer_resolves_targets_per_mapping_and_blocks_wrong_defaults():
