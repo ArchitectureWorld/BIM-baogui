@@ -13,6 +13,7 @@ namespace BIMBaoGui.Stage01.Revit
   internal sealed class OfficialHifcWriteResult
   {
     public bool Success { get; set; }
+    public bool OfficialCompatibilityVerified { get; set; }
     public string Status { get; set; } = string.Empty;
     public int WriteCount { get; set; }
     public IReadOnlyList<string> Messages { get; set; } = Array.Empty<string>();
