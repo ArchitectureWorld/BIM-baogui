@@ -9,7 +9,10 @@ on:
       - feat/gh-official-hifc-write-integration-v1
     paths:
       - "src/**"
+      - "specs/hifc-mapping/**"
       - "tests/**"
+      - "docs/superpowers/**"
+      - "docs/reviews/**"
       - ".github/workflows/build-stage01-gha.yml"
   pull_request:
     branches:
@@ -67,7 +70,7 @@ jobs:
           $gha = Resolve-Path "src/BIMBaoGui.Stage01/bin/Release/net48/BIMBaoGui.Stage01.gha"
           $assembly = [System.Reflection.AssemblyName]::GetAssemblyName($gha)
           if ($assembly.Name -ne "BIMBaoGui.Stage01") { throw "Unexpected assembly name: $($assembly.Name)" }
-          if ($assembly.Version -ne "0.6.0.0") { throw "Unexpected assembly version: $($assembly.Version)" }
+          if ($assembly.Version -ne "0.7.0.0") { throw "Unexpected assembly version: $($assembly.Version)" }
           $hash = (Get-FileHash $gha -Algorithm SHA256).Hash.ToLowerInvariant()
           $size = (Get-Item $gha).Length
           if ($size -lt 50000) { throw "GHA is unexpectedly small: $size bytes" }
@@ -87,7 +90,7 @@ jobs:
       - name: Upload GHA
         uses: actions/upload-artifact@v4
         with:
-          name: BIMBaoGui-Revit2020-Rhino8-v0.6.0-official-hifc-write
+          name: BIMBaoGui-Revit2020-Rhino8-v0.7.0-official-plugin-write-review
           path: artifacts/BIMBaoGui.Stage01.gha
           if-no-files-found: error
           retention-days: 30
