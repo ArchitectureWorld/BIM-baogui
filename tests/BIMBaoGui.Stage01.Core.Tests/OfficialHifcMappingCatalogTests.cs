@@ -67,6 +67,32 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Assert.Equal("项目名称", mapping.OfficialSourceParameterName);
     }
 
+    [Fact]
+    public void ProjectCarrierAliases_ShareOnlyTheSameOfficialSourceName()
+    {
+      OfficialHifcMappingCatalog catalog = OfficialHifcMappingCatalog.Instance;
+      Assert.True(catalog.TryResolve(
+        "HIFC.区划信息属性集.备注", out OfficialHifcMapping zoningRemark));
+      Assert.True(catalog.TryResolve(
+        "HIFC.申报信息属性集.备注", out OfficialHifcMapping filingRemark));
+      Assert.True(catalog.TryResolve(
+        "HIFC.地籍信息属性集.建筑物编码", out OfficialHifcMapping cadastralCode));
+      Assert.True(catalog.TryResolve(
+        "HIFC.登记信息属性集.建筑物编码", out OfficialHifcMapping registrationCode));
+
+      Assert.Equal(
+        zoningRemark.OfficialSourceParameterGuid,
+        filingRemark.OfficialSourceParameterGuid);
+      Assert.Equal(
+        cadastralCode.OfficialSourceParameterGuid,
+        registrationCode.OfficialSourceParameterGuid);
+      Assert.NotEqual(
+        zoningRemark.OfficialSourceParameterGuid,
+        cadastralCode.OfficialSourceParameterGuid);
+      Assert.NotEqual(zoningRemark.ParameterGuid, filingRemark.ParameterGuid);
+      Assert.NotEqual(cadastralCode.ParameterGuid, registrationCode.ParameterGuid);
+    }
+
     private static string Flatten(Exception exception)
     {
       return string.Join(

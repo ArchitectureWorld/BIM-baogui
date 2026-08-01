@@ -1,0 +1,45 @@
+using System;
+
+namespace BIMBaoGui.Stage01.Hifc
+{
+  internal static class OfficialSourceAliasPolicy
+  {
+    private static readonly Guid Namespace =
+      new Guid("475ad28f-fda6-5c58-8447-08f6f25aa09c");
+
+    public static Guid CreateGuid(
+      string bindingScope,
+      string revitCategory,
+      string carrier,
+      string officialExactSourceName)
+    {
+      return DeterministicGuidV5.Create(
+        Namespace,
+        CreateIdentity(
+          bindingScope,
+          revitCategory,
+          carrier,
+          officialExactSourceName));
+    }
+
+    private static string CreateIdentity(
+      string bindingScope,
+      string revitCategory,
+      string carrier,
+      string officialExactSourceName)
+    {
+      return Normalize(bindingScope)
+        + "|"
+        + Normalize(revitCategory)
+        + "|"
+        + Normalize(carrier)
+        + "|"
+        + (officialExactSourceName ?? string.Empty).Trim();
+    }
+
+    private static string Normalize(string value)
+    {
+      return (value ?? string.Empty).Trim().ToUpperInvariant();
+    }
+  }
+}

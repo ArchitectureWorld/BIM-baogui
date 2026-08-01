@@ -9,8 +9,6 @@ namespace BIMBaoGui.Stage01.Hifc
 {
   internal sealed class OfficialHifcMappingCatalog
   {
-    private static readonly Guid OfficialSourceAliasNamespace =
-      new Guid("475ad28f-fda6-5c58-8447-08f6f25aa09c");
     private static readonly object InstanceLock = new object();
     private static OfficialHifcMappingCatalog _instance;
 
@@ -155,9 +153,6 @@ namespace BIMBaoGui.Stage01.Hifc
         string officialSourceName = string.IsNullOrWhiteSpace(sourceOverride)
           ? ifcProperty
           : sourceOverride.Trim();
-        string officialAliasKey =
-          ifcEntity + "|" + propertySet + "|" + officialSourceName;
-
         result.Add(new OfficialHifcMapping
         {
           PropertyId = item.propertyId,
@@ -175,9 +170,11 @@ namespace BIMBaoGui.Stage01.Hifc
           Unit = rule.official.unit ?? string.Empty,
           SourceParameterOverride = sourceOverride,
           OfficialSourceParameterName = officialSourceName,
-          OfficialSourceParameterGuid = DeterministicGuidV5.Create(
-            OfficialSourceAliasNamespace,
-            officialAliasKey)
+          OfficialSourceParameterGuid = OfficialSourceAliasPolicy.CreateGuid(
+            item.bindingScope,
+            item.category,
+            item.carrier,
+            officialSourceName)
         });
       }
 
