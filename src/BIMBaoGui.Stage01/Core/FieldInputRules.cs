@@ -69,6 +69,7 @@ namespace BIMBaoGui.Stage01.Core
     public static string Validate(FieldDefinition definition, string value, bool required)
     {
       if (definition == null) return null;
+      if (definition.ReadOnly || definition.Deferred) return null;
       string normalized = (value ?? string.Empty).Trim();
       if (normalized.Length == 0)
         return required ? "该项为必填项。" : null;
