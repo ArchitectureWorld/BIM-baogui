@@ -24,6 +24,8 @@ namespace BIMBaoGui.Stage01.Hifc
   {
     private const string ResourceName =
       "BIMBaoGui.Stage01.Resources.official_plugin_compatibility_status.v1.json";
+    private static readonly object InstanceLock = new object();
+    private static OfficialPluginCompatibilityCatalog _instance;
 
     private readonly Dictionary<string, OfficialPluginEntityPolicy> _entityPolicies;
     private readonly HashSet<string> _stage01ProjectFieldExceptions;
@@ -40,7 +42,18 @@ namespace BIMBaoGui.Stage01.Hifc
         StringComparer.Ordinal);
     }
 
-    public static OfficialPluginCompatibilityCatalog Instance { get; } = Load();
+    public static OfficialPluginCompatibilityCatalog Instance
+    {
+      get
+      {
+        if (_instance != null) return _instance;
+        lock (InstanceLock)
+        {
+          if (_instance == null) _instance = Load();
+          return _instance;
+        }
+      }
+    }
 
     public OfficialPluginEntityPolicy GetEntityPolicy(string ifcEntity)
     {
@@ -69,12 +82,24 @@ namespace BIMBaoGui.Stage01.Hifc
       using (Stream stream = assembly.GetManifestResourceStream(ResourceName))
       {
         if (stream == null)
-          throw new InvalidDataException("缺少官方插件兼容状态资源：" + ResourceName);
+        {
+          string available = string.Join(", ", assembly.GetManifestResourceNames());
+          throw new InvalidDataException(
+            "缺少官方插件兼容状态资源："
+            + ResourceName
+            + "。当前资源："
+            + available);
+        }
 
         using (var reader = new StreamReader(stream))
         {
-          var serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
-          CompatibilityEnvelope envelope = serializer.Deserialize<CompatibilityEnvelope>(reader.ReadToEnd());
+          var serializer = new JavaScriptSerializer
+          {
+            MaxJsonLength = int.MaxValue,
+            RecursionLimit = 512
+          };
+          CompatibilityEnvelope envelope =
+            serializer.Deserialize<CompatibilityEnvelope>(reader.ReadToEnd());
           if (envelope?.entities == null || envelope.entities.Count == 0)
             throw new InvalidDataException("官方插件兼容状态未定义任何 IFC 实体策略。");
 
