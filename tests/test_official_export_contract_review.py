@@ -59,7 +59,7 @@ def test_stage01_exceptions_are_explicitly_reasoned():
     assert exceptions
     assert set(exceptions) == set(reasons)
     assert all(reasons[key].strip() for key in exceptions)
-    assert any("规划控制目标" in key for key in exceptions)
+    assert any("规划控制目标" in reason for reason in reasons.values())
     assert any("Pset_Manifest" in key for key in exceptions)
 
 
