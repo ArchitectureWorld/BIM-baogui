@@ -40,6 +40,20 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void CategorylessMappings_AreRetainedButBlockedFromRevitWrites()
+    {
+      OfficialHifcMapping[] categoryless = OfficialHifcMappingCatalog.Instance
+        .Mappings
+        .Where(mapping => string.IsNullOrWhiteSpace(mapping.Category))
+        .ToArray();
+
+      Assert.NotEmpty(categoryless);
+      Assert.All(categoryless, mapping => Assert.True(
+        mapping.EntityPolicy.IsBlocked,
+        mapping.IfcEntity + " must be blocked when no Revit category is defined."));
+    }
+
+    [Fact]
     public void Stage01ProjectName_ResolvesFromCanonicalFieldKey()
     {
       bool resolved = OfficialHifcMappingCatalog.Instance.TryResolveStage01FieldKey(
