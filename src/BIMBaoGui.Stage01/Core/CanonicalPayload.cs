@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using BIMBaoGui.Stage01.Context;
 
 namespace BIMBaoGui.Stage01.Core
 {
@@ -13,10 +14,14 @@ namespace BIMBaoGui.Stage01.Core
     {
       var builder = new StringBuilder(12288);
       builder.Append('{');
-      AppendProperty(builder, "schemaVersion", "0.5.0", true);
+      AppendProperty(builder, "schemaVersion", HBRContextVersions.FileContextSchema, true);
       AppendProperty(builder, "workflowVersion", model.GetValue(Stage01Keys.WorkflowVersion), false);
       builder.Append(",\"values\":");
-      AppendStringDictionary(builder, model.Values.Where(x => !string.Equals(x.Key, Stage01Keys.InitializationStatus, StringComparison.Ordinal))
+      AppendStringDictionary(builder, model.Values
+        .Where(x => !string.Equals(
+          x.Key,
+          Stage01Keys.InitializationStatus,
+          StringComparison.Ordinal))
         .ToDictionary(x => x.Key, x => x.Value, StringComparer.Ordinal));
       builder.Append(",\"planningTargets\":");
       AppendPlanningTargets(builder, model.PlanningTargets);
@@ -45,12 +50,15 @@ namespace BIMBaoGui.Stage01.Core
       }
     }
 
-    private static void AppendPlanningTargets(StringBuilder builder, IDictionary<string, PlanningTargetValue> targets)
+    private static void AppendPlanningTargets(
+      StringBuilder builder,
+      IDictionary<string, PlanningTargetValue> targets)
     {
       builder.Append('{');
       bool firstTarget = true;
-      foreach (KeyValuePair<string, PlanningTargetValue> pair in (targets ?? new Dictionary<string, PlanningTargetValue>())
-        .OrderBy(x => x.Key, StringComparer.Ordinal))
+      foreach (KeyValuePair<string, PlanningTargetValue> pair in
+        (targets ?? new Dictionary<string, PlanningTargetValue>())
+          .OrderBy(x => x.Key, StringComparer.Ordinal))
       {
         PlanningTargetValue target = pair.Value;
         if (target == null) continue;
@@ -58,8 +66,18 @@ namespace BIMBaoGui.Stage01.Core
         AppendEscaped(builder, pair.Key);
         builder.Append(':').Append('{');
         AppendProperty(builder, "operator", target.Operator.ToString(), true);
-        AppendProperty(builder, "value1", target.Value1.ToString(CultureInfo.InvariantCulture), false);
-        AppendProperty(builder, "value2", target.Value2.HasValue ? target.Value2.Value.ToString(CultureInfo.InvariantCulture) : string.Empty, false);
+        AppendProperty(
+          builder,
+          "value1",
+          target.Value1.ToString(CultureInfo.InvariantCulture),
+          false);
+        AppendProperty(
+          builder,
+          "value2",
+          target.Value2.HasValue
+            ? target.Value2.Value.ToString(CultureInfo.InvariantCulture)
+            : string.Empty,
+          false);
         AppendProperty(builder, "unit", target.Unit.ToString(), false);
         AppendProperty(builder, "source", target.Source, false);
         AppendProperty(builder, "mvdText", target.ToMvdText(), false);
@@ -69,11 +87,14 @@ namespace BIMBaoGui.Stage01.Core
       builder.Append('}');
     }
 
-    private static void AppendStringDictionary(StringBuilder builder, IDictionary<string, string> values)
+    private static void AppendStringDictionary(
+      StringBuilder builder,
+      IDictionary<string, string> values)
     {
       builder.Append('{');
       bool first = true;
-      foreach (KeyValuePair<string, string> pair in values.OrderBy(x => x.Key, StringComparer.Ordinal))
+      foreach (KeyValuePair<string, string> pair in
+        values.OrderBy(x => x.Key, StringComparer.Ordinal))
       {
         AppendProperty(builder, pair.Key, pair.Value ?? string.Empty, first);
         first = false;
@@ -81,11 +102,14 @@ namespace BIMBaoGui.Stage01.Core
       builder.Append('}');
     }
 
-    private static void AppendBooleanDictionary(StringBuilder builder, IDictionary<string, bool> values)
+    private static void AppendBooleanDictionary(
+      StringBuilder builder,
+      IDictionary<string, bool> values)
     {
       builder.Append('{');
       bool first = true;
-      foreach (KeyValuePair<string, bool> pair in values.OrderBy(x => x.Key, StringComparer.Ordinal))
+      foreach (KeyValuePair<string, bool> pair in
+        values.OrderBy(x => x.Key, StringComparer.Ordinal))
       {
         if (!first) builder.Append(',');
         AppendEscaped(builder, pair.Key);
@@ -95,7 +119,11 @@ namespace BIMBaoGui.Stage01.Core
       builder.Append('}');
     }
 
-    private static void AppendProperty(StringBuilder builder, string key, string value, bool first)
+    private static void AppendProperty(
+      StringBuilder builder,
+      string key,
+      string value,
+      bool first)
     {
       if (!first) builder.Append(',');
       AppendEscaped(builder, key);
@@ -119,7 +147,8 @@ namespace BIMBaoGui.Stage01.Core
           case '\t': builder.Append("\\t"); break;
           default:
             if (character < 32)
-              builder.Append("\\u").Append(((int) character).ToString("x4", CultureInfo.InvariantCulture));
+              builder.Append("\\u")
+                .Append(((int)character).ToString("x4", CultureInfo.InvariantCulture));
             else
               builder.Append(character);
             break;
