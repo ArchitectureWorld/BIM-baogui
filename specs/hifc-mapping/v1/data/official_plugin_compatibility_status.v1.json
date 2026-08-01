@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "1.0.0",
+  "objective": "GH 写入 Revit 后，由官方 H-IFC 插件导出 IFC，并由官方检查软件正确识别",
+  "activeExportPath": "OFFICIAL_HIFC_PLUGIN_ONLY",
+  "prohibitedProductPaths": [
+    "SELF_DEVELOPED_IFC_EXPORT",
+    "POST_EXPORT_ENRICH",
+    "POST_EXPORT_CREATE_OR_ENRICH"
+  ],
+  "evidence": {
+    "propertyDefinitions": "OFFICIAL_EXTRACTED",
+    "propertySetDefinitions": "OFFICIAL_EXTRACTED",
+    "explicitObjectMappings": "OFFICIAL_EXTRACTED_4",
+    "generatedSharedParameterNames": "IMPLEMENTATION_DECISION_UNVERIFIED_BY_OFFICIAL_EXPORT",
+    "generatedParameterGuids": "IMPLEMENTATION_DECISION_UNVERIFIED_BY_OFFICIAL_EXPORT",
+    "revitParameterReadback": "LOCAL_WRITE_VERIFICATION_ONLY",
+    "officialPluginExport": "NOT_YET_EXECUTED",
+    "officialCheckerRecognition": "NOT_YET_EXECUTED"
+  },
+  "coordinateSemantics": {
+    "X": "NORTH_SOUTH",
+    "Y": "EAST_WEST",
+    "elevation": "VERTICAL_ELEVATION",
+    "inputUnit": "m"
+  },
+  "stage01ProjectFieldExceptions": [],
+  "entities": {
+    "IfcProject": {
+      "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+      "revitCarrier": "PROJECT_INFORMATION",
+      "writePolicy": "ALLOW_WITH_EXPORT_VERIFICATION_REQUIRED",
+      "officialExportVerified": false
+    },
+    "IfcBuilding": {
+      "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+      "revitCarrier": "PROJECT_INFORMATION",
+      "writePolicy": "ALLOW_WITH_EXPORT_VERIFICATION_REQUIRED",
+      "officialExportVerified": false
+    },
+    "IfcBuildingStorey": {
+      "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+      "revitCarrier": "LEVEL",
+      "writePolicy": "REQUIRE_EXPLICIT_LEVEL_TARGET",
+      "officialExportVerified": false
+    },
+    "IfcSpace": {
+      "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+      "revitCarrier": "ROOM",
+      "writePolicy": "REQUIRE_EXPLICIT_ROOM_TARGET",
+      "officialExportVerified": false
+    },
+    "IfcOrganization": {
+      "officialObjectMappingEvidence": "UNVERIFIED",
+      "revitCarrier": null,
+      "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+      "officialExportVerified": false
+    },
+    "IfcSite": {
+      "officialObjectMappingEvidence": "UNVERIFIED",
+      "revitCarrier": null,
+      "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+      "officialExportVerified": false
+    },
+    "IfcSpatialZone": {
+      "officialObjectMappingEvidence": "UNVERIFIED",
+      "revitCarrier": null,
+      "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+      "officialExportVerified": false
+    },
+    "IfcDoor": {
+      "officialObjectMappingEvidence": "UNVERIFIED",
+      "revitCarrier": null,
+      "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+      "officialExportVerified": false
+    },
+    "IfcDuctSegment": {
+      "officialObjectMappingEvidence": "UNVERIFIED",
+      "revitCarrier": null,
+      "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+      "officialExportVerified": false
+    }
+  },
+  "completionGate": {
+    "requiredRoundtrip": [
+      "GH_VALUE",
+      "REVIT_VALUE",
+      "OFFICIAL_PLUGIN_EXPORTED_IFC_VALUE",
+      "OFFICIAL_CHECKER_RECOGNIZED_VALUE"
+    ],
+    "goldenRvtRequired": true,
+    "goldenIfcRequired": true,
+    "parameterReadbackAloneIsSufficient": false
+  }
+}
