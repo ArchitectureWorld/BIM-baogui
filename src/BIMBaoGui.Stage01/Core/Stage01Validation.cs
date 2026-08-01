@@ -76,6 +76,7 @@ namespace BIMBaoGui.Stage01.Core
       foreach (FieldDefinition definition in uniqueDefinitions)
       {
         if (RequiredKeys.Contains(definition.Key, StringComparer.Ordinal)) continue;
+        if (definition.ReadOnly || definition.Deferred) continue;
         if (PlanningTargetCatalog.IsManagedMvdField(definition.Key)) continue;
         string value = definition.Entity == "IfcOrganization"
           ? model.GetOrganizationValue(definition.Key)
