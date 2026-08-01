@@ -64,7 +64,7 @@ namespace BIMBaoGui.Stage01.Revit
       foreach (ProjectionWrite projection in projections)
       {
         Parameter parameter = ResolveParameter(projection);
-        ValidateParameterType(
+        OfficialParameterTypeDecision decision = ValidateParameterType(
           parameter,
           projection.Mapping.SharedParameterType,
           projection);
@@ -74,17 +74,21 @@ namespace BIMBaoGui.Stage01.Revit
         SetValue(
           parameter,
           projection.RawValue,
-          projection.Mapping.SharedParameterType);
+          decision);
       }
 
       document.Regenerate();
       foreach (ProjectionWrite projection in projections)
       {
         Parameter parameter = ResolveParameter(projection);
+        OfficialParameterTypeDecision decision = ValidateParameterType(
+          parameter,
+          projection.Mapping.SharedParameterType,
+          projection);
         if (!ReadbackMatches(
           parameter,
           projection.RawValue,
-          projection.Mapping.SharedParameterType))
+          decision))
           throw new InvalidOperationException(
             projection.Kind
             + " 参数回读不一致："
@@ -405,8 +409,8 @@ namespace BIMBaoGui.Stage01.Revit
             .Append('\t')
             .Append(Sanitize(item.Name))
             .Append('\t')
-            .Append(OfficialParameterTypeContract.Normalize(
-              item.Mapping.SharedParameterType))
+            .Append(OfficialParameterTypeContract.Resolve(
+              item.Mapping.SharedParameterType).SemanticType)
             .Append("\t\t")
             .Append(group.Id.ToString(CultureInfo.InvariantCulture))
             .Append("\t1\tOfficial exact source alias | ")
@@ -441,47 +445,77 @@ namespace BIMBaoGui.Stage01.Revit
       return exact[0];
     }
 
-    private static void ValidateParameterType(
+    private static OfficialParameterTypeDecision ValidateParameterType(
       Parameter parameter,
       string sharedParameterType,
       ProjectionWrite projection)
     {
-      string expectedSemantic = OfficialParameterTypeContract.Normalize(
-        sharedParameterType);
-      StorageType expected = ExpectedStorageType(expectedSemantic);
-      if (parameter == null || parameter.StorageType != expected)
-        throw new InvalidOperationException(
-          "参数类型不匹配："
-          + projection.Name
-          + "，期望=" + expectedSemantic + " / " + expected
-          + "，实际="
-          + (parameter == null
-            ? "Missing"
-            : parameter.StorageType.ToString()));
-      string actualSemantic = parameter.Definition.ParameterType.ToString();
+      string actualSemantic = GetActualSemantic(parameter);
+      OfficialParameterTypeDecision decision;
+      try
+      {
+        decision = OfficialParameterTypeContract.Resolve(sharedParameterType);
+      }
+      catch (InvalidOperationException)
+      {
+        throw ParameterTypeMismatch(
+          projection.Name,
+          sharedParameterType,
+          actualSemantic);
+      }
+      StorageType expectedStorage = ExpectedStorageType(decision.StorageKind);
+      if (parameter == null || parameter.StorageType != expectedStorage)
+        throw ParameterTypeMismatch(
+          projection.Name,
+          decision.SemanticType,
+          actualSemantic);
       try
       {
         if (OfficialParameterTypeContract.IsCompatible(
-          expectedSemantic,
+          decision.SemanticType,
           actualSemantic))
-          return;
+          return decision;
       }
       catch (InvalidOperationException)
       {
       }
-      throw new InvalidOperationException(
+      throw ParameterTypeMismatch(
+        projection.Name,
+        decision.SemanticType,
+        actualSemantic);
+    }
+
+    private static InvalidOperationException ParameterTypeMismatch(
+      string parameterName,
+      string expectedSemantic,
+      string actualSemantic)
+    {
+      return new InvalidOperationException(
         "参数语义类型不匹配："
-        + projection.Name
-        + "，期望=" + expectedSemantic
+        + parameterName
+        + "，期望=" + (expectedSemantic ?? string.Empty).Trim()
         + "，实际=" + actualSemantic);
     }
 
-    private static StorageType ExpectedStorageType(string normalizedType)
+    private static string GetActualSemantic(Parameter parameter)
     {
-      if (normalizedType == "TEXT") return StorageType.String;
-      if (normalizedType == "INTEGER" || normalizedType == "YESNO")
-        return StorageType.Integer;
-      return StorageType.Double;
+      return parameter?.Definition == null
+        ? "Missing"
+        : parameter.Definition.ParameterType.ToString();
+    }
+
+    private static StorageType ExpectedStorageType(
+      OfficialParameterStorageKind storageKind)
+    {
+      switch (storageKind)
+      {
+        case OfficialParameterStorageKind.String:
+          return StorageType.String;
+        case OfficialParameterStorageKind.Integer:
+          return StorageType.Integer;
+        default:
+          return StorageType.Double;
+      }
     }
 
     private static ExternalDefinition FindDefinition(
@@ -503,26 +537,26 @@ namespace BIMBaoGui.Stage01.Revit
     private static void SetValue(
       Parameter parameter,
       string raw,
-      string sharedParameterType)
+      OfficialParameterTypeDecision decision)
     {
       raw = raw ?? string.Empty;
-      switch (OfficialParameterTypeContract.Normalize(sharedParameterType))
+      switch (decision.ValueRoute)
       {
-        case "TEXT":
+        case OfficialParameterValueRoute.Text:
           if (!parameter.Set(raw))
             throw new InvalidOperationException("文本参数写入失败。");
           return;
-        case "INTEGER":
+        case OfficialParameterValueRoute.Integer:
           if (!parameter.Set(ParseInteger(raw)))
             throw new InvalidOperationException("整数参数写入失败。");
           return;
-        case "YESNO":
+        case OfficialParameterValueRoute.YesNo:
           if (!parameter.Set(ParseYesNo(raw)))
             throw new InvalidOperationException("布尔参数写入失败。");
           return;
         default:
           double internalValue = ToInternalValue(
-            sharedParameterType,
+            decision.UnitRoute,
             ParseDouble(raw));
           if (!parameter.Set(internalValue))
             throw new InvalidOperationException("数值参数写入失败。");
@@ -564,23 +598,25 @@ namespace BIMBaoGui.Stage01.Revit
       return value;
     }
 
-    private static double ToInternalValue(string sharedParameterType, double value)
+    private static double ToInternalValue(
+      OfficialParameterUnitRoute unitRoute,
+      double value)
     {
-      switch (OfficialParameterTypeContract.Normalize(sharedParameterType))
+      switch (unitRoute)
       {
-      case "LENGTH":
+      case OfficialParameterUnitRoute.Meters:
         return UnitUtils.ConvertToInternalUnits(
           value,
           DisplayUnitType.DUT_METERS);
-      case "AREA":
+      case OfficialParameterUnitRoute.SquareMeters:
         return UnitUtils.ConvertToInternalUnits(
           value,
           DisplayUnitType.DUT_SQUARE_METERS);
-      case "VOLUME":
+      case OfficialParameterUnitRoute.CubicMeters:
         return UnitUtils.ConvertToInternalUnits(
           value,
           DisplayUnitType.DUT_CUBIC_METERS);
-      case "ANGLE":
+      case OfficialParameterUnitRoute.Degrees:
         return UnitUtils.ConvertToInternalUnits(
           value,
           DisplayUnitType.DUT_DECIMAL_DEGREES);
@@ -589,22 +625,25 @@ namespace BIMBaoGui.Stage01.Revit
       }
     }
 
-    private static bool ReadbackMatches(Parameter parameter, string expected, string sharedParameterType)
+    private static bool ReadbackMatches(
+      Parameter parameter,
+      string expected,
+      OfficialParameterTypeDecision decision)
     {
-      switch (OfficialParameterTypeContract.Normalize(sharedParameterType))
+      switch (decision.ValueRoute)
       {
-        case "TEXT":
+        case OfficialParameterValueRoute.Text:
           return string.Equals(
             parameter.AsString() ?? string.Empty,
             expected ?? string.Empty,
             StringComparison.Ordinal);
-        case "INTEGER":
+        case OfficialParameterValueRoute.Integer:
           return parameter.AsInteger() == ParseInteger(expected);
-        case "YESNO":
+        case OfficialParameterValueRoute.YesNo:
           return parameter.AsInteger() == ParseYesNo(expected);
         default:
           double target = ToInternalValue(
-            sharedParameterType,
+            decision.UnitRoute,
             ParseDouble(expected));
           return Math.Abs(parameter.AsDouble() - target) <= 1e-8;
       }

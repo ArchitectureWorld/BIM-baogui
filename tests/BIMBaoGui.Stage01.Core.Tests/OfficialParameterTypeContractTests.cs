@@ -7,20 +7,28 @@ namespace BIMBaoGui.Stage01.Core.Tests
   public sealed class OfficialParameterTypeContractTests
   {
     [Theory]
-    [InlineData(" text ", "TEXT", "text")]
-    [InlineData("integer", "INTEGER", "Integer")]
-    [InlineData("yesno", "YESNO", "YesNo")]
-    [InlineData("length", "LENGTH", "Length")]
-    [InlineData("area", "AREA", "Area")]
-    [InlineData("volume", "VOLUME", "Volume")]
-    [InlineData("angle", "ANGLE", "Angle")]
-    [InlineData("number", "NUMBER", "Number")]
-    public void IsCompatible_NormalizesEverySupportedDeclaredType(
+    [InlineData(" text ", "TEXT", "text", "String", "Text", "None")]
+    [InlineData("integer", "INTEGER", "Integer", "Integer", "Integer", "None")]
+    [InlineData("yesno", "YESNO", "YesNo", "Integer", "YesNo", "None")]
+    [InlineData("length", "LENGTH", "Length", "Double", "Double", "Meters")]
+    [InlineData("area", "AREA", "Area", "Double", "Double", "SquareMeters")]
+    [InlineData("volume", "VOLUME", "Volume", "Double", "Double", "CubicMeters")]
+    [InlineData("angle", "ANGLE", "Angle", "Double", "Double", "Degrees")]
+    [InlineData("number", "NUMBER", "Number", "Double", "Double", "None")]
+    public void Resolve_NormalizesEverySupportedDeclaredTypeAndRoute(
       string declared,
       string normalized,
-      string actual)
+      string actual,
+      string storageKind,
+      string valueRoute,
+      string unitRoute)
     {
-      Assert.Equal(normalized, OfficialParameterTypeContract.Normalize(declared));
+      OfficialParameterTypeDecision decision = OfficialParameterTypeContract.Resolve(declared);
+
+      Assert.Equal(normalized, decision.SemanticType);
+      Assert.Equal(storageKind, decision.StorageKind.ToString());
+      Assert.Equal(valueRoute, decision.ValueRoute.ToString());
+      Assert.Equal(unitRoute, decision.UnitRoute.ToString());
       Assert.True(OfficialParameterTypeContract.IsCompatible(declared, actual));
     }
 
@@ -42,6 +50,30 @@ namespace BIMBaoGui.Stage01.Core.Tests
     {
       Assert.Throws<InvalidOperationException>(() =>
         OfficialParameterTypeContract.IsCompatible("TEXT", "Material"));
+    }
+
+    [Theory]
+    [InlineData(null, "Text")]
+    [InlineData("", "Text")]
+    [InlineData("TEXT", null)]
+    [InlineData("TEXT", "")]
+    public void IsCompatible_RejectsNullOrBlankSemanticNames(
+      string expected,
+      string actual)
+    {
+      Assert.Throws<InvalidOperationException>(() =>
+        OfficialParameterTypeContract.IsCompatible(expected, actual));
+    }
+
+    [Fact]
+    public void Resolve_UsesOneDeclaredDecisionForWriteAndReadRoutes()
+    {
+      OfficialParameterTypeDecision write = OfficialParameterTypeContract.Resolve("AREA");
+      OfficialParameterTypeDecision readback = OfficialParameterTypeContract.Resolve("AREA");
+
+      Assert.Equal(write.ValueRoute, readback.ValueRoute);
+      Assert.Equal(OfficialParameterUnitRoute.SquareMeters, write.UnitRoute);
+      Assert.NotEqual(OfficialParameterUnitRoute.CubicMeters, write.UnitRoute);
     }
   }
 }
