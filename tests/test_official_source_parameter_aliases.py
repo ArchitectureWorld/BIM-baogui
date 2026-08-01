@@ -25,6 +25,9 @@ def test_official_rules_without_override_use_exact_ifc_property_name():
 def test_runtime_derives_deterministic_exact_name_aliases():
     catalog = read("src/BIMBaoGui.Stage01/Hifc/OfficialHifcMappingCatalog.cs")
     policy = read("src/BIMBaoGui.Stage01/Hifc/OfficialSourceAliasPolicy.cs")
+    write_policy = read(
+        "src/BIMBaoGui.Stage01/Hifc/OfficialSourceAliasWritePolicy.cs"
+    )
     mapping = read("src/BIMBaoGui.Stage01/Hifc/OfficialHifcMapping.cs")
     guid = read("src/BIMBaoGui.Stage01/Hifc/DeterministicGuidV5.cs")
     assert "SourceParameterOverride" in mapping
@@ -36,6 +39,7 @@ def test_runtime_derives_deterministic_exact_name_aliases():
     assert "bindingScope" in policy
     assert "revitCategory" in policy
     assert "carrier" in policy
+    assert "OFFICIAL_SOURCE_VALUE_CONFLICT" in write_policy
     assert "SHA1.Create" in guid
 
 
@@ -53,8 +57,8 @@ def test_revit_projection_dual_writes_canonical_and_official_source_parameters()
     assert "OFFICIAL_EXACT_SOURCE_NAME" in projection
     assert "OfficialSourceParameterGuid" in projection
     assert "OfficialSourceParameterName" in projection
-    assert "OFFICIAL_SOURCE_VALUE_CONFLICT" in projection
     assert "OFFICIAL_SOURCE_NAME_AMBIGUOUS" not in projection
+    assert "OfficialSourceAliasWritePolicy" in projection
     assert "FoldOfficialSourceAliases" in projection
     assert "OfficialParameterProjectionService.WriteAndVerify" in stage01
     assert "OfficialParameterProjectionService.WriteAndVerify" in generic

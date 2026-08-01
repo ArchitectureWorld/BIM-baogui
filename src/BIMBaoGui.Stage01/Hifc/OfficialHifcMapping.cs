@@ -22,7 +22,10 @@ namespace BIMBaoGui.Stage01.Hifc
     public Guid OfficialSourceParameterGuid { get; set; }
 
     public bool IsTypeBinding =>
-      string.Equals(BindingScope, "TYPE", StringComparison.OrdinalIgnoreCase);
+      string.Equals(
+        (BindingScope ?? string.Empty).Trim(),
+        "TYPE",
+        StringComparison.OrdinalIgnoreCase);
 
     public bool HasDistinctOfficialSourceAlias =>
       !string.IsNullOrWhiteSpace(OfficialSourceParameterName)

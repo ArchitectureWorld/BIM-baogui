@@ -151,14 +151,17 @@ namespace BIMBaoGui.Stage01.Hifc
         string ifcProperty = rule.official.ifcProperty ?? string.Empty;
         string sourceOverride = rule.official.sourceParameterOverride ?? string.Empty;
         string officialSourceName = string.IsNullOrWhiteSpace(sourceOverride)
-          ? ifcProperty
+          ? ifcProperty.Trim()
           : sourceOverride.Trim();
+        string bindingScope = string.IsNullOrWhiteSpace(item.bindingScope)
+          ? "INSTANCE"
+          : item.bindingScope.Trim();
         result.Add(new OfficialHifcMapping
         {
           PropertyId = item.propertyId,
           ParameterGuid = guid,
           ParameterName = item.parameterName,
-          BindingScope = item.bindingScope ?? "INSTANCE",
+          BindingScope = bindingScope,
           Category = (item.category ?? string.Empty).Trim(),
           Carrier = item.carrier ?? string.Empty,
           PersistenceMode = item.persistenceMode ?? string.Empty,
@@ -171,7 +174,7 @@ namespace BIMBaoGui.Stage01.Hifc
           SourceParameterOverride = sourceOverride,
           OfficialSourceParameterName = officialSourceName,
           OfficialSourceParameterGuid = OfficialSourceAliasPolicy.CreateGuid(
-            item.bindingScope,
+            bindingScope,
             item.category,
             item.carrier,
             officialSourceName)

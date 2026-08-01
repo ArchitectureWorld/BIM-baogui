@@ -40,6 +40,7 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialHifcMapping.cs" Link="Hifc\OfficialHifcMapping.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialHifcMappingCatalog.cs" Link="Hifc\OfficialHifcMappingCatalog.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialSourceAliasPolicy.cs" Link="Hifc\OfficialSourceAliasPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialSourceAliasWritePolicy.cs" Link="Hifc\OfficialSourceAliasWritePolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialPluginCompatibilityCatalog.cs" Link="Hifc\OfficialPluginCompatibilityCatalog.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\HBRTaskPlan.cs" Link="TaskPlanning\HBRTaskPlan.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\HBRTaskPlanCanonicalizer.cs" Link="TaskPlanning\HBRTaskPlanCanonicalizer.cs" />

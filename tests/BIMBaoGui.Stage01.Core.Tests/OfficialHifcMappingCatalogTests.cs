@@ -68,6 +68,26 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void Catalog_NormalizesFallbackOfficialNamesAndBindingScopesForWriting()
+    {
+      OfficialHifcMapping[] mappings = OfficialHifcMappingCatalog.Instance
+        .Mappings
+        .ToArray();
+      Assert.All(mappings, mapping =>
+      {
+        Assert.Equal(mapping.BindingScope.Trim(), mapping.BindingScope);
+        if (string.IsNullOrWhiteSpace(mapping.SourceParameterOverride))
+          Assert.Equal(mapping.IfcProperty.Trim(), mapping.OfficialSourceParameterName);
+        Assert.Equal(
+          string.Equals(
+            mapping.BindingScope.Trim(),
+            "TYPE",
+            StringComparison.OrdinalIgnoreCase),
+          mapping.IsTypeBinding);
+      });
+    }
+
+    [Fact]
     public void ProjectCarrierAliases_ShareOnlyTheSameOfficialSourceName()
     {
       OfficialHifcMappingCatalog catalog = OfficialHifcMappingCatalog.Instance;
@@ -91,6 +111,12 @@ namespace BIMBaoGui.Stage01.Core.Tests
         cadastralCode.OfficialSourceParameterGuid);
       Assert.NotEqual(zoningRemark.ParameterGuid, filingRemark.ParameterGuid);
       Assert.NotEqual(cadastralCode.ParameterGuid, registrationCode.ParameterGuid);
+      Assert.Equal(
+        new Guid("99d2e51c-a1b7-5bd5-8757-d757305ded16"),
+        zoningRemark.OfficialSourceParameterGuid);
+      Assert.Equal(
+        new Guid("ffed4846-f6c9-58f3-bc99-003346a49344"),
+        cadastralCode.OfficialSourceParameterGuid);
     }
 
     private static string Flatten(Exception exception)

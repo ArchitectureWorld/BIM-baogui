@@ -32,8 +32,6 @@ namespace BIMBaoGui.Stage01.Revit
       "BIMBaoGui.Stage01.Resources.GH_HIFC_SharedParameters.txt";
     private const string CanonicalProjectionKind = "CANONICAL_INTERNAL";
     private const string OfficialProjectionKind = "OFFICIAL_EXACT_SOURCE_NAME";
-    private const string OfficialSourceValueConflictCode =
-      "OFFICIAL_SOURCE_VALUE_CONFLICT";
     private const string DuplicateOfficialSourceParameterCode =
       "OFFICIAL_SOURCE_PARAMETER_DUPLICATE";
 
@@ -158,58 +156,27 @@ namespace BIMBaoGui.Stage01.Revit
       List<ProjectionWrite> all = (projections
         ?? Enumerable.Empty<ProjectionWrite>())
         .ToList();
-      ProjectionWrite[] conflicts = all
+      OfficialSourceAliasWrite<ProjectionWrite>[] aliases = all
         .Where(item => item.Kind == OfficialProjectionKind)
-        .GroupBy(item =>
-          item.Target.Id.IntegerValue.ToString(CultureInfo.InvariantCulture)
-          + "|"
-          + item.Guid.ToString("D"),
-          StringComparer.OrdinalIgnoreCase)
-        .Where(group => group
-          .Select(item => NormalizeAliasValue(item.RawValue))
-          .Distinct(StringComparer.Ordinal)
-          .Count() > 1)
-        .Select(group => group.First())
+        .Select(item => new OfficialSourceAliasWrite<ProjectionWrite>
+        {
+          TargetElementId = item.Target.Id.IntegerValue,
+          AliasGuid = item.Guid,
+          Item = item,
+          RawValue = item.RawValue,
+          OfficialSourceName = item.Name,
+          PropertySet = item.Mapping.PropertySet,
+          IfcProperty = item.Mapping.IfcProperty
+        })
         .ToArray();
-      if (conflicts.Length > 0)
-      {
-        ProjectionWrite conflict = conflicts[0];
-        IEnumerable<string> properties = all
-          .Where(item => item.Kind == OfficialProjectionKind
-            && item.Target.Id.IntegerValue == conflict.Target.Id.IntegerValue
-            && item.Guid == conflict.Guid)
-          .Select(item => item.Mapping.PropertySet
-            + "."
-            + item.Mapping.IfcProperty)
-          .Distinct(StringComparer.Ordinal);
-        throw new InvalidOperationException(
-          OfficialSourceValueConflictCode
-          + "：同一 Revit 载体的官方精确源参数“"
-          + conflict.Name
-          + "”收到冲突值；ElementId="
-          + conflict.Target.Id.IntegerValue
-          + "；属性="
-          + string.Join(", ", properties));
-      }
-
-      List<ProjectionWrite> foldedAliases = all
-        .Where(item => item.Kind == OfficialProjectionKind)
-        .GroupBy(item =>
-          item.Target.Id.IntegerValue.ToString(CultureInfo.InvariantCulture)
-          + "|"
-          + item.Guid.ToString("D"),
-          StringComparer.OrdinalIgnoreCase)
-        .Select(group => group.First())
+      List<ProjectionWrite> foldedAliases = OfficialSourceAliasWritePolicy
+        .Fold(aliases)
+        .Select(item => item.Item)
         .ToList();
       return all
         .Where(item => item.Kind != OfficialProjectionKind)
         .Concat(foldedAliases)
         .ToList();
-    }
-
-    private static string NormalizeAliasValue(string value)
-    {
-      return value ?? string.Empty;
     }
 
     private static void ValidateConflictingWrites(
