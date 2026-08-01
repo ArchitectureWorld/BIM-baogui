@@ -35,6 +35,29 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void Build_PrioritizesActualWriteFailureOverDerivedValidationNoise()
+    {
+      var validation = new ValidationResult(new[]
+      {
+        new ValidationMessage(
+          ValidationSeverity.Error,
+          Stage01Keys.InitializationStatus,
+          "请选择下拉列表中的有效选项。")
+      });
+
+      var messages = Stage01Feedback.Build(
+        validation,
+        Array.Empty<FieldDefinition>(),
+        Array.Empty<string>(),
+        new[] { "初始化失败，事务已回滚：共享参数定义缺失：基点坐标X" },
+        3);
+
+      Assert.Equal(
+        "最近写入：初始化失败，事务已回滚：共享参数定义缺失：基点坐标X",
+        messages[0]);
+    }
+
+    [Fact]
     public void CountErrorsForGroup_ProvidesDirectoryBadges()
     {
       var validation = new ValidationResult(new[]
