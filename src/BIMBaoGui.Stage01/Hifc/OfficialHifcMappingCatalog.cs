@@ -52,8 +52,35 @@ namespace BIMBaoGui.Stage01.Hifc
       if (propertySet.StartsWith("Pset_", StringComparison.Ordinal))
         propertySet = propertySet.Substring("Pset_".Length);
       string ifcProperty = parts[2].Trim();
-      string parameterName = "HIFC." + propertySet + "." + ifcProperty;
 
+      if (TryResolveStage01Alias(
+        ifcEntity,
+        propertySet,
+        ifcProperty,
+        out mapping))
+        return true;
+
+      string whitespaceNormalizedProperty = new string(
+        ifcProperty.Where(character => !char.IsWhiteSpace(character)).ToArray());
+      return !string.Equals(
+          whitespaceNormalizedProperty,
+          ifcProperty,
+          StringComparison.Ordinal)
+        && TryResolveStage01Alias(
+          ifcEntity,
+          propertySet,
+          whitespaceNormalizedProperty,
+          out mapping);
+    }
+
+    private bool TryResolveStage01Alias(
+      string ifcEntity,
+      string propertySet,
+      string ifcProperty,
+      out OfficialHifcMapping mapping)
+    {
+      mapping = null;
+      string parameterName = "HIFC." + propertySet + "." + ifcProperty;
       if (!TryResolve(parameterName, out OfficialHifcMapping resolved)) return false;
       if (!string.Equals(resolved.IfcEntity, ifcEntity, StringComparison.Ordinal)) return false;
       mapping = resolved;
