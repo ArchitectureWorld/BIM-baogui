@@ -41,7 +41,11 @@ namespace BIMBaoGui.Stage01.Core
       foreach (string message in environmentMessages ?? Array.Empty<string>())
       {
         if (string.IsNullOrWhiteSpace(message)) continue;
-        AddDistinct(result, "文件环境：" + message.Trim());
+        string normalized = message.Trim();
+        string prefix = IsWriteFailure(normalized)
+          ? "最近写入："
+          : "文件环境：";
+        AddDistinct(result, prefix + normalized);
       }
 
       foreach (ValidationMessage message in validation?.Messages ?? Array.Empty<ValidationMessage>())
@@ -117,6 +121,15 @@ namespace BIMBaoGui.Stage01.Core
       return separator >= 0 && separator + 1 < normalized.Length
         ? normalized.Substring(separator + 1)
         : normalized;
+    }
+
+    private static bool IsWriteFailure(string message)
+    {
+      if (string.IsNullOrWhiteSpace(message)) return false;
+      return message.StartsWith("初始化失败", StringComparison.Ordinal)
+        || message.StartsWith("写入失败", StringComparison.Ordinal)
+        || message.IndexOf("事务已回滚", StringComparison.Ordinal) >= 0
+        || message.IndexOf("写入或回读失败", StringComparison.Ordinal) >= 0;
     }
 
     private static string GroupForMessage(
