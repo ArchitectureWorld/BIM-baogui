@@ -64,21 +64,27 @@ namespace BIMBaoGui.Stage01.Revit
       foreach (ProjectionWrite projection in projections)
       {
         Parameter parameter = ResolveParameter(projection);
-        ValidateStorageType(
+        ValidateParameterType(
           parameter,
           projection.Mapping.SharedParameterType,
           projection);
         if (parameter.IsReadOnly)
           throw new InvalidOperationException(
             projection.Kind + " 参数只读：" + projection.Name);
-        SetValue(parameter, projection.RawValue);
+        SetValue(
+          parameter,
+          projection.RawValue,
+          projection.Mapping.SharedParameterType);
       }
 
       document.Regenerate();
       foreach (ProjectionWrite projection in projections)
       {
         Parameter parameter = ResolveParameter(projection);
-        if (!ReadbackMatches(parameter, projection.RawValue))
+        if (!ReadbackMatches(
+          parameter,
+          projection.RawValue,
+          projection.Mapping.SharedParameterType))
           throw new InvalidOperationException(
             projection.Kind
             + " 参数回读不一致："
@@ -219,7 +225,7 @@ namespace BIMBaoGui.Stage01.Revit
         {
           projection.ExistingExactNameParameter = exact[0];
           projection.RequiresGeneratedDefinition = false;
-          ValidateStorageType(
+          ValidateParameterType(
             exact[0],
             projection.Mapping.SharedParameterType,
             projection);
@@ -399,7 +405,7 @@ namespace BIMBaoGui.Stage01.Revit
             .Append('\t')
             .Append(Sanitize(item.Name))
             .Append('\t')
-            .Append(NormalizeSharedParameterType(
+            .Append(OfficialParameterTypeContract.Normalize(
               item.Mapping.SharedParameterType))
             .Append("\t\t")
             .Append(group.Id.ToString(CultureInfo.InvariantCulture))
@@ -435,51 +441,47 @@ namespace BIMBaoGui.Stage01.Revit
       return exact[0];
     }
 
-    private static void ValidateStorageType(
+    private static void ValidateParameterType(
       Parameter parameter,
       string sharedParameterType,
       ProjectionWrite projection)
     {
-      StorageType expected = ExpectedStorageType(sharedParameterType);
+      string expectedSemantic = OfficialParameterTypeContract.Normalize(
+        sharedParameterType);
+      StorageType expected = ExpectedStorageType(expectedSemantic);
       if (parameter == null || parameter.StorageType != expected)
         throw new InvalidOperationException(
           "参数类型不匹配："
           + projection.Name
-          + "，期望="
-          + expected
+          + "，期望=" + expectedSemantic + " / " + expected
           + "，实际="
           + (parameter == null
             ? "Missing"
             : parameter.StorageType.ToString()));
+      string actualSemantic = parameter.Definition.ParameterType.ToString();
+      try
+      {
+        if (OfficialParameterTypeContract.IsCompatible(
+          expectedSemantic,
+          actualSemantic))
+          return;
+      }
+      catch (InvalidOperationException)
+      {
+      }
+      throw new InvalidOperationException(
+        "参数语义类型不匹配："
+        + projection.Name
+        + "，期望=" + expectedSemantic
+        + "，实际=" + actualSemantic);
     }
 
-    private static StorageType ExpectedStorageType(string type)
+    private static StorageType ExpectedStorageType(string normalizedType)
     {
-      string normalized = NormalizeSharedParameterType(type);
-      if (normalized == "TEXT") return StorageType.String;
-      if (normalized == "INTEGER" || normalized == "YESNO")
+      if (normalizedType == "TEXT") return StorageType.String;
+      if (normalizedType == "INTEGER" || normalizedType == "YESNO")
         return StorageType.Integer;
       return StorageType.Double;
-    }
-
-    private static string NormalizeSharedParameterType(string type)
-    {
-      string normalized = (type ?? string.Empty).Trim().ToUpperInvariant();
-      switch (normalized)
-      {
-        case "TEXT":
-        case "INTEGER":
-        case "YESNO":
-        case "LENGTH":
-        case "AREA":
-        case "VOLUME":
-        case "ANGLE":
-        case "NUMBER":
-          return normalized;
-        default:
-          throw new InvalidOperationException(
-            "不支持的共享参数类型：" + type);
-      }
     }
 
     private static ExternalDefinition FindDefinition(
@@ -498,54 +500,38 @@ namespace BIMBaoGui.Stage01.Revit
       return null;
     }
 
-    private static void SetValue(Parameter parameter, string raw)
+    private static void SetValue(
+      Parameter parameter,
+      string raw,
+      string sharedParameterType)
     {
       raw = raw ?? string.Empty;
-      switch (parameter.StorageType)
+      switch (OfficialParameterTypeContract.Normalize(sharedParameterType))
       {
-        case StorageType.String:
+        case "TEXT":
           if (!parameter.Set(raw))
             throw new InvalidOperationException("文本参数写入失败。");
           return;
-        case StorageType.Integer:
-          if (!parameter.Set(ParseInteger(
-            parameter.Definition.ParameterType,
-            raw)))
+        case "INTEGER":
+          if (!parameter.Set(ParseInteger(raw)))
             throw new InvalidOperationException("整数参数写入失败。");
           return;
-        case StorageType.Double:
+        case "YESNO":
+          if (!parameter.Set(ParseYesNo(raw)))
+            throw new InvalidOperationException("布尔参数写入失败。");
+          return;
+        default:
           double internalValue = ToInternalValue(
-            parameter.Definition.ParameterType,
+            sharedParameterType,
             ParseDouble(raw));
           if (!parameter.Set(internalValue))
             throw new InvalidOperationException("数值参数写入失败。");
           return;
-        default:
-          throw new InvalidOperationException(
-            "不支持参数存储类型：" + parameter.StorageType);
       }
     }
 
-    private static int ParseInteger(ParameterType type, string raw)
+    private static int ParseInteger(string raw)
     {
-      if (type == ParameterType.YesNo)
-      {
-        string normalized = (raw ?? string.Empty)
-          .Trim()
-          .ToLowerInvariant();
-        if (normalized == "1"
-          || normalized == "true"
-          || normalized == "是"
-          || normalized == "yes")
-          return 1;
-        if (normalized == "0"
-          || normalized == "false"
-          || normalized == "否"
-          || normalized == "no")
-          return 0;
-        throw new FormatException(
-          "布尔值只接受 true/false、是/否、1/0。");
-      }
       if (!int.TryParse(
         raw,
         NumberStyles.Integer,
@@ -553,6 +539,18 @@ namespace BIMBaoGui.Stage01.Revit
         out int value))
         throw new FormatException("不是有效整数：" + raw);
       return value;
+    }
+
+    private static int ParseYesNo(string raw)
+    {
+      string normalized = (raw ?? string.Empty).Trim().ToLowerInvariant();
+      if (normalized == "1" || normalized == "true"
+        || normalized == "是" || normalized == "yes")
+        return 1;
+      if (normalized == "0" || normalized == "false"
+        || normalized == "否" || normalized == "no")
+        return 0;
+      throw new FormatException("布尔值只接受 true/false、是/否、1/0。");
     }
 
     private static double ParseDouble(string raw)
@@ -566,48 +564,49 @@ namespace BIMBaoGui.Stage01.Revit
       return value;
     }
 
-    private static double ToInternalValue(ParameterType type, double value)
+    private static double ToInternalValue(string sharedParameterType, double value)
     {
-      if (type == ParameterType.Length)
+      switch (OfficialParameterTypeContract.Normalize(sharedParameterType))
+      {
+      case "LENGTH":
         return UnitUtils.ConvertToInternalUnits(
           value,
           DisplayUnitType.DUT_METERS);
-      if (type == ParameterType.Area)
+      case "AREA":
         return UnitUtils.ConvertToInternalUnits(
           value,
           DisplayUnitType.DUT_SQUARE_METERS);
-      if (type == ParameterType.Volume)
+      case "VOLUME":
         return UnitUtils.ConvertToInternalUnits(
           value,
           DisplayUnitType.DUT_CUBIC_METERS);
-      if (type == ParameterType.Angle)
+      case "ANGLE":
         return UnitUtils.ConvertToInternalUnits(
           value,
           DisplayUnitType.DUT_DECIMAL_DEGREES);
-      return value;
+      default:
+        return value;
+      }
     }
 
-    private static bool ReadbackMatches(
-      Parameter parameter,
-      string expected)
+    private static bool ReadbackMatches(Parameter parameter, string expected, string sharedParameterType)
     {
-      switch (parameter.StorageType)
+      switch (OfficialParameterTypeContract.Normalize(sharedParameterType))
       {
-        case StorageType.String:
+        case "TEXT":
           return string.Equals(
             parameter.AsString() ?? string.Empty,
             expected ?? string.Empty,
             StringComparison.Ordinal);
-        case StorageType.Integer:
-          return parameter.AsInteger()
-            == ParseInteger(parameter.Definition.ParameterType, expected);
-        case StorageType.Double:
+        case "INTEGER":
+          return parameter.AsInteger() == ParseInteger(expected);
+        case "YESNO":
+          return parameter.AsInteger() == ParseYesNo(expected);
+        default:
           double target = ToInternalValue(
-            parameter.Definition.ParameterType,
+            sharedParameterType,
             ParseDouble(expected));
           return Math.Abs(parameter.AsDouble() - target) <= 1e-8;
-        default:
-          return false;
       }
     }
 
