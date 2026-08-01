@@ -83,7 +83,12 @@ namespace BIMBaoGui.Stage01
       _snapshot = Stage01RevitService.ReadSnapshot(_model);
       TryAutomaticallyLoadStoredPayload();
       MergeOperationFailureIntoSnapshot();
-      _validation = Stage01Validator.Validate(_model, _registry.Fields);
+      _validation = Stage01Validator.Validate(
+        _model,
+        _registry.Fields,
+        _snapshot.IsInitialized
+          ? Stage01ValidationMode.ExistingInitialization
+          : Stage01ValidationMode.FirstInitialization);
 
       bool initialized = IsInitializationPassed();
       HBRFileContext context = HBRFileContextFactory.Create(_model, _snapshot, initialized);
@@ -385,8 +390,13 @@ namespace BIMBaoGui.Stage01
     {
       if (_isCommitting) return;
       EnsureSystemValues();
-      _validation = Stage01Validator.Validate(_model, _registry.Fields);
       _snapshot = Stage01RevitService.ReadSnapshot(_model);
+      _validation = Stage01Validator.Validate(
+        _model,
+        _registry.Fields,
+        _snapshot.IsInitialized
+          ? Stage01ValidationMode.ExistingInitialization
+          : Stage01ValidationMode.FirstInitialization);
       var blockers = new List<string>();
       blockers.AddRange(_validation.Messages.Where(message => message.Severity == ValidationSeverity.Error).Select(message => message.Message));
       blockers.AddRange(_snapshot.Messages);

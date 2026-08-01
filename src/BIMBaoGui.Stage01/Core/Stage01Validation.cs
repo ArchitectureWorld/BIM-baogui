@@ -11,6 +11,12 @@ namespace BIMBaoGui.Stage01.Core
     Error
   }
 
+  internal enum Stage01ValidationMode
+  {
+    FirstInitialization,
+    ExistingInitialization
+  }
+
   internal sealed class ValidationMessage
   {
     public ValidationMessage(ValidationSeverity severity, string fieldKey, string message)
@@ -57,6 +63,14 @@ namespace BIMBaoGui.Stage01.Core
 
     public static ValidationResult Validate(Stage01Model model, IReadOnlyList<FieldDefinition> definitions)
     {
+      return Validate(model, definitions, Stage01ValidationMode.FirstInitialization);
+    }
+
+    public static ValidationResult Validate(
+      Stage01Model model,
+      IReadOnlyList<FieldDefinition> definitions,
+      Stage01ValidationMode mode)
+    {
       var messages = new List<ValidationMessage>();
       IReadOnlyList<FieldDefinition> uniqueDefinitions = (definitions ?? Array.Empty<FieldDefinition>())
         .Where(definition => definition != null)
@@ -88,7 +102,8 @@ namespace BIMBaoGui.Stage01.Core
 
       ValidatePlanningTargets(model, messages);
 
-      if (!model.ConfirmBlankProject)
+      if (mode == Stage01ValidationMode.FirstInitialization
+        && !model.ConfirmBlankProject)
       {
         messages.Add(new ValidationMessage(
           ValidationSeverity.Error,

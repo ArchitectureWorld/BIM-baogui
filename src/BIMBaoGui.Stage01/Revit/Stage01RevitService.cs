@@ -227,9 +227,13 @@ namespace BIMBaoGui.Stage01.Revit
       if (string.IsNullOrWhiteSpace(document.PathName))
         return Failure("请先保存当前 RVT 文件。");
 
+      StoredInitialization existing = Stage01Storage.Read(document);
       ValidationResult validation = Stage01Validator.Validate(
         model,
-        Stage01RegistryProvider.Instance.Fields);
+        Stage01RegistryProvider.Instance.Fields,
+        existing == null
+          ? Stage01ValidationMode.FirstInitialization
+          : Stage01ValidationMode.ExistingInitialization);
       if (!validation.IsValid)
         return Failure(
           validation.Messages
@@ -237,7 +241,6 @@ namespace BIMBaoGui.Stage01.Revit
             .Select(item => item.Message)
             .ToArray());
 
-      StoredInitialization existing = Stage01Storage.Read(document);
       bool requiresMigration = RequiresWorkflowMigration(existing);
       if (existing != null && !model.AllowReinitialize && !requiresMigration)
         return Failure("当前文件已经初始化。如确需覆盖，请先启用“允许重新初始化”。");

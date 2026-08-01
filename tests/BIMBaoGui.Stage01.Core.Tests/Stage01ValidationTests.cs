@@ -7,6 +7,20 @@ namespace BIMBaoGui.Stage01.Core.Tests
   public sealed class Stage01ValidationTests
   {
     [Fact]
+    public void Validate_ExistingInitializationDoesNotRequireBlankConfirmation()
+    {
+      Stage01Model model = ValidSiteModel();
+      model.ConfirmBlankProject = false;
+
+      ValidationResult result = Stage01Validator.Validate(
+        model,
+        new List<FieldDefinition>(),
+        Stage01ValidationMode.ExistingInitialization);
+
+      Assert.DoesNotContain(result.Messages, message =>
+        message.FieldKey == "HBR|Precheck|BlankProject");
+    }
+    [Fact]
     public void Validate_RejectsUnconfirmedBlankProject()
     {
       Stage01Model model = ValidSiteModel();
