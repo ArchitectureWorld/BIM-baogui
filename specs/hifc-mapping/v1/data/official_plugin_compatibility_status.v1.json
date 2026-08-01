@@ -23,7 +23,36 @@
     "elevation": "VERTICAL_ELEVATION",
     "inputUnit": "m"
   },
-  "stage01ProjectFieldExceptions": [],
+  "stage01ProjectFieldExceptions": [
+    "IfcProject|Pset_项目控制指标信息属性集|建筑密度",
+    "IfcProject|Pset_项目控制指标信息属性集|容积率",
+    "IfcProject|Pset_项目控制指标信息属性集|绿地率",
+    "IfcProject|Pset_项目控制指标信息属性集|建筑限高",
+    "IfcProject|Pset_项目控制指标信息属性集|海拔限高",
+    "IfcProject|Pset_项目控制指标信息属性集|机动车位",
+    "IfcProject|Pset_项目控制指标信息属性集|非机动车车位",
+    "IfcProject|Pset_项目控制指标信息属性集|配置套值",
+    "IfcProject|Pset_项目控制指标信息属性集|非机动车类型",
+    "IfcProject|Pset_项目控制指标信息属性集|非机动车折算系数",
+    "IfcProject|Pset_Manifest|阶段",
+    "IfcProject|Pset_Manifest|应用模型精度",
+    "IfcProject|Pset_Manifest|实际模型精度"
+  ],
+  "stage01ProjectFieldExceptionReasons": {
+    "IfcProject|Pset_项目控制指标信息属性集|建筑密度": "规划控制目标，不是模型计算实际建筑密度；保存在 HBR PlanningTargets。",
+    "IfcProject|Pset_项目控制指标信息属性集|容积率": "规划控制目标，不是模型计算实际容积率；保存在 HBR PlanningTargets。",
+    "IfcProject|Pset_项目控制指标信息属性集|绿地率": "规划控制目标，不是模型计算实际绿地率；保存在 HBR PlanningTargets。",
+    "IfcProject|Pset_项目控制指标信息属性集|建筑限高": "规划限值，不得写成建筑实际高度。",
+    "IfcProject|Pset_项目控制指标信息属性集|海拔限高": "规划限值，不得写成模型实际海拔或高程。",
+    "IfcProject|Pset_项目控制指标信息属性集|机动车位": "规划配置要求，不得写成模型实际车位统计。",
+    "IfcProject|Pset_项目控制指标信息属性集|非机动车车位": "规划配置要求，不得写成模型实际车位统计。",
+    "IfcProject|Pset_项目控制指标信息属性集|配置套值": "规划规则元数据，当前官方属性包无同义实际值字段。",
+    "IfcProject|Pset_项目控制指标信息属性集|非机动车类型": "规划条件元数据，保存在 HBR 上下文。",
+    "IfcProject|Pset_项目控制指标信息属性集|非机动车折算系数": "规划计算规则，不得写成模型实际指标。",
+    "IfcProject|Pset_Manifest|阶段": "HBR 文件/工作流 Manifest 元数据，不冒充官方 H-IFC 属性。",
+    "IfcProject|Pset_Manifest|应用模型精度": "HBR 工作流元数据，当前 166 条官方属性中无对应项。",
+    "IfcProject|Pset_Manifest|实际模型精度": "HBR 工作流元数据，当前 166 条官方属性中无对应项。"
+  },
   "entities": {
     "IfcProject": {
       "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
