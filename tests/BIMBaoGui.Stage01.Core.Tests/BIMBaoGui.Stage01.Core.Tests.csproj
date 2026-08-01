@@ -35,10 +35,25 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01PayloadCodec.cs" Link="Core\Stage01PayloadCodec.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01UiPolicy.cs" Link="Core\Stage01UiPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Validation.cs" Link="Core\Stage01Validation.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\DeterministicGuidV5.cs" Link="Hifc\DeterministicGuidV5.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialHifcMapping.cs" Link="Hifc\OfficialHifcMapping.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialHifcMappingCatalog.cs" Link="Hifc\OfficialHifcMappingCatalog.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialPluginCompatibilityCatalog.cs" Link="Hifc\OfficialPluginCompatibilityCatalog.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\HBRTaskPlan.cs" Link="TaskPlanning\HBRTaskPlan.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\HBRTaskPlanCanonicalizer.cs" Link="TaskPlanning\HBRTaskPlanCanonicalizer.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\TaskPlanCompiler.cs" Link="TaskPlanning\TaskPlanCompiler.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\TaskRuleCatalog.cs" Link="TaskPlanning\TaskRuleCatalog.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\TaskRuleDefinition.cs" Link="TaskPlanning\TaskRuleDefinition.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\specs\hifc-mapping\v1\generated\GH_HIFC_ParameterBindings.json"
+                      Link="Resources\GH_HIFC_ParameterBindings.json"
+                      LogicalName="BIMBaoGui.Stage01.Resources.GH_HIFC_ParameterBindings.json" />
+    <EmbeddedResource Include="..\..\specs\hifc-mapping\v1\data\wuhan_planning_rules.v1.json"
+                      Link="Resources\wuhan_planning_rules.v1.json"
+                      LogicalName="BIMBaoGui.Stage01.Resources.wuhan_planning_rules.v1.json" />
+    <EmbeddedResource Include="..\..\specs\hifc-mapping\v1\data\official_plugin_compatibility_status.v1.json"
+                      Link="Resources\official_plugin_compatibility_status.v1.json"
+                      LogicalName="BIMBaoGui.Stage01.Resources.official_plugin_compatibility_status.v1.json" />
   </ItemGroup>
 </Project>
