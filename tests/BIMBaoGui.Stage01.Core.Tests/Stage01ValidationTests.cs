@@ -31,6 +31,30 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void Validate_IgnoresReadOnlySystemStatusOutsideUserEnumChoices()
+    {
+      Stage01Model model = ValidSiteModel();
+      model.SetValue(Stage01Keys.InitializationStatus, "初始化失败");
+      var definitions = new List<FieldDefinition>
+      {
+        new FieldDefinition
+        {
+          Key = Stage01Keys.InitializationStatus,
+          Label = "初始化状态",
+          Kind = FieldKind.Enum,
+          ReadOnly = true,
+          AllowedValues = new[] { "待提交", "初始化通过" }
+        }
+      };
+
+      ValidationResult result = Stage01Validator.Validate(model, definitions);
+
+      Assert.True(result.IsValid);
+      Assert.DoesNotContain(result.Messages, message =>
+        message.FieldKey == Stage01Keys.InitializationStatus);
+    }
+
+    [Fact]
     public void Validate_SiteModelRequiresThreePlanningTargets()
     {
       Stage01Model model = BaseModel(PlanningTargetRequirementPolicy.SiteModel);
