@@ -70,7 +70,7 @@ jobs:
           $gha = Resolve-Path "src/BIMBaoGui.Stage01/bin/Release/net48/BIMBaoGui.Stage01.gha"
           $assembly = [System.Reflection.AssemblyName]::GetAssemblyName($gha)
           if ($assembly.Name -ne "BIMBaoGui.Stage01") { throw "Unexpected assembly name: $($assembly.Name)" }
-          if ($assembly.Version -ne "0.8.0.0") { throw "Unexpected assembly version: $($assembly.Version)" }
+          if ($assembly.Version -ne "0.8.1.0") { throw "Unexpected assembly version: $($assembly.Version)" }
           $hash = (Get-FileHash $gha -Algorithm SHA256).Hash.ToLowerInvariant()
           $size = (Get-Item $gha).Length
           if ($size -lt 50000) { throw "GHA is unexpectedly small: $size bytes" }
@@ -90,7 +90,7 @@ jobs:
       - name: Upload GHA
         uses: actions/upload-artifact@v4
         with:
-          name: BIMBaoGui-Revit2020-Rhino8-v0.8.0-official-exact-name-dual-write
+          name: BIMBaoGui-Revit2020-Rhino8-v0.8.1-stage01-real-failure-diagnostics
           path: artifacts/BIMBaoGui.Stage01.gha
           if-no-files-found: error
           retention-days: 30
