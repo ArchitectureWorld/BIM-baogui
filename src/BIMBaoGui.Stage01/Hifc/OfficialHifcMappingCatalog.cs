@@ -102,7 +102,11 @@ namespace BIMBaoGui.Stage01.Hifc
 
     private static OfficialHifcMappingCatalog Load()
     {
-      var serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
+      var serializer = new JavaScriptSerializer
+      {
+        MaxJsonLength = int.MaxValue,
+        RecursionLimit = 512
+      };
       BindingEnvelope bindingEnvelope = serializer.Deserialize<BindingEnvelope>(
         ReadEmbeddedText(BindingResourceName));
       RuleEnvelope ruleEnvelope = serializer.Deserialize<RuleEnvelope>(
@@ -120,12 +124,13 @@ namespace BIMBaoGui.Stage01.Hifc
       var result = new List<OfficialHifcMapping>();
       foreach (BindingRecord item in bindingEnvelope.bindings)
       {
+        if (item == null)
+          throw new InvalidDataException("H-IFC 参数绑定包含空记录。");
         if (!Guid.TryParse(item.parameterGuid, out Guid guid))
           throw new InvalidDataException("无效参数 GUID：" + item.parameterGuid);
         if (string.IsNullOrWhiteSpace(item.propertyId)
-          || string.IsNullOrWhiteSpace(item.parameterName)
-          || string.IsNullOrWhiteSpace(item.category))
-          throw new InvalidDataException("H-IFC 映射缺少 propertyId、参数名或类别。");
+          || string.IsNullOrWhiteSpace(item.parameterName))
+          throw new InvalidDataException("H-IFC 映射缺少 propertyId 或参数名。");
         if (!rules.TryGetValue(item.propertyId, out RuleRecord rule)
           || rule.official == null || rule.canonical == null)
           throw new InvalidDataException("参数绑定找不到对应规则：" + item.propertyId);
@@ -146,7 +151,7 @@ namespace BIMBaoGui.Stage01.Hifc
           ParameterGuid = guid,
           ParameterName = item.parameterName,
           BindingScope = item.bindingScope ?? "INSTANCE",
-          Category = item.category,
+          Category = (item.category ?? string.Empty).Trim(),
           Carrier = item.carrier ?? string.Empty,
           PersistenceMode = item.persistenceMode ?? string.Empty,
           IfcEntity = ifcEntity,
@@ -171,7 +176,12 @@ namespace BIMBaoGui.Stage01.Hifc
       Assembly assembly = typeof(OfficialHifcMappingCatalog).Assembly;
       using (Stream stream = assembly.GetManifestResourceStream(name))
       {
-        if (stream == null) throw new InvalidDataException("缺少嵌入资源：" + name);
+        if (stream == null)
+        {
+          string available = string.Join(", ", assembly.GetManifestResourceNames());
+          throw new InvalidDataException(
+            "缺少嵌入资源：" + name + "。当前资源：" + available);
+        }
         using (var reader = new StreamReader(stream)) return reader.ReadToEnd();
       }
     }
