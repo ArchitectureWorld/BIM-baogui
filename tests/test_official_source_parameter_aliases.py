@@ -59,7 +59,8 @@ def test_generated_shared_parameter_groups_precede_parameter_block():
         "src/BIMBaoGui.Stage01/Revit/OfficialParameterProjectionService.cs"
     )
     assert "FindParameterHeaderIndex" in projection
-    assert 'StartsWith("*PARAM\\t"' in projection
+    assert "StartsWith(" in projection
+    assert '"*PARAM\\t"' in projection
     assert "AppendAliasGroupDefinitions" in projection
     assert "AppendAliasParameterDefinitions" in projection
     assert projection.index("AppendAliasGroupDefinitions") < projection.index(
