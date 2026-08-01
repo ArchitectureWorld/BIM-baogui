@@ -17,8 +17,20 @@ namespace BIMBaoGui.Stage01.Hifc
     public string IfcDataType { get; set; } = string.Empty;
     public string SharedParameterType { get; set; } = string.Empty;
     public string Unit { get; set; } = string.Empty;
+    public string SourceParameterOverride { get; set; } = string.Empty;
+    public string OfficialSourceParameterName { get; set; } = string.Empty;
+    public Guid OfficialSourceParameterGuid { get; set; }
 
-    public bool IsTypeBinding => string.Equals(BindingScope, "TYPE", StringComparison.OrdinalIgnoreCase);
+    public bool IsTypeBinding =>
+      string.Equals(BindingScope, "TYPE", StringComparison.OrdinalIgnoreCase);
+
+    public bool HasDistinctOfficialSourceAlias =>
+      !string.IsNullOrWhiteSpace(OfficialSourceParameterName)
+      && !string.Equals(
+        ParameterName,
+        OfficialSourceParameterName,
+        StringComparison.Ordinal);
+
     public OfficialPluginEntityPolicy EntityPolicy =>
       OfficialPluginCompatibilityCatalog.Instance.GetEntityPolicy(IfcEntity);
   }
