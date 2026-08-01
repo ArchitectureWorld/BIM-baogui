@@ -450,7 +450,6 @@ namespace BIMBaoGui.Stage01.Revit
       string sharedParameterType,
       ProjectionWrite projection)
     {
-      string actualSemantic = GetActualSemantic(parameter);
       OfficialParameterTypeDecision decision;
       try
       {
@@ -461,19 +460,19 @@ namespace BIMBaoGui.Stage01.Revit
         throw ParameterTypeMismatch(
           projection.Name,
           sharedParameterType,
-          actualSemantic);
+          GetActualSemantic(parameter));
       }
-      StorageType expectedStorage = ExpectedStorageType(decision.StorageKind);
-      if (parameter == null || parameter.StorageType != expectedStorage)
+      if (parameter == null)
         throw ParameterTypeMismatch(
           projection.Name,
           decision.SemanticType,
-          actualSemantic);
+          GetActualSemantic(parameter));
       try
       {
         if (OfficialParameterTypeContract.IsCompatible(
           decision.SemanticType,
-          actualSemantic))
+          GetStorageKind(parameter.StorageType),
+          () => GetActualSemantic(parameter)))
           return decision;
       }
       catch (InvalidOperationException)
@@ -482,7 +481,7 @@ namespace BIMBaoGui.Stage01.Revit
       throw ParameterTypeMismatch(
         projection.Name,
         decision.SemanticType,
-        actualSemantic);
+        GetActualSemantic(parameter));
     }
 
     private static InvalidOperationException ParameterTypeMismatch(
@@ -504,17 +503,19 @@ namespace BIMBaoGui.Stage01.Revit
         : parameter.Definition.ParameterType.ToString();
     }
 
-    private static StorageType ExpectedStorageType(
-      OfficialParameterStorageKind storageKind)
+    private static OfficialParameterStorageKind GetStorageKind(
+      StorageType storageType)
     {
-      switch (storageKind)
+      switch (storageType)
       {
-        case OfficialParameterStorageKind.String:
-          return StorageType.String;
-        case OfficialParameterStorageKind.Integer:
-          return StorageType.Integer;
+        case StorageType.String:
+          return OfficialParameterStorageKind.String;
+        case StorageType.Integer:
+          return OfficialParameterStorageKind.Integer;
+        case StorageType.Double:
+          return OfficialParameterStorageKind.Double;
         default:
-          return StorageType.Double;
+          return OfficialParameterStorageKind.Unsupported;
       }
     }
 

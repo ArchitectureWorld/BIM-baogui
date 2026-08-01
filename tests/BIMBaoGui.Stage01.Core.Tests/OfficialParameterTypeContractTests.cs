@@ -75,5 +75,23 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Assert.Equal(OfficialParameterUnitRoute.SquareMeters, write.UnitRoute);
       Assert.NotEqual(OfficialParameterUnitRoute.CubicMeters, write.UnitRoute);
     }
+
+    [Fact]
+    public void IsCompatible_DoesNotReadSemanticWhenStorageKindMismatches()
+    {
+      bool semanticRead = false;
+
+      bool compatible = OfficialParameterTypeContract.IsCompatible(
+        "TEXT",
+        OfficialParameterStorageKind.Double,
+        () =>
+        {
+          semanticRead = true;
+          throw new Xunit.Sdk.XunitException("语义 accessor 不应被调用。");
+        });
+
+      Assert.False(compatible);
+      Assert.False(semanticRead);
+    }
   }
 }

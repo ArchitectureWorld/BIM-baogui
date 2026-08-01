@@ -4,6 +4,7 @@ namespace BIMBaoGui.Stage01.Hifc
 {
   internal enum OfficialParameterStorageKind
   {
+    Unsupported,
     String,
     Integer,
     Double
@@ -113,6 +114,21 @@ namespace BIMBaoGui.Stage01.Hifc
         Normalize(expectedSharedParameterType),
         Normalize(actualRevitParameterType),
         StringComparison.Ordinal);
+    }
+
+    public static bool IsCompatible(
+      string expectedSharedParameterType,
+      OfficialParameterStorageKind actualStorageKind,
+      Func<string> actualRevitParameterTypeAccessor)
+    {
+      OfficialParameterTypeDecision expected = Resolve(
+        expectedSharedParameterType);
+      if (expected.StorageKind != actualStorageKind) return false;
+      if (actualRevitParameterTypeAccessor == null)
+        throw new ArgumentNullException(nameof(actualRevitParameterTypeAccessor));
+      return IsCompatible(
+        expected.SemanticType,
+        actualRevitParameterTypeAccessor());
     }
 
     private static OfficialParameterTypeDecision DoubleDecision(
