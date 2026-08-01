@@ -54,6 +54,19 @@ def test_revit_projection_dual_writes_canonical_and_official_source_parameters()
     assert "OfficialParameterProjectionService.WriteAndVerify" in generic
 
 
+def test_generated_shared_parameter_groups_precede_parameter_block():
+    projection = read(
+        "src/BIMBaoGui.Stage01/Revit/OfficialParameterProjectionService.cs"
+    )
+    assert "FindParameterHeaderIndex" in projection
+    assert 'StartsWith("*PARAM\\t"' in projection
+    assert "AppendAliasGroupDefinitions" in projection
+    assert "AppendAliasParameterDefinitions" in projection
+    assert projection.index("AppendAliasGroupDefinitions") < projection.index(
+        "AppendAliasParameterDefinitions"
+    )
+
+
 def test_old_stage01_initialization_is_migrated_without_manual_reinitialize():
     service = read("src/BIMBaoGui.Stage01/Revit/Stage01RevitService.cs")
     assert "RequiresWorkflowMigration" in service
