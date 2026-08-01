@@ -49,6 +49,10 @@ namespace BIMBaoGui.Stage01
     internal bool IsCommitting => _isCommitting;
     internal string CurrentStatus => ResolveStatus();
     internal IReadOnlyList<string> CurrentMessages => ResolveMessages();
+    internal IReadOnlyList<string> OperationFailureMessages =>
+      _lastCommit != null && !_lastCommit.Success
+        ? (_operationMessages ?? Array.Empty<string>())
+        : Array.Empty<string>();
 
     public override void CreateAttributes()
     {
@@ -397,15 +401,26 @@ namespace BIMBaoGui.Stage01
       ExpireDisplay();
       bool queued = Stage01RevitService.EnqueueCommit(_model, result =>
       {
-        _lastCommit = result;
-        _operationMessages = result.Messages;
+        _lastCommit = result ?? new CommitResult
+        {
+          Success = false,
+          Status = "初始化失败",
+          Messages = new[] { "Revit 写入未返回结果。" }
+        };
+        _operationMessages = _lastCommit.Messages ?? Array.Empty<string>();
         _isCommitting = false;
         Rhino.RhinoApp.InvokeOnUiThread((Action) (() => ExpireSolution(true)));
       }, out string error);
       if (!queued)
       {
         _isCommitting = false;
-        _operationMessages = new[] { error };
+        _lastCommit = new CommitResult
+        {
+          Success = false,
+          Status = "初始化失败",
+          Messages = new[] { error }
+        };
+        _operationMessages = _lastCommit.Messages;
         ExpireSolution(true);
       }
     }
@@ -555,7 +570,7 @@ namespace BIMBaoGui.Stage01
     private string ResolveStatus()
     {
       if (_isCommitting) return "提交中";
-      if (_lastCommit != null && !_lastCommit.Success) return _lastCommit.Status;
+      if (_lastCommit != null && !_lastCommit.Success) return "初始化失败";
       if (_snapshot != null && _snapshot.IsInitialized)
         return _snapshot.PayloadMatches ? "初始化通过" : "已修改待重新提交";
       if (_snapshot != null && _snapshot.HostAvailable && _snapshot.Messages.Count > 0)
