@@ -7,9 +7,9 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>BIMBaoGui.Stage01</AssemblyName>
     <RootNamespace>BIMBaoGui.Stage01</RootNamespace>
-    <Version>0.6.1</Version>
-    <FileVersion>0.6.1.0</FileVersion>
-    <AssemblyVersion>0.6.1.0</AssemblyVersion>
+    <Version>0.6.0</Version>
+    <FileVersion>0.6.0.0</FileVersion>
+    <AssemblyVersion>0.6.0.0</AssemblyVersion>
     <Deterministic>true</Deterministic>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>1591</NoWarn>
