@@ -1,7 +1,8 @@
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "objective": "GH 写入 Revit 后，由官方 H-IFC 插件导出 IFC，并由官方检查软件正确识别",
   "activeExportPath": "OFFICIAL_HIFC_PLUGIN_ONLY",
+  "activeWriteProfile": "DUAL_CANONICAL_AND_OFFICIAL_EXACT_SOURCE_NAME_V080",
   "prohibitedProductPaths": [
     "SELF_DEVELOPED_IFC_EXPORT",
     "POST_EXPORT_ENRICH",
@@ -11,11 +12,26 @@
     "propertyDefinitions": "OFFICIAL_EXTRACTED",
     "propertySetDefinitions": "OFFICIAL_EXTRACTED",
     "explicitObjectMappings": "OFFICIAL_EXTRACTED_4",
-    "generatedSharedParameterNames": "IMPLEMENTATION_DECISION_UNVERIFIED_BY_OFFICIAL_EXPORT",
-    "generatedParameterGuids": "IMPLEMENTATION_DECISION_UNVERIFIED_BY_OFFICIAL_EXPORT",
+    "sourceParameterOverrideCount": 0,
+    "officialSourceParameterLookup": "EXACT_IFC_PROPERTY_NAME_WHEN_OVERRIDE_IS_ABSENT",
+    "canonicalPrefixedParameterNames": "IMPLEMENTATION_INTERNAL_IDENTITY",
+    "canonicalParameterGuids": "IMPLEMENTATION_DETERMINISTIC_UUIDV5",
+    "officialExactNameAliasGuids": "IMPLEMENTATION_DETERMINISTIC_UUIDV5",
     "revitParameterReadback": "LOCAL_WRITE_VERIFICATION_ONLY",
-    "officialPluginExport": "NOT_YET_EXECUTED",
-    "officialCheckerRecognition": "NOT_YET_EXECUTED"
+    "officialPluginExport": "TEST02_FAILED_OLD_V020_NO_STANDARD_SOURCE_PARAMETERS; V080_NOT_YET_EXECUTED",
+    "officialCheckerRecognition": "V080_NOT_YET_EXECUTED"
+  },
+  "uploadedTestEvidence": {
+    "testId": "20260731test02",
+    "rvtSha256": "10e589f788ff611edd071ef629aa2effee4f45511d8ceba27fc805d5c25adf17",
+    "ifcSha256": "3c56663b985db2890dd6ec011b9ee55472d2808110203c669a09e10a41b0081a",
+    "storedWorkflowVersion": "0.2.0",
+    "canonicalHifcParametersFoundInRvt": 0,
+    "officialHifcPropertySetsFoundInIfc": 0,
+    "ifcExporter": "IfcExport v1.0.0.0 / GeometryGymIFCcore v25.2.25.0",
+    "ifcProjectName": "Project",
+    "ifcSiteGeoreference": "EMPTY",
+    "diagnosisDocument": "docs/reviews/2026-08-01-test02-rvt-ifc-root-cause.md"
   },
   "coordinateSemantics": {
     "X": "NORTH_SOUTH",
@@ -23,6 +39,32 @@
     "elevation": "VERTICAL_ELEVATION",
     "inputUnit": "m"
   },
+  "writeProjection": {
+    "canonicalInternalParameter": "HIFC.<PropertySet>.<IFCProperty>",
+    "officialSourceParameter": "sourceParameterOverride ?? IFCProperty",
+    "reuseUniqueExistingExactNameParameter": true,
+    "createExactNameSharedParameterWhenMissing": true,
+    "automaticLegacyMigration": true,
+    "ambiguousExactNamePolicy": "BLOCK_WITH_OFFICIAL_SOURCE_NAME_AMBIGUOUS"
+  },
+  "knownExactNameAmbiguities": [
+    {
+      "ifcEntity": "IfcProject",
+      "sourceParameterName": "建筑物编码",
+      "propertySets": [
+        "地籍信息属性集",
+        "登记信息属性集"
+      ]
+    },
+    {
+      "ifcEntity": "IfcProject",
+      "sourceParameterName": "备注",
+      "propertySets": [
+        "区划信息属性集",
+        "申报信息属性集"
+      ]
+    }
+  ],
   "stage01ProjectFieldExceptions": [
     "IfcProject|Pset_项目控制指标信息属性集|建筑密度",
     "IfcProject|Pset_项目控制指标信息属性集|容积率",
@@ -112,7 +154,8 @@
   "completionGate": {
     "requiredRoundtrip": [
       "GH_VALUE",
-      "REVIT_VALUE",
+      "REVIT_CANONICAL_VALUE",
+      "REVIT_OFFICIAL_EXACT_SOURCE_VALUE",
       "OFFICIAL_PLUGIN_EXPORTED_IFC_VALUE",
       "OFFICIAL_CHECKER_RECOGNIZED_VALUE"
     ],
