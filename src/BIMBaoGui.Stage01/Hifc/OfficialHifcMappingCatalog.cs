@@ -11,6 +11,8 @@ namespace BIMBaoGui.Stage01.Hifc
   {
     private static readonly Guid OfficialSourceAliasNamespace =
       new Guid("475ad28f-fda6-5c58-8447-08f6f25aa09c");
+    private static readonly object InstanceLock = new object();
+    private static OfficialHifcMappingCatalog _instance;
 
     private const string BindingResourceName =
       "BIMBaoGui.Stage01.Resources.GH_HIFC_ParameterBindings.json";
@@ -30,7 +32,18 @@ namespace BIMBaoGui.Stage01.Hifc
       }
     }
 
-    public static OfficialHifcMappingCatalog Instance { get; } = Load();
+    public static OfficialHifcMappingCatalog Instance
+    {
+      get
+      {
+        if (_instance != null) return _instance;
+        lock (InstanceLock)
+        {
+          if (_instance == null) _instance = Load();
+          return _instance;
+        }
+      }
+    }
 
     public IReadOnlyCollection<OfficialHifcMapping> Mappings =>
       _byAlias.Values.Distinct().ToArray();
