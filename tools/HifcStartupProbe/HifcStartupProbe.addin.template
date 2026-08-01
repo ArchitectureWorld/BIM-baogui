@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <RevitAddIns>
   <AddIn Type="Application">
-    <Assembly>__PROBE_ASSEMBLY_PATH__</Assembly>
-    <ClientId>487D2217-6689-4D29-A693-2C73EBB94CD4</ClientId>
-    <FullClassName>BIMBaoGui.Diagnostics.HifcStartupProbeApplication</FullClassName>
     <Name>BIMBaoGui H-IFC Startup Probe</Name>
+    <Assembly>HifcStartupProbe\BIMBaoGui.HifcStartupProbe.dll</Assembly>
+    <FullClassName>BIMBaoGui.Diagnostics.HifcStartupProbeApplication</FullClassName>
+    <ClientId>487D2217-6689-4D29-A693-2C73EBB94CD4</ClientId>
     <VendorId>AWLD</VendorId>
     <VendorDescription>Temporary diagnostic probe for the vendor H-IFC Revit application.</VendorDescription>
   </AddIn>
