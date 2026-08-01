@@ -64,8 +64,11 @@ namespace BIMBaoGui.Stage01.Revit
         && !string.IsNullOrWhiteSpace(stored.PayloadHash);
       snapshot.StoredPayloadHash = stored?.PayloadHash ?? string.Empty;
       snapshot.StoredPayloadJson = stored?.PayloadJson ?? string.Empty;
+      snapshot.StoredWorkflowVersion = stored?.WorkflowVersion ?? string.Empty;
+      snapshot.RequiresWorkflowMigration = RequiresWorkflowMigration(stored);
       string currentHash = CanonicalPayload.Sha256(CanonicalPayload.Build(model));
       snapshot.PayloadMatches = snapshot.IsInitialized
+        && !snapshot.RequiresWorkflowMigration
         && string.Equals(
           currentHash,
           snapshot.StoredPayloadHash,
@@ -84,8 +87,12 @@ namespace BIMBaoGui.Stage01.Revit
         messages.Add(
           "当前文件已存在正式建模内容或外部链接，不符合“尚未开始正式建模”的初始化条件。");
 
-      if (snapshot.IsInitialized)
-        snapshot.Status = snapshot.PayloadMatches ? "初始化通过" : "已修改待重新提交";
+      if (snapshot.RequiresWorkflowMigration)
+        snapshot.Status = "旧版初始化待升级";
+      else if (snapshot.IsInitialized)
+        snapshot.Status = snapshot.PayloadMatches
+          ? "初始化通过"
+          : "已修改待重新提交";
       else if (messages.Count > 0)
         snapshot.Status = "环境检查未通过";
       else
@@ -118,7 +125,14 @@ namespace BIMBaoGui.Stage01.Revit
       if (stored != null && !string.IsNullOrWhiteSpace(stored.PayloadJson))
       {
         if (Stage01PayloadCodec.TryApply(stored.PayloadJson, model, out string payloadError))
+        {
           messages.Add("已读取当前 Revit 文件中的初始化记录。");
+          if (RequiresWorkflowMigration(stored))
+            messages.Add(
+              "检测到旧版初始化 "
+              + (stored.WorkflowVersion ?? string.Empty)
+              + "；再次提交将自动升级，无需启用“允许重新初始化”。" );
+        }
         else
           messages.Add(payloadError);
       }
@@ -224,7 +238,8 @@ namespace BIMBaoGui.Stage01.Revit
             .ToArray());
 
       StoredInitialization existing = Stage01Storage.Read(document);
-      if (existing != null && !model.AllowReinitialize)
+      bool requiresMigration = RequiresWorkflowMigration(existing);
+      if (existing != null && !model.AllowReinitialize && !requiresMigration)
         return Failure("当前文件已经初始化。如确需覆盖，请先启用“允许重新初始化”。");
 
       IReadOnlyList<string> blockers = BlankFileGate.FindBlockingElements(document);
@@ -241,6 +256,15 @@ namespace BIMBaoGui.Stage01.Revit
       string payloadJson = CanonicalPayload.Build(model);
       string payloadHash = CanonicalPayload.Sha256(payloadJson);
       var commitMessages = new List<string>();
+      if (requiresMigration)
+      {
+        commitMessages.Add(
+          "旧版初始化将从 "
+          + (existing.WorkflowVersion ?? string.Empty)
+          + " 自动升级到 "
+          + HBRContextVersions.FileContextSchema
+          + "，无需启用“允许重新初始化”。" );
+      }
 
       using (var group = new TransactionGroup(document, "湖北BIM报规｜文件初始化"))
       {
@@ -248,7 +272,9 @@ namespace BIMBaoGui.Stage01.Revit
           return Failure("无法启动 Revit 事务组。");
         try
         {
-          using (var transaction = new Transaction(document, "写入文件初始化与标准属性"))
+          using (var transaction = new Transaction(
+            document,
+            "写入文件初始化与官方插件源参数"))
           {
             if (transaction.Start() != TransactionStatus.Started)
               throw new InvalidOperationException("无法启动 Revit 事务。");
@@ -265,7 +291,9 @@ namespace BIMBaoGui.Stage01.Revit
               InitializedUtc = DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture)
             });
             commitMessages.AddRange(
-              Stage01OfficialHifcProjectionService.WriteAndVerify(document, payloadJson));
+              Stage01OfficialHifcProjectionService.WriteAndVerify(
+                document,
+                payloadJson));
 
             document.Regenerate();
             if (transaction.Commit() != TransactionStatus.Committed)
@@ -292,17 +320,25 @@ namespace BIMBaoGui.Stage01.Revit
             message.StartsWith("BLOCK_", StringComparison.Ordinal));
           var resultMessages = new List<string>
           {
-            "文件初始化、标准字段候选参数写入与 Revit 回读验证均已完成。",
-            "最终兼容性仍以官方插件导出的 IFC 和检查软件识别结果为准。"
+            "文件初始化、内部唯一参数、官方精确源参数写入与 Revit 回读均已完成。",
+            "必须使用官方 H-IFC 插件重新导出 IFC；旧 IFC 不会自动更新。"
           };
           resultMessages.AddRange(commitMessages);
+
+          string status;
+          if (hasOfficialProtocolBlocker)
+            status = requiresMigration
+              ? "初始化升级完成｜官方导出协议存在阻断"
+              : "初始化完成｜官方导出协议存在阻断";
+          else
+            status = requiresMigration
+              ? "旧版初始化已升级｜待官方重新导出验收"
+              : "初始化完成｜待官方重新导出验收";
 
           return new CommitResult
           {
             Success = true,
-            Status = hasOfficialProtocolBlocker
-              ? "初始化完成｜官方导出协议存在阻断"
-              : "初始化完成｜待官方导出验收",
+            Status = status,
             PayloadJson = payloadJson,
             PayloadHash = payloadHash,
             Messages = resultMessages
@@ -314,6 +350,15 @@ namespace BIMBaoGui.Stage01.Revit
           return Failure("初始化失败，事务已回滚：" + exception.Message);
         }
       }
+    }
+
+    private static bool RequiresWorkflowMigration(StoredInitialization stored)
+    {
+      return stored != null
+        && !string.Equals(
+          stored.WorkflowVersion ?? string.Empty,
+          HBRContextVersions.FileContextSchema,
+          StringComparison.Ordinal);
     }
 
     private static void ApplyUnits(Document document)
@@ -433,11 +478,19 @@ namespace BIMBaoGui.Stage01.Revit
       StoredInitialization stored = Stage01Storage.Read(document);
       if (stored == null)
         errors.Add("初始化记录未写入 Revit DataStorage。");
-      else if (!string.Equals(
-        stored.PayloadHash,
-        payloadHash,
-        StringComparison.OrdinalIgnoreCase))
-        errors.Add("初始化载荷哈希回读不一致。");
+      else
+      {
+        if (!string.Equals(
+          stored.PayloadHash,
+          payloadHash,
+          StringComparison.OrdinalIgnoreCase))
+          errors.Add("初始化载荷哈希回读不一致。");
+        if (!string.Equals(
+          stored.WorkflowVersion,
+          HBRContextVersions.FileContextSchema,
+          StringComparison.Ordinal))
+          errors.Add("初始化工作流版本未升级到当前版本。");
+      }
       return errors;
     }
 
