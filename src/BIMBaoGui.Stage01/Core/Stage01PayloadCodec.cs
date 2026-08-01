@@ -25,30 +25,32 @@ namespace BIMBaoGui.Stage01.Core
       {
         var serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
         Dictionary<string, object> root = serializer.Deserialize<Dictionary<string, object>>(payloadJson);
-        model.Values.Clear();
-        model.Conditions.Clear();
-        model.PlanningTargets.Clear();
-        model.Organizations.Clear();
+        var parsed = new Stage01Model();
+        parsed.Values.Clear();
+        parsed.Conditions.Clear();
+        parsed.PlanningTargets.Clear();
+        parsed.Organizations.Clear();
 
         if (root.TryGetValue("values", out object valuesObject))
-          CopyStrings(valuesObject, model.Values);
+          CopyStrings(valuesObject, parsed.Values);
         if (root.TryGetValue("planningTargets", out object planningTargetsObject))
-          CopyPlanningTargets(planningTargetsObject, model);
+          CopyPlanningTargets(planningTargetsObject, parsed);
         if (root.TryGetValue("conditions", out object conditionsObject))
-          CopyBooleans(conditionsObject, model.Conditions);
+          CopyBooleans(conditionsObject, parsed.Conditions);
         if (root.TryGetValue("organizations", out object organizationsObject) && organizationsObject is IEnumerable organizations)
         {
           foreach (object organizationObject in organizations)
           {
             var organization = new Dictionary<string, string>(StringComparer.Ordinal);
             CopyStrings(organizationObject, organization);
-            model.Organizations.Add(organization);
+            parsed.Organizations.Add(organization);
           }
         }
-        if (model.Organizations.Count == 0)
-          model.Organizations.Add(new Dictionary<string, string>(StringComparer.Ordinal));
+        if (parsed.Organizations.Count == 0)
+          parsed.Organizations.Add(new Dictionary<string, string>(StringComparer.Ordinal));
 
-        RestoreLegacyPlanningTargets(model);
+        RestoreLegacyPlanningTargets(parsed);
+        ApplyParsedData(parsed, model);
         return true;
       }
       catch (Exception exception)
@@ -56,6 +58,25 @@ namespace BIMBaoGui.Stage01.Core
         error = "初始化载荷解析失败：" + exception.Message;
         return false;
       }
+    }
+
+    private static void ApplyParsedData(Stage01Model parsed, Stage01Model model)
+    {
+      model.Values.Clear();
+      foreach (KeyValuePair<string, string> pair in parsed.Values)
+        model.Values[pair.Key] = pair.Value;
+
+      model.Conditions.Clear();
+      foreach (KeyValuePair<string, bool> pair in parsed.Conditions)
+        model.Conditions[pair.Key] = pair.Value;
+
+      model.PlanningTargets.Clear();
+      foreach (KeyValuePair<string, PlanningTargetValue> pair in parsed.PlanningTargets)
+        model.PlanningTargets[pair.Key] = pair.Value;
+
+      model.Organizations.Clear();
+      foreach (Dictionary<string, string> organization in parsed.Organizations)
+        model.Organizations.Add(organization);
     }
 
     private static void CopyPlanningTargets(object source, Stage01Model model)

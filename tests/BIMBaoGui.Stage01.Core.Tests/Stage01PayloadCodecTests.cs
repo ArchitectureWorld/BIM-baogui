@@ -30,6 +30,26 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Assert.Equal("≥35%", restored.GetPlanningTarget(PlanningTargetCatalog.GreenRateCode).ToMvdText());
     }
 
+    [Fact]
+    public void InvalidPayload_DoesNotMutateExistingModel()
+    {
+      var model = new Stage01Model();
+      model.SetValue("existing", "VALUE");
+      model.SetCondition("existingCondition", true);
+      model.SetOrganizationValue("organization", "EXISTING");
+      AddTarget(model, PlanningTargetCatalog.GreenRateCode, PlanningTargetOperator.GreaterOrEqual, "35");
+
+      string payload = "{\"values\":{\"partial\":\"APPLIED\"},\"planningTargets\":{\"x\":{\"operator\":\"INVALID\",\"unit\":\"Percent\",\"value1\":\"35\"}},\"conditions\":{},\"organizations\":[]}";
+
+      Assert.False(Stage01PayloadCodec.TryApply(payload, model, out _));
+      Assert.Equal("VALUE", model.GetValue("existing"));
+      Assert.DoesNotContain("partial", model.Values);
+      Assert.True(model.GetCondition("existingCondition"));
+      Assert.Equal("≥35%", model.GetPlanningTarget(PlanningTargetCatalog.GreenRateCode).ToMvdText());
+      Assert.Single(model.Organizations);
+      Assert.Equal("EXISTING", model.GetOrganizationValue("organization"));
+    }
+
     private static void AddTarget(Stage01Model model, string metricCode, PlanningTargetOperator op, string value)
     {
       PlanningTargetDefinition definition = PlanningTargetCatalog.Get(metricCode);
