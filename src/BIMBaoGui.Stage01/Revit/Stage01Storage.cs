@@ -41,8 +41,6 @@ namespace BIMBaoGui.Stage01.Revit
       SetString(entity, schema, "WorkflowVersion", value.WorkflowVersion);
       SetString(entity, schema, "InitializedUtc", value.InitializedUtc);
       storage.SetEntity(entity);
-
-      Stage01OfficialHifcProjectionService.WriteAndVerify(document, value.PayloadJson);
     }
 
     private static DataStorage FindStorage(Document document)
