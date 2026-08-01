@@ -22,22 +22,25 @@ def test_stage01_projection_preserves_but_blocks_unverified_organizations():
     service = read("src/BIMBaoGui.Stage01/Revit/Stage01OfficialHifcProjectionService.cs")
     assert "payload.organizations" in service
     assert "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT" in service
-    assert "不伪装成 ProjectInformation 参数" in service
+    assert "不伪装成 IfcProject 参数" in service
 
 
-def test_stage01_projection_installs_binds_writes_and_verifies_by_guid():
+def test_stage01_projection_delegates_dual_write_and_revit_readback():
     service = read("src/BIMBaoGui.Stage01/Revit/Stage01OfficialHifcProjectionService.cs")
-    assert "ParameterBindings.Insert" in service
-    assert "ParameterBindings.ReInsert" in service
-    assert "get_Parameter(item.Key.ParameterGuid)" in service
-    assert "document.Regenerate()" in service
-    assert "ReadbackMatches" in service
-    assert "DUT_METERS" in service
-    assert "DUT_SQUARE_METERS" in service
-    assert "DUT_CUBIC_METERS" in service
-    assert "DUT_DECIMAL_DEGREES" in service
-    assert "REVIT_WRITE_VERIFIED" in service
-    assert "仍需官方插件导出与检查软件验收" in service
+    projection = read("src/BIMBaoGui.Stage01/Revit/OfficialParameterProjectionService.cs")
+    assert "OfficialParameterProjectionService.WriteAndVerify" in service
+    assert "OfficialParameterWriteItem" in service
+    assert "ParameterBindings.Insert" in projection
+    assert "ParameterBindings.ReInsert" in projection
+    assert "get_Parameter(projection.Guid)" in projection
+    assert "document.Regenerate()" in projection
+    assert "ReadbackMatches" in projection
+    assert "DUT_METERS" in projection
+    assert "DUT_SQUARE_METERS" in projection
+    assert "DUT_CUBIC_METERS" in projection
+    assert "DUT_DECIMAL_DEGREES" in projection
+    assert "REVIT_WRITE_VERIFIED" in projection
+    assert "官方精确源参数" in service
 
 
 def test_stage01_projection_runs_explicitly_inside_initialization_transaction():
@@ -48,4 +51,4 @@ def test_stage01_projection_runs_explicitly_inside_initialization_transaction():
     assert "Stage01OfficialHifcProjectionService.WriteAndVerify" in revit_service
     assert "using (var transaction = new Transaction" in revit_service
     assert "group.RollBack()" in revit_service
-    assert "待官方导出验收" in revit_service
+    assert "待官方重新导出验收" in revit_service
