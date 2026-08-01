@@ -4,6 +4,19 @@
 
 **Goal:** Make the Grasshopper plugin write guide- and software-compliant data into Revit so the official H-IFC plugin exports it and the official checker recognizes it correctly.
 
+## 中文验收摘要
+
+本计划的唯一最终验收链路是：
+
+```text
+Golden RVT
+→ 官方插件导出
+→ Golden IFC
+→ 检查软件正确识别
+```
+
+Revit 内参数写入与回读只属于开发侧中间验证。只有官方插件导出的 Golden IFC 中实体、属性集、属性名、数据类型、单位和值均正确，并且检查软件能够正确识别，才能把对应字段标记为正式兼容。
+
 **Architecture:** Treat official property rules and official object mappings as evidence, not interchangeable with our implementation decisions. Stage 01 and the generic writer resolve fields through a shared compatibility catalog, enforce entity-specific targets, write and read back Revit data atomically, then require a Golden RVT → official plugin → Golden IFC → checker roundtrip before declaring compatibility.
 
 **Tech Stack:** C# net48, Grasshopper 8 SDK, Revit 2020 API, embedded JSON/shared-parameter resources, Python pytest contract tests, GitHub Actions, official H-IFC exporter and checker for integration acceptance.
@@ -111,11 +124,11 @@ Expected: contract test failure on the existing implementation.
 **Interfaces:**
 - Produces: `OfficialPluginCompatibilityCatalog.Instance.GetEntityPolicy(string ifcEntity)` and `IsStage01ProjectFieldException(string fieldKey)`.
 
-- [ ] **Step 1: Add the compatibility JSON**
+- [x] **Step 1: Add the compatibility JSON**
 
 Record all nine entities and distinguish official extracted object mappings from implementation assumptions.
 
-- [ ] **Step 2: Embed the JSON resource**
+- [x] **Step 2: Embed the JSON resource**
 
 Logical resource name:
 
@@ -123,7 +136,7 @@ Logical resource name:
 BIMBaoGui.Stage01.Resources.official_plugin_compatibility_status.v1.json
 ```
 
-- [ ] **Step 3: Implement the catalog**
+- [x] **Step 3: Implement the catalog**
 
 Required API:
 
@@ -145,7 +158,7 @@ internal sealed class OfficialPluginCompatibilityCatalog
 }
 ```
 
-- [ ] **Step 4: Run contract tests**
+- [x] **Step 4: Run contract tests**
 
 Expected: status-file tests pass; production-code tests remain red.
 
@@ -162,14 +175,14 @@ Expected: status-file tests pass; production-code tests remain red.
 - Consumes: `Stage01OfficialHifcProjectionService.WriteAndVerify(Document, string)`.
 - Produces: one atomic initialization transaction with explicit projection diagnostics.
 
-- [ ] **Step 1: Fix Revit read semantics**
+- [x] **Step 1: Fix Revit read semantics**
 
 ```csharp
 BaseX = position.NorthSouth;
 BaseY = position.EastWest;
 ```
 
-- [ ] **Step 2: Fix Revit write semantics**
+- [x] **Step 2: Fix Revit write semantics**
 
 ```csharp
 double northMeters = ParseRequiredNumber(model, Stage01Keys.BaseX);
@@ -177,18 +190,18 @@ double eastMeters = ParseRequiredNumber(model, Stage01Keys.BaseY);
 new ProjectPosition(eastFeet, northFeet, elevationFeet, angleRadians);
 ```
 
-- [ ] **Step 3: Fix readback labels and comparisons**
+- [x] **Step 3: Fix readback labels and comparisons**
 
 ```text
 基点坐标 X（南北） ↔ NorthSouth
 基点坐标 Y（东西） ↔ EastWest
 ```
 
-- [ ] **Step 4: Remove projection call from Stage01Storage**
+- [x] **Step 4: Remove projection call from Stage01Storage**
 
 `Stage01Storage.Write` must only write Extensible Storage.
 
-- [ ] **Step 5: Explicitly invoke projection in Stage01RevitService**
+- [x] **Step 5: Explicitly invoke projection in Stage01RevitService**
 
 Collect projection messages and include them in `CommitResult.Messages`.
 
@@ -209,7 +222,7 @@ Expected: coordinate and storage-orchestration assertions pass.
 **Interfaces:**
 - Produces: `TryResolveStage01FieldKey(string fieldKey, out OfficialHifcMapping mapping)`.
 
-- [ ] **Step 1: Parse canonical Stage 01 field keys**
+- [x] **Step 1: Parse canonical Stage 01 field keys**
 
 Input:
 
@@ -223,15 +236,15 @@ Candidate parameter alias:
 HIFC.申报信息属性集.项目名称
 ```
 
-- [ ] **Step 2: Project every non-empty IfcProject field**
+- [x] **Step 2: Project every non-empty IfcProject field**
 
 Skip internal HBR fields and structured planning targets. Missing mappings must fail unless explicitly listed in the compatibility-status exceptions.
 
-- [ ] **Step 3: Parse organizations separately**
+- [x] **Step 3: Parse organizations separately**
 
 If any organization field is non-empty, preserve it in HBR storage and emit `BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT`; do not write it to ProjectInformation.
 
-- [ ] **Step 4: Support all Stage 01 parameter types**
+- [x] **Step 4: Support all Stage 01 parameter types**
 
 String, Integer, YesNo, Length, Area, Volume, Angle and Number.
 
@@ -252,11 +265,11 @@ Expected: every writable IfcProject field has a mapping or explicit documented e
 **Interfaces:**
 - Produces: `ResolveTargetsForMapping(Document, OfficialHifcMapping, IReadOnlyList<int>)`.
 
-- [ ] **Step 1: Resolve each mapping independently**
+- [x] **Step 1: Resolve each mapping independently**
 
 Do not resolve one target list and apply all mappings to all elements.
 
-- [ ] **Step 2: Apply entity rules**
+- [x] **Step 2: Apply entity rules**
 
 ```text
 IfcProject/IfcBuilding → ProjectInformation allowed without IDs
@@ -265,15 +278,15 @@ IfcSpace → explicit Room IDs only
 all blocked entities → actionable error
 ```
 
-- [ ] **Step 3: Validate target category before write**
+- [x] **Step 3: Validate target category before write**
 
 Reject mismatched ElementIds before starting value changes.
 
-- [ ] **Step 4: Add Angle conversion**
+- [x] **Step 4: Add Angle conversion**
 
 Degrees → Revit internal angle units.
 
-- [ ] **Step 5: Correct UI copy**
+- [x] **Step 5: Correct UI copy**
 
 The ElementId input states that leaving it empty is only valid for IfcProject/IfcBuilding.
 
@@ -291,15 +304,15 @@ Expected: target-safety assertions pass and no previous tests regress.
 - Modify: `specs/hifc-mapping/v1/docs/03_实施顺序与验收门槛.md`
 - Create: `docs/reviews/2026-08-01-official-plugin-write-deep-review.md`
 
-- [ ] **Step 1: Mark post-export architecture as superseded**
+- [x] **Step 1: Mark post-export architecture as superseded**
 
 Historical data remains available, but it is not the active GHA product path.
 
-- [ ] **Step 2: Publish the conflict matrix and resolution**
+- [x] **Step 2: Publish the conflict matrix and resolution**
 
 Cover the 166-property rules, 4 official object mappings, 102 Stage 01 fields, 10-field implementation, custom GUID evidence and official-export gap.
 
-- [ ] **Step 3: Replace acceptance gates**
+- [x] **Step 3: Replace acceptance gates**
 
 Require Golden RVT → official plugin export → Golden IFC → checker recognition.
 
@@ -312,7 +325,7 @@ Require Golden RVT → official plugin export → Golden IFC → checker recogni
 - Modify: `.github/workflows/build-stage01-gha.yml`
 - Modify: `tests/test_plugin_contract.py`
 
-- [ ] **Step 1: Bump version**
+- [x] **Step 1: Bump version**
 
 Set assembly/package version to `0.7.0` because compatibility semantics and write behavior change materially.
 
