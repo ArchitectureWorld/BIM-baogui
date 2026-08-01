@@ -9,6 +9,9 @@ namespace BIMBaoGui.Stage01.Hifc
 {
   internal sealed class OfficialHifcMappingCatalog
   {
+    private static readonly Guid OfficialSourceAliasNamespace =
+      new Guid("475ad28f-fda6-5c58-8447-08f6f25aa09c");
+
     private const string BindingResourceName =
       "BIMBaoGui.Stage01.Resources.GH_HIFC_ParameterBindings.json";
     private const string RuleResourceName =
@@ -106,9 +109,9 @@ namespace BIMBaoGui.Stage01.Hifc
         ReadEmbeddedText(RuleResourceName));
 
       if (bindingEnvelope?.bindings == null || bindingEnvelope.bindings.Length == 0)
-        throw new InvalidDataException("官方 H-IFC 参数绑定为空。");
+        throw new InvalidDataException("H-IFC 参数绑定为空。");
       if (ruleEnvelope?.properties == null || ruleEnvelope.properties.Length == 0)
-        throw new InvalidDataException("官方 H-IFC 规则包为空。");
+        throw new InvalidDataException("H-IFC 规则包为空。");
 
       Dictionary<string, RuleRecord> rules = ruleEnvelope.properties
         .Where(item => item != null && !string.IsNullOrWhiteSpace(item.propertyId))
@@ -125,7 +128,17 @@ namespace BIMBaoGui.Stage01.Hifc
           throw new InvalidDataException("H-IFC 映射缺少 propertyId、参数名或类别。");
         if (!rules.TryGetValue(item.propertyId, out RuleRecord rule)
           || rule.official == null || rule.canonical == null)
-          throw new InvalidDataException("参数绑定找不到对应官方规则：" + item.propertyId);
+          throw new InvalidDataException("参数绑定找不到对应规则：" + item.propertyId);
+
+        string ifcEntity = rule.official.ifcEntity ?? string.Empty;
+        string propertySet = rule.official.propertySet ?? string.Empty;
+        string ifcProperty = rule.official.ifcProperty ?? string.Empty;
+        string sourceOverride = rule.official.sourceParameterOverride ?? string.Empty;
+        string officialSourceName = string.IsNullOrWhiteSpace(sourceOverride)
+          ? ifcProperty
+          : sourceOverride.Trim();
+        string officialAliasKey =
+          ifcEntity + "|" + propertySet + "|" + officialSourceName;
 
         result.Add(new OfficialHifcMapping
         {
@@ -136,12 +149,17 @@ namespace BIMBaoGui.Stage01.Hifc
           Category = item.category,
           Carrier = item.carrier ?? string.Empty,
           PersistenceMode = item.persistenceMode ?? string.Empty,
-          IfcEntity = rule.official.ifcEntity ?? string.Empty,
-          PropertySet = rule.official.propertySet ?? string.Empty,
-          IfcProperty = rule.official.ifcProperty ?? string.Empty,
+          IfcEntity = ifcEntity,
+          PropertySet = propertySet,
+          IfcProperty = ifcProperty,
           IfcDataType = rule.official.ifcDataType ?? string.Empty,
           SharedParameterType = rule.canonical.sharedParameterType ?? string.Empty,
-          Unit = rule.official.unit ?? string.Empty
+          Unit = rule.official.unit ?? string.Empty,
+          SourceParameterOverride = sourceOverride,
+          OfficialSourceParameterName = officialSourceName,
+          OfficialSourceParameterGuid = DeterministicGuidV5.Create(
+            OfficialSourceAliasNamespace,
+            officialAliasKey)
         });
       }
 
@@ -193,6 +211,7 @@ namespace BIMBaoGui.Stage01.Hifc
       public string ifcProperty { get; set; }
       public string ifcDataType { get; set; }
       public string unit { get; set; }
+      public string sourceParameterOverride { get; set; }
     }
 
     private sealed class CanonicalRuleRecord
