@@ -14,8 +14,29 @@ namespace BIMBaoGui.Stage01.Core
       IEnumerable<string> environmentMessages,
       int maximum)
     {
+      return Build(
+        validation,
+        definitions,
+        environmentMessages,
+        Array.Empty<string>(),
+        maximum);
+    }
+
+    public static IReadOnlyList<string> Build(
+      ValidationResult validation,
+      IReadOnlyList<FieldDefinition> definitions,
+      IEnumerable<string> environmentMessages,
+      IEnumerable<string> operationFailureMessages,
+      int maximum)
+    {
       int limit = Math.Max(1, maximum);
       var result = new List<string>();
+
+      foreach (string message in operationFailureMessages ?? Array.Empty<string>())
+      {
+        if (string.IsNullOrWhiteSpace(message)) continue;
+        AddDistinct(result, "最近写入：" + message.Trim());
+      }
 
       foreach (string message in environmentMessages ?? Array.Empty<string>())
       {
