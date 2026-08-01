@@ -89,4 +89,41 @@ The 13:08 successful journal recorded H-IFC pushbuttons and event registrations 
 - Restored target SHA-256: `937B31E3E2F143A9990FF9BA60FA5772429C6FCF36BE90FEBBB5521967171CEC`
 - Non-comment mapping rows: 4
 
-The object map is now consistent with both vendor baselines. Official application recovery remains pending a safe Revit restart and fresh journal/probe output; this configuration correction alone is not recorded as the startup root cause.
+The object map is now consistent with both vendor baselines. This configuration correction was not the startup root cause.
+
+### Startup root cause captured
+
+- Probe failure log: `C:\Users\2899\AppData\Local\BIMBaoGui\Diagnostics\HifcStartupProbe-20260801-233811-475.log`
+- Failure-log SHA-256: `A957BE087EF68A3BF3587E4E5E0E378990B32A1D91981113A6BD25A6092390B5`
+- Exception chain: `TargetInvocationException` -> `TypeInitializationException` in `Hust.IFC.RVT2HIFC.Controller.MyGlobal` -> `TypeLoadException`.
+- Missing type: `bimcloud.DuckdbInserter.MyRvtAttributeExtensionBase`.
+
+Two `bimcloud.dll` files expose the same assembly/file version `1.0.0.0` but different ABIs:
+
+| Loaded candidate | Bytes | SHA-256 | Required type |
+|---|---:|---|---|
+| `C:\Program Files\HIFCTool\REVIT2020\net48\bimcloud.dll` | 7,987,200 | `DEBEEF3FBB8784BE8D87E7CA769B031325929130080EB011C1ADEFC4F384B3BF` | present |
+| `C:\ProgramData\Autodesk\Revit\Addins\2020\rvtExporter\bimcloud.dll` | 9,464,320 | `47C936997D08EA47C9EB0A007EAC18C878E53A0742C7A921492856CBF1ADCBBE` | absent |
+
+`BIM_cloud.addin` loaded the incompatible ProgramData assembly before `HIFCTool.Addin`. CLR assembly-identity reuse then made the H-IFC application see the wrong ABI. This is the confirmed startup root cause.
+
+### Reversible load-order repair
+
+- Original manifest backup: `C:\ProgramData\Autodesk\Revit\Addins\2020\HIFCTool.Addin.pre-bimbaogui-loadorder-20260801-234000.bak`
+- Active manifest: `C:\ProgramData\Autodesk\Revit\Addins\2020\00.HIFCTool.addin`
+- Both manifest hashes: `7F220113713EB0426FF9794CD6E937C665E8F33E54382B40E3863D1CB5DC3BCA`
+- No DLL was replaced.
+
+Prefixing only the H-IFC manifest caused its bundled `bimcloud.dll` to load first. ILSpy confirmed this DLL also contains all five BIMFlux manifest entry types (`UI`, `UploadCmd`, `ExportIfcCmd`, `PluginConfigSaveCmd`, and `AboutCmd`).
+
+### Revit verification
+
+- Fresh journal: `journal.0583.txt`
+- Journal SHA-256: `9E136243D22F52E1C8E18FC7F0137389C1F1907B34F00DF9947FE4E22B6E85BE`
+- Official `Hust.XAR.Shell.App`: `API_SUCCESS`, including H-IFC ribbon buttons and event registration.
+- BIMFlux `bimcloud.UI`: `API_SUCCESS`; its command classes resolved from the H-IFC bundled assembly.
+- Rhino.Inside: `API_SUCCESS`.
+- `D:\18_建模项目\2026.07_湖北银行报规\3D\20260731test02.rvt` opened successfully and was closed without modification; its last-write timestamp remained `2026-08-01 13:21:40`.
+- Success probe log: `HifcStartupProbe-20260801-234356-169.log`, stating `Vendor ribbon is already present; skipped duplicate OnStartup invocation.`
+
+The temporary user-level probe manifest, DLL, and deployment directory were removed after diagnosis. Repository probe source and both diagnostic logs remain as evidence. The complete machine-readable record and rollback paths are in `docs/reviews/evidence/20260801-235317-hifc-load-order-recovery-manifest.json`.

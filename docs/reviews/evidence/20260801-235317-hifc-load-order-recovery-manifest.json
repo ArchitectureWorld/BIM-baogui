@@ -1,0 +1,77 @@
+{
+  "captured": "2026-08-01T23:53:17.6387880+08:00",
+  "rootCause": {
+    "exception": "System.TypeLoadException",
+    "missingType": "bimcloud.DuckdbInserter.MyRvtAttributeExtensionBase",
+    "requiredBy": "Hust.IFC.RVT2HIFC.Controller.MyGlobal",
+    "explanation": "BIM_cloud.addin loaded an ABI-incompatible bimcloud.dll with the same assembly identity before HIFCTool.Addin."
+  },
+  "files": [
+    {
+      "path": "C:\\Program Files\\HIFCTool\\REVIT2020\\net48\\bimcloud.dll",
+      "bytes": 7987200,
+      "sha256": "DEBEEF3FBB8784BE8D87E7CA769B031325929130080EB011C1ADEFC4F384B3BF",
+      "containsRequiredType": true
+    },
+    {
+      "path": "C:\\ProgramData\\Autodesk\\Revit\\Addins\\2020\\rvtExporter\\bimcloud.dll",
+      "bytes": 9464320,
+      "sha256": "47C936997D08EA47C9EB0A007EAC18C878E53A0742C7A921492856CBF1ADCBBE",
+      "containsRequiredType": false
+    },
+    {
+      "path": "C:\\ProgramData\\Autodesk\\Revit\\Addins\\2020\\00.HIFCTool.addin",
+      "bytes": 489,
+      "sha256": "7F220113713EB0426FF9794CD6E937C665E8F33E54382B40E3863D1CB5DC3BCA"
+    },
+    {
+      "path": "C:\\ProgramData\\Autodesk\\Revit\\Addins\\2020\\HIFCTool.Addin.pre-bimbaogui-loadorder-20260801-234000.bak",
+      "bytes": 489,
+      "sha256": "7F220113713EB0426FF9794CD6E937C665E8F33E54382B40E3863D1CB5DC3BCA"
+    },
+    {
+      "path": "C:\\ProgramData\\Autodesk\\Revit\\Addins\\2020\\BIM_cloud.addin",
+      "bytes": 561,
+      "sha256": "6DA8127C204018995B937A7CD863C27F0619EC9CC689C38D9F5F896E39068FFB"
+    },
+    {
+      "path": "C:\\Users\\2899\\AppData\\Local\\BIMBaoGui\\Diagnostics\\HifcStartupProbe-20260801-233811-475.log",
+      "bytes": 1233,
+      "sha256": "A957BE087EF68A3BF3587E4E5E0E378990B32A1D91981113A6BD25A6092390B5"
+    },
+    {
+      "path": "C:\\Users\\2899\\AppData\\Local\\BIMBaoGui\\Diagnostics\\HifcStartupProbe-20260801-234356-169.log",
+      "bytes": 194,
+      "sha256": "2FC155848F87DA5D04BFC0E6586FF0F053F1DD9F7C2E352930D1453A2155BCFF"
+    },
+    {
+      "path": "C:\\Users\\2899\\AppData\\Local\\Autodesk\\Revit\\Autodesk Revit 2020\\Journals\\journal.0582.txt",
+      "bytes": 136995,
+      "sha256": "F62398228304A60DBD3B6004B716ABCAF52D12D6A1BD740CB6CCD14B1728873C",
+      "hifcStartup": "API_ERROR"
+    },
+    {
+      "path": "C:\\Users\\2899\\AppData\\Local\\Autodesk\\Revit\\Autodesk Revit 2020\\Journals\\journal.0583.txt",
+      "bytes": 171248,
+      "sha256": "9E136243D22F52E1C8E18FC7F0137389C1F1907B34F00DF9947FE4E22B6E85BE",
+      "hifcStartup": "API_SUCCESS",
+      "bimFluxStartup": "API_SUCCESS",
+      "openedTestModel": true
+    },
+    {
+      "path": "D:\\18_建模项目\\2026.07_湖北银行报规\\3D\\20260731test02.rvt",
+      "bytes": 5746688,
+      "sha256": "10E589F788FF611EDD071EF629AA2EFFEE4F45511D8CEBA27FC805D5C25ADF17"
+    }
+  ],
+  "probeCleanup": {
+    "activeManifestExists": false,
+    "activeDirectoryExists": false,
+    "repositorySourceRetained": true
+  },
+  "rollback": {
+    "remove": "C:\\ProgramData\\Autodesk\\Revit\\Addins\\2020\\00.HIFCTool.addin",
+    "restore": "C:\\ProgramData\\Autodesk\\Revit\\Addins\\2020\\HIFCTool.Addin.pre-bimbaogui-loadorder-20260801-234000.bak",
+    "restoreAs": "C:\\ProgramData\\Autodesk\\Revit\\Addins\\2020\\HIFCTool.Addin"
+  }
+}
