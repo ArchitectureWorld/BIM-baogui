@@ -24,6 +24,7 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\RuleActivationCatalog.cs" Link="Context\RuleActivationCatalog.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\BlankGatePolicy.cs" Link="Core\BlankGatePolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\CanonicalPayload.cs" Link="Core\CanonicalPayload.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\ExplicitExecutionGate.cs" Link="Core\ExplicitExecutionGate.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\FieldDefinition.cs" Link="Core\FieldDefinition.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\FieldInputRules.cs" Link="Core\FieldInputRules.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\PlanningTargetCatalog.cs" Link="Core\PlanningTargetCatalog.cs" />

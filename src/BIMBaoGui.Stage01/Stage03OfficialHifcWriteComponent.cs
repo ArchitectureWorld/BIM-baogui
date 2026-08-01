@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using BIMBaoGui.Stage01.Core;
 using BIMBaoGui.Stage01.Revit;
 using BIMBaoGui.Stage01.UI;
 using Grasshopper.Kernel;
@@ -11,7 +12,7 @@ namespace BIMBaoGui.Stage01
   public sealed class Stage03OfficialHifcWriteComponent : GH_Component
   {
     private bool _pending;
-    private bool _lastExecute;
+    private readonly ExplicitExecutionGate _executionGate = new ExplicitExecutionGate();
     private OfficialHifcWriteResult _result = new OfficialHifcWriteResult
     {
       Success = false,
@@ -99,9 +100,7 @@ namespace BIMBaoGui.Stage01
       dataAccess.GetDataList(2, properties);
       dataAccess.GetDataList(3, values);
 
-      bool risingEdge = execute && !_lastExecute;
-      _lastExecute = execute;
-      if (risingEdge && !_pending)
+      if (_executionGate.Observe(execute) && !_pending)
       {
         if (properties.Count == 0 || values.Count == 0)
         {
