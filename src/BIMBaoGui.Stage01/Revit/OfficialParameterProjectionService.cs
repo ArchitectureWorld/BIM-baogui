@@ -64,7 +64,10 @@ namespace BIMBaoGui.Stage01.Revit
       foreach (ProjectionWrite projection in projections)
       {
         Parameter parameter = ResolveParameter(projection);
-        ValidateStorageType(parameter, projection.Mapping.SharedParameterType, projection);
+        ValidateStorageType(
+          parameter,
+          projection.Mapping.SharedParameterType,
+          projection);
         if (parameter.IsReadOnly)
           throw new InvalidOperationException(
             projection.Kind + " 参数只读：" + projection.Name);
@@ -86,8 +89,10 @@ namespace BIMBaoGui.Stage01.Revit
             + projection.Mapping.IfcProperty);
       }
 
-      int canonicalCount = projections.Count(item => item.Kind == CanonicalProjectionKind);
-      int officialCount = projections.Count(item => item.Kind == OfficialProjectionKind);
+      int canonicalCount = projections.Count(item =>
+        item.Kind == CanonicalProjectionKind);
+      int officialCount = projections.Count(item =>
+        item.Kind == OfficialProjectionKind);
       messages.Add(
         "REVIT_WRITE_VERIFIED："
         + items.Count
@@ -127,7 +132,8 @@ namespace BIMBaoGui.Stage01.Revit
           RequiresGeneratedDefinition = false
         });
 
-        if (!string.IsNullOrWhiteSpace(item.Mapping.OfficialSourceParameterName))
+        if (!string.IsNullOrWhiteSpace(
+          item.Mapping.OfficialSourceParameterName))
         {
           projections.Add(new ProjectionWrite
           {
@@ -167,7 +173,7 @@ namespace BIMBaoGui.Stage01.Revit
         .ToArray();
 
       if (conflicts.Length == 0) return;
-      var details = conflicts.Select(item =>
+      IEnumerable<string> details = conflicts.Select(item =>
         item.Group.First().Mapping.OfficialSourceParameterName
         + " → "
         + string.Join(", ", item.Group.Select(value =>
@@ -179,9 +185,10 @@ namespace BIMBaoGui.Stage01.Revit
         + string.Join("；", details));
     }
 
-    private static void ValidateConflictingWrites(IEnumerable<ProjectionWrite> projections)
+    private static void ValidateConflictingWrites(
+      IEnumerable<ProjectionWrite> projections)
     {
-      var conflict = projections
+      IGrouping<string, ProjectionWrite> conflict = projections
         .GroupBy(item =>
           item.Target.Id.IntegerValue.ToString(CultureInfo.InvariantCulture)
           + "|"
@@ -206,7 +213,8 @@ namespace BIMBaoGui.Stage01.Revit
       foreach (ProjectionWrite projection in projections
         .Where(item => item.Kind == OfficialProjectionKind))
       {
-        IList<Parameter> exact = projection.Target.GetParameters(projection.Name);
+        IList<Parameter> exact = projection.Target.GetParameters(
+          projection.Name);
         if (exact != null && exact.Count > 1)
           throw new InvalidOperationException(
             AmbiguousSourceCode
@@ -255,13 +263,16 @@ namespace BIMBaoGui.Stage01.Revit
         application.SharedParametersFilename = temporary;
         DefinitionFile file = application.OpenSharedParameterFile();
         if (file == null)
-          throw new InvalidOperationException("无法打开临时 H-IFC 共享参数文件。");
+          throw new InvalidOperationException(
+            "无法打开临时 H-IFC 共享参数文件。");
 
         int installed = 0;
         int rebound = 0;
         foreach (ProjectionWrite projection in definitions)
         {
-          ExternalDefinition definition = FindDefinition(file, projection.Guid);
+          ExternalDefinition definition = FindDefinition(
+            file,
+            projection.Guid);
           if (definition == null)
             throw new InvalidOperationException(
               "共享参数定义缺失：" + projection.Name);
@@ -313,28 +324,81 @@ namespace BIMBaoGui.Stage01.Revit
       IEnumerable<ProjectionWrite> definitions)
     {
       string canonical = ReadEmbeddedText(SharedParameterResource)
-        .TrimEnd('\r', '\n');
-      var builder = new StringBuilder(canonical.Length + 16384);
-      builder.Append(canonical).AppendLine();
+        .Replace("\r\n", "\n")
+        .Replace('\r', '\n')
+        .TrimEnd('\n');
+      string[] canonicalLines = canonical.Split('\n');
+      int parameterHeaderIndex = FindParameterHeaderIndex(canonicalLines);
 
       ProjectionWrite[] aliases = definitions
         .Where(item => item.Kind == OfficialProjectionKind)
         .OrderBy(item => item.Mapping.PropertySet, StringComparer.Ordinal)
         .ThenBy(item => item.Name, StringComparer.Ordinal)
         .ToArray();
-      int groupId = 1000;
-      foreach (IGrouping<string, ProjectionWrite> group in aliases.GroupBy(
-        item => item.Mapping.PropertySet ?? string.Empty,
-        StringComparer.Ordinal))
+      AliasGroupDefinition[] aliasGroups = aliases
+        .GroupBy(
+          item => item.Mapping.PropertySet ?? string.Empty,
+          StringComparer.Ordinal)
+        .Select((group, index) => new AliasGroupDefinition
+        {
+          Id = 1000 + index,
+          PropertySet = group.Key,
+          Items = group
+            .GroupBy(item => item.Guid)
+            .Select(items => items.First())
+            .ToArray()
+        })
+        .ToArray();
+
+      var builder = new StringBuilder(canonical.Length + 16384);
+      for (int index = 0; index < parameterHeaderIndex; index++)
+        builder.AppendLine(canonicalLines[index]);
+      AppendAliasGroupDefinitions(builder, aliasGroups);
+      for (int index = parameterHeaderIndex;
+        index < canonicalLines.Length;
+        index++)
+        builder.AppendLine(canonicalLines[index]);
+      AppendAliasParameterDefinitions(builder, aliasGroups);
+      return builder.ToString();
+    }
+
+    private static int FindParameterHeaderIndex(string[] lines)
+    {
+      for (int index = 0; index < (lines?.Length ?? 0); index++)
       {
-        int currentGroup = groupId++;
+        if ((lines[index] ?? string.Empty).StartsWith(
+          "*PARAM\t",
+          StringComparison.Ordinal))
+          return index;
+      }
+      throw new InvalidDataException(
+        "内置共享参数文件缺少 *PARAM 标题行。");
+    }
+
+    private static void AppendAliasGroupDefinitions(
+      StringBuilder builder,
+      IEnumerable<AliasGroupDefinition> groups)
+    {
+      foreach (AliasGroupDefinition group in groups
+        ?? Enumerable.Empty<AliasGroupDefinition>())
+      {
         builder.Append("GROUP\t")
-          .Append(currentGroup.ToString(CultureInfo.InvariantCulture))
+          .Append(group.Id.ToString(CultureInfo.InvariantCulture))
           .Append("\tGH_HIFC_官方源_")
-          .Append(Sanitize(group.Key))
+          .Append(Sanitize(group.PropertySet))
           .AppendLine();
-        foreach (ProjectionWrite item in group.GroupBy(value => value.Guid)
-          .Select(values => values.First()))
+      }
+    }
+
+    private static void AppendAliasParameterDefinitions(
+      StringBuilder builder,
+      IEnumerable<AliasGroupDefinition> groups)
+    {
+      foreach (AliasGroupDefinition group in groups
+        ?? Enumerable.Empty<AliasGroupDefinition>())
+      {
+        foreach (ProjectionWrite item in group.Items
+          ?? Array.Empty<ProjectionWrite>())
         {
           builder.Append("PARAM\t")
             .Append(item.Guid.ToString("D"))
@@ -344,7 +408,7 @@ namespace BIMBaoGui.Stage01.Revit
             .Append(NormalizeSharedParameterType(
               item.Mapping.SharedParameterType))
             .Append("\t\t")
-            .Append(currentGroup.ToString(CultureInfo.InvariantCulture))
+            .Append(group.Id.ToString(CultureInfo.InvariantCulture))
             .Append("\t1\tOfficial exact source alias | ")
             .Append(Sanitize(item.Mapping.IfcEntity))
             .Append(" | ")
@@ -355,7 +419,6 @@ namespace BIMBaoGui.Stage01.Revit
             .AppendLine();
         }
       }
-      return builder.ToString();
     }
 
     private static Parameter ResolveParameter(ProjectionWrite projection)
@@ -391,7 +454,9 @@ namespace BIMBaoGui.Stage01.Revit
           + "，期望="
           + expected
           + "，实际="
-          + (parameter == null ? "Missing" : parameter.StorageType.ToString()));
+          + (parameter == null
+            ? "Missing"
+            : parameter.StorageType.ToString()));
     }
 
     private static StorageType ExpectedStorageType(string type)
@@ -423,12 +488,19 @@ namespace BIMBaoGui.Stage01.Revit
       }
     }
 
-    private static ExternalDefinition FindDefinition(DefinitionFile file, Guid guid)
+    private static ExternalDefinition FindDefinition(
+      DefinitionFile file,
+      Guid guid)
     {
       foreach (DefinitionGroup group in file.Groups)
+      {
         foreach (Definition definition in group.Definitions)
-          if (definition is ExternalDefinition external && external.GUID == guid)
+        {
+          if (definition is ExternalDefinition external
+            && external.GUID == guid)
             return external;
+        }
+      }
       return null;
     }
 
@@ -442,7 +514,9 @@ namespace BIMBaoGui.Stage01.Revit
             throw new InvalidOperationException("文本参数写入失败。");
           return;
         case StorageType.Integer:
-          if (!parameter.Set(ParseInteger(parameter.Definition.ParameterType, raw)))
+          if (!parameter.Set(ParseInteger(
+            parameter.Definition.ParameterType,
+            raw)))
             throw new InvalidOperationException("整数参数写入失败。");
           return;
         case StorageType.Double:
@@ -462,14 +536,21 @@ namespace BIMBaoGui.Stage01.Revit
     {
       if (type == ParameterType.YesNo)
       {
-        string normalized = (raw ?? string.Empty).Trim().ToLowerInvariant();
-        if (normalized == "1" || normalized == "true"
-          || normalized == "是" || normalized == "yes")
+        string normalized = (raw ?? string.Empty)
+          .Trim()
+          .ToLowerInvariant();
+        if (normalized == "1"
+          || normalized == "true"
+          || normalized == "是"
+          || normalized == "yes")
           return 1;
-        if (normalized == "0" || normalized == "false"
-          || normalized == "否" || normalized == "no")
+        if (normalized == "0"
+          || normalized == "false"
+          || normalized == "否"
+          || normalized == "no")
           return 0;
-        throw new FormatException("布尔值只接受 true/false、是/否、1/0。");
+        throw new FormatException(
+          "布尔值只接受 true/false、是/否、1/0。");
       }
       if (!int.TryParse(
         raw,
@@ -494,7 +575,9 @@ namespace BIMBaoGui.Stage01.Revit
     private static double ToInternalValue(ParameterType type, double value)
     {
       if (type == ParameterType.Length)
-        return UnitUtils.ConvertToInternalUnits(value, DisplayUnitType.DUT_METERS);
+        return UnitUtils.ConvertToInternalUnits(
+          value,
+          DisplayUnitType.DUT_METERS);
       if (type == ParameterType.Area)
         return UnitUtils.ConvertToInternalUnits(
           value,
@@ -510,7 +593,9 @@ namespace BIMBaoGui.Stage01.Revit
       return value;
     }
 
-    private static bool ReadbackMatches(Parameter parameter, string expected)
+    private static bool ReadbackMatches(
+      Parameter parameter,
+      string expected)
     {
       switch (parameter.StorageType)
       {
@@ -539,7 +624,8 @@ namespace BIMBaoGui.Stage01.Revit
       {
         if (stream == null)
           throw new InvalidDataException("缺少嵌入资源：" + name);
-        using (var reader = new StreamReader(stream)) return reader.ReadToEnd();
+        using (var reader = new StreamReader(stream))
+          return reader.ReadToEnd();
       }
     }
 
@@ -562,6 +648,13 @@ namespace BIMBaoGui.Stage01.Revit
       public string Kind { get; set; }
       public bool RequiresGeneratedDefinition { get; set; }
       public Parameter ExistingExactNameParameter { get; set; }
+    }
+
+    private sealed class AliasGroupDefinition
+    {
+      public int Id { get; set; }
+      public string PropertySet { get; set; }
+      public ProjectionWrite[] Items { get; set; }
     }
   }
 }
