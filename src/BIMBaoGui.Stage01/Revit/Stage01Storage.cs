@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.ExtensibleStorage;
@@ -43,11 +42,7 @@ namespace BIMBaoGui.Stage01.Revit
       SetString(entity, schema, "InitializedUtc", value.InitializedUtc);
       storage.SetEntity(entity);
 
-      IReadOnlyList<string> projectionMessages =
-        Stage01OfficialHifcProjectionService.WriteAndVerify(document, value.PayloadJson);
-      if (projectionMessages.Count > 0)
-        SetString(entity, schema, "OfficialHifcProjectionStatus", string.Join("\n", projectionMessages));
-      storage.SetEntity(entity);
+      Stage01OfficialHifcProjectionService.WriteAndVerify(document, value.PayloadJson);
     }
 
     private static DataStorage FindStorage(Document document)
@@ -72,7 +67,6 @@ namespace BIMBaoGui.Stage01.Revit
       builder.AddSimpleField("FileGuid", typeof(string));
       builder.AddSimpleField("WorkflowVersion", typeof(string));
       builder.AddSimpleField("InitializedUtc", typeof(string));
-      builder.AddSimpleField("OfficialHifcProjectionStatus", typeof(string));
       return builder.Finish();
     }
 
