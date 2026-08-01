@@ -79,4 +79,14 @@ The 13:08 successful journal recorded H-IFC pushbuttons and event registrations 
 
 ## Result
 
-Pending a safe Revit restart and fresh journal/probe output.
+### Object-map repair completed
+
+- Completed: 2026-08-01 23:00 Asia/Shanghai
+- Backup: `C:\Users\2899\Documents\HIFCTool\cnf\BaseFile\HIFCToolRvtToIfcConfig.pre-bimbaogui-20260801-230002.txt`
+- Backup SHA-256: `BDEA7F4D05537A9880CFDB896A0BEC4883B3038A57CDDE730B2520FBE7D43542`
+- External manifest: `C:\Users\2899\Documents\HIFCTool\cnf\BaseFile\20260801-230002-hifc-object-map-backup-manifest.json`
+- Restored target bytes: 738
+- Restored target SHA-256: `937B31E3E2F143A9990FF9BA60FA5772429C6FCF36BE90FEBBB5521967171CEC`
+- Non-comment mapping rows: 4
+
+The object map is now consistent with both vendor baselines. Official application recovery remains pending a safe Revit restart and fresh journal/probe output; this configuration correction alone is not recorded as the startup root cause.
