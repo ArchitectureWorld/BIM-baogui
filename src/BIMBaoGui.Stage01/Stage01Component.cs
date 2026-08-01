@@ -82,6 +82,7 @@ namespace BIMBaoGui.Stage01
       EnsureSystemValues();
       _snapshot = Stage01RevitService.ReadSnapshot(_model);
       TryAutomaticallyLoadStoredPayload();
+      MergeOperationFailureIntoSnapshot();
       _validation = Stage01Validator.Validate(_model, _registry.Fields);
 
       bool initialized = IsInitializationPassed();
@@ -543,6 +544,17 @@ namespace BIMBaoGui.Stage01
         _operationMessages = new[] { error };
       }
       _allowAutomaticStoredPayloadLoad = false;
+    }
+
+    private void MergeOperationFailureIntoSnapshot()
+    {
+      IReadOnlyList<string> failures = OperationFailureMessages;
+      if (failures == null || failures.Count == 0 || _snapshot == null) return;
+      _snapshot.Messages = (_snapshot.Messages ?? Array.Empty<string>())
+        .Concat(failures)
+        .Where(message => !string.IsNullOrWhiteSpace(message))
+        .Distinct()
+        .ToArray();
     }
 
     private void EnsureSystemValues()
