@@ -7,21 +7,22 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_stage01_projects_initialization_fields_to_official_hifc_parameters():
+def test_stage01_projects_all_nonempty_project_fields_through_catalog():
     service = read("src/BIMBaoGui.Stage01/Revit/Stage01OfficialHifcProjectionService.cs")
-    for parameter in (
-        "HIFC.申报信息属性集.项目编号",
-        "HIFC.申报信息属性集.项目名称",
-        "HIFC.申报信息属性集.项目地址",
-        "HIFC.申报信息属性集.建设单位",
-        "HIFC.申报信息属性集.设计单位",
-        "HIFC.申报信息属性集.基点坐标X",
-        "HIFC.申报信息属性集.基点坐标Y",
-        "HIFC.申报信息属性集.基点高程",
-        "HIFC.申报信息属性集.坐标系名称",
-        "HIFC.申报信息属性集.高程系名称",
-    ):
-        assert parameter in service
+    catalog = read("src/BIMBaoGui.Stage01/Hifc/OfficialHifcMappingCatalog.cs")
+    assert "FieldMappings" not in service
+    assert 'field.Key.StartsWith("IfcProject|"' in service
+    assert "TryResolveStage01FieldKey" in service
+    assert "PlanningTargetCatalog.IsManagedMvdField" in service
+    assert "TryResolveStage01FieldKey" in catalog
+    assert '"HIFC." + propertySet + "." + ifcProperty' in catalog
+
+
+def test_stage01_projection_preserves_but_blocks_unverified_organizations():
+    service = read("src/BIMBaoGui.Stage01/Revit/Stage01OfficialHifcProjectionService.cs")
+    assert "payload.organizations" in service
+    assert "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT" in service
+    assert "不伪装成 ProjectInformation 参数" in service
 
 
 def test_stage01_projection_installs_binds_writes_and_verifies_by_guid():
@@ -32,12 +33,19 @@ def test_stage01_projection_installs_binds_writes_and_verifies_by_guid():
     assert "document.Regenerate()" in service
     assert "ReadbackMatches" in service
     assert "DUT_METERS" in service
+    assert "DUT_SQUARE_METERS" in service
+    assert "DUT_CUBIC_METERS" in service
+    assert "DUT_DECIMAL_DEGREES" in service
+    assert "REVIT_WRITE_VERIFIED" in service
+    assert "仍需官方插件导出与检查软件验收" in service
 
 
-def test_stage01_projection_runs_inside_existing_initialization_transaction():
+def test_stage01_projection_runs_explicitly_inside_initialization_transaction():
     storage = read("src/BIMBaoGui.Stage01/Revit/Stage01Storage.cs")
     revit_service = read("src/BIMBaoGui.Stage01/Revit/Stage01RevitService.cs")
-    assert "Stage01OfficialHifcProjectionService.WriteAndVerify" in storage
+    assert "Stage01OfficialHifcProjectionService" not in storage
     assert "Stage01Storage.Write" in revit_service
+    assert "Stage01OfficialHifcProjectionService.WriteAndVerify" in revit_service
     assert "using (var transaction = new Transaction" in revit_service
     assert "group.RollBack()" in revit_service
+    assert "待官方导出验收" in revit_service
