@@ -17,6 +17,15 @@ namespace BIMBaoGui.Stage01.Core.Tests
       + "#25=IFCRELDEFINESBYPROPERTIES('formal-rel',$,$,$,(#11),#24);\n"
       + "ENDSEC;\nEND-ISO-10303-21;\n";
 
+    private const string OfficialBuildingFixture =
+      "ISO-10303-21;\nHEADER;\nFILE_SCHEMA(('IFC4'));\nENDSEC;\nDATA;\n"
+      + "#11=IFCPROJECT('project-guid',$,'P',$,$,$,$,(#12),#13);\n"
+      + "#12=IFCBUILDING('building-guid',$,'1#',$,$,$,$,$,$,$,$,$);\n"
+      + "#23=IFCPROPERTYSINGLEVALUE('建筑名称',$,IFCLABEL('1#'),$);\n"
+      + "#24=IFCPROPERTYSET('building-pset-guid',$,'Pset_建筑技术信息属性集',$,(#23));\n"
+      + "#25=IFCRELDEFINESBYPROPERTIES('building-rel-guid',$,$,$,(#12),#24);\n"
+      + "ENDSEC;\nEND-ISO-10303-21;\n";
+
     [Fact]
     public void Execute_never_changes_source_and_creates_new_MVD_file()
     {
@@ -40,6 +49,34 @@ namespace BIMBaoGui.Stage01.Core.Tests
         Assert.Empty(Directory.GetFiles(directory, "*.tmp"));
         Assert.Empty(Directory.GetFiles(directory, "*.bak"));
         Assert.Empty(Directory.GetFiles(directory, "*.backup"));
+      }
+      finally
+      {
+        Directory.Delete(directory, true);
+      }
+    }
+
+    [Fact]
+    public void Execute_accepts_official_building_only_content_without_changes()
+    {
+      string directory = CreateTemporaryDirectory();
+      try
+      {
+        string source = Path.Combine(directory, "official-building.ifc");
+        string destination = Path.Combine(
+          directory,
+          "official-building-MVD.ifc");
+        File.WriteAllText(source, OfficialBuildingFixture);
+        string beforeHash = ComputeSha256(source);
+
+        MvdIfcFileResult result = new MvdIfcFileService().Execute(
+          source,
+          destination);
+
+        Assert.True(result.Success);
+        Assert.Equal(beforeHash, result.SourceSha256);
+        Assert.Equal(beforeHash, result.OutputSha256);
+        Assert.Equal(beforeHash, ComputeSha256(destination));
       }
       finally
       {

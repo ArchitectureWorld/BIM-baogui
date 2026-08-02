@@ -37,6 +37,25 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Assert.Equal("IfcLabel", projectName.TargetType);
     }
 
+    [Fact]
+    public void Catalog_includes_official_building_and_storey_rules()
+    {
+      MvdIfcNormalizationRule buildingName =
+        MvdIfcNormalizationCatalog.Instance.Rules.Single(
+          rule => rule.Entity == "IfcBuilding"
+            && rule.CanonicalPropertySet == "Pset_建筑技术信息属性集"
+            && rule.CanonicalProperty == "建筑名称");
+      MvdIfcNormalizationRule storeyHeight =
+        MvdIfcNormalizationCatalog.Instance.Rules.Single(
+          rule => rule.Entity == "IfcBuildingStorey"
+            && rule.CanonicalPropertySet == "Pset_建筑楼层信息属性集"
+            && rule.CanonicalProperty == "建筑层高");
+
+      Assert.Equal("IfcLabel", buildingName.TargetType);
+      Assert.Equal("IfcReal", storeyHeight.TargetType);
+      Assert.Equal("mm", storeyHeight.Unit);
+    }
+
     [Theory]
     [InlineData("Pset_申报信息属性集", "基点坐标X")]
     [InlineData("申报信息属性集", "基点坐标 X")]

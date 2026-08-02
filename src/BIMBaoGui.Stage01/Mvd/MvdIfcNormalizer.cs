@@ -129,64 +129,71 @@ namespace BIMBaoGui.Stage01.Mvd
 
       var projects = document.OfType("IFCPROJECT").ToArray();
       if (projects.Length == 0) errors.Add("IFC 不包含 IfcProject。");
-      var projectIds = new HashSet<int>(projects.Select(project => project.Id));
       int matchingPropertyCount = 0;
 
       foreach (Relationship relationship in ReadRelationships(document))
       {
-        if (!relationship.OwnerIds.Any(projectIds.Contains)) continue;
         string propertySetName = DecodeRequiredString(
           relationship.PropertySet.Arguments[2],
           "属性集名称");
-        foreach (int propertyId in IfcStepSyntax.ParseReferenceList(
-          relationship.PropertySet.Arguments[4]))
+        IReadOnlyList<int> propertyIds = IfcStepSyntax.ParseReferenceList(
+          relationship.PropertySet.Arguments[4]);
+        foreach (int ownerId in relationship.OwnerIds)
         {
-          IfcStepEntity property = document.GetEntity(propertyId);
-          if (!string.Equals(
-            property.Type,
-            "IFCPROPERTYSINGLEVALUE",
-            StringComparison.OrdinalIgnoreCase))
-            continue;
-          string propertyName = DecodeRequiredString(
-            property.Arguments[0],
-            "属性名称");
-
-          if (string.Equals(propertySetName, "数据", StringComparison.Ordinal)
-            && IsInternalAlias("IFCPROJECT", propertyName))
+          IfcStepEntity owner = document.GetEntity(ownerId);
+          foreach (int propertyId in propertyIds)
           {
-            errors.Add("IfcProject 的数据属性集仍包含内部别名：" + propertyName);
-            continue;
-          }
+            IfcStepEntity property = document.GetEntity(propertyId);
+            if (!string.Equals(
+              property.Type,
+              "IFCPROPERTYSINGLEVALUE",
+              StringComparison.OrdinalIgnoreCase))
+              continue;
+            string propertyName = DecodeRequiredString(
+              property.Arguments[0],
+              "属性名称");
 
-          if (!_catalog.TryResolve(
-            "IFCPROJECT",
-            propertySetName,
-            propertyName,
-            out MvdIfcNormalizationRule rule))
-            continue;
-          matchingPropertyCount++;
-          if (!string.Equals(
-            propertySetName,
-            rule.CanonicalPropertySet,
-            StringComparison.Ordinal))
-            errors.Add("属性集未使用官方标识：" + propertySetName);
-          if (!string.Equals(
-            propertyName,
-            rule.CanonicalProperty,
-            StringComparison.Ordinal))
-            errors.Add("属性未使用官方名称：" + propertyName);
-          if (!HasTargetType(property.Arguments[2], rule.TargetType))
-            errors.Add(
-              propertyName
-              + " 类型错误，要求 "
-              + rule.TargetType
-              + "，实际 "
-              + property.Arguments[2]);
+            if (string.Equals(
+              propertySetName,
+              "数据",
+              StringComparison.Ordinal)
+              && IsInternalAlias(owner.Type, propertyName))
+            {
+              errors.Add(
+                owner.Type + " 的数据属性集仍包含内部别名：" + propertyName);
+              continue;
+            }
+
+            if (!_catalog.TryResolve(
+              owner.Type,
+              propertySetName,
+              propertyName,
+              out MvdIfcNormalizationRule rule))
+              continue;
+            matchingPropertyCount++;
+            if (!string.Equals(
+              propertySetName,
+              rule.CanonicalPropertySet,
+              StringComparison.Ordinal))
+              errors.Add("属性集未使用官方标识：" + propertySetName);
+            if (!string.Equals(
+              propertyName,
+              rule.CanonicalProperty,
+              StringComparison.Ordinal))
+              errors.Add("属性未使用官方名称：" + propertyName);
+            if (!HasTargetType(property.Arguments[2], rule.TargetType))
+              errors.Add(
+                propertyName
+                + " 类型错误，要求 "
+                + rule.TargetType
+                + "，实际 "
+                + property.Arguments[2]);
+          }
         }
       }
 
       if (matchingPropertyCount == 0)
-        errors.Add("IfcProject 上未找到可验收的 MVD 属性。");
+        errors.Add("IFC 上未找到可验收的 MVD 属性。");
       return new MvdIfcValidationResult
       {
         Success = errors.Count == 0,

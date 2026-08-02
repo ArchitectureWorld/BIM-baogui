@@ -133,6 +133,54 @@ namespace BIMBaoGui.Stage01.Mvd
         });
       }
 
+      var identities = new HashSet<string>(
+        rules.Select(rule => CreateKey(
+          rule.Entity,
+          rule.CanonicalPropertySet,
+          rule.CanonicalProperty)),
+        StringComparer.OrdinalIgnoreCase);
+      foreach (OfficialHifcMapping mapping in
+        OfficialHifcMappingCatalog.Instance.Mappings)
+      {
+        if (mapping == null
+          || string.IsNullOrWhiteSpace(mapping.IfcEntity)
+          || string.IsNullOrWhiteSpace(mapping.PropertySet)
+          || string.IsNullOrWhiteSpace(mapping.IfcProperty)
+          || string.IsNullOrWhiteSpace(mapping.IfcDataType))
+          throw new InvalidDataException("官方 H-IFC 映射包含不完整记录。");
+
+        string propertySet = mapping.PropertySet.Trim();
+        string canonicalPropertySet = propertySet.StartsWith(
+          "Pset_",
+          StringComparison.OrdinalIgnoreCase)
+          ? propertySet
+          : "Pset_" + propertySet;
+        string canonicalProperty = mapping.IfcProperty.Trim();
+        string identity = CreateKey(
+          mapping.IfcEntity,
+          canonicalPropertySet,
+          canonicalProperty);
+        if (!identities.Add(identity)) continue;
+
+        rules.Add(new MvdIfcNormalizationRule
+        {
+          Entity = mapping.IfcEntity.Trim(),
+          CanonicalPropertySet = canonicalPropertySet,
+          PropertySetAliases = DistinctNonEmpty(
+            canonicalPropertySet,
+            propertySet),
+          CanonicalProperty = canonicalProperty,
+          PropertyAliases = DistinctNonEmpty(
+            canonicalProperty,
+            RemoveWhitespace(canonicalProperty)),
+          TargetType = NormalizeIfcType(mapping.IfcDataType),
+          Unit = mapping.Unit?.Trim() ?? string.Empty,
+          InternalAliases = DistinctNonEmpty(
+            mapping.ParameterName,
+            "HIFC." + propertySet + "." + canonicalProperty)
+        });
+      }
+
       return new MvdIfcNormalizationCatalog(rules);
     }
 
