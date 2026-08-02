@@ -213,6 +213,8 @@ git commit -m "build: compile deterministic HBR rule pack"
 
 ### Task 3: 单一运行时规则数据库和跨阶段哈希传播
 
+> 细化执行计划：[HBR Task 3 Runtime Database Migration Implementation Plan](2026-08-02-hbr-task3-runtime-database-migration.md)
+
 **Files:**
 - Create: `src/BIMBaoGui.Stage01/Rules/HbrRulePackage.cs`
 - Create: `src/BIMBaoGui.Stage01/Rules/HbrRulePackageLoader.cs`
