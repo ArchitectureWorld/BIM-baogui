@@ -189,6 +189,24 @@ _EXPECTED_PROFILE_SIZES = {
     "单体建筑—地上": 7,
     "单体建筑—地下": 6,
 }
+_COMPATIBILITY_BASELINE_FIELDS = {
+    "schemaVersion",
+    "baselineId",
+    "baselineVersion",
+    "workbookEvidence",
+    "officialProperties",
+}
+_COMPATIBILITY_PROPERTY_FIELDS = {
+    "propertyId",
+    "canonicalKey",
+    "parameterGuid",
+    "originalIdentity",
+}
+_COMPATIBILITY_BASELINE_ID = "HBR-WUHAN-PLANNING-COMPATIBILITY"
+_COMPATIBILITY_WORKBOOK_SOURCE = "《MVD》规划报建.xlsx"
+_COMPATIBILITY_WORKBOOK_SHA256 = (
+    "63fac01de41f3bd149e4e857a81256e623382bbe9b3437ed69a2b5ace90628e4"
+)
 
 
 def canonical_bytes(source):
@@ -208,6 +226,21 @@ def _require(condition, message):
 def _require_unique(values, label):
     keys = [canonical_bytes(value) for value in values]
     _require(len(keys) == len(set(keys)), f"{label} values must be unique")
+
+
+def _load_json_without_duplicate_keys(path, label):
+    def reject_duplicate_keys(pairs):
+        value = {}
+        for key, item in pairs:
+            _require(
+                key not in value,
+                f"{label} contains duplicate JSON key {key!r}",
+            )
+            value[key] = item
+        return value
+
+    with Path(path).open(encoding="utf-8") as stream:
+        return json.load(stream, object_pairs_hook=reject_duplicate_keys)
 
 
 def _expect_object(value, path, required, optional=()):
@@ -1035,19 +1068,142 @@ def validate_semantics(source):
     )
 
 
-def compile_rulepack(source_path, output_path):
+def validate_compatibility(source, baseline):
+    _expect_object(
+        baseline,
+        "compatibility baseline",
+        required=_COMPATIBILITY_BASELINE_FIELDS,
+    )
+    for key in ("schemaVersion", "baselineId", "baselineVersion"):
+        _expect_string(baseline[key], f"compatibility baseline.{key}", nonempty=True)
+    _require(
+        baseline["schemaVersion"] == "1.0.0",
+        "compatibility baseline.schemaVersion must be 1.0.0",
+    )
+    _require(
+        baseline["baselineId"] == _COMPATIBILITY_BASELINE_ID,
+        f"compatibility baseline.baselineId must be {_COMPATIBILITY_BASELINE_ID}",
+    )
+    _require(
+        baseline["baselineVersion"] == "1.0.0",
+        "compatibility baseline.baselineVersion must be 1.0.0",
+    )
+
+    workbook = baseline["workbookEvidence"]
+    _expect_object(
+        workbook,
+        "compatibility baseline.workbookEvidence",
+        required={"logicalSource", "sha256"},
+    )
+    for key in ("logicalSource", "sha256"):
+        _expect_string(
+            workbook[key],
+            f"compatibility baseline.workbookEvidence.{key}",
+            nonempty=True,
+        )
+    _require(
+        workbook["logicalSource"] == _COMPATIBILITY_WORKBOOK_SOURCE,
+        "compatibility baseline.workbookEvidence.logicalSource must match the published workbook",
+    )
+    _require(
+        workbook["sha256"] == _COMPATIBILITY_WORKBOOK_SHA256,
+        "compatibility baseline.workbookEvidence.sha256 must match the published workbook",
+    )
+
+    official_properties = baseline["officialProperties"]
+    _expect_array(official_properties, "compatibility baseline.officialProperties")
+    _require(
+        len(official_properties) == 166,
+        "compatibility baseline.officialProperties must contain exactly 166 records",
+    )
+    for index, item in enumerate(official_properties):
+        path = f"compatibility baseline.officialProperties[{index}]"
+        _expect_object(item, path, required=_COMPATIBILITY_PROPERTY_FIELDS)
+        for key in _COMPATIBILITY_PROPERTY_FIELDS:
+            _expect_string(item[key], f"{path}.{key}", nonempty=True)
+        _parse_uuid5(item["propertyId"], f"{path}.propertyId")
+        _parse_uuid5(item["parameterGuid"], f"{path}.parameterGuid")
+
+    for key in ("propertyId", "canonicalKey", "parameterGuid", "originalIdentity"):
+        _require_unique(
+            [item[key] for item in official_properties],
+            f"compatibility baseline.officialProperties.{key}",
+        )
+
+    source_workbooks = [
+        item for item in source["evidenceSources"] if "sha256" in item
+    ]
+    _require(
+        len(source_workbooks) == 1,
+        "source must expose one workbook record for compatibility baseline validation",
+    )
+    source_workbook = source_workbooks[0]
+    _require(
+        source_workbook["source"] == workbook["logicalSource"],
+        "source workbook logical source does not match compatibility baseline",
+    )
+    _require(
+        source_workbook["sha256"] == workbook["sha256"],
+        "source workbook sha256 does not match compatibility baseline",
+    )
+
+    source_official = [
+        item
+        for item in source["properties"]
+        if item["officialPlugin"]["inExtracted166"]
+    ]
+    baseline_by_id = {item["propertyId"]: item for item in official_properties}
+    source_by_id = {item["propertyId"]: item for item in source_official}
+    _require(
+        set(source_by_id) == set(baseline_by_id),
+        "source official propertyId set does not match compatibility baseline",
+    )
+    for property_id, rule in source_by_id.items():
+        expected = baseline_by_id[property_id]
+        actual = {
+            "propertyId": rule["propertyId"],
+            "canonicalKey": rule["canonicalKey"],
+            "parameterGuid": rule["revit"]["parameterGuid"],
+            "originalIdentity": rule["officialPlugin"]["originalIdentity"],
+        }
+        for key in _COMPATIBILITY_PROPERTY_FIELDS:
+            _require(
+                actual[key] == expected[key],
+                f"source official property {property_id} {key} does not match compatibility baseline",
+            )
+
+
+def _paths_refer_to_same_file(first_path, second_path):
+    if first_path.resolve(strict=False) == second_path.resolve(strict=False):
+        return True
+    if not first_path.exists() or not second_path.exists():
+        return False
+    try:
+        return os.path.samefile(first_path, second_path)
+    except OSError:
+        return False
+
+
+def compile_rulepack(source_path, output_path, baseline_path):
     source_path = Path(source_path)
     output_path = Path(output_path)
-    same_path = source_path.resolve(strict=False) == output_path.resolve(strict=False)
-    if not same_path and source_path.exists() and output_path.exists():
-        try:
-            same_path = os.path.samefile(source_path, output_path)
-        except OSError:
-            same_path = False
-    _require(not same_path, "source and output must refer to different files")
+    baseline_path = Path(baseline_path)
+    _require(
+        not _paths_refer_to_same_file(source_path, output_path),
+        "source and output must refer to different files",
+    )
+    _require(
+        not _paths_refer_to_same_file(baseline_path, output_path),
+        "baseline and output must refer to different files",
+    )
     with source_path.open(encoding="utf-8") as stream:
         source = json.load(stream)
+    baseline = _load_json_without_duplicate_keys(
+        baseline_path,
+        "compatibility baseline",
+    )
     validate_semantics(source)
+    validate_compatibility(source, baseline)
     payload = canonical_bytes(source)
     header = (
         MAGIC
@@ -1081,6 +1237,11 @@ def _argument_parser():
         description="Compile the canonical HBR JSON rule source into a deterministic pack."
     )
     parser.add_argument("--source", required=True, help="UTF-8 HBR rule source JSON")
+    parser.add_argument(
+        "--baseline",
+        required=True,
+        help="Versioned HBR published-compatibility baseline JSON",
+    )
     parser.add_argument("--output", required=True, help="Destination .hbrpack path")
     return parser
 
@@ -1088,7 +1249,7 @@ def _argument_parser():
 def main(argv=None):
     arguments = _argument_parser().parse_args(argv)
     try:
-        compile_rulepack(arguments.source, arguments.output)
+        compile_rulepack(arguments.source, arguments.output, arguments.baseline)
     except (OSError, UnicodeError, ValueError) as error:
         print(f"HBR rule-pack compilation failed: {error}", file=sys.stderr)
         return 1
