@@ -16,6 +16,9 @@
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepDocument.cs" Link="Mvd\IfcStepDocument.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepEntity.cs" Link="Mvd\IfcStepEntity.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepSyntax.cs" Link="Mvd\IfcStepSyntax.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\Stage01FailureReportWriter.cs" Link="Diagnostics\Stage01FailureReportWriter.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRContextVersions.cs" Link="Context\HBRContextVersions.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRDocumentFingerprint.cs" Link="Context\HBRDocumentFingerprint.cs" />
