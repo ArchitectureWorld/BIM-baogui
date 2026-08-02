@@ -47,7 +47,7 @@ namespace BIMBaoGui.Stage01.Diagnostics
     public static Stage01FailureReportWriteResult TryWrite(Stage01FailureReportContext context)
     {
       string temporaryPath = null;
-      string originalExceptionSummary = Summarize(context?.Exception);
+      string originalExceptionSummary = SummarizeBestEffort(context?.Exception);
 
       try
       {
@@ -58,7 +58,6 @@ namespace BIMBaoGui.Stage01.Diagnostics
         if (string.IsNullOrWhiteSpace(directory))
           throw new InvalidOperationException("The plugin assembly directory is unavailable.");
 
-        string finalPath = GetAvailableReportPath(directory, context.OccurredLocal);
         temporaryPath = Path.Combine(
           directory,
           ReportFilePrefix + Guid.NewGuid().ToString("N") + ".tmp");
@@ -67,7 +66,11 @@ namespace BIMBaoGui.Stage01.Diagnostics
         string compactJson = serializer.Serialize(BuildReport(context));
         string formattedJson = FormatJson(compactJson);
         File.WriteAllText(temporaryPath, formattedJson, new UTF8Encoding(false));
-        File.Move(temporaryPath, finalPath);
+        string finalPath = MoveToUniqueReportPath(
+          temporaryPath,
+          directory,
+          context.OccurredLocal);
+        temporaryPath = null;
 
         return new Stage01FailureReportWriteResult
         {
@@ -84,7 +87,7 @@ namespace BIMBaoGui.Stage01.Diagnostics
           Success = false,
           ErrorCode = ReportWriteFailedCode,
           OriginalExceptionSummary = originalExceptionSummary,
-          ReportWriteErrorSummary = Summarize(reportWriteException)
+          ReportWriteErrorSummary = SummarizeBestEffort(reportWriteException)
         };
       }
     }
@@ -169,7 +172,10 @@ namespace BIMBaoGui.Stage01.Diagnostics
       }
     }
 
-    private static string GetAvailableReportPath(string directory, DateTimeOffset occurredLocal)
+    private static string MoveToUniqueReportPath(
+      string temporaryPath,
+      string directory,
+      DateTimeOffset occurredLocal)
     {
       DateTimeOffset timestamp = occurredLocal;
       for (int attempt = 0; attempt < 1000; ++attempt)
@@ -178,8 +184,14 @@ namespace BIMBaoGui.Stage01.Diagnostics
           + timestamp.ToString("yyyyMMdd-HHmmss-fff", CultureInfo.InvariantCulture)
           + ".json";
         string path = Path.Combine(directory, fileName);
-        if (!File.Exists(path))
+        try
+        {
+          File.Move(temporaryPath, path);
           return path;
+        }
+        catch (IOException) when (File.Exists(path))
+        {
+        }
         timestamp = timestamp.AddMilliseconds(1);
       }
 
@@ -254,11 +266,32 @@ namespace BIMBaoGui.Stage01.Diagnostics
       builder.Append(' ', indentation * 2);
     }
 
-    private static string Summarize(Exception exception)
+    private static string SummarizeBestEffort(Exception exception)
     {
-      return exception == null
-        ? string.Empty
-        : exception.GetType().FullName + ": " + exception.Message;
+      if (exception == null)
+        return string.Empty;
+
+      string typeName;
+      try
+      {
+        typeName = exception.GetType().FullName;
+      }
+      catch
+      {
+        typeName = "System.Exception";
+      }
+
+      string message;
+      try
+      {
+        message = exception.Message;
+      }
+      catch
+      {
+        message = "<exception message unavailable>";
+      }
+
+      return (typeName ?? "System.Exception") + ": " + (message ?? string.Empty);
     }
 
     private static void DeleteBestEffort(string path)

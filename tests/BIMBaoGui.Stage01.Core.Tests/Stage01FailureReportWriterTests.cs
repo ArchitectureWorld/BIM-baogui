@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using BIMBaoGui.Stage01.Diagnostics;
 using Xunit;
@@ -118,6 +120,67 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Assert.False(Directory.Exists(directory));
     }
 
+    [Fact]
+    public async Task TryWrite_ConcurrentSameTimestamp_WritesOneUniqueReportPerFailure()
+    {
+      string directory = CreateTemporaryDirectory();
+
+      try
+      {
+        string assemblyPath = Path.Combine(directory, "BIMBaoGui.Stage01.gha");
+        File.WriteAllText(assemblyPath, "assembly", new UTF8Encoding(false));
+        var context = CreateContext(
+          assemblyPath,
+          new InvalidOperationException(new string('x', 128 * 1024)));
+        const int writerCount = 16;
+        var start = new ManualResetEventSlim(false);
+        var tasks = new Task<Stage01FailureReportWriteResult>[writerCount];
+
+        for (int index = 0; index < writerCount; ++index)
+        {
+          tasks[index] = Task.Run(() =>
+          {
+            start.Wait();
+            return Stage01FailureReportWriter.TryWrite(context);
+          });
+        }
+
+        start.Set();
+        Stage01FailureReportWriteResult[] results = await Task.WhenAll(tasks);
+
+        Assert.All(results, result => Assert.True(result.Success, result.ReportWriteErrorSummary));
+        Assert.Equal(writerCount, results.Select(result => result.ReportPath).Distinct().Count());
+        Assert.Equal(writerCount, Directory.GetFiles(directory, "*.json").Length);
+      }
+      finally
+      {
+        DeleteDirectoryBestEffort(directory);
+      }
+    }
+
+    [Fact]
+    public void TryWrite_WhenExceptionMessageGetterThrows_NeverThrowsToCaller()
+    {
+      string directory = CreateTemporaryDirectory();
+
+      try
+      {
+        string assemblyPath = Path.Combine(directory, "BIMBaoGui.Stage01.gha");
+        var context = CreateContext(assemblyPath, new ThrowingMessageException());
+
+        Stage01FailureReportWriteResult result = Stage01FailureReportWriter.TryWrite(context);
+
+        Assert.False(result.Success);
+        Assert.Equal("REPORT_WRITE_FAILED", result.ErrorCode);
+        Assert.Contains(typeof(ThrowingMessageException).FullName, result.OriginalExceptionSummary);
+        Assert.False(string.IsNullOrWhiteSpace(result.ReportWriteErrorSummary));
+      }
+      finally
+      {
+        DeleteDirectoryBestEffort(directory);
+      }
+    }
+
     private static Stage01FailureReportContext CreateContext(string assemblyPath, Exception exception)
     {
       return new Stage01FailureReportContext
@@ -179,6 +242,11 @@ namespace BIMBaoGui.Stage01.Core.Tests
       {
         Directory.Delete(directory, recursive: true);
       }
+    }
+
+    private sealed class ThrowingMessageException : Exception
+    {
+      public override string Message => throw new InvalidOperationException("message getter failed");
     }
   }
 }
