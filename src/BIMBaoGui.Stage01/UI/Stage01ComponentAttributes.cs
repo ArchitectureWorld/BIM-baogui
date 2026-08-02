@@ -720,7 +720,7 @@ namespace BIMBaoGui.Stage01.UI
 
       using (var versionFont = new Font("Microsoft YaHei UI", 7f, FontStyle.Regular, GraphicsUnit.Point))
       using (var versionBrush = new SolidBrush(Color.FromArgb(145, 155, 165)))
-        graphics.DrawString("Revit 2020 · Rhino 8 · BIMBaoGui Stage 01 v0.5.0", versionFont, versionBrush,
+        graphics.DrawString("Revit 2020 · Rhino 8 · BIMBaoGui v0.9.0", versionFont, versionBrush,
           _cardBounds.X + 18, _cardBounds.Bottom - 15);
     }
 

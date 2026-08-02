@@ -16,14 +16,14 @@ def test_compiled_gha_project_exists():
     assert "Grasshopper" in text
     assert "Revit_All_Main_Versions_API_x64" in text
     assert "BIMBaoGui.Stage01.gha" in text
-    assert "<Version>0.8.2</Version>" in text
+    assert "<Version>0.9.0</Version>" in text
 
 
 def test_plugin_patch_and_file_context_schema_versions_are_explicit():
     assembly = read("src/BIMBaoGui.Stage01/AssemblyInfo.cs")
     versions = read("src/BIMBaoGui.Stage01/Context/HBRContextVersions.cs")
     payload = read("src/BIMBaoGui.Stage01/Core/CanonicalPayload.cs")
-    assert 'public override string Version => "0.8.2"' in assembly
+    assert 'public override string Version => "0.9.0"' in assembly
     context = read("src/BIMBaoGui.Stage01/Context/HBRFileContext.cs")
     canonicalizer = read("src/BIMBaoGui.Stage01/Context/HBRFileContextCanonicalizer.cs")
     factory = read("src/BIMBaoGui.Stage01/Context/HBRFileContextFactory.cs")

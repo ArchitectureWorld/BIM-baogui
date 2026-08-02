@@ -174,7 +174,7 @@ namespace BIMBaoGui.Stage01.UI
 
       using (var versionFont = new Font("Microsoft YaHei UI", 6.8f, FontStyle.Regular, GraphicsUnit.Point))
       using (var versionBrush = new SolidBrush(Color.FromArgb(145, 155, 165)))
-        graphics.DrawString("Stage 02 v0.5.0", versionFont, versionBrush,
+        graphics.DrawString("Stage 02 v0.9.0", versionFont, versionBrush,
           _cardBounds.Right - 78, _cardBounds.Bottom - 14);
     }
 

@@ -24,6 +24,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: windows-latest
@@ -70,7 +74,7 @@ jobs:
           $gha = Resolve-Path "src/BIMBaoGui.Stage01/bin/Release/net48/BIMBaoGui.Stage01.gha"
           $assembly = [System.Reflection.AssemblyName]::GetAssemblyName($gha)
           if ($assembly.Name -ne "BIMBaoGui.Stage01") { throw "Unexpected assembly name: $($assembly.Name)" }
-          if ($assembly.Version -ne "0.8.2.0") { throw "Unexpected assembly version: $($assembly.Version)" }
+          if ($assembly.Version -ne "0.9.0.0") { throw "Unexpected assembly version: $($assembly.Version)" }
           $hash = (Get-FileHash $gha -Algorithm SHA256).Hash.ToLowerInvariant()
           $size = (Get-Item $gha).Length
           if ($size -lt 50000) { throw "GHA is unexpectedly small: $size bytes" }
@@ -81,16 +85,26 @@ jobs:
           Write-Host "SHA256: $hash"
           Write-Host "Size: $size bytes"
 
-      - name: Prepare single-file artifact
+      - name: Prepare validation artifact
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
           Copy-Item "src/BIMBaoGui.Stage01/bin/Release/net48/BIMBaoGui.Stage01.gha" "artifacts/BIMBaoGui.Stage01.gha"
+          $manifest = [ordered]@{
+            artifactName = "BIMBaoGui.Stage01.gha"
+            assemblyVersion = "0.9.0.0"
+            sha256 = "${{ steps.verify.outputs.sha256 }}"
+            sizeBytes = [int64]"${{ steps.verify.outputs.size }}"
+            commitSha = "${{ github.sha }}"
+          }
+          $manifest | ConvertTo-Json | Set-Content "artifacts/artifact-manifest.json" -Encoding utf8
 
-      - name: Upload GHA
+      - name: Upload GHA and manifest
         uses: actions/upload-artifact@v4
         with:
-          name: BIMBaoGui-Revit2020-Rhino8-v0.8.2-mapping-catalog-runtime-fix
-          path: artifacts/BIMBaoGui.Stage01.gha
+          name: BIMBaoGui-Revit2020-Rhino8-v0.9.0-validation
+          path: |
+            artifacts/BIMBaoGui.Stage01.gha
+            artifacts/artifact-manifest.json
           if-no-files-found: error
           retention-days: 30

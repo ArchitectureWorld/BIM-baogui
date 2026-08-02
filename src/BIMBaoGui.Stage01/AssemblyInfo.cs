@@ -14,6 +14,6 @@ namespace BIMBaoGui.Stage01
     public override Guid Id => new Guid("9f7b1bd4-fb6a-4853-b60f-6576193e1601");
     public override string AuthorName => "ArchitectureWorld";
     public override string AuthorContact => "ArchitectureWorld/BIM-baogui";
-    public override string Version => "0.8.2";
+    public override string Version => "0.9.0";
   }
 }
