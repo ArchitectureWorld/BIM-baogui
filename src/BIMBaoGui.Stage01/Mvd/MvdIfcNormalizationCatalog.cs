@@ -133,12 +133,14 @@ namespace BIMBaoGui.Stage01.Mvd
         });
       }
 
-      var identities = new HashSet<string>(
-        rules.Select(rule => CreateKey(
-          rule.Entity,
-          rule.CanonicalPropertySet,
-          rule.CanonicalProperty)),
-        StringComparer.OrdinalIgnoreCase);
+      Dictionary<string, MvdIfcNormalizationRule> rulesByIdentity = rules
+        .ToDictionary(
+          rule => CreateKey(
+            rule.Entity,
+            rule.CanonicalPropertySet,
+            rule.CanonicalProperty),
+          rule => rule,
+          StringComparer.OrdinalIgnoreCase);
       foreach (OfficialHifcMapping mapping in
         OfficialHifcMappingCatalog.Instance.Mappings)
       {
@@ -160,9 +162,38 @@ namespace BIMBaoGui.Stage01.Mvd
           mapping.IfcEntity,
           canonicalPropertySet,
           canonicalProperty);
-        if (!identities.Add(identity)) continue;
+        if (rulesByIdentity.TryGetValue(
+          identity,
+          out MvdIfcNormalizationRule existing))
+        {
+          string officialType = NormalizeIfcType(mapping.IfcDataType);
+          string officialUnit = mapping.Unit?.Trim() ?? string.Empty;
+          if (!string.Equals(
+            existing.TargetType,
+            officialType,
+            StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(
+              existing.Unit ?? string.Empty,
+              officialUnit,
+              StringComparison.Ordinal))
+            throw new InvalidDataException(
+              "MVD 与官方 H-IFC 映射类型或单位冲突：" + identity);
+          existing.PropertySetAliases = MergeDistinct(
+            existing.PropertySetAliases,
+            canonicalPropertySet,
+            propertySet);
+          existing.PropertyAliases = MergeDistinct(
+            existing.PropertyAliases,
+            canonicalProperty,
+            RemoveWhitespace(canonicalProperty));
+          existing.InternalAliases = MergeDistinct(
+            existing.InternalAliases,
+            mapping.ParameterName,
+            "HIFC." + propertySet + "." + canonicalProperty);
+          continue;
+        }
 
-        rules.Add(new MvdIfcNormalizationRule
+        var rule = new MvdIfcNormalizationRule
         {
           Entity = mapping.IfcEntity.Trim(),
           CanonicalPropertySet = canonicalPropertySet,
@@ -178,7 +209,9 @@ namespace BIMBaoGui.Stage01.Mvd
           InternalAliases = DistinctNonEmpty(
             mapping.ParameterName,
             "HIFC." + propertySet + "." + canonicalProperty)
-        });
+        };
+        rules.Add(rule);
+        rulesByIdentity.Add(identity, rule);
       }
 
       return new MvdIfcNormalizationCatalog(rules);
@@ -207,6 +240,15 @@ namespace BIMBaoGui.Stage01.Mvd
         .Select(value => value.Trim())
         .Distinct(StringComparer.Ordinal)
         .ToArray();
+    }
+
+    private static string[] MergeDistinct(
+      IReadOnlyCollection<string> existing,
+      params string[] values)
+    {
+      return DistinctNonEmpty((existing ?? Array.Empty<string>())
+        .Concat(values ?? Array.Empty<string>())
+        .ToArray());
     }
 
     private static string CreateKey(

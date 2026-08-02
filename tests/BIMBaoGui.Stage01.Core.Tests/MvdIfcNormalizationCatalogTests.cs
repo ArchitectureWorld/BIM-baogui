@@ -1,4 +1,5 @@
 using System.Linq;
+using BIMBaoGui.Stage01.Hifc;
 using BIMBaoGui.Stage01.Mvd;
 using Xunit;
 
@@ -54,6 +55,37 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Assert.Equal("IfcLabel", buildingName.TargetType);
       Assert.Equal("IfcReal", storeyHeight.TargetType);
       Assert.Equal("mm", storeyHeight.Unit);
+    }
+
+    [Fact]
+    public void Catalog_covers_all_unique_official_mappings_without_drift()
+    {
+      OfficialHifcMapping[] mappings =
+        OfficialHifcMappingCatalog.Instance.Mappings.ToArray();
+      Assert.Equal(166, mappings.Length);
+      Assert.Equal(
+        166,
+        mappings.Select(mapping =>
+          mapping.IfcEntity
+          + "|Pset_"
+          + mapping.PropertySet
+          + "|"
+          + mapping.IfcProperty)
+          .Distinct(System.StringComparer.OrdinalIgnoreCase)
+          .Count());
+
+      foreach (OfficialHifcMapping mapping in mappings)
+      {
+        MvdIfcNormalizationRule rule =
+          MvdIfcNormalizationCatalog.Instance.Rules.Single(
+            candidate => candidate.Entity == mapping.IfcEntity
+              && candidate.CanonicalPropertySet
+                == "Pset_" + mapping.PropertySet
+              && candidate.CanonicalProperty == mapping.IfcProperty);
+        Assert.Equal(mapping.IfcDataType, rule.TargetType);
+        Assert.Equal(mapping.Unit, rule.Unit);
+        Assert.Contains(mapping.ParameterName, rule.InternalAliases);
+      }
     }
 
     [Theory]

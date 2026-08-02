@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace BIMBaoGui.Stage01.Mvd
 {
   internal sealed class MvdIfcNormalizer
   {
+    private static readonly Regex IfcDateTimePattern = new Regex(
+      @"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$",
+      RegexOptions.CultureInvariant);
     private readonly MvdIfcNormalizationCatalog _catalog;
 
     public MvdIfcNormalizer()
@@ -29,6 +33,7 @@ namespace BIMBaoGui.Stage01.Mvd
       int normalizedPropertyNameCount = 0;
       int normalizedValueTypeCount = 0;
       var changedPropertySets = new HashSet<int>();
+      var matchedProperties = new Dictionary<int, MvdIfcNormalizationRule>();
 
       foreach (Relationship relationship in ReadRelationships(document))
       {
@@ -59,6 +64,14 @@ namespace BIMBaoGui.Stage01.Mvd
               out MvdIfcNormalizationRule rule))
               continue;
 
+            if (matchedProperties.TryGetValue(
+              property.Id,
+              out MvdIfcNormalizationRule existingRule))
+            {
+              EnsureSameRule(property.Id, existingRule, rule);
+              continue;
+            }
+            matchedProperties.Add(property.Id, rule);
             matchingPropertyCount++;
             if (!string.Equals(
               originalPropertySetName,
@@ -130,6 +143,7 @@ namespace BIMBaoGui.Stage01.Mvd
       var projects = document.OfType("IFCPROJECT").ToArray();
       if (projects.Length == 0) errors.Add("IFC 不包含 IfcProject。");
       int matchingPropertyCount = 0;
+      var matchedProperties = new Dictionary<int, MvdIfcNormalizationRule>();
 
       foreach (Relationship relationship in ReadRelationships(document))
       {
@@ -170,6 +184,21 @@ namespace BIMBaoGui.Stage01.Mvd
               propertyName,
               out MvdIfcNormalizationRule rule))
               continue;
+            if (matchedProperties.TryGetValue(
+              property.Id,
+              out MvdIfcNormalizationRule existingRule))
+            {
+              try
+              {
+                EnsureSameRule(property.Id, existingRule, rule);
+              }
+              catch (Exception exception)
+              {
+                errors.Add(exception.Message);
+              }
+              continue;
+            }
+            matchedProperties.Add(property.Id, rule);
             matchingPropertyCount++;
             if (!string.Equals(
               propertySetName,
@@ -354,14 +383,32 @@ namespace BIMBaoGui.Stage01.Mvd
         case "IFCTEXT":
         case "IFCIDENTIFIER":
         case "IFCURIREFERENCE":
-        case "IFCDATE":
-        case "IFCDATETIME":
           IfcStepSyntax.DecodeString(inner);
           return;
+        case "IFCDATE":
+          string date = IfcStepSyntax.DecodeString(inner);
+          if (DateTime.TryParseExact(
+            date,
+            "yyyy-MM-dd",
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out _)) return;
+          throw new InvalidDataException("IFC 日期值无效：" + inner);
+        case "IFCDATETIME":
+          string dateTime = IfcStepSyntax.DecodeString(inner);
+          if (IfcDateTimePattern.IsMatch(dateTime)
+            && DateTimeOffset.TryParse(
+              dateTime,
+              CultureInfo.InvariantCulture,
+              DateTimeStyles.None,
+              out _)) return;
+          throw new InvalidDataException("IFC 日期时间值无效：" + inner);
         case "IFCBOOLEAN":
+          if (inner == ".T." || inner == ".F.") return;
+          throw new InvalidDataException("IFC 布尔值无效：" + inner);
         case "IFCLOGICAL":
           if (inner == ".T." || inner == ".F." || inner == ".U.") return;
-          throw new InvalidDataException("IFC 布尔值无效：" + inner);
+          throw new InvalidDataException("IFC 逻辑值无效：" + inner);
         case "IFCINTEGER":
         case "IFCTIMESTAMP":
           if (long.TryParse(
@@ -374,6 +421,32 @@ namespace BIMBaoGui.Stage01.Mvd
           if (IfcStepSyntax.IsFiniteNumber(inner)) return;
           throw new InvalidDataException("IFC 数值无效：" + inner);
       }
+    }
+
+    private static void EnsureSameRule(
+      int propertyId,
+      MvdIfcNormalizationRule existing,
+      MvdIfcNormalizationRule current)
+    {
+      if (string.Equals(
+        existing.Entity,
+        current.Entity,
+        StringComparison.OrdinalIgnoreCase)
+        && string.Equals(
+          existing.CanonicalPropertySet,
+          current.CanonicalPropertySet,
+          StringComparison.Ordinal)
+        && string.Equals(
+          existing.CanonicalProperty,
+          current.CanonicalProperty,
+          StringComparison.Ordinal)
+        && string.Equals(
+          existing.TargetType,
+          current.TargetType,
+          StringComparison.OrdinalIgnoreCase))
+        return;
+      throw new InvalidDataException(
+        "共享 IFC 属性映射冲突：#" + propertyId);
     }
 
     private static string DecodeRequiredString(string token, string label)
