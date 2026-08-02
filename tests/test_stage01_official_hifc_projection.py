@@ -62,3 +62,8 @@ def test_parameter_binding_failures_identify_operation_and_projection():
     assert "BINDING_REINSERT_FAILED" in projection
     assert "projection.Guid.ToString(\"D\")" in projection
     assert "projection.Mapping.Category" in projection
+
+
+def test_revit_2020_temporary_shared_parameter_file_uses_utf16le_bom():
+    projection = read("src/BIMBaoGui.Stage01/Revit/OfficialParameterProjectionService.cs")
+    assert "BuildCombinedSharedParameterFile(definitions),\n        Encoding.Unicode);" in projection

@@ -261,7 +261,7 @@ namespace BIMBaoGui.Stage01.Revit
       File.WriteAllText(
         temporary,
         BuildCombinedSharedParameterFile(definitions),
-        new UTF8Encoding(false));
+        Encoding.Unicode);
       try
       {
         application.SharedParametersFilename = temporary;
