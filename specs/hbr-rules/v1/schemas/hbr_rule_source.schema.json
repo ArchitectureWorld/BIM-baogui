@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "packageId",
+    "packageVersion",
+    "guidNamespace",
+    "evidenceSources",
+    "properties",
+    "carrierRoles",
+    "modelProfiles",
+    "conditions",
+    "tasks",
+    "legacyAliases",
+    "stage01"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "packageId": {
+      "type": "string"
+    },
+    "packageVersion": {
+      "type": "string"
+    },
+    "guidNamespace": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "evidenceSources": {
+      "type": "array"
+    },
+    "properties": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/propertyRule"
+      }
+    },
+    "carrierRoles": {
+      "type": "array"
+    },
+    "modelProfiles": {
+      "type": "array"
+    },
+    "conditions": {
+      "type": "array"
+    },
+    "tasks": {
+      "type": "array"
+    },
+    "legacyAliases": {
+      "type": "array"
+    },
+    "stage01": {
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "propertyRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "propertyId",
+        "canonicalKey",
+        "contractKind",
+        "source",
+        "ifc",
+        "revit",
+        "officialPlugin",
+        "carrierRoleIds",
+        "requirement"
+      ],
+      "properties": {
+        "propertyId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "canonicalKey": {
+          "type": "string"
+        },
+        "contractKind": {
+          "enum": [
+            "MVD",
+            "HIFC_EXTENSION"
+          ]
+        },
+        "source": {
+          "type": "object"
+        },
+        "ifc": {
+          "$ref": "#/$defs/ifcContract"
+        },
+        "revit": {
+          "$ref": "#/$defs/revitContract"
+        },
+        "officialPlugin": {
+          "type": "object"
+        },
+        "carrierRoleIds": {
+          "type": "array"
+        },
+        "requirement": {
+          "type": "object"
+        }
+      }
+    },
+    "ifcContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity",
+        "propertySet",
+        "property",
+        "sourceUnit",
+        "declaredType",
+        "canonicalUnit",
+        "allowedRuntimeTypes"
+      ],
+      "properties": {
+        "entity": {
+          "type": "string"
+        },
+        "propertySet": {
+          "type": "string"
+        },
+        "property": {
+          "type": "string"
+        },
+        "sourceUnit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "declaredType": {
+          "type": "string"
+        },
+        "canonicalUnit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "allowedRuntimeTypes": {
+          "type": "array"
+        }
+      }
+    },
+    "revitContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parameterGuid",
+        "parameterName",
+        "legacyNames",
+        "visible",
+        "userModifiable"
+      ],
+      "properties": {
+        "parameterGuid": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "parameterName": {
+          "type": "string"
+        },
+        "legacyNames": {
+          "type": "array"
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "userModifiable": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

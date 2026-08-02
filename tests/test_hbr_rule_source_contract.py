@@ -1,0 +1,102 @@
+import json
+from pathlib import Path
+
+import jsonschema
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SCHEMA_PATH = ROOT / "specs/hbr-rules/v1/schemas/hbr_rule_source.schema.json"
+SOURCE_PATH = ROOT / "specs/hbr-rules/v1/source/hbr_rule_source.v1.json"
+
+
+def _load(path: Path):
+    with path.open(encoding="utf-8") as stream:
+        return json.load(stream)
+
+
+def _identity(rule):
+    pset = rule["ifc"]["propertySet"]
+    if not pset.startswith("Pset_"):
+        pset = f"Pset_{pset}"
+    return rule["ifc"]["entity"], pset, rule["ifc"]["property"]
+
+
+def test_rule_source_matches_declared_json_schema():
+    schema = _load(SCHEMA_PATH)
+    source = _load(SOURCE_PATH)
+
+    jsonschema.Draft202012Validator.check_schema(schema)
+    errors = sorted(
+        jsonschema.Draft202012Validator(schema).iter_errors(source),
+        key=lambda error: list(error.absolute_path),
+    )
+    assert not errors, "\n".join(
+        f"{'.'.join(map(str, error.absolute_path)) or '<root>'}: {error.message}"
+        for error in errors
+    )
+
+
+def test_schema_closes_top_level_and_property_contracts():
+    schema = _load(SCHEMA_PATH)
+
+    assert schema["additionalProperties"] is False
+    assert schema["$defs"]["propertyRule"]["additionalProperties"] is False
+    assert schema["$defs"]["ifcContract"]["additionalProperties"] is False
+    assert schema["$defs"]["revitContract"]["additionalProperties"] is False
+
+
+def test_rule_source_preserves_verified_set_relationships():
+    source = _load(SOURCE_PATH)
+    properties = source["properties"]
+    mvd = [p for p in properties if p["contractKind"] == "MVD"]
+    extension = [p for p in properties if p["contractKind"] == "HIFC_EXTENSION"]
+    official = [p for p in properties if p["officialPlugin"]["inExtracted166"]]
+    stage01 = source["stage01"]["fieldRefs"]
+    official_ids = {p["propertyId"] for p in official}
+
+    assert len(mvd) == 356
+    assert len(extension) == 3
+    assert len(official) == 166
+    assert sum(p["contractKind"] == "MVD" for p in official) == 163
+    assert len(stage01) == 102
+    assert sum(ref["propertyId"] in official_ids for ref in stage01) == 89
+    assert sum(not p["officialPlugin"]["inExtracted166"] for p in mvd) == 193
+
+
+def test_hifc_extensions_are_exactly_the_three_verified_identities():
+    source = _load(SOURCE_PATH)
+    actual = {
+        _identity(rule)
+        for rule in source["properties"]
+        if rule["contractKind"] == "HIFC_EXTENSION"
+    }
+    expected = {
+        ("IfcDoor", "Pset_门信息属性集", "开启方向"),
+        ("IfcDuctSegment", "Pset_风管段信息属性集", "隔热层厚度"),
+        ("IfcSpace", "Pset_建筑空间信息属性集", "空间形成方式"),
+    }
+
+    assert actual == expected
+
+
+def test_required_top_level_sections_are_present():
+    source = _load(SOURCE_PATH)
+    required = {
+        "schemaVersion",
+        "packageId",
+        "packageVersion",
+        "guidNamespace",
+        "evidenceSources",
+        "properties",
+        "carrierRoles",
+        "modelProfiles",
+        "conditions",
+        "tasks",
+        "legacyAliases",
+        "stage01",
+    }
+
+    assert required <= set(source)
+    assert source["schemaVersion"] == "1.0.0"
+    assert source["packageId"] == "HBR-WUHAN-PLANNING"
+    assert len(source["modelProfiles"]) == 3
