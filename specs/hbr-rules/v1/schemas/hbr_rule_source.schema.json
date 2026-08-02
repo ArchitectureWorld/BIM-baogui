@@ -356,7 +356,24 @@
             "null"
           ]
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "inExtracted166": { "const": true } } },
+          "then": {
+            "properties": {
+              "evidenceStatus": { "const": "OFFICIAL_EXTRACTED" },
+              "originalIdentity": { "type": "string", "minLength": 1 }
+            }
+          },
+          "else": {
+            "properties": {
+              "evidenceStatus": { "const": "MVD_WORKBOOK" },
+              "originalIdentity": { "type": "null" }
+            }
+          }
+        }
+      ]
     },
     "taskContract": {
       "type": "object",
@@ -531,7 +548,14 @@
             "null"
           ]
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "level": { "const": "CONDITIONAL" } } },
+          "then": { "properties": { "conditionId": { "type": "string", "minLength": 1 } } },
+          "else": { "properties": { "conditionId": { "type": "null" } } }
+        }
+      ]
     },
     "suggestionContract": {
       "type": "object",
@@ -631,8 +655,7 @@
       ],
       "properties": {
         "min": {
-          "type": "integer",
-          "minimum": 0
+          "const": 0
         },
         "max": {
           "type": [

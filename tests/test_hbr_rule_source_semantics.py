@@ -144,6 +144,7 @@ def test_every_property_has_legacy_alias_and_resolvable_role_details():
             assert role["cardinality"]["max"] == 1
         else:
             assert role["cardinality"]["max"] is None
+        assert role["cardinality"]["max"] is None or role["cardinality"]["min"] <= role["cardinality"]["max"]
 
 
 def test_profiles_and_tasks_preserve_model_group_and_condition_mapping():
