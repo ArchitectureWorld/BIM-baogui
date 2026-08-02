@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a Stage04 Grasshopper component that preserves an official H-IFC export's geometry while normalizing MVD property names and IFC value types into a new sibling IFC file.
+**Goal:** Add a Stage04 Grasshopper component that preserves an official H-IFC export's geometry while normalizing official sample property-set names and MVD value types into a new sibling IFC file.
 
-**Architecture:** A small STEP parser indexes only the IFC entities needed for property-set traversal while preserving all unknown statements verbatim. A mapping catalog joins the embedded Stage01 MVD registry to the existing official H-IFC catalog, and a normalizer rewrites only matched property statements, removes recognized `HIFC.` duplicate aliases, writes atomically, and validates by reparsing.
+**Architecture:** A small STEP parser indexes only the IFC entities needed for property-set traversal while preserving all unknown statements verbatim. A mapping catalog joins the embedded Stage01 MVD registry to the existing official H-IFC catalog: emitted property-set identifiers and property names follow the supplied official IFC sample, while emitted value types follow the MVD workbook. The normalizer rewrites only matched statements, removes recognized `HIFC.` duplicate aliases, writes atomically, and validates by reparsing.
 
 **Tech Stack:** C# / .NET Framework 4.8, xUnit, Grasshopper 8 SDK, Revit 2020 host assembly, `System.Web.Extensions` JSON serialization.
 
@@ -107,8 +107,9 @@ public void Catalog_joins_MVD_names_to_official_aliases()
 {
   MvdIfcNormalizationRule x = MvdIfcNormalizationCatalog.Instance.Rules.Single(
     rule => rule.Entity == "IfcProject" && rule.CanonicalProperty == "基点坐标 X");
-  Assert.Equal("申报信息属性集", x.PropertySet);
+  Assert.Equal("Pset_申报信息属性集", x.CanonicalPropertySet);
   Assert.Contains("基点坐标X", x.Aliases);
+  Assert.Equal("基点坐标X", x.CanonicalProperty);
   Assert.Equal("IfcReal", x.TargetType);
 }
 
@@ -127,13 +128,14 @@ Expected: compile failure because the catalog does not exist.
 
 - [ ] **Step 3: Implement catalog loading**
 
-Read the embedded Stage01 registry with `JavaScriptSerializer`. For each MVD field, parse `entity|Pset_name|property`, strip `Pset_`, retain the registry property as the canonical MVD name, and use `OfficialHifcMappingCatalog.TryResolveStage01FieldKey` to add the official no-space property alias.
+Read the embedded Stage01 registry with `JavaScriptSerializer`. For each MVD field, parse `entity|Pset_name|property`, retain the registry `Pset_` value as the canonical emitted property-set name, and use `OfficialHifcMappingCatalog.TryResolveStage01FieldKey` to obtain the canonical emitted official property name. Add the registry display property and the official property as accepted aliases.
 
 ```csharp
 internal sealed class MvdIfcNormalizationRule
 {
   public string Entity { get; set; }
-  public string PropertySet { get; set; }
+  public string CanonicalPropertySet { get; set; }
+  public IReadOnlyCollection<string> PropertySetAliases { get; set; }
   public string CanonicalProperty { get; set; }
   public string TargetType { get; set; }
   public string Unit { get; set; }
@@ -167,7 +169,7 @@ Cover these independent behaviors:
 
 ```csharp
 [Fact]
-public void Normalize_renames_coordinate_aliases_without_changing_real_values();
+public void Normalize_adds_Pset_prefix_without_changing_coordinate_names_or_real_values();
 
 [Fact]
 public void Normalize_converts_project_name_from_IfcText_to_IfcLabel();
@@ -197,7 +199,7 @@ Build indexes for:
 - `IfcPropertySet.Name -> HasProperties`;
 - `IfcPropertySingleValue.Name -> NominalValue`.
 
-Normalize only rules whose owner entity type, property-set name, and property alias all match. Use the target type constructor from the catalog and preserve the inner scalar token after validation.
+Normalize only rules whose owner entity type, property-set alias, and property alias all match. Rename the property set to the canonical `Pset_` identifier, rename properties to the official H-IFC name, use the target type constructor from the catalog, and preserve the inner scalar token after validation.
 
 ```csharp
 internal sealed class MvdIfcNormalizer
@@ -347,9 +349,9 @@ dotnet build src/BIMBaoGui.Stage01/BIMBaoGui.Stage01.csproj -c Release
 
 Normalize the supplied IFC into a new unique output path and parse it with IFCOpenShell to assert:
 
-- `IfcProject` owns `申报信息属性集`;
-- `基点坐标 X` is `IfcReal(3373266.866)`;
-- `基点坐标 Y` is `IfcReal(38589642.165)`;
+- `IfcProject` owns `Pset_申报信息属性集`;
+- `基点坐标X` is `IfcReal(3373266.866)`;
+- `基点坐标Y` is `IfcReal(38589642.165)`;
 - `基点高程` is `IfcReal(24.0)`;
 - `项目编号` and `项目名称` are `IfcLabel`;
 - no `HIFC.` property remains in the `IfcProject` `数据` property set;
