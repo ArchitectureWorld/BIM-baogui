@@ -60,21 +60,16 @@ def test_all_identities_ids_and_parameter_guids_are_unique():
 def test_old_166_ids_guid_seeds_canonical_keys_and_aliases_are_frozen():
     source = _load(SOURCE_PATH)
     old = _load(OLD_OFFICIAL_PATH)
-    actual = {
-        _rule_identity(rule): rule
-        for rule in source["properties"]
-        if rule["officialPlugin"]["inExtracted166"]
-    }
-    expected = {_old_identity(rule): rule for rule in old["properties"]}
-
+    actual = {rule["propertyId"]: rule for rule in source["properties"] if rule["officialPlugin"]["inExtracted166"]}
+    expected = {rule["propertyId"]: rule for rule in old["properties"]}
     assert set(actual) == set(expected)
-    for identity, legacy in expected.items():
-        rule = actual[identity]
+    for property_id, legacy in expected.items():
+        rule = actual[property_id]
         assert rule["propertyId"] == legacy["propertyId"]
         assert rule["revit"]["parameterGuid"] == legacy["canonical"]["revitParameterGuid"]
         assert rule["canonicalKey"] == legacy["canonicalKey"]
         assert legacy["canonical"]["revitParameterName"] in rule["revit"]["legacyNames"]
-        assert rule["officialPlugin"]["originalIdentity"] == "|".join(identity)
+        assert rule["officialPlugin"]["originalIdentity"] == "|".join(_old_identity(legacy))
 
 
 def test_new_mvd_only_ids_are_written_fixed_uuid5_values():
@@ -134,7 +129,7 @@ def test_every_property_has_legacy_alias_and_resolvable_role_details():
     source = _load(SOURCE_PATH)
     roles = {role["roleId"]: role for role in source["carrierRoles"]}
     for rule in source["properties"]:
-        expected = f"HIFC.{_normalize_pset(rule['ifc']['propertySet'])[len('Pset_'): ]}.{rule['ifc']['property']}"
+        expected = f"HIFC.{rule['source']['rawPropertySetName'].replace('Pset_', '')}.{rule['source']['rawProperty']}"
         assert expected in rule["revit"]["legacyNames"]
         assert all(role_id in roles for role_id in rule["carrierRoleIds"])
     assert {role["ifcEntity"] for role in roles.values()} >= {
@@ -187,9 +182,9 @@ def test_ifctext_spelling_is_normalized_and_runtime_types_follow_real_units():
 def test_parameter_names_visibility_and_unclassified_requiredness_are_explicit():
     source = _load(SOURCE_PATH)
     for rule in source["properties"]:
-        pset_name = _normalize_pset(rule["ifc"]["propertySet"])[len("Pset_") :]
+        pset_name = rule["source"]["rawPropertySetName"].replace("Pset_", "")
         assert rule["revit"]["parameterName"] == (
-            f"HBR｜{pset_name}｜{rule['ifc']['property']}"
+            f"HBR｜{pset_name}｜{rule['source']['rawProperty']}"
         )
         assert rule["revit"]["visible"] is True
         assert rule["revit"]["userModifiable"] is True
@@ -261,3 +256,38 @@ def test_tasks_and_conditions_are_traceable_to_the_existing_catalogs():
     assert {condition["source"] for condition in source["conditions"]} <= {
         "RuleActivationCatalog.cs", "Stage01RegistryProvider.cs"
     }
+
+
+def test_mvd_source_evidence_and_canonical_fields_remain_workbook_faithful():
+    source = _load(SOURCE_PATH)
+    mvd = [rule for rule in source["properties"] if rule["contractKind"] == "MVD"]
+    for rule in mvd:
+        raw = rule["source"]
+        assert {"rawProperty", "rawPropertySetId", "rawPropertySetName"} <= set(raw)
+        assert rule["ifc"]["entity"] == raw["rawEntityId"]
+        assert rule["ifc"]["propertySet"] == raw["rawPropertySetId"]
+        assert rule["ifc"]["property"] == raw["rawProperty"]
+        assert rule["ifc"]["sourceUnit"] == (None if raw["rawUnit"] in {"", "14"} else raw["rawUnit"])
+    by_row = {rule["source"]["row"]: rule for rule in mvd}
+    assert by_row[47]["ifc"]["property"] == "基点坐标 X"
+    assert by_row[297]["ifc"]["propertySet"] == "Pset_Manifest"
+    assert by_row[64]["ifc"]["sourceUnit"] == "度"
+
+
+def test_tasks_and_conditions_are_complete_rebuildable_catalog_records():
+    source = _load(SOURCE_PATH)
+    tasks = {task["taskId"]: task for task in source["tasks"]}
+    required = {"modelFileType", "name", "objectCode", "requirement", "conditionId", "sequence", "skeletonTask", "attributeRequirements", "dependencies", "geometryChecks", "propertyChecks", "targetComparisons", "source"}
+    assert all(required <= set(task) for task in tasks.values())
+    assert tasks["SITE.SKELETON"]["sequence"] == 10
+    assert tasks["SITE.OTHER_LAND"]["conditionId"] == "site.other_land"
+    assert tasks["SITE.OTHER_LAND"]["dependencies"] == ["SITE.TOTAL_LAND"]
+    assert tasks["ABOVE.ROOF"]["conditionId"] == "building.roof"
+    assert tasks["ABOVE.ROOF"]["geometryChecks"] == ["屋顶与主体关系有效"]
+    assert tasks["UNDERGROUND.PARKING"]["conditionId"] == "underground.parking"
+    assert tasks["UNDERGROUND.PARKING"]["attributeRequirements"] == ["停车类型", "机动车位", "非机动车位"]
+    conditions = {condition["conditionId"]: condition for condition in source["conditions"]}
+    assert all({"displayName", "group", "activationRuleId", "evidenceStatus", "source"} <= set(condition) for condition in conditions.values())
+    assert conditions["site.other_land"]["activationRuleId"] == "HBR.SITE.OTHER_LAND"
+    assert conditions["building.roof"]["activationRuleId"] is None
+    assert conditions["building.roof"]["evidenceStatus"] == "NOT_IN_LEGACY_ACTIVATION_CATALOG"

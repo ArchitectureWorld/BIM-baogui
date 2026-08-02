@@ -125,3 +125,11 @@ def test_property_contracts_have_the_planned_implementation_sections():
         for rule in source["properties"]
         if rule["contractKind"] == "HIFC_EXTENSION"
     )
+
+
+def test_schema_closes_source_official_task_and_condition_contracts():
+    schema = _load(SCHEMA_PATH)
+    assert schema["$defs"]["sourceContract"]["additionalProperties"] is False
+    assert schema["$defs"]["officialPluginContract"]["additionalProperties"] is False
+    assert schema["$defs"]["taskContract"]["additionalProperties"] is False
+    assert schema["$defs"]["conditionContract"]["additionalProperties"] is False

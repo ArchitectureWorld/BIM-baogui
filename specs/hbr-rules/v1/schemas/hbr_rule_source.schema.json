@@ -46,10 +46,16 @@
       "type": "array"
     },
     "conditions": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/conditionContract"
+      }
     },
     "tasks": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/taskContract"
+      }
     },
     "legacyAliases": {
       "type": "array"
@@ -100,7 +106,7 @@
           "$ref": "#/$defs/revitContract"
         },
         "officialPlugin": {
-          "type": "object"
+          "$ref": "#/$defs/officialPluginContract"
         },
         "carrierRoleIds": {
           "type": "array"
@@ -144,16 +150,62 @@
     },
     "sourceContract": {
       "type": "object",
+      "additionalProperties": false,
       "required": [
         "artifact",
         "sheet",
         "row",
+        "rawEntityCn",
         "rawEntityId",
         "rawIfcElementOrType",
+        "rawPropertySetId",
+        "rawPropertySetName",
+        "rawProperty",
         "rawValueKind",
         "rawDeclaredType",
         "rawUnit"
-      ]
+      ],
+      "properties": {
+        "artifact": {
+          "type": "string"
+        },
+        "sheet": {
+          "type": "string"
+        },
+        "rawEntityCn": {
+          "type": "string"
+        },
+        "rawEntityId": {
+          "type": "string"
+        },
+        "rawIfcElementOrType": {
+          "type": "string"
+        },
+        "rawPropertySetId": {
+          "type": "string"
+        },
+        "rawPropertySetName": {
+          "type": "string"
+        },
+        "rawProperty": {
+          "type": "string"
+        },
+        "rawValueKind": {
+          "type": "string"
+        },
+        "rawDeclaredType": {
+          "type": "string"
+        },
+        "rawUnit": {
+          "type": "string"
+        },
+        "row": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
     },
     "ifcContract": {
       "type": "object",
@@ -234,6 +286,147 @@
           "type": "string"
         },
         "parameterType": {
+          "type": "string"
+        }
+      }
+    },
+    "officialPluginContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inExtracted166",
+        "evidenceStatus",
+        "originalIdentity"
+      ],
+      "properties": {
+        "inExtracted166": {
+          "type": "boolean"
+        },
+        "evidenceStatus": {
+          "type": "string",
+          "minLength": 1
+        },
+        "originalIdentity": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "taskContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "taskId",
+        "modelFileType",
+        "name",
+        "objectCode",
+        "requirement",
+        "conditionId",
+        "sequence",
+        "skeletonTask",
+        "attributeRequirements",
+        "dependencies",
+        "geometryChecks",
+        "propertyChecks",
+        "targetComparisons",
+        "source"
+      ],
+      "properties": {
+        "taskId": {
+          "type": "string"
+        },
+        "modelFileType": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "objectCode": {
+          "type": "string"
+        },
+        "requirement": {
+          "type": "string"
+        },
+        "conditionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sequence": {
+          "type": "integer"
+        },
+        "skeletonTask": {
+          "type": "boolean"
+        },
+        "attributeRequirements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "geometryChecks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "propertyChecks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "targetComparisons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source": {
+          "type": "string"
+        }
+      }
+    },
+    "conditionContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "conditionId",
+        "displayName",
+        "group",
+        "activationRuleId",
+        "evidenceStatus",
+        "source"
+      ],
+      "properties": {
+        "conditionId": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        },
+        "activationRuleId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evidenceStatus": {
+          "type": "string"
+        },
+        "source": {
           "type": "string"
         }
       }
