@@ -412,6 +412,60 @@ def test_compiler_rejects_duplicate_json_keys_in_baseline(tmp_path):
     assert not output.exists()
 
 
+def _source_text_with_preceding_duplicate_schema_version():
+    source_text = SOURCE_PATH.read_text(encoding="utf-8")
+    valid_schema_version = '  "schemaVersion": "1.0.0",'
+    assert source_text.count(valid_schema_version) == 1
+    return source_text.replace(
+        valid_schema_version,
+        '  "schemaVersion": "9.9.9",\n' + valid_schema_version,
+        1,
+    )
+
+
+def test_compiler_rejects_duplicate_top_level_json_keys_in_source(tmp_path):
+    from tools.build_hbr_rulepack import compile_rulepack
+
+    invalid_source = tmp_path / "duplicate top-level key source.json"
+    invalid_source.write_text(
+        _source_text_with_preceding_duplicate_schema_version(),
+        encoding="utf-8",
+    )
+    output = tmp_path / "duplicate top-level key.hbrpack"
+
+    with pytest.raises(
+        ValueError,
+        match=r"HBR rule source contains duplicate JSON key 'schemaVersion'",
+    ):
+        compile_rulepack(invalid_source, output, BASELINE_PATH)
+
+    assert not output.exists()
+
+
+def test_compiler_rejects_duplicate_nested_json_keys_in_source(tmp_path):
+    from tools.build_hbr_rulepack import compile_rulepack
+
+    source_text = SOURCE_PATH.read_text(encoding="utf-8")
+    duplicate_key_text, replacement_count = re.subn(
+        r'(?m)^(      "propertyId": "[^"]+",)$',
+        '      "propertyId": "PRECEDING-DUPLICATE-VALUE",\n' + r'\1',
+        source_text,
+        count=1,
+    )
+    assert replacement_count == 1
+    invalid_source = tmp_path / "duplicate nested key source.json"
+    invalid_source.write_text(duplicate_key_text, encoding="utf-8")
+    output = tmp_path / "duplicate nested key.hbrpack"
+
+    with pytest.raises(
+        ValueError,
+        match=r"HBR rule source contains duplicate JSON key 'propertyId'",
+    ):
+        compile_rulepack(invalid_source, output, BASELINE_PATH)
+
+    assert not output.exists()
+
+
 def _ifc_identity(rule):
     return (
         rule["ifc"]["entity"],
@@ -1258,6 +1312,39 @@ def test_cli_reports_validation_errors_and_leaves_no_output(tmp_path):
 
     assert result.returncode != 0
     assert "visible" in result.stderr
+    assert not output.exists()
+
+
+def test_cli_reports_duplicate_source_key_and_leaves_no_output(tmp_path):
+    invalid_source = tmp_path / "duplicate key source.json"
+    invalid_source.write_text(
+        _source_text_with_preceding_duplicate_schema_version(),
+        encoding="utf-8",
+    )
+    output = tmp_path / "duplicate key output.hbrpack"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(COMPILER_PATH),
+            "--source",
+            str(invalid_source),
+            "--baseline",
+            str(BASELINE_PATH),
+            "--output",
+            str(output),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+
+    assert result.returncode == 1
+    assert result.stderr.strip() == (
+        "HBR rule-pack compilation failed: HBR rule source contains "
+        "duplicate JSON key 'schemaVersion'"
+    )
     assert not output.exists()
 
 

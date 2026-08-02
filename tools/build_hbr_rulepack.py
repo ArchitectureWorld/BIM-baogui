@@ -1662,8 +1662,10 @@ def compile_rulepack(source_path, output_path, baseline_path):
         not _paths_refer_to_same_file(baseline_path, output_path),
         "baseline and output must refer to different files",
     )
-    with source_path.open(encoding="utf-8") as stream:
-        source = json.load(stream)
+    source = _load_json_without_duplicate_keys(
+        source_path,
+        "HBR rule source",
+    )
     baseline = _load_json_without_duplicate_keys(
         baseline_path,
         "compatibility baseline",
