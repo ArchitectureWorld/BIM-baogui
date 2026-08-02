@@ -6,6 +6,12 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
+  <PropertyGroup>
+    <HbrPythonExe Condition="'$(HbrPythonExe)' == ''">python</HbrPythonExe>
+    <HbrRuleSource Condition="'$(HbrRuleSource)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'specs', 'hbr-rules', 'v1', 'source', 'hbr_rule_source.v1.json'))</HbrRuleSource>
+    <HbrRulePackCompiler Condition="'$(HbrRulePackCompiler)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'tools', 'build_hbr_rulepack.py'))</HbrRulePackCompiler>
+    <HbrCompatibilityBaseline Condition="'$(HbrCompatibilityBaseline)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'specs', 'hbr-rules', 'v1', 'compatibility', 'hbr_rule_compatibility_baseline.v1.json'))</HbrCompatibilityBaseline>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -64,6 +70,9 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\TaskPlanCompiler.cs" Link="TaskPlanning\TaskPlanCompiler.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\TaskRuleCatalog.cs" Link="TaskPlanning\TaskRuleCatalog.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\TaskRuleDefinition.cs" Link="TaskPlanning\TaskRuleDefinition.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Rules\HbrRulePackage.cs" Link="Rules\HbrRulePackage.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Rules\HbrRulePackageLoader.cs" Link="Rules\HbrRulePackageLoader.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Rules\HbrRuleDatabase.cs" Link="Rules\HbrRuleDatabase.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\src\BIMBaoGui.Stage01\Resources\stage01_file_initialization_registry_v0.1.json"
@@ -79,4 +88,48 @@
                       Link="Resources\official_plugin_compatibility_status.v1.json"
                       LogicalName="BIMBaoGui.Stage01.Resources.official_plugin_compatibility_status.v1.json" />
   </ItemGroup>
+  <Target Name="InitializeHbrRulePackPath">
+    <PropertyGroup>
+      <HbrRulePack Condition="'$(HbrRulePack)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', 'HBR_RulePack.hbrpack'))</HbrRulePack>
+    </PropertyGroup>
+    <ItemGroup>
+      <UpToDateCheckInput Include="$(HbrRuleSource)" />
+      <UpToDateCheckInput Include="$(HbrRulePackCompiler)" />
+      <UpToDateCheckInput Include="$(HbrCompatibilityBaseline)" />
+      <UpToDateCheckBuilt Include="$(HbrRulePack)"
+                          Original="$(HbrRuleSource)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="PrepareHbrRulePackResource"
+          DependsOnTargets="InitializeHbrRulePackPath"
+          BeforeTargets="CollectUpToDateCheckInputDesignTime;CollectUpToDateCheckBuiltDesignTime" />
+
+  <Target Name="CompileHbrRulePack"
+          DependsOnTargets="InitializeHbrRulePackPath"
+          Condition="'$(DesignTimeBuild)' != 'true'"
+          Inputs="$(HbrRuleSource);$(HbrRulePackCompiler);$(HbrCompatibilityBaseline)"
+          Outputs="$(HbrRulePack)">
+    <Error Condition="!Exists('$(HbrRuleSource)')"
+           Text="HBR rule source not found: $(HbrRuleSource)" />
+    <Error Condition="!Exists('$(HbrRulePackCompiler)')"
+           Text="HBR rule-pack compiler not found: $(HbrRulePackCompiler)" />
+    <Error Condition="!Exists('$(HbrCompatibilityBaseline)')"
+           Text="HBR compatibility baseline not found: $(HbrCompatibilityBaseline)" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)"
+          EnvironmentVariables="PYTHONUTF8=1"
+          Command="&quot;$(HbrPythonExe)&quot; &quot;$(HbrRulePackCompiler)&quot; --source &quot;$(HbrRuleSource)&quot; --baseline &quot;$(HbrCompatibilityBaseline)&quot; --output &quot;$(HbrRulePack)&quot;" />
+    <Error Condition="!Exists('$(HbrRulePack)')"
+           Text="HBR rule-pack compiler exited without creating: $(HbrRulePack)" />
+  </Target>
+
+  <Target Name="RegisterHbrRulePackResource"
+          BeforeTargets="AssignTargetPaths"
+          DependsOnTargets="InitializeHbrRulePackPath;CompileHbrRulePack">
+    <ItemGroup>
+      <EmbeddedResource Include="$(HbrRulePack)"
+                        LogicalName="BIMBaoGui.Stage01.Resources.HBR_RulePack.hbrpack" />
+      <FileWrites Include="$(HbrRulePack)" />
+    </ItemGroup>
+  </Target>
 </Project>
