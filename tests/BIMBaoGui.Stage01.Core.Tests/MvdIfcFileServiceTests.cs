@@ -85,6 +85,31 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void Execute_accepts_clipboard_format_characters_in_paths()
+    {
+      string directory = CreateTemporaryDirectory();
+      try
+      {
+        string source = Path.Combine(directory, "source.ifc");
+        string destination = Path.Combine(directory, "source-MVD.ifc");
+        File.WriteAllText(source, ValidFixture);
+
+        MvdIfcFileResult result = new MvdIfcFileService().Execute(
+          "\u202A" + source + "\u202C",
+          "\u2066" + destination + "\u2069");
+
+        Assert.True(result.Success);
+        Assert.Equal(Path.GetFullPath(source), result.SourcePath);
+        Assert.Equal(Path.GetFullPath(destination), result.OutputPath);
+        Assert.True(File.Exists(destination));
+      }
+      finally
+      {
+        Directory.Delete(directory, true);
+      }
+    }
+
+    [Fact]
     public void Execute_rejects_destination_equal_to_source()
     {
       string directory = CreateTemporaryDirectory();

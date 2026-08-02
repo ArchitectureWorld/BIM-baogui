@@ -1,5 +1,7 @@
 using System;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 
 namespace BIMBaoGui.Stage01.Mvd
 {
@@ -30,11 +32,18 @@ namespace BIMBaoGui.Stage01.Mvd
       return destination;
     }
 
-    private static string NormalizeIfcPath(string path, string label)
+    internal static string NormalizeIfcPath(string path, string label)
     {
       if (string.IsNullOrWhiteSpace(path))
         throw new ArgumentException(label + "路径不能为空。", nameof(path));
-      string fullPath = Path.GetFullPath(path.Trim());
+      string cleanedPath = new string(path
+        .Where(character => CharUnicodeInfo.GetUnicodeCategory(character)
+          != UnicodeCategory.Format)
+        .ToArray())
+        .Trim();
+      if (string.IsNullOrWhiteSpace(cleanedPath))
+        throw new ArgumentException(label + "路径不能为空。", nameof(path));
+      string fullPath = Path.GetFullPath(cleanedPath);
       if (!string.Equals(
         Path.GetExtension(fullPath),
         ".ifc",

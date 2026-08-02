@@ -22,19 +22,29 @@ namespace BIMBaoGui.Stage01.Core.Tests
 
       Assert.False(string.IsNullOrWhiteSpace(source));
       Assert.False(string.IsNullOrWhiteSpace(destination));
-      Assert.True(File.Exists(source), "真实验收源 IFC 不存在。");
-      Assert.False(File.Exists(destination), "真实验收目标 IFC 必须是新文件。");
-      string sourceHashBefore = ComputeSha256(source);
+      string normalizedSource = MvdIfcPathPolicy.NormalizeIfcPath(
+        source,
+        "真实验收源 IFC");
+      string normalizedDestination = MvdIfcPathPolicy.NormalizeIfcPath(
+        destination,
+        "真实验收目标 IFC");
+      Assert.True(File.Exists(normalizedSource), "真实验收源 IFC 不存在。");
+      Assert.False(
+        File.Exists(normalizedDestination),
+        "真实验收目标 IFC 必须是新文件。");
+      string sourceHashBefore = ComputeSha256(normalizedSource);
 
       MvdIfcFileResult result = new MvdIfcFileService().Execute(
         source,
         destination);
 
       Assert.True(result.Success, string.Join(" | ", result.Messages));
-      Assert.Equal(sourceHashBefore, ComputeSha256(source));
+      Assert.Equal(sourceHashBefore, ComputeSha256(normalizedSource));
       Assert.Equal(sourceHashBefore, result.SourceSha256);
-      Assert.True(File.Exists(destination));
-      Assert.True(new FileInfo(destination).Length > 0);
+      Assert.Equal(normalizedSource, result.SourcePath);
+      Assert.Equal(normalizedDestination, result.OutputPath);
+      Assert.True(File.Exists(normalizedDestination));
+      Assert.True(new FileInfo(normalizedDestination).Length > 0);
     }
 
     private static string ComputeSha256(string path)

@@ -24,8 +24,12 @@ namespace BIMBaoGui.Stage01.Mvd
   {
     public MvdIfcFileResult Execute(string sourcePath, string destinationPath)
     {
-      string source = NormalizePath(sourcePath, nameof(sourcePath));
-      string destination = NormalizePath(destinationPath, nameof(destinationPath));
+      string source = MvdIfcPathPolicy.NormalizeIfcPath(
+        sourcePath,
+        "源 IFC");
+      string destination = MvdIfcPathPolicy.NormalizeIfcPath(
+        destinationPath,
+        "输出 IFC");
       ValidatePaths(source, destination);
 
       string temporaryPath = destination
@@ -112,13 +116,6 @@ namespace BIMBaoGui.Stage01.Mvd
       string directory = Path.GetDirectoryName(destination);
       if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
         throw new DirectoryNotFoundException("输出目录不存在：" + directory);
-    }
-
-    private static string NormalizePath(string path, string parameterName)
-    {
-      if (string.IsNullOrWhiteSpace(path))
-        throw new ArgumentException("IFC 路径不能为空。", parameterName);
-      return Path.GetFullPath(path.Trim());
     }
 
     private static Utf8IfcText ReadUtf8Ifc(string path)

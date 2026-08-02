@@ -29,6 +29,28 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Theory]
+    [InlineData("\u202A")]
+    [InlineData("\u202B")]
+    [InlineData("\u202D")]
+    [InlineData("\u202E")]
+    [InlineData("\u2066")]
+    [InlineData("\u2067")]
+    [InlineData("\u2068")]
+    [InlineData("\uFEFF")]
+    public void ResolveDestination_removes_clipboard_format_characters(
+      string formatCharacter)
+    {
+      string directory = Path.Combine(Path.GetTempPath(), "BIMBaoGui-PathPolicy");
+      string source = Path.Combine(directory, "model.ifc");
+
+      string destination = MvdIfcPathPolicy.ResolveDestination(
+        formatCharacter + source + "\u202C\u2069",
+        null);
+
+      Assert.Equal(Path.Combine(directory, "model-MVD.ifc"), destination);
+    }
+
+    [Theory]
     [InlineData("model.txt")]
     [InlineData("model.ifczip")]
     public void ResolveDestination_rejects_non_IFC_extensions(string name)
