@@ -52,6 +52,65 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void Compile_ActivatesExactCanonicalRuleForEveryLegacyCondition()
+    {
+      RuleSource source = LoadUniqueRuleSource();
+      RuleProfile siteProfile = Assert.Single(
+        source.modelProfiles,
+        profile => profile.profileId == "总平模型");
+      RuleCondition[] activationConditions = source.conditions
+        .Where(condition => !string.IsNullOrWhiteSpace(condition.activationRuleId))
+        .ToArray();
+
+      Assert.Equal(10, activationConditions.Length);
+      Assert.Equal(
+        activationConditions.Length,
+        activationConditions
+          .Select(condition => condition.conditionId)
+          .Distinct(StringComparer.Ordinal)
+          .Count());
+      Assert.Equal(
+        activationConditions.Length,
+        activationConditions
+          .Select(condition => condition.activationRuleId)
+          .Distinct(StringComparer.Ordinal)
+          .Count());
+
+      foreach (RuleCondition enabledCondition in activationConditions)
+      {
+        var enabledConditions = new Dictionary<string, bool>(StringComparer.Ordinal)
+        {
+          { enabledCondition.conditionId, true }
+        };
+        string[] expectedActivated = siteProfile.activationRuleIds
+          .Concat(new[] { enabledCondition.activationRuleId })
+          .Distinct(StringComparer.Ordinal)
+          .OrderBy(value => value, StringComparer.Ordinal)
+          .ToArray();
+        string[] expectedNotApplicable = activationConditions
+          .Where(condition => !string.Equals(
+            condition.conditionId,
+            enabledCondition.conditionId,
+            StringComparison.Ordinal))
+          .Select(condition => condition.activationRuleId)
+          .Distinct(StringComparer.Ordinal)
+          .OrderBy(value => value, StringComparer.Ordinal)
+          .ToArray();
+
+        RuleActivationResult actual = RuleActivationCatalog.Compile(
+          siteProfile.profileId,
+          enabledConditions);
+
+        Assert.Equal(expectedActivated, actual.Activated.ToArray());
+        Assert.Equal(expectedNotApplicable, actual.NotApplicable.ToArray());
+        Assert.Contains(enabledCondition.activationRuleId, actual.Activated);
+        Assert.DoesNotContain(
+          enabledCondition.activationRuleId,
+          actual.NotApplicable);
+      }
+    }
+
+    [Fact]
     public void CanonicalSource_ContainsCompleteUniqueLegacyActivationFixtures()
     {
       RuleSource source = LoadUniqueRuleSource();
