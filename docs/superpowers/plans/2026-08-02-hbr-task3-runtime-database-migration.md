@@ -66,32 +66,30 @@ test_migrated_metadata_is_exactly_equivalent_to_legacy_resources：
 166 个 legacyProjection 六字段、9 个 entity policies、13 个 exception/reason，以及三个
 profile 的 activationRuleIds；测试不得使用 get(..., default)、空字符串补齐或按名称猜值。
 
-- [ ] **Step 2: 写 baseline 冻结和禁止 fallback RED 测试**
+- [ ] **Step 2: 写迁移元数据语义闭合 RED 测试**
 
 ~~~python
-FROZEN_KEYS = ("propertyId", "canonicalKey", "parameterGuid", "originalIdentity")
-def test_compatibility_baseline_four_field_projection_is_unchanged(source, baseline):
-    actual = []
-    for p in source["properties"]:
-        if p["officialPlugin"]["inExtracted166"]:
-            actual.append({
-                "propertyId": p["propertyId"],
-                "canonicalKey": p["canonicalKey"],
-                "parameterGuid": p["revit"]["parameterGuid"],
-                "originalIdentity": p["officialPlugin"]["originalIdentity"],
-            })
-    expected = [{k: row[k] for k in FROZEN_KEYS} for row in baseline["officialProperties"]]
-    assert sorted(actual, key=lambda x: x["propertyId"]) == sorted(expected, key=lambda x: x["propertyId"])
-
-def test_compile_requires_frozen_compatibility_baseline(tmp_path, source_path):
-    result = run_compiler(source_path, tmp_path / "rules.hbrpack", baseline_path=None)
-    assert result.returncode != 0
-    assert "compatibility baseline is required" in result.stderr
+@pytest.mark.parametrize("mutate", [
+    lambda d: d["stage01"].pop("internalWorkflowFields"), lambda d: d["stage01"]["fieldRefs"][0].pop("uiGroup"),
+    lambda d: first_official(d)["officialPlugin"].pop("legacyProjection"),
+    lambda d: d["stage01"]["officialPluginCompatibility"]["exceptions"].pop(), lambda d: d["modelProfiles"][0].pop("activationRuleIds"),
+])
+def test_validate_semantics_rejects_missing_or_truncated_migrated_metadata(source, baseline, mutate):
+    mutate(source)
+    with pytest.raises(ValueError, match="migrated metadata"):
+        validate_semantics(source, baseline)
+@pytest.mark.parametrize("mutate", [
+    duplicate_first_internal_workflow_field, point_first_field_ref_to_missing_property,
+    duplicate_first_entity_policy, point_first_profile_to_missing_activation_rule,
+])
+def test_validate_semantics_rejects_duplicate_or_dangling_migrated_references(source, baseline, mutate):
+    mutate(source)
+    with pytest.raises(ValueError, match="duplicate|unknown reference"):
+        validate_semantics(source, baseline)
 ~~~
-
 Run: C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_hbr_rule_source_contract.py tests/test_hbr_rule_source_semantics.py tests/test_hbr_rulepack_compiler.py -q
 
-Expected: FAIL；当前唯一源缺少上述迁移字段，且编译器尚未把冻结 baseline 当作必需输入。
+Expected: FAIL；旧 validate_semantics 不识别这些迁移节点，会错误放行缺失、删减、重复或悬空数据。现有 baseline 必需参数与四字段冻结测试继续 PASS，不属于本步骤 RED。
 
 - [ ] **Step 3: 最小扩展 schema 与唯一源**
 
@@ -104,17 +102,20 @@ Expected: FAIL；当前唯一源缺少上述迁移字段，且编译器尚未把
 - 给三个 modelProfiles 逐条复制 activationRuleIds。值只来自现有旧资源；缺项立即失败，
   禁止 runtime fallback、编译器 fallback 或测试 fixture fallback。
 
-- [ ] **Step 4: 最小修改编译器**
+- [ ] **Step 4: 扩展编译器迁移语义校验**
 
-让 --compatibility-baseline 成为必需参数。编译前读取 baseline，按 propertyId 对齐 166 条记录，
-逐项验证 propertyId/canonicalKey/parameterGuid/originalIdentity；任一缺失、重复或漂移均返回
-非零退出码。baseline 只作为冻结的编译输入，不写成第二个 runtime EmbeddedResource。
+扩展 validate_semantics 的闭合 shape、固定计数、唯一键、非空 reason 和引用存在性校验：
+12 个 internalWorkflowFields、102 个含三个新增字段的 fieldRefs、166 个完整六字段
+legacyProjection、9 个 entity policies、13 个 exception/reason、三个 profile 的
+activationRuleIds；再调用 legacy 等价性投影检查。复用现有 --compatibility-baseline 必需参数
+及 propertyId/canonicalKey/parameterGuid/originalIdentity 四字段冻结实现，不重复实现该门禁，
+也不从旧资源 fallback。
 
 - [ ] **Step 5: 运行 GREEN**
 
 Run: C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_hbr_rule_source_contract.py tests/test_hbr_rule_source_semantics.py tests/test_hbr_rulepack_compiler.py -q
 
-Expected: PASS；计数严格为 12、102、166、9、13、3，且 baseline 四字段逐项不变。
+Expected: PASS；所有损坏样例均被 validate_semantics 精确拒绝，合法源计数为 12、102、166、9、13、3；既有 baseline 必需参数和四字段冻结回归继续通过。
 
 - [ ] **Step 6: 提交**
 
