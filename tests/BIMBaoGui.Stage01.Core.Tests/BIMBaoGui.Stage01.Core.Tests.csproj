@@ -23,7 +23,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj"
-                      ReferenceOutputAssembly="false" />
+                      ReferenceOutputAssembly="false"
+                      HbrProductionAssembly="true" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\Stage04FailureReportWriter.cs" Link="Diagnostics\Stage04FailureReportWriter.cs" />
@@ -137,18 +138,51 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="StageHbrProductionAssemblyForTests" AfterTargets="Build">
+  <Target Name="StageHbrProductionAssemblyForTests"
+          AfterTargets="Build"
+          DependsOnTargets="PrepareProjectReferences">
+    <ItemGroup>
+      <_HbrProductionProjectReference Include="@(_MSBuildProjectReferenceExistent)"
+                                      Condition="'%(_MSBuildProjectReferenceExistent.HbrProductionAssembly)' == 'true'" />
+    </ItemGroup>
+    <Error Condition="'@(_HbrProductionProjectReference->Count())' != '1'"
+           Text="Expected exactly one existing HBR production ProjectReference, but found @(_HbrProductionProjectReference->Count())." />
+    <MSBuild Projects="@(_HbrProductionProjectReference)"
+             Targets="GetTargetPath"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="%(_HbrProductionProjectReference.SetConfiguration); %(_HbrProductionProjectReference.SetPlatform); %(_HbrProductionProjectReference.SetTargetFramework)"
+             RemoveProperties="%(_HbrProductionProjectReference.GlobalPropertiesToRemove)$(_GlobalPropertiesToRemoveFromProjectReferences)">
+      <Output TaskParameter="TargetOutputs" ItemName="_HbrProductionTargetOutputs" />
+    </MSBuild>
+    <ItemGroup>
+      <_HbrProductionAssembly Include="@(_HbrProductionTargetOutputs)"
+                              Condition="'%(_HbrProductionTargetOutputs.Filename)%(_HbrProductionTargetOutputs.Extension)' == 'BIMBaoGui.Stage01.dll'" />
+    </ItemGroup>
+    <Error Condition="'@(_HbrProductionAssembly->Count())' != '1'"
+           Text="Expected exactly one BIMBaoGui.Stage01.dll TargetOutput, but found @(_HbrProductionAssembly->Count()): @(_HbrProductionTargetOutputs)." />
     <PropertyGroup>
-      <HbrProductionAssembly>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'src', 'BIMBaoGui.Stage01', 'bin', '$(Configuration)', 'net48', 'BIMBaoGui.Stage01.dll'))</HbrProductionAssembly>
+      <HbrProductionAssemblyPath>@(_HbrProductionAssembly->'%(FullPath)')</HbrProductionAssemblyPath>
       <HbrProductionAssemblyFixture>$([MSBuild]::NormalizePath('$(TargetDir)', 'BIMBaoGui.Stage01.production.dll'))</HbrProductionAssemblyFixture>
     </PropertyGroup>
-    <Error Condition="!Exists('$(HbrProductionAssembly)')"
-           Text="Production BIMBaoGui.Stage01 assembly was not built: $(HbrProductionAssembly)" />
-    <Copy SourceFiles="$(HbrProductionAssembly)"
+    <Error Condition="!Exists('$(HbrProductionAssemblyPath)')"
+           Text="Production BIMBaoGui.Stage01 TargetOutput does not exist: $(HbrProductionAssemblyPath)" />
+    <Copy SourceFiles="$(HbrProductionAssemblyPath)"
           DestinationFiles="$(HbrProductionAssemblyFixture)"
           SkipUnchangedFiles="true" />
-    <ItemGroup>
-      <FileWrites Include="$(HbrProductionAssemblyFixture)" />
-    </ItemGroup>
+    <GetFileHash Files="$(HbrProductionAssemblyPath)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_HbrProductionAssemblyHash" />
+    </GetFileHash>
+    <GetFileHash Files="$(HbrProductionAssemblyFixture)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_HbrProductionAssemblyFixtureHash" />
+    </GetFileHash>
+    <Error Condition="'@(_HbrProductionAssemblyHash->'%(FileHash)')' != '@(_HbrProductionAssemblyFixtureHash->'%(FileHash)')'"
+           Text="Staged HBR production assembly hash does not match TargetOutput: $(HbrProductionAssemblyPath) -> $(HbrProductionAssemblyFixture)." />
+  </Target>
+
+  <Target Name="CleanHbrProductionAssemblyFixture" AfterTargets="Clean">
+    <PropertyGroup>
+      <HbrProductionAssemblyFixture>$([MSBuild]::NormalizePath('$(TargetDir)', 'BIMBaoGui.Stage01.production.dll'))</HbrProductionAssemblyFixture>
+    </PropertyGroup>
+    <Delete Files="$(HbrProductionAssemblyFixture)" />
   </Target>
 </Project>
