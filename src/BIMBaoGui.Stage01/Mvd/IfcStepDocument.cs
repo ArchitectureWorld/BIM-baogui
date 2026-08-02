@@ -163,11 +163,17 @@ namespace BIMBaoGui.Stage01.Mvd
     private static string TryParseSchema(string segment)
     {
       string trimmed = segment.Trim();
-      const string prefix = "FILE_SCHEMA(";
-      if (!trimmed.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+      const string keyword = "FILE_SCHEMA";
+      if (!trimmed.StartsWith(keyword, StringComparison.OrdinalIgnoreCase)
         || !trimmed.EndsWith(");", StringComparison.Ordinal))
         return null;
-      string body = trimmed.Substring(prefix.Length, trimmed.Length - prefix.Length - 2).Trim();
+      int openIndex = trimmed.IndexOf('(', keyword.Length);
+      if (openIndex < 0
+        || trimmed.Substring(keyword.Length, openIndex - keyword.Length).Trim().Length != 0)
+        return null;
+      string body = trimmed.Substring(
+        openIndex + 1,
+        trimmed.Length - openIndex - 3).Trim();
       if (body.Length < 2 || body[0] != '(' || body[body.Length - 1] != ')')
         throw new InvalidDataException("IFC STEP FILE_SCHEMA 无效。");
       IReadOnlyList<string> schemas = IfcStepSyntax.SplitTopLevelArguments(

@@ -6,14 +6,15 @@
 - [ ] .NET Release 测试全部通过，Release 构建 0 警告、0 错误。
 - [ ] vulnerable package scan 未发现已知漏洞。
 - [ ] `artifact-manifest.json` 记录 commit SHA、GHA SHA-256、文件大小和程序集版本 `0.9.0.0`。
-- [ ] 旧 GHA 已移到 `%APPDATA%\Grasshopper\Libraries\BIMbaogui` 之外备份。
+- [ ] 部署前已关闭 Revit、Rhino.Inside.Revit 和 Grasshopper。
+- [ ] 未创建插件备份；需要回滚时从 Git 提交重新构建。
 - [ ] 活动目录只存在 `BIMBaoGui.Stage01.gha` 一个 BIMBaoGui GHA。
 
 ## 宿主启动
 
 - [ ] 使用 Revit 2020 打开安全测试 RVT，确认无未保存的无关修改。
 - [ ] 新 journal 中 Rhino.Inside.Revit、官方 H-IFC 和 BIMFlux 均为 `API_SUCCESS`。
-- [ ] Grasshopper 中可见 Stage 01、Stage 02、Stage 03 三个组件。
+- [ ] Grasshopper 中可见 Stage 01、Stage 02、Stage 03、Stage 04 四个组件。
 
 ## Stage 01
 
@@ -36,9 +37,21 @@
 - [ ] 将 Toggle 调为 `false`，再调为 `true`，只执行一次写入。
 - [ ] 连续保持 `true` 不重复写入；再次 `true -> false -> true` 才允许下一次执行。
 
+## Stage 04
+
+- [ ] 输入官方导出的 IFC4，输出路径为空时生成同目录 `<源文件名>-MVD.ifc`。
+- [ ] 源 IFC SHA-256 在规范化前后保持不变。
+- [ ] 已存在目标文件时明确失败，不覆盖、不自动改名、不创建备份。
+- [ ] `IfcProject` 关联 `Pset_申报信息属性集`。
+- [ ] `基点坐标X`、`基点坐标Y`、`基点高程` 为 `IfcReal`，值保持米制输入。
+- [ ] `项目编号`、`项目名称` 按 MVD 输出为 `IfcLabel`。
+- [ ] `IfcProject` 的通用“数据”属性集中不再包含插件创建的 `HIFC.` 重复项。
+- [ ] 失败时在 GHA 同目录生成 `BIMBaoGui.Stage04.failure-*.json`，且不残留 `.tmp` 文件。
+
 ## 官方 H-IFC 与 IFC
 
 - [ ] 使用官方 H-IFC 导出新文件 `20260731test02-v090-validation.ifc`，不覆盖原 IFC。
+- [ ] 使用 Stage 04 生成新的 `20260731test02-v090-validation-MVD.ifc`。
 - [ ] 核对所有非空且协议兼容的 Stage 01 属性、值、单位和重复源参数对。
 - [ ] 记录缺失、额外或不一致属性，以及 exporter log、Revit journal、时间戳和 IFC SHA-256。
 - [ ] 只有 Golden RVT -> 官方 H-IFC -> 新 IFC -> 检查结果全部通过后，才声明 v0.9.0 可直接使用。

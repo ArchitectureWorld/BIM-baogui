@@ -81,6 +81,15 @@ namespace BIMBaoGui.Stage01.Core.Tests
         () => IfcStepDocument.Parse(malformed));
     }
 
+    [Fact]
+    public void Parse_accepts_whitespace_between_FILE_SCHEMA_and_parenthesis()
+    {
+      IfcStepDocument document = IfcStepDocument.Parse(
+        Fixture.Replace("FILE_SCHEMA(", "FILE_SCHEMA ("));
+
+      Assert.Equal("IFC4", document.Schema);
+    }
+
     [Theory]
     [InlineData("普通文本")]
     [InlineData("O'Brien")]
