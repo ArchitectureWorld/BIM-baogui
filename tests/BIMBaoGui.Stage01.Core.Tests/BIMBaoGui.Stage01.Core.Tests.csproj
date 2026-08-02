@@ -25,6 +25,7 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\MvdIfcNormalizationModels.cs" Link="Mvd\MvdIfcNormalizationModels.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\MvdIfcNormalizer.cs" Link="Mvd\MvdIfcNormalizer.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\MvdIfcFileService.cs" Link="Mvd\MvdIfcFileService.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\MvdIfcPathPolicy.cs" Link="Mvd\MvdIfcPathPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\Stage01FailureReportWriter.cs" Link="Diagnostics\Stage01FailureReportWriter.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRContextVersions.cs" Link="Context\HBRContextVersions.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRDocumentFingerprint.cs" Link="Context\HBRDocumentFingerprint.cs" />
