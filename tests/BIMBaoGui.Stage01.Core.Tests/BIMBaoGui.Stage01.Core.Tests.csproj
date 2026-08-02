@@ -19,6 +19,8 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepDocument.cs" Link="Mvd\IfcStepDocument.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepEntity.cs" Link="Mvd\IfcStepEntity.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepSyntax.cs" Link="Mvd\IfcStepSyntax.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\MvdIfcNormalizationCatalog.cs" Link="Mvd\MvdIfcNormalizationCatalog.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\MvdIfcNormalizationRule.cs" Link="Mvd\MvdIfcNormalizationRule.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\Stage01FailureReportWriter.cs" Link="Diagnostics\Stage01FailureReportWriter.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRContextVersions.cs" Link="Context\HBRContextVersions.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRDocumentFingerprint.cs" Link="Context\HBRDocumentFingerprint.cs" />
@@ -59,6 +61,9 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\TaskRuleDefinition.cs" Link="TaskPlanning\TaskRuleDefinition.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="..\..\src\BIMBaoGui.Stage01\Resources\stage01_file_initialization_registry_v0.1.json"
+                      Link="Resources\stage01_file_initialization_registry_v0.1.json"
+                      LogicalName="BIMBaoGui.Stage01.Resources.stage01_file_initialization_registry_v0.1.json" />
     <EmbeddedResource Include="..\..\specs\hifc-mapping\v1\generated\GH_HIFC_ParameterBindings.json"
                       Link="Resources\GH_HIFC_ParameterBindings.json"
                       LogicalName="BIMBaoGui.Stage01.Resources.GH_HIFC_ParameterBindings.json" />

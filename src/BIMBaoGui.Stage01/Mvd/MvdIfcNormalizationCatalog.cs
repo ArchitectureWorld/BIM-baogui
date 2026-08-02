@@ -1,0 +1,197 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Web.Script.Serialization;
+using BIMBaoGui.Stage01.Hifc;
+
+namespace BIMBaoGui.Stage01.Mvd
+{
+  internal sealed class MvdIfcNormalizationCatalog
+  {
+    private const string RegistryResourceName =
+      "BIMBaoGui.Stage01.Resources.stage01_file_initialization_registry_v0.1.json";
+    private static readonly Lazy<MvdIfcNormalizationCatalog> LazyInstance =
+      new Lazy<MvdIfcNormalizationCatalog>(Load);
+
+    private readonly Dictionary<string, MvdIfcNormalizationRule> _byAlias;
+
+    private MvdIfcNormalizationCatalog(
+      IReadOnlyCollection<MvdIfcNormalizationRule> rules)
+    {
+      Rules = rules;
+      _byAlias = new Dictionary<string, MvdIfcNormalizationRule>(
+        StringComparer.OrdinalIgnoreCase);
+      foreach (MvdIfcNormalizationRule rule in rules)
+      {
+        foreach (string propertySet in rule.PropertySetAliases)
+        foreach (string property in rule.PropertyAliases)
+          AddAlias(rule.Entity, propertySet, property, rule);
+      }
+    }
+
+    public static MvdIfcNormalizationCatalog Instance => LazyInstance.Value;
+
+    public IReadOnlyCollection<MvdIfcNormalizationRule> Rules { get; }
+
+    public bool TryResolve(
+      string entity,
+      string propertySet,
+      string property,
+      out MvdIfcNormalizationRule rule)
+    {
+      rule = null;
+      if (string.IsNullOrWhiteSpace(entity)
+        || string.IsNullOrWhiteSpace(propertySet)
+        || string.IsNullOrWhiteSpace(property))
+        return false;
+      return _byAlias.TryGetValue(
+        CreateKey(entity, propertySet, property),
+        out rule);
+    }
+
+    private void AddAlias(
+      string entity,
+      string propertySet,
+      string property,
+      MvdIfcNormalizationRule rule)
+    {
+      string key = CreateKey(entity, propertySet, property);
+      if (_byAlias.TryGetValue(key, out MvdIfcNormalizationRule existing)
+        && !ReferenceEquals(existing, rule))
+        throw new InvalidDataException(
+          "MVD IFC 规范化别名冲突："
+          + entity
+          + "|"
+          + propertySet
+          + "|"
+          + property);
+      _byAlias[key] = rule;
+    }
+
+    private static MvdIfcNormalizationCatalog Load()
+    {
+      var serializer = new JavaScriptSerializer
+      {
+        MaxJsonLength = int.MaxValue,
+        RecursionLimit = 512
+      };
+      RegistryEnvelope envelope = serializer.Deserialize<RegistryEnvelope>(
+        ReadEmbeddedText(RegistryResourceName));
+      if (envelope?.mvd_fields == null || envelope.mvd_fields.Count == 0)
+        throw new InvalidDataException("MVD 字段注册表为空。");
+
+      var rules = new List<MvdIfcNormalizationRule>();
+      foreach (MvdFieldRecord source in envelope.mvd_fields)
+      {
+        if (source == null
+          || string.IsNullOrWhiteSpace(source.field_key)
+          || string.IsNullOrWhiteSpace(source.entity)
+          || string.IsNullOrWhiteSpace(source.pset)
+          || string.IsNullOrWhiteSpace(source.property)
+          || string.IsNullOrWhiteSpace(source.declared_ifc_type))
+          throw new InvalidDataException("MVD 字段注册表包含不完整记录。");
+
+        OfficialHifcMapping mapping = null;
+        OfficialHifcMappingCatalog.Instance.TryResolveStage01FieldKey(
+          source.field_key,
+          out mapping);
+        string canonicalProperty = string.IsNullOrWhiteSpace(mapping?.IfcProperty)
+          ? source.property.Trim()
+          : mapping.IfcProperty.Trim();
+        string canonicalPropertySet = source.pset.Trim();
+        string propertySetWithoutPrefix = canonicalPropertySet.StartsWith(
+          "Pset_",
+          StringComparison.OrdinalIgnoreCase)
+          ? canonicalPropertySet.Substring("Pset_".Length)
+          : canonicalPropertySet;
+
+        string[] propertySetAliases = DistinctNonEmpty(
+          canonicalPropertySet,
+          propertySetWithoutPrefix,
+          mapping?.PropertySet);
+        string[] propertyAliases = DistinctNonEmpty(
+          canonicalProperty,
+          source.property,
+          RemoveWhitespace(source.property),
+          mapping?.IfcProperty);
+        string[] internalAliases = DistinctNonEmpty(
+          mapping?.ParameterName,
+          "HIFC." + propertySetWithoutPrefix + "." + canonicalProperty);
+
+        rules.Add(new MvdIfcNormalizationRule
+        {
+          Entity = source.entity.Trim(),
+          CanonicalPropertySet = canonicalPropertySet,
+          PropertySetAliases = propertySetAliases,
+          CanonicalProperty = canonicalProperty,
+          PropertyAliases = propertyAliases,
+          TargetType = NormalizeIfcType(source.declared_ifc_type),
+          Unit = mapping?.Unit?.Trim() ?? string.Empty,
+          InternalAliases = internalAliases
+        });
+      }
+
+      return new MvdIfcNormalizationCatalog(rules);
+    }
+
+    private static string NormalizeIfcType(string value)
+    {
+      string trimmed = value.Trim();
+      if (trimmed.StartsWith("Ifc", StringComparison.Ordinal)) return trimmed;
+      if (trimmed.StartsWith("IFC", StringComparison.OrdinalIgnoreCase))
+        return "Ifc" + trimmed.Substring(3);
+      return trimmed;
+    }
+
+    private static string RemoveWhitespace(string value)
+    {
+      return new string((value ?? string.Empty)
+        .Where(character => !char.IsWhiteSpace(character))
+        .ToArray());
+    }
+
+    private static string[] DistinctNonEmpty(params string[] values)
+    {
+      return values
+        .Where(value => !string.IsNullOrWhiteSpace(value))
+        .Select(value => value.Trim())
+        .Distinct(StringComparer.Ordinal)
+        .ToArray();
+    }
+
+    private static string CreateKey(
+      string entity,
+      string propertySet,
+      string property)
+    {
+      return entity.Trim() + "\u001f" + propertySet.Trim() + "\u001f" + property.Trim();
+    }
+
+    private static string ReadEmbeddedText(string resourceName)
+    {
+      Assembly assembly = typeof(MvdIfcNormalizationCatalog).Assembly;
+      using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+      {
+        if (stream == null)
+          throw new InvalidDataException("缺少嵌入资源：" + resourceName);
+        using (var reader = new StreamReader(stream)) return reader.ReadToEnd();
+      }
+    }
+
+    private sealed class RegistryEnvelope
+    {
+      public List<MvdFieldRecord> mvd_fields { get; set; }
+    }
+
+    private sealed class MvdFieldRecord
+    {
+      public string field_key { get; set; }
+      public string property { get; set; }
+      public string declared_ifc_type { get; set; }
+      public string entity { get; set; }
+      public string pset { get; set; }
+    }
+  }
+}
