@@ -15,6 +15,12 @@
     <NoWarn>1591</NoWarn>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <HbrPythonExe Condition="'$(HbrPythonExe)' == ''">python</HbrPythonExe>
+    <HbrRuleSource Condition="'$(HbrRuleSource)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'specs', 'hbr-rules', 'v1', 'source', 'hbr_rule_source.v1.json'))</HbrRuleSource>
+    <_HbrRulePackCompiler>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'tools', 'build_hbr_rulepack.py'))</_HbrRulePackCompiler>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Grasshopper" Version="8.0.23304.9001" PrivateAssets="all" ExcludeAssets="runtime" />
     <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="2020.0.1" PrivateAssets="all" ExcludeAssets="runtime" />
@@ -37,6 +43,28 @@
                       Link="Resources\official_plugin_compatibility_status.v1.json"
                       LogicalName="BIMBaoGui.Stage01.Resources.official_plugin_compatibility_status.v1.json" />
   </ItemGroup>
+
+  <Target Name="CompileHbrRulePack"
+          BeforeTargets="AssignTargetPaths"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <PropertyGroup>
+      <HbrRulePack Condition="'$(HbrRulePack)' == ''">$(IntermediateOutputPath)HBR_RulePack.hbrpack</HbrRulePack>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(HbrRuleSource)')"
+           Text="HBR rule source not found: $(HbrRuleSource)" />
+    <Error Condition="!Exists('$(_HbrRulePackCompiler)')"
+           Text="HBR rule-pack compiler not found: $(_HbrRulePackCompiler)" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)"
+          EnvironmentVariables="PYTHONUTF8=1"
+          Command="&quot;$(HbrPythonExe)&quot; &quot;$(_HbrRulePackCompiler)&quot; --source &quot;$(HbrRuleSource)&quot; --output &quot;$(HbrRulePack)&quot;" />
+    <Error Condition="!Exists('$(HbrRulePack)')"
+           Text="HBR rule-pack compiler exited without creating: $(HbrRulePack)" />
+    <ItemGroup>
+      <EmbeddedResource Include="$(HbrRulePack)"
+                        LogicalName="BIMBaoGui.Stage01.Resources.HBR_RulePack.hbrpack" />
+      <FileWrites Include="$(HbrRulePack)" />
+    </ItemGroup>
+  </Target>
 
   <Target Name="CopyAsGha" AfterTargets="Build">
     <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(TargetDir)BIMBaoGui.Stage01.gha" />
