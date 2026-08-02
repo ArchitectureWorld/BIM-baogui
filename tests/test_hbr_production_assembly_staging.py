@@ -1,6 +1,8 @@
 import hashlib
 import os
 import subprocess
+import time
+import uuid
 from pathlib import Path
 
 
@@ -10,11 +12,11 @@ TEST_PROJECT = (
     ROOT
     / "tests/BIMBaoGui.Stage01.Core.Tests/BIMBaoGui.Stage01.Core.Tests.csproj"
 )
-TEST_PROJECT_DIRECTORY = TEST_PROJECT.parent
 FIXTURE_NAME = "BIMBaoGui.Stage01.production.dll"
+SOURCE_TREE_ROOTS = (ROOT / "src", ROOT / "tests")
 
 
-def _run_dotnet(*arguments):
+def _run_dotnet(*arguments, check=True):
     environment = os.environ.copy()
     environment["DOTNET_CLI_UI_LANGUAGE"] = "en-US"
     result = subprocess.run(
@@ -27,8 +29,92 @@ def _run_dotnet(*arguments):
         errors="replace",
         check=False,
     )
-    assert result.returncode == 0, result.stdout + result.stderr
+    if check:
+        assert result.returncode == 0, result.stdout + result.stderr
     return result
+
+
+def _property_arguments(properties):
+    return [f"/p:{name}={value}" for name, value in properties.items()]
+
+
+def _restore(project, properties):
+    return _run_dotnet(
+        "restore",
+        project,
+        *_property_arguments(properties),
+        "--verbosity",
+        "minimal",
+    )
+
+
+def _build(project, properties):
+    return _run_dotnet(
+        "build",
+        project,
+        *_property_arguments(properties),
+        "--no-restore",
+        "--verbosity",
+        "minimal",
+    )
+
+
+def _clean_projects(project_properties, output_root, configuration):
+    failures = []
+    for project, properties in project_properties:
+        result = _run_dotnet(
+            "clean",
+            project,
+            *_property_arguments(properties),
+            "--verbosity",
+            "minimal",
+            check=False,
+        )
+        if result.returncode != 0:
+            failures.append(result.stdout + result.stderr)
+
+    fixtures = sorted(output_root.rglob(FIXTURE_NAME))
+    source_tree_residue = _source_tree_configuration_files(configuration)
+    assert not fixtures, f"dotnet clean left staged fixtures: {fixtures}"
+    assert not source_tree_residue, (
+        "isolated build left configuration files in the source tree: "
+        f"{source_tree_residue}"
+    )
+    assert not failures, "\n".join(failures)
+
+
+def _source_tree_configuration_files(configuration):
+    return sorted(
+        path
+        for tree_root in SOURCE_TREE_ROOTS
+        for path in tree_root.rglob("*")
+        if path.is_file() and configuration in path.parts
+    )
+
+
+def _configuration(prefix):
+    return f"{prefix}_{uuid.uuid4().hex}"
+
+
+def _path_property(path):
+    return f"{path}{os.sep}"
+
+
+def _isolated_properties(configuration, output_property, output_path, obj_path):
+    return {
+        "Configuration": configuration,
+        output_property: _path_property(output_path),
+        "BaseIntermediateOutputPath": _path_property(obj_path),
+        "DefaultItemExcludesInProjectFolder": "obj/**",
+        "RestoreRecursive": "false",
+    }
+
+
+def _test_project_properties(production_properties):
+    return {
+        **production_properties,
+        "BuildProjectReferences": "false",
+    }
 
 
 def _single_file(directory, name):
@@ -69,76 +155,112 @@ def _assembly_version(path):
 
 
 def test_staged_fixture_matches_custom_output_target_path(tmp_path):
-    configuration = "HbrOutputContractTest"
-    _run_dotnet(
-        "build",
-        PRODUCTION_PROJECT,
-        "-c",
+    configuration = _configuration("HbrOutputContractTest")
+    output_root = tmp_path / "custom-output"
+    production_properties = _isolated_properties(
         configuration,
-        "--no-restore",
-        "/p:AssemblyVersion=1.2.3.4",
-        "--verbosity",
-        "minimal",
+        "OutputPath",
+        output_root,
+        tmp_path / "obj" / "BIMBaoGui.Stage01",
     )
+    production_properties["AssemblyVersion"] = "9.9.9.9"
+    test_properties = _test_project_properties(
+        _isolated_properties(
+            configuration,
+            "OutputPath",
+            output_root,
+            tmp_path / "obj" / "BIMBaoGui.Stage01.Core.Tests",
+        )
+    )
+    test_properties["AssemblyVersion"] = "9.9.9.9"
 
-    custom_output = tmp_path / "custom-output"
-    _run_dotnet(
-        "build",
-        TEST_PROJECT,
-        "-c",
+    assert not list(output_root.rglob(FIXTURE_NAME))
+    assert not _source_tree_configuration_files(configuration)
+    try:
+        _restore(PRODUCTION_PROJECT, production_properties)
+        _restore(TEST_PROJECT, test_properties)
+        _build(PRODUCTION_PROJECT, production_properties)
+        _build(TEST_PROJECT, test_properties)
+
+        production_assembly = _single_file(
+            output_root,
+            "BIMBaoGui.Stage01.dll",
+        )
+        staged_fixture = _single_file(output_root, FIXTURE_NAME)
+        production_identity = _assembly_version(production_assembly)
+        staged_identity = _assembly_version(staged_fixture)
+
+        assert production_identity == "9.9.9.9"
+        assert (
+            _sha256(staged_fixture),
+            staged_identity,
+        ) == (
+            _sha256(production_assembly),
+            production_identity,
+        ), (
+            "staged fixture did not come from this build's production TargetPath: "
+            f"fixture={staged_fixture} version={staged_identity}, "
+            f"production={production_assembly} version={production_identity}"
+        )
+    finally:
+        _clean_projects(
+            (
+                (TEST_PROJECT, test_properties),
+                (PRODUCTION_PROJECT, production_properties),
+            ),
+            output_root,
+            configuration,
+        )
+
+
+def test_base_output_incremental_staging_and_clean(tmp_path):
+    configuration = _configuration("HbrBaseOutputContractTest")
+    output_root = tmp_path / "base-output"
+    production_properties = _isolated_properties(
         configuration,
-        "--no-restore",
-        f"/p:OutputPath={custom_output}{os.sep}",
-        "/p:AssemblyVersion=9.9.9.9",
-        "--verbosity",
-        "minimal",
+        "BaseOutputPath",
+        output_root,
+        tmp_path / "obj" / "BIMBaoGui.Stage01",
+    )
+    test_properties = _test_project_properties(
+        _isolated_properties(
+            configuration,
+            "BaseOutputPath",
+            output_root,
+            tmp_path / "obj" / "BIMBaoGui.Stage01.Core.Tests",
+        )
     )
 
-    production_assembly = _single_file(
-        custom_output,
-        "BIMBaoGui.Stage01.dll",
-    )
-    staged_fixture = _single_file(custom_output, FIXTURE_NAME)
-    production_identity = _assembly_version(production_assembly)
-    staged_identity = _assembly_version(staged_fixture)
+    assert not list(output_root.rglob(FIXTURE_NAME))
+    assert not _source_tree_configuration_files(configuration)
+    try:
+        _restore(PRODUCTION_PROJECT, production_properties)
+        _restore(TEST_PROJECT, test_properties)
+        _build(PRODUCTION_PROJECT, production_properties)
+        _build(TEST_PROJECT, test_properties)
 
-    assert production_identity == "9.9.9.9"
-    assert (
-        _sha256(staged_fixture),
-        staged_identity,
-    ) == (
-        _sha256(production_assembly),
-        production_identity,
-    ), (
-        "staged fixture did not come from this build's production TargetPath: "
-        f"fixture={staged_fixture} version={staged_identity}, "
-        f"production={production_assembly} version={production_identity}"
-    )
+        production_assembly = _single_file(
+            output_root,
+            "BIMBaoGui.Stage01.dll",
+        )
+        staged_fixture = _single_file(output_root, FIXTURE_NAME)
+        production_hash = _sha256(production_assembly)
+        staged_hash = _sha256(staged_fixture)
+        staged_timestamp = staged_fixture.stat().st_mtime_ns
 
+        assert staged_hash == production_hash
+        time.sleep(1.1)
+        _build(TEST_PROJECT, test_properties)
 
-def test_clean_removes_staged_production_fixture():
-    configuration = "HbrCleanContractTest"
-    _run_dotnet(
-        "build",
-        TEST_PROJECT,
-        "-c",
-        configuration,
-        "--no-restore",
-        "--verbosity",
-        "minimal",
-    )
-    fixture = _single_file(
-        TEST_PROJECT_DIRECTORY / "bin" / configuration,
-        FIXTURE_NAME,
-    )
-
-    _run_dotnet(
-        "clean",
-        TEST_PROJECT,
-        "-c",
-        configuration,
-        "--verbosity",
-        "minimal",
-    )
-
-    assert not fixture.exists(), f"dotnet clean left stale fixture: {fixture}"
+        staged_fixture = _single_file(output_root, FIXTURE_NAME)
+        assert _sha256(staged_fixture) == production_hash
+        assert staged_fixture.stat().st_mtime_ns == staged_timestamp
+    finally:
+        _clean_projects(
+            (
+                (TEST_PROJECT, test_properties),
+                (PRODUCTION_PROJECT, production_properties),
+            ),
+            output_root,
+            configuration,
+        )
