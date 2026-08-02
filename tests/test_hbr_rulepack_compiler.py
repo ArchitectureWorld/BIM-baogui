@@ -766,6 +766,53 @@ def _blank_official_plugin_exception_reason(source):
     ] = "   "
 
 
+def _set_migrated_string_to_whitespace(source, section, field, value="   "):
+    if section == "internalWorkflowFields" and field == "allowedValues":
+        item = next(
+            item
+            for item in source["stage01"][section]
+            if item[field]
+        )
+        item[field][0] = value
+        return
+    if section == "internalWorkflowFields" and field == "defaultValue":
+        item = next(
+            item
+            for item in source["stage01"][section]
+            if item[field] is not None
+        )
+        item[field] = value
+        return
+    if section in {"internalWorkflowFields", "fieldRefs"}:
+        source["stage01"][section][0][field] = value
+        return
+    if section == "modelProfiles" and field == "activationRuleIds":
+        source[section][0][field][0] = value
+        return
+    if section == "modelProfiles":
+        source[section][0][field] = value
+        return
+    if section == "entityPolicies":
+        source["stage01"]["officialPluginCompatibility"][section][0][
+            field
+        ] = value
+        return
+    if section == "exceptions":
+        source["stage01"]["officialPluginCompatibility"][section][0][
+            field
+        ] = value
+        return
+    if section == "legacyProjection":
+        official = next(
+            rule
+            for rule in source["properties"]
+            if rule["officialPlugin"]["inExtracted166"]
+        )
+        official["officialPlugin"][section][field] = value
+        return
+    raise AssertionError(f"unknown migrated section: {section}")
+
+
 def _duplicate_internal_workflow_field(source):
     source["stage01"]["internalWorkflowFields"][-1] = copy.deepcopy(
         source["stage01"]["internalWorkflowFields"][0]
@@ -876,6 +923,95 @@ def test_validate_semantics_rejects_missing_or_truncated_migrated_metadata(
 
     with pytest.raises(ValueError, match=message):
         validate_semantics(source)
+
+
+@pytest.mark.parametrize(
+    ("section", "field"),
+    [
+        ("internalWorkflowFields", "fieldKey"),
+        ("internalWorkflowFields", "label"),
+        ("internalWorkflowFields", "uiGroup"),
+        ("internalWorkflowFields", "sourceKind"),
+        ("internalWorkflowFields", "allowedValues"),
+        ("internalWorkflowFields", "defaultValue"),
+        ("fieldRefs", "fieldKey"),
+        ("fieldRefs", "propertyId"),
+        ("fieldRefs", "uiGroup"),
+        ("fieldRefs", "sourceKind"),
+        ("modelProfiles", "profileId"),
+        ("modelProfiles", "activationRuleIds"),
+        ("entityPolicies", "ifcEntity"),
+        ("entityPolicies", "officialObjectMappingEvidence"),
+        ("entityPolicies", "writePolicy"),
+        ("entityPolicies", "revitCarrier"),
+        ("legacyProjection", "carrier"),
+        ("legacyProjection", "persistenceMode"),
+        ("legacyProjection", "sharedParameterType"),
+        ("legacyProjection", "officialSourceParameterGroup"),
+        ("legacyProjection", "category"),
+        ("legacyProjection", "sourceParameterOverride"),
+        ("exceptions", "fieldKey"),
+        ("exceptions", "reason"),
+    ],
+)
+def test_validate_structure_rejects_whitespace_only_migrated_strings(
+    section, field
+):
+    from tools.build_hbr_rulepack import _validate_structure
+
+    source = _load_source()
+    _set_migrated_string_to_whitespace(source, section, field)
+
+    with pytest.raises(
+        ValueError,
+        match=rf"{field}.*(?:non-empty|whitespace|trimming)",
+    ):
+        _validate_structure(source)
+
+
+@pytest.mark.parametrize(
+    ("section", "field"),
+    [
+        ("legacyProjection", "category"),
+        ("legacyProjection", "sourceParameterOverride"),
+        ("entityPolicies", "revitCarrier"),
+    ],
+)
+@pytest.mark.parametrize("whitespace", ["\n", "\r\n", "\t"])
+def test_validate_structure_rejects_nonempty_whitespace_for_empty_capable_fields(
+    section, field, whitespace
+):
+    from tools.build_hbr_rulepack import _validate_structure
+
+    source = _load_source()
+    _set_migrated_string_to_whitespace(
+        source,
+        section,
+        field,
+        whitespace,
+    )
+
+    with pytest.raises(ValueError, match=rf"{field}.*whitespace"):
+        _validate_structure(source)
+
+
+@pytest.mark.parametrize(
+    ("section", "field"),
+    [
+        ("legacyProjection", "category"),
+        ("legacyProjection", "sourceParameterOverride"),
+        ("entityPolicies", "revitCarrier"),
+    ],
+)
+def test_validate_structure_allows_true_empty_for_empty_capable_fields(
+    section, field
+):
+    from tools.build_hbr_rulepack import _validate_structure
+
+    source = _load_source()
+    _set_migrated_string_to_whitespace(source, section, field, "")
+
+    _validate_structure(source)
 
 
 @pytest.mark.parametrize(

@@ -399,26 +399,32 @@
       ],
       "properties": {
         "category": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^(?!\\s+$)"
         },
         "carrier": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "persistenceMode": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "sharedParameterType": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "officialSourceParameterGroup": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "sourceParameterOverride": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^(?!\\s+$)"
         }
       }
     },
@@ -806,7 +812,8 @@
       ],
       "properties": {
         "profileId": {
-          "type": "string"
+          "type": "string",
+          "pattern": "\\S"
         },
         "taskIds": {
           "type": "array",
@@ -819,7 +826,8 @@
         "activationRuleIds": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "pattern": "\\S"
           },
           "uniqueItems": true,
           "minItems": 1
@@ -856,11 +864,13 @@
       ],
       "properties": {
         "fieldKey": {
-          "type": "string"
+          "type": "string",
+          "pattern": "\\S"
         },
         "propertyId": {
           "type": "string",
-          "format": "uuid"
+          "format": "uuid",
+          "pattern": "\\S"
         },
         "sourceRow": {
           "type": "integer",
@@ -868,11 +878,13 @@
         },
         "uiGroup": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "sourceKind": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "writeInStage01": {
           "type": "boolean"
@@ -894,11 +906,13 @@
       "properties": {
         "fieldKey": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "label": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "type": {
           "enum": [
@@ -911,16 +925,19 @@
         },
         "uiGroup": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "sourceKind": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "allowedValues": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "pattern": "\\S"
           },
           "uniqueItems": true
         },
@@ -928,7 +945,8 @@
           "type": [
             "string",
             "null"
-          ]
+          ],
+          "pattern": "\\S"
         }
       }
     },
@@ -945,18 +963,22 @@
       "properties": {
         "ifcEntity": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "officialObjectMappingEvidence": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "revitCarrier": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^(?!\\s+$)"
         },
         "writePolicy": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "officialExportVerified": {
           "type": "boolean"
@@ -973,7 +995,8 @@
       "properties": {
         "fieldKey": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "reason": {
           "type": "string",

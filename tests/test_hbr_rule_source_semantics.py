@@ -4,6 +4,8 @@ import uuid
 import hashlib
 from pathlib import Path
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_PATH = ROOT / "specs/hbr-rules/v1/source/hbr_rule_source.v1.json"
@@ -41,6 +43,48 @@ PLANNING_TARGET_POLICY_PATH = (
     ROOT / "src/BIMBaoGui.Stage01/Core/PlanningTargetRequirementPolicy.cs"
 )
 
+VERIFIED_INTERNAL_OPTIONAL_FIELD_PRESENCE = {
+    "allowed_values": frozenset(
+        {
+            "HBR|FileIdentity|ModelFileType",
+            "HBR|ProjectUnits|Angle",
+            "HBR|ProjectUnits|Area",
+            "HBR|ProjectUnits|Length",
+            "HBR|Workflow|InitializationStatus",
+        }
+    ),
+    "default": frozenset(
+        {
+            "HBR|ProjectUnits|Angle",
+            "HBR|ProjectUnits|Area",
+            "HBR|ProjectUnits|Length",
+            "HBR|Workflow|Version",
+        }
+    ),
+}
+VERIFIED_POLICY_ENTITIES = frozenset(
+    {
+        "IfcBuilding",
+        "IfcBuildingStorey",
+        "IfcDoor",
+        "IfcDuctSegment",
+        "IfcOrganization",
+        "IfcProject",
+        "IfcSite",
+        "IfcSpace",
+        "IfcSpatialZone",
+    }
+)
+VERIFIED_POLICY_FIELD_PRESENCE = {
+    field: VERIFIED_POLICY_ENTITIES
+    for field in (
+        "officialObjectMappingEvidence",
+        "revitCarrier",
+        "writePolicy",
+        "officialExportVerified",
+    )
+}
+
 
 def _load(path: Path):
     with path.open(encoding="utf-8") as stream:
@@ -68,11 +112,18 @@ def _old_identity(rule):
     )
 
 
+def _compact_csharp_text(source):
+    return " ".join(source.split())
+
+
 def _compact_csharp(path):
-    return " ".join(path.read_text(encoding="utf-8").split())
+    return _compact_csharp_text(path.read_text(encoding="utf-8"))
 
 
-def _assert_legacy_runtime_projection_contracts():
+def _assert_legacy_runtime_projection_contracts(
+    activation_catalog=None,
+    policy_catalog=None,
+):
     registry = _compact_csharp(STAGE01_REGISTRY_PROVIDER_PATH)
     assert (
         "AllowedValues = source.allowed_values ?? Array.Empty<string>()"
@@ -109,7 +160,11 @@ def _assert_legacy_runtime_projection_contracts():
     ):
         assert contract in compatibility
 
-    policy = _compact_csharp(PLANNING_TARGET_POLICY_PATH)
+    policy = (
+        _compact_csharp(PLANNING_TARGET_POLICY_PATH)
+        if policy_catalog is None
+        else _compact_csharp_text(policy_catalog)
+    )
     for contract in (
         "if (PlanningTargetCatalog.Get(metricCode) == null) "
         "return PlanningTargetRequirement.NotApplicable;",
@@ -121,8 +176,20 @@ def _assert_legacy_runtime_projection_contracts():
     ):
         assert contract in policy
 
-    activation = _compact_csharp(RULE_ACTIVATION_CATALOG_PATH)
+    activation = (
+        _compact_csharp(RULE_ACTIVATION_CATALOG_PATH)
+        if activation_catalog is None
+        else _compact_csharp_text(activation_catalog)
+    )
     for contract in (
+        "Activated = (activated ?? Array.Empty<string>())"
+        ".Distinct(StringComparer.Ordinal)"
+        ".OrderBy(x => x, StringComparer.Ordinal).ToArray();",
+        "NotApplicable = (notApplicable ?? Array.Empty<string>())"
+        ".Distinct(StringComparer.Ordinal)"
+        ".OrderBy(x => x, StringComparer.Ordinal).ToArray();",
+        "if (applies) activated.Add(rule.Value); "
+        "else notApplicable.Add(rule.Value);",
         "PlanningTargetRequirement requirement = "
         "PlanningTargetRequirementPolicy.GetRequirement("
         "modelFileType, definition.MetricCode);",
@@ -134,13 +201,56 @@ def _assert_legacy_runtime_projection_contracts():
         assert contract in activation
 
 
+def _assert_optional_presence_for_stable_key(
+    record, stable_key, verified_presence
+):
+    for field, stable_keys_with_field in verified_presence.items():
+        assert (field in record) == (stable_key in stable_keys_with_field)
+
+
+def _assert_verified_legacy_evidence_presence_sets(
+    old_stage01, old_compatibility
+):
+    internal_fields = old_stage01["internal_workflow_fields"]
+    actual_internal_presence = {
+        field: frozenset(
+            item["field_key"] for item in internal_fields if field in item
+        )
+        for field in VERIFIED_INTERNAL_OPTIONAL_FIELD_PRESENCE
+    }
+    assert (
+        actual_internal_presence
+        == VERIFIED_INTERNAL_OPTIONAL_FIELD_PRESENCE
+    )
+
+    entities = old_compatibility["entities"]
+    assert frozenset(entities) == VERIFIED_POLICY_ENTITIES
+    actual_policy_presence = {
+        field: frozenset(
+            ifc_entity
+            for ifc_entity, record in entities.items()
+            if record is not None and field in record
+        )
+        for field in VERIFIED_POLICY_FIELD_PRESENCE
+    }
+    assert actual_policy_presence == VERIFIED_POLICY_FIELD_PRESENCE
+
+
 def _project_internal_field_like_legacy_runtime(legacy):
-    allowed_values = legacy.get("allowed_values")
-    default_value = legacy.get("default")
+    field_key = legacy["field_key"]
+    _assert_optional_presence_for_stable_key(
+        legacy,
+        field_key,
+        VERIFIED_INTERNAL_OPTIONAL_FIELD_PRESENCE,
+    )
+    allowed_values = (
+        legacy["allowed_values"] if "allowed_values" in legacy else None
+    )
+    default_value = legacy["default"] if "default" in legacy else None
     if default_value is None or not default_value.strip():
         default_value = None
     return {
-        "fieldKey": legacy["field_key"],
+        "fieldKey": field_key,
         "label": legacy["property"],
         "type": legacy["type"],
         "uiGroup": legacy["ui_group"],
@@ -151,16 +261,16 @@ def _project_internal_field_like_legacy_runtime(legacy):
 
 
 def _project_official_mapping_like_legacy_runtime(binding, legacy_rule):
-    category = binding.get("category")
-    carrier = binding.get("carrier")
-    persistence_mode = binding.get("persistenceMode")
-    parameter_group = binding.get("officialSourceParameterGroup")
-    shared_parameter_type = legacy_rule["canonical"].get(
+    category = binding["category"]
+    carrier = binding["carrier"]
+    persistence_mode = binding["persistenceMode"]
+    parameter_group = binding["officialSourceParameterGroup"]
+    shared_parameter_type = legacy_rule["canonical"][
         "sharedParameterType"
-    )
-    source_parameter_override = legacy_rule["official"].get(
+    ]
+    source_parameter_override = legacy_rule["official"][
         "sourceParameterOverride"
-    )
+    ]
     return {
         "category": "" if category is None else category.strip(),
         "carrier": "" if carrier is None else carrier,
@@ -183,9 +293,25 @@ def _project_official_mapping_like_legacy_runtime(binding, legacy_rule):
 
 def _project_entity_policy_like_legacy_runtime(ifc_entity, legacy):
     legacy = {} if legacy is None else legacy
-    evidence = legacy.get("officialObjectMappingEvidence")
-    carrier = legacy.get("revitCarrier")
-    write_policy = legacy.get("writePolicy")
+    _assert_optional_presence_for_stable_key(
+        legacy,
+        ifc_entity,
+        VERIFIED_POLICY_FIELD_PRESENCE,
+    )
+    evidence = (
+        legacy["officialObjectMappingEvidence"]
+        if "officialObjectMappingEvidence" in legacy
+        else None
+    )
+    carrier = legacy["revitCarrier"] if "revitCarrier" in legacy else None
+    write_policy = (
+        legacy["writePolicy"] if "writePolicy" in legacy else None
+    )
+    export_verified = (
+        legacy["officialExportVerified"]
+        if "officialExportVerified" in legacy
+        else False
+    )
     return {
         "ifcEntity": ifc_entity,
         "officialObjectMappingEvidence": (
@@ -197,16 +323,14 @@ def _project_entity_policy_like_legacy_runtime(ifc_entity, legacy):
             if write_policy is None
             else write_policy
         ),
-        "officialExportVerified": legacy.get(
-            "officialExportVerified", False
-        ),
+        "officialExportVerified": export_verified,
     }
 
 
 def test_legacy_projection_oracle_models_runtime_null_and_whitespace_semantics():
     _assert_legacy_runtime_projection_contracts()
     internal = {
-        "field_key": "HBR|Workflow|Synthetic",
+        "field_key": "HBR|ProjectUnits|Length",
         "property": "Synthetic",
         "type": "string",
         "ui_group": "Synthetic",
@@ -215,7 +339,7 @@ def test_legacy_projection_oracle_models_runtime_null_and_whitespace_semantics()
         "default": "   ",
     }
     assert _project_internal_field_like_legacy_runtime(internal) == {
-        "fieldKey": "HBR|Workflow|Synthetic",
+        "fieldKey": "HBR|ProjectUnits|Length",
         "label": "Synthetic",
         "type": "string",
         "uiGroup": "Synthetic",
@@ -253,49 +377,284 @@ def test_legacy_projection_oracle_models_runtime_null_and_whitespace_semantics()
     }
 
 
-def _legacy_fixed_activation_rule_ids():
-    _assert_legacy_runtime_projection_contracts()
-    activation_catalog = RULE_ACTIVATION_CATALOG_PATH.read_text(encoding="utf-8")
-    planning_catalog = PLANNING_TARGET_CATALOG_PATH.read_text(encoding="utf-8")
-    profile_constants = {
-        "总平模型": "SiteModel",
-        "单体建筑—地上": "AboveGroundModel",
-        "单体建筑—地下": "UndergroundModel",
+def test_legacy_equivalence_oracle_rejects_missing_binding_category():
+    bindings = _load(OLD_BINDINGS_PATH)["bindings"]
+    rules_by_id = {
+        item["propertyId"]: item
+        for item in _load(OLD_OFFICIAL_PATH)["properties"]
     }
-    target_ids = {
-        "HBR.TARGET." + metric.removeprefix("planning.").upper()
-        for metric in re.findall(
-            r'public const string \w+Code = "(planning\.[^"]+)";',
-            planning_catalog,
+    binding = dict(bindings[0])
+    binding.pop("category")
+    with pytest.raises((KeyError, AssertionError)):
+        _project_official_mapping_like_legacy_runtime(
+            binding,
+            rules_by_id[binding["propertyId"]],
         )
+
+
+def test_legacy_equivalence_oracle_rejects_missing_registry_allowed_values():
+    internal = next(
+        dict(item)
+        for item in _load(OLD_STAGE01_PATH)["internal_workflow_fields"]
+        if item["field_key"] == "HBR|FileIdentity|ModelFileType"
+    )
+    internal.pop("allowed_values")
+    with pytest.raises((KeyError, AssertionError)):
+        _project_internal_field_like_legacy_runtime(internal)
+
+
+def test_legacy_equivalence_oracle_rejects_missing_policy_export_flag():
+    policy = dict(_load(OLD_COMPATIBILITY_PATH)["entities"]["IfcProject"])
+    policy.pop("officialExportVerified")
+    with pytest.raises((KeyError, AssertionError)):
+        _project_entity_policy_like_legacy_runtime("IfcProject", policy)
+
+
+def test_legacy_evidence_presence_sets_match_verified_shapes():
+    _assert_verified_legacy_evidence_presence_sets(
+        _load(OLD_STAGE01_PATH),
+        _load(OLD_COMPATIBILITY_PATH),
+    )
+
+
+def test_legacy_activation_oracle_is_extracted_from_current_csharp_structure():
+    expected = {
+        profile["profileId"]: profile["activationRuleIds"]
+        for profile in _load(SOURCE_PATH)["modelProfiles"]
     }
-    assert target_ids == {
-        "HBR.TARGET.BUILDING_DENSITY",
-        "HBR.TARGET.FLOOR_AREA_RATIO",
-        "HBR.TARGET.GREEN_RATE",
+    assert _legacy_fixed_activation_rule_ids(
+        activation_catalog=RULE_ACTIVATION_CATALOG_PATH.read_text(
+            encoding="utf-8"
+        ),
+        policy_catalog=PLANNING_TARGET_POLICY_PATH.read_text(
+            encoding="utf-8"
+        ),
+        planning_catalog=PLANNING_TARGET_CATALOG_PATH.read_text(
+            encoding="utf-8"
+        ),
+        expected=expected,
+    ) == expected
+
+
+def test_legacy_activation_oracle_rejects_csharp_structure_drift():
+    expected = {
+        profile["profileId"]: profile["activationRuleIds"]
+        for profile in _load(SOURCE_PATH)["modelProfiles"]
     }
-    target_requirement_by_profile_constant = {
+    activation_catalog = RULE_ACTIVATION_CATALOG_PATH.read_text(
+        encoding="utf-8"
+    )
+    policy_catalog = PLANNING_TARGET_POLICY_PATH.read_text(encoding="utf-8")
+    planning_catalog = PLANNING_TARGET_CATALOG_PATH.read_text(
+        encoding="utf-8"
+    )
+    mutations = (
+        {
+            "activation_catalog": activation_catalog.replace(
+                '        activated.Add("HBR.SITE.BASE");\n',
+                "",
+                1,
+            ),
+            "policy_catalog": policy_catalog,
+            "planning_catalog": planning_catalog,
+        },
+        {
+            "activation_catalog": activation_catalog,
+            "policy_catalog": policy_catalog.replace(
+                '    public const string SiteModel = "总平模型";\n',
+                "",
+                1,
+            ),
+            "planning_catalog": planning_catalog,
+        },
+        {
+            "activation_catalog": activation_catalog,
+            "policy_catalog": policy_catalog,
+            "planning_catalog": planning_catalog.replace(
+                '    public const string GreenRateCode = '
+                '"planning.green_rate";\n',
+                "",
+                1,
+            ),
+        },
+    )
+    assert all(
+        mutation["activation_catalog"] != activation_catalog
+        or mutation["policy_catalog"] != policy_catalog
+        or mutation["planning_catalog"] != planning_catalog
+        for mutation in mutations
+    )
+    for mutation in mutations:
+        with pytest.raises(AssertionError):
+            _legacy_fixed_activation_rule_ids(
+                **mutation,
+                expected=expected,
+            )
+
+
+@pytest.mark.parametrize(
+    ("legacy_contract", "drifted_contract"),
+    (
+        (
+            ".OrderBy(x => x, StringComparer.Ordinal)",
+            ".OrderByDescending(x => x, StringComparer.Ordinal)",
+        ),
+        (".ToUpperInvariant()", ".ToLowerInvariant()"),
+        (
+            "else notApplicable.Add(rule.Value);",
+            "else activated.Add(rule.Value);",
+        ),
+    ),
+)
+def test_legacy_activation_oracle_rejects_runtime_projection_drift(
+    legacy_contract,
+    drifted_contract,
+):
+    expected = {
+        profile["profileId"]: profile["activationRuleIds"]
+        for profile in _load(SOURCE_PATH)["modelProfiles"]
+    }
+    activation_catalog = RULE_ACTIVATION_CATALOG_PATH.read_text(
+        encoding="utf-8"
+    )
+    drifted_activation_catalog = activation_catalog.replace(
+        legacy_contract,
+        drifted_contract,
+    )
+    assert drifted_activation_catalog != activation_catalog
+
+    with pytest.raises(AssertionError):
+        _legacy_fixed_activation_rule_ids(
+            activation_catalog=drifted_activation_catalog,
+            policy_catalog=PLANNING_TARGET_POLICY_PATH.read_text(
+                encoding="utf-8"
+            ),
+            planning_catalog=PLANNING_TARGET_CATALOG_PATH.read_text(
+                encoding="utf-8"
+            ),
+            expected=expected,
+        )
+
+
+def _legacy_fixed_activation_rule_ids(
+    expected,
+    activation_catalog=None,
+    policy_catalog=None,
+    planning_catalog=None,
+):
+    if activation_catalog is None:
+        activation_catalog = RULE_ACTIVATION_CATALOG_PATH.read_text(
+            encoding="utf-8"
+        )
+    if policy_catalog is None:
+        policy_catalog = PLANNING_TARGET_POLICY_PATH.read_text(
+            encoding="utf-8"
+        )
+    if planning_catalog is None:
+        planning_catalog = PLANNING_TARGET_CATALOG_PATH.read_text(
+            encoding="utf-8"
+        )
+    _assert_legacy_runtime_projection_contracts(
+        activation_catalog=activation_catalog,
+        policy_catalog=policy_catalog,
+    )
+
+    model_constant_matches = re.findall(
+        r'^\s*public const string (\w+Model) = "([^"]+)";\s*$',
+        policy_catalog,
+        flags=re.MULTILINE,
+    )
+    model_constants = dict(model_constant_matches)
+    assert len(model_constant_matches) == len(model_constants) == 3
+    assert set(model_constants) == {
+        "SiteModel",
+        "AboveGroundModel",
+        "UndergroundModel",
+    }
+    assert len(set(model_constants.values())) == 3
+
+    branch_pattern = re.compile(
+        r'(?:if|else\s+if)\s*\(\s*string\.Equals\('
+        r'\s*modelFileType,\s*PlanningTargetRequirementPolicy\.(\w+),'
+        r'\s*StringComparison\.Ordinal\s*\)\s*\)\s*\{(.*?)\}',
+        flags=re.DOTALL,
+    )
+    branch_matches = branch_pattern.findall(activation_catalog)
+    assert len(branch_matches) == 3
+    assert {constant for constant, _ in branch_matches} == set(
+        model_constants
+    )
+    add_pattern = re.compile(r'activated\.Add\("([^"]+)"\);')
+    fixed_ids_by_constant = {}
+    for constant, body in branch_matches:
+        fixed_ids = add_pattern.findall(body)
+        assert fixed_ids
+        assert len(fixed_ids) == len(set(fixed_ids))
+        assert not add_pattern.sub("", body).strip()
+        fixed_ids_by_constant[constant] = set(fixed_ids)
+
+    metric_constant_matches = re.findall(
+        r'^\s*public const string (\w+Code) = "(planning\.[a-z0-9_]+)";\s*$',
+        planning_catalog,
+        flags=re.MULTILINE,
+    )
+    metric_constants = dict(metric_constant_matches)
+    assert len(metric_constant_matches) == len(metric_constants) == 3
+    assert set(metric_constants) == {
+        "BuildingDensityCode",
+        "FloorAreaRatioCode",
+        "GreenRateCode",
+    }
+    definition_constants = re.findall(
+        r'new PlanningTargetDefinition\(\s*(\w+Code),',
+        planning_catalog,
+    )
+    assert len(definition_constants) == 3
+    assert set(definition_constants) == set(metric_constants)
+    target_ids = {
+        "HBR.TARGET." + metric[len("planning.") :].upper()
+        for metric in metric_constants.values()
+    }
+
+    site_requirement = re.search(
+        r'if\s*\(\s*string\.Equals\(modelFileType,\s*SiteModel,'
+        r'\s*StringComparison\.Ordinal\)\s*\)\s*'
+        r'return PlanningTargetRequirement\.(\w+);',
+        policy_catalog,
+    )
+    inherited_requirement = re.search(
+        r'if\s*\(\s*string\.Equals\(modelFileType,\s*AboveGroundModel,'
+        r'\s*StringComparison\.Ordinal\)\s*\|\|\s*'
+        r'string\.Equals\(modelFileType,\s*UndergroundModel,'
+        r'\s*StringComparison\.Ordinal\)\s*\)\s*'
+        r'return PlanningTargetRequirement\.(\w+);',
+        policy_catalog,
+    )
+    assert site_requirement is not None
+    assert inherited_requirement is not None
+    target_requirement_by_constant = {
+        "SiteModel": site_requirement.group(1),
+        "AboveGroundModel": inherited_requirement.group(1),
+        "UndergroundModel": inherited_requirement.group(1),
+    }
+    assert target_requirement_by_constant == {
         "SiteModel": "Required",
         "AboveGroundModel": "Inherited",
         "UndergroundModel": "Inherited",
     }
 
     result = {}
-    for profile_id, constant in profile_constants.items():
-        marker = f"PlanningTargetRequirementPolicy.{constant}"
-        marker_index = activation_catalog.index(marker)
-        block_start = activation_catalog.index("{", marker_index)
-        block_end = activation_catalog.index("}", block_start)
-        branch = activation_catalog[block_start:block_end]
-        fixed_ids = set(re.findall(r'activated\.Add\("([^"]+)"\);', branch))
-        assert fixed_ids
+    for constant, profile_id in model_constants.items():
         applicable_target_ids = (
             set()
-            if target_requirement_by_profile_constant[constant]
+            if target_requirement_by_constant[constant]
             == "NotApplicable"
             else target_ids
         )
-        result[profile_id] = sorted(fixed_ids | applicable_target_ids)
+        result[profile_id] = sorted(
+            fixed_ids_by_constant[constant] | applicable_target_ids
+        )
+    assert result == expected
     return result
 
 
@@ -306,6 +665,10 @@ def test_migrated_metadata_is_exactly_equivalent_to_legacy_resources():
     old_rules = _load(OLD_OFFICIAL_PATH)
     old_bindings = _load(OLD_BINDINGS_PATH)
     old_compatibility = _load(OLD_COMPATIBILITY_PATH)
+    _assert_verified_legacy_evidence_presence_sets(
+        old_stage01,
+        old_compatibility,
+    )
 
     expected_internal = {}
     for legacy in old_stage01["internal_workflow_fields"]:
@@ -385,11 +748,13 @@ def test_migrated_metadata_is_exactly_equivalent_to_legacy_resources():
     }
     assert actual_exceptions == expected_exceptions
 
-    expected_activation = _legacy_fixed_activation_rule_ids()
     actual_activation = {
         profile["profileId"]: profile["activationRuleIds"]
         for profile in source["modelProfiles"]
     }
+    expected_activation = _legacy_fixed_activation_rule_ids(
+        expected=actual_activation
+    )
     assert actual_activation == expected_activation
 
 

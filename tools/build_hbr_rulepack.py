@@ -428,7 +428,18 @@ def _expect_array(value, path, minimum=0, unique=False):
 def _expect_string(value, path, nonempty=False):
     _require(type(value) is str, f"{path} must be a string")
     if nonempty:
-        _require(bool(value), f"{path} must be a non-empty string")
+        _require(
+            bool(value.strip()),
+            f"{path} must be a non-empty string after trimming",
+        )
+
+
+def _expect_empty_or_nonblank_string(value, path):
+    _expect_string(value, path)
+    _require(
+        value == "" or bool(value.strip()),
+        f"{path} must be empty or contain non-whitespace characters",
+    )
 
 
 def _expect_nullable_string(value, path):
@@ -443,10 +454,14 @@ def _expect_boolean(value, path):
     _require(type(value) is bool, f"{path} must be a boolean")
 
 
-def _expect_string_array(value, path, minimum=0):
+def _expect_string_array(value, path, minimum=0, nonempty_items=False):
     _expect_array(value, path, minimum=minimum, unique=True)
     for index, item in enumerate(value):
-        _expect_string(item, f"{path}[{index}]")
+        _expect_string(
+            item,
+            f"{path}[{index}]",
+            nonempty=nonempty_items,
+        )
 
 
 def _validate_evidence_shape(evidence, path):
@@ -474,9 +489,15 @@ def _validate_legacy_projection_shape(projection, path):
         "sharedParameterType",
         "officialSourceParameterGroup",
     ):
-        _require(
-            bool(projection[key]),
-            f"{path}.{key} must be a non-empty string",
+        _expect_string(
+            projection[key],
+            f"{path}.{key}",
+            nonempty=True,
+        )
+    for key in ("category", "sourceParameterOverride"):
+        _expect_empty_or_nonblank_string(
+            projection[key],
+            f"{path}.{key}",
         )
 
 
@@ -688,6 +709,7 @@ def _validate_structure(source):
             profile["activationRuleIds"],
             f"{migrated_path}.activationRuleIds",
             minimum=1,
+            nonempty_items=True,
         )
 
     for index, condition in enumerate(source["conditions"]):
@@ -750,8 +772,18 @@ def _validate_structure(source):
         _expect_object(field, path, required=_INTERNAL_WORKFLOW_FIELD_FIELDS)
         for key in ("fieldKey", "label", "type", "uiGroup", "sourceKind"):
             _expect_string(field[key], f"{path}.{key}", nonempty=True)
-        _expect_string_array(field["allowedValues"], f"{path}.allowedValues")
+        _expect_string_array(
+            field["allowedValues"],
+            f"{path}.allowedValues",
+            nonempty_items=True,
+        )
         _expect_nullable_string(field["defaultValue"], f"{path}.defaultValue")
+        if field["defaultValue"] is not None:
+            _expect_string(
+                field["defaultValue"],
+                f"{path}.defaultValue",
+                nonempty=True,
+            )
 
     compatibility = stage01["officialPluginCompatibility"]
     compatibility_path = f"{migrated_stage01}.officialPluginCompatibility"
@@ -770,7 +802,10 @@ def _validate_structure(source):
         _expect_object(policy, path, required=_ENTITY_POLICY_FIELDS)
         for key in ("ifcEntity", "officialObjectMappingEvidence", "writePolicy"):
             _expect_string(policy[key], f"{path}.{key}", nonempty=True)
-        _expect_string(policy["revitCarrier"], f"{path}.revitCarrier")
+        _expect_empty_or_nonblank_string(
+            policy["revitCarrier"],
+            f"{path}.revitCarrier",
+        )
         _expect_boolean(
             policy["officialExportVerified"],
             f"{path}.officialExportVerified",

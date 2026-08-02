@@ -327,3 +327,130 @@ def test_schema_rejects_blank_official_plugin_exception_reason():
     errors = list(jsonschema.Draft202012Validator(schema).iter_errors(candidate))
 
     assert errors
+
+
+def _set_migrated_string_to_whitespace(
+    candidate, section, field, value="   "
+):
+    if section == "internalWorkflowFields" and field == "allowedValues":
+        item = next(
+            item
+            for item in candidate["stage01"][section]
+            if item[field]
+        )
+        item[field][0] = value
+        return
+    if section == "internalWorkflowFields" and field == "defaultValue":
+        item = next(
+            item
+            for item in candidate["stage01"][section]
+            if item[field] is not None
+        )
+        item[field] = value
+        return
+    if section in {"internalWorkflowFields", "fieldRefs"}:
+        candidate["stage01"][section][0][field] = value
+        return
+    if section == "modelProfiles" and field == "activationRuleIds":
+        candidate[section][0][field][0] = value
+        return
+    if section == "modelProfiles":
+        candidate[section][0][field] = value
+        return
+    if section in {"entityPolicies", "exceptions"}:
+        candidate["stage01"]["officialPluginCompatibility"][section][0][
+            field
+        ] = value
+        return
+    if section == "legacyProjection":
+        official = next(
+            rule
+            for rule in candidate["properties"]
+            if rule["officialPlugin"]["inExtracted166"]
+        )
+        official["officialPlugin"][section][field] = value
+        return
+    raise AssertionError(f"unknown migrated section: {section}")
+
+
+@pytest.mark.parametrize(
+    ("section", "field"),
+    [
+        ("internalWorkflowFields", "fieldKey"),
+        ("internalWorkflowFields", "label"),
+        ("internalWorkflowFields", "uiGroup"),
+        ("internalWorkflowFields", "sourceKind"),
+        ("internalWorkflowFields", "allowedValues"),
+        ("internalWorkflowFields", "defaultValue"),
+        ("fieldRefs", "fieldKey"),
+        ("fieldRefs", "propertyId"),
+        ("fieldRefs", "uiGroup"),
+        ("fieldRefs", "sourceKind"),
+        ("modelProfiles", "profileId"),
+        ("modelProfiles", "activationRuleIds"),
+        ("entityPolicies", "ifcEntity"),
+        ("entityPolicies", "officialObjectMappingEvidence"),
+        ("entityPolicies", "writePolicy"),
+        ("entityPolicies", "revitCarrier"),
+        ("legacyProjection", "carrier"),
+        ("legacyProjection", "persistenceMode"),
+        ("legacyProjection", "sharedParameterType"),
+        ("legacyProjection", "officialSourceParameterGroup"),
+        ("legacyProjection", "category"),
+        ("legacyProjection", "sourceParameterOverride"),
+        ("exceptions", "fieldKey"),
+        ("exceptions", "reason"),
+    ],
+)
+def test_schema_rejects_whitespace_only_migrated_strings(section, field):
+    schema = _load(SCHEMA_PATH)
+    candidate = copy.deepcopy(_load(SOURCE_PATH))
+    _set_migrated_string_to_whitespace(candidate, section, field)
+
+    errors = list(jsonschema.Draft202012Validator(schema).iter_errors(candidate))
+
+    assert errors
+
+
+@pytest.mark.parametrize(
+    ("section", "field"),
+    [
+        ("legacyProjection", "category"),
+        ("legacyProjection", "sourceParameterOverride"),
+        ("entityPolicies", "revitCarrier"),
+    ],
+)
+@pytest.mark.parametrize("whitespace", ["\n", "\r\n", "\t"])
+def test_schema_rejects_nonempty_whitespace_for_empty_capable_fields(
+    section, field, whitespace
+):
+    schema = _load(SCHEMA_PATH)
+    candidate = copy.deepcopy(_load(SOURCE_PATH))
+    _set_migrated_string_to_whitespace(
+        candidate,
+        section,
+        field,
+        whitespace,
+    )
+
+    errors = list(jsonschema.Draft202012Validator(schema).iter_errors(candidate))
+
+    assert errors
+
+
+@pytest.mark.parametrize(
+    ("section", "field"),
+    [
+        ("legacyProjection", "category"),
+        ("legacyProjection", "sourceParameterOverride"),
+        ("entityPolicies", "revitCarrier"),
+    ],
+)
+def test_schema_allows_true_empty_for_empty_capable_fields(section, field):
+    schema = _load(SCHEMA_PATH)
+    candidate = copy.deepcopy(_load(SOURCE_PATH))
+    _set_migrated_string_to_whitespace(candidate, section, field, "")
+
+    errors = list(jsonschema.Draft202012Validator(schema).iter_errors(candidate))
+
+    assert not errors
