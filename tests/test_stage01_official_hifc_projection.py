@@ -54,3 +54,11 @@ def test_stage01_projection_runs_explicitly_inside_initialization_transaction():
     assert "using (var transaction = new Transaction" in revit_service
     assert "group.RollBack()" in revit_service
     assert "待官方重新导出验收" in revit_service
+
+
+def test_parameter_binding_failures_identify_operation_and_projection():
+    projection = read("src/BIMBaoGui.Stage01/Revit/OfficialParameterProjectionService.cs")
+    assert "BINDING_INSERT_FAILED" in projection
+    assert "BINDING_REINSERT_FAILED" in projection
+    assert "projection.Guid.ToString(\"D\")" in projection
+    assert "projection.Mapping.Category" in projection

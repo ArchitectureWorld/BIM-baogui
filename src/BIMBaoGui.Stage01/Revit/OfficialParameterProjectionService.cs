@@ -295,18 +295,45 @@ namespace BIMBaoGui.Stage01.Revit
           Binding binding = projection.Mapping.IsTypeBinding
             ? (Binding)application.Create.NewTypeBinding(categories)
             : application.Create.NewInstanceBinding(categories);
-          bool inserted = document.ParameterBindings.Insert(
-            definition,
-            binding,
-            BuiltInParameterGroup.PG_DATA);
+          bool inserted;
+          try
+          {
+            inserted = document.ParameterBindings.Insert(
+              definition,
+              binding,
+              BuiltInParameterGroup.PG_DATA);
+          }
+          catch (Exception exception)
+          {
+            throw BindingFailure(
+              "BINDING_INSERT_FAILED",
+              projection,
+              exception);
+          }
           if (inserted)
             installed++;
           else
           {
-            document.ParameterBindings.ReInsert(
-              definition,
-              binding,
-              BuiltInParameterGroup.PG_DATA);
+            bool reinserted;
+            try
+            {
+              reinserted = document.ParameterBindings.ReInsert(
+                definition,
+                binding,
+                BuiltInParameterGroup.PG_DATA);
+            }
+            catch (Exception exception)
+            {
+              throw BindingFailure(
+                "BINDING_REINSERT_FAILED",
+                projection,
+                exception);
+            }
+            if (!reinserted)
+              throw BindingFailure(
+                "BINDING_REINSERT_FAILED",
+                projection,
+                new InvalidOperationException("ReInsert 返回 false。"));
             rebound++;
           }
         }
@@ -322,6 +349,22 @@ namespace BIMBaoGui.Stage01.Revit
         application.SharedParametersFilename = previous;
         try { File.Delete(temporary); } catch { }
       }
+    }
+
+    private static InvalidOperationException BindingFailure(
+      string code,
+      ProjectionWrite projection,
+      Exception exception)
+    {
+      return new InvalidOperationException(
+        code
+        + "：参数=" + projection.Name
+        + "；GUID=" + projection.Guid.ToString("D")
+        + "；类别=" + projection.Mapping.Category
+        + "；投影=" + projection.Kind
+        + "；原始异常=" + exception.GetType().FullName
+        + "：" + exception.Message,
+        exception);
     }
 
     private static string BuildCombinedSharedParameterFile(
