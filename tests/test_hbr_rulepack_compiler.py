@@ -21,6 +21,14 @@ def _load_source():
     return json.loads(SOURCE_PATH.read_text(encoding="utf-8"))
 
 
+def _ifc_identity(rule):
+    return (
+        rule["ifc"]["entity"],
+        rule["ifc"]["propertySet"],
+        rule["ifc"]["property"],
+    )
+
+
 def _duplicate_parameter_guid(source):
     source["properties"][1]["revit"]["parameterGuid"] = source["properties"][0][
         "revit"
@@ -343,6 +351,61 @@ def test_compile_rulepack_is_deterministic_and_has_a_verified_header(tmp_path):
     assert payload_length == len(payload) == len(expected_payload)
     assert payload_hash == hashlib.sha256(payload).digest()
     assert payload == expected_payload
+
+
+def test_mvd_identity_must_not_duplicate_a_verified_extension_identity():
+    from tools.build_hbr_rulepack import validate_semantics
+
+    source = _load_source()
+    stage01_ids = {
+        reference["propertyId"] for reference in source["stage01"]["fieldRefs"]
+    }
+    role_use_counts = {
+        role["roleId"]: sum(
+            role["roleId"] in rule["carrierRoleIds"]
+            for rule in source["properties"]
+        )
+        for role in source["carrierRoles"]
+    }
+    extension = next(
+        rule
+        for rule in source["properties"]
+        if rule["contractKind"] == "HIFC_EXTENSION"
+        and rule["ifc"]["entity"] == "IfcSpace"
+    )
+    target = next(
+        rule
+        for rule in source["properties"]
+        if rule["contractKind"] == "MVD"
+        and not rule["officialPlugin"]["inExtracted166"]
+        and rule["propertyId"] not in stage01_ids
+        and role_use_counts[rule["carrierRoleIds"][0]] > 1
+    )
+
+    source_contract = copy.deepcopy(extension["source"])
+    for field in ("artifact", "sheet", "row"):
+        source_contract[field] = target["source"][field]
+    parameter_guid = target["revit"]["parameterGuid"]
+    target["source"] = source_contract
+    target["ifc"] = copy.deepcopy(extension["ifc"])
+    target["revit"] = copy.deepcopy(extension["revit"])
+    target["revit"]["parameterGuid"] = parameter_guid
+    target["carrierRoleIds"] = copy.deepcopy(extension["carrierRoleIds"])
+    target["suggestion"] = copy.deepcopy(extension["suggestion"])
+    target["ifcWrite"] = copy.deepcopy(extension["ifcWrite"])
+
+    mvd_identities = [
+        _ifc_identity(rule)
+        for rule in source["properties"]
+        if rule["contractKind"] == "MVD"
+    ]
+    all_identities = [_ifc_identity(rule) for rule in source["properties"]]
+    assert len(mvd_identities) == len(set(mvd_identities)) == 356
+    assert len(all_identities) == 359
+    assert len(set(all_identities)) == 358
+
+    with pytest.raises(ValueError, match="all property IFC identity"):
+        validate_semantics(source)
 
 
 def test_cli_compiles_to_a_path_with_spaces(tmp_path):

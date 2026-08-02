@@ -679,6 +679,17 @@ def validate_semantics(source):
         len(set(mvd_identities)) == 356,
         "MVD IFC identity set must contain exactly 356 identities",
     )
+    all_property_identities = [
+        (
+            rule["ifc"]["entity"],
+            rule["ifc"]["propertySet"]
+            if rule["ifc"]["propertySet"].startswith("Pset_")
+            else f"Pset_{rule['ifc']['propertySet']}",
+            rule["ifc"]["property"],
+        )
+        for rule in properties
+    ]
+    _require_unique(all_property_identities, "all property IFC identity")
     _require(
         {rule["ifc"]["entity"] for rule in mvd_rules} <= _MVD_ENTITIES,
         "MVD ifc.entity contains an unsupported value",
