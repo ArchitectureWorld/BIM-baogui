@@ -31,7 +31,8 @@
       "format": "uuid"
     },
     "evidenceSources": {
-      "type": "array"
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidenceSourceContract" }
     },
     "properties": {
       "type": "array",
@@ -40,10 +41,12 @@
       }
     },
     "carrierRoles": {
-      "type": "array"
+      "type": "array",
+      "items": { "$ref": "#/$defs/carrierRoleContract" }
     },
     "modelProfiles": {
-      "type": "array"
+      "type": "array",
+      "items": { "$ref": "#/$defs/modelProfileContract" }
     },
     "conditions": {
       "type": "array",
@@ -58,10 +61,11 @@
       }
     },
     "legacyAliases": {
-      "type": "array"
+      "type": "array",
+      "items": { "$ref": "#/$defs/legacyAliasContract" }
     },
     "stage01": {
-      "type": "object"
+      "$ref": "#/$defs/stage01Contract"
     }
   },
   "$defs": {
@@ -430,6 +434,13 @@
           "type": "string"
         }
       }
-    }
+    },
+    "evidenceSourceContract": { "type": "object", "additionalProperties": false, "required": ["source"], "properties": { "source": {"type":"string"}, "sheet": {"type":"string"}, "range": {"type":"string"}, "count": {"type":"integer"} } },
+    "cardinalityContract": { "type": "object", "additionalProperties": false, "required": ["min","max"], "properties": { "min": {"type":"integer","minimum":0}, "max": {"type":["integer","null"],"minimum":0} } },
+    "carrierRoleContract": { "type":"object", "additionalProperties":false, "required":["roleId","displayName","modelFileTypes","ifcEntity","revitCategories","allowedElementKinds","nameAliases","familyAliases","typeAliases","cardinality","selectionPolicy","ifcOwnerStrategy"], "properties": { "roleId":{"type":"string"},"displayName":{"type":"string"},"modelFileTypes":{"type":"array","items":{"type":"string"}},"ifcEntity":{"type":"string"},"revitCategories":{"type":"array","items":{"type":"string"}},"allowedElementKinds":{"type":"array","items":{"type":"string"}},"nameAliases":{"type":"array","items":{"type":"string"}},"familyAliases":{"type":"array","items":{"type":"string"}},"typeAliases":{"type":"array","items":{"type":"string"}},"cardinality":{"$ref":"#/$defs/cardinalityContract"},"selectionPolicy":{"type":"string"},"ifcOwnerStrategy":{"type":"string"} } },
+    "modelProfileContract": { "type":"object", "additionalProperties":false, "required":["profileId","taskIds"], "properties": {"profileId":{"type":"string"},"taskIds":{"type":"array","items":{"type":"string"}}} },
+    "legacyAliasContract": { "type":"object", "additionalProperties":false, "required":["propertyId","alias"], "properties":{"propertyId":{"type":"string","format":"uuid"},"alias":{"type":"string"}} },
+    "stage01FieldRefContract": { "type":"object", "additionalProperties":false, "required":["fieldKey","propertyId","sourceRow"], "properties":{"fieldKey":{"type":"string"},"propertyId":{"type":"string","format":"uuid"},"sourceRow":{"type":"integer","minimum":2}} },
+    "stage01Contract": { "type":"object", "additionalProperties":false, "required":["fieldRefs"], "properties":{"fieldRefs":{"type":"array","items":{"$ref":"#/$defs/stage01FieldRefContract"}}} }
   }
 }

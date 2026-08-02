@@ -133,3 +133,17 @@ def test_schema_closes_source_official_task_and_condition_contracts():
     assert schema["$defs"]["officialPluginContract"]["additionalProperties"] is False
     assert schema["$defs"]["taskContract"]["additionalProperties"] is False
     assert schema["$defs"]["conditionContract"]["additionalProperties"] is False
+
+
+def test_schema_closes_all_top_level_collection_item_contracts():
+    schema = _load(SCHEMA_PATH)
+    for definition in (
+        "evidenceSourceContract", "carrierRoleContract", "cardinalityContract",
+        "modelProfileContract", "legacyAliasContract", "stage01Contract", "stage01FieldRefContract",
+    ):
+        assert schema["$defs"][definition]["additionalProperties"] is False
+    assert schema["properties"]["evidenceSources"]["items"] == {"$ref": "#/$defs/evidenceSourceContract"}
+    assert schema["properties"]["carrierRoles"]["items"] == {"$ref": "#/$defs/carrierRoleContract"}
+    assert schema["properties"]["modelProfiles"]["items"] == {"$ref": "#/$defs/modelProfileContract"}
+    assert schema["properties"]["legacyAliases"]["items"] == {"$ref": "#/$defs/legacyAliasContract"}
+    assert schema["properties"]["stage01"] == {"$ref": "#/$defs/stage01Contract"}
