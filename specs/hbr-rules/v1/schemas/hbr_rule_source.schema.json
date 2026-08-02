@@ -32,7 +32,11 @@
     },
     "evidenceSources": {
       "type": "array",
-      "items": { "$ref": "#/$defs/evidenceSourceContract" }
+      "items": {
+        "$ref": "#/$defs/evidenceSourceContract"
+      },
+      "minItems": 1,
+      "uniqueItems": true
     },
     "properties": {
       "type": "array",
@@ -42,27 +46,43 @@
     },
     "carrierRoles": {
       "type": "array",
-      "items": { "$ref": "#/$defs/carrierRoleContract" }
+      "items": {
+        "$ref": "#/$defs/carrierRoleContract"
+      },
+      "minItems": 1,
+      "uniqueItems": true
     },
     "modelProfiles": {
       "type": "array",
-      "items": { "$ref": "#/$defs/modelProfileContract" }
+      "items": {
+        "$ref": "#/$defs/modelProfileContract"
+      },
+      "minItems": 1,
+      "uniqueItems": true
     },
     "conditions": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/conditionContract"
-      }
+      },
+      "minItems": 1,
+      "uniqueItems": true
     },
     "tasks": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/taskContract"
-      }
+      },
+      "minItems": 1,
+      "uniqueItems": true
     },
     "legacyAliases": {
       "type": "array",
-      "items": { "$ref": "#/$defs/legacyAliasContract" }
+      "items": {
+        "$ref": "#/$defs/legacyAliasContract"
+      },
+      "minItems": 1,
+      "uniqueItems": true
     },
     "stage01": {
       "$ref": "#/$defs/stage01Contract"
@@ -113,23 +133,33 @@
           "$ref": "#/$defs/officialPluginContract"
         },
         "carrierRoleIds": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
         },
         "requirement": {
-          "type": "object"
+          "$ref": "#/$defs/requirementContract"
         },
         "stageOwnership": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "enum": [
+              "STAGE01",
+              "STAGE02",
+              "STAGE03"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1
         },
         "suggestion": {
-          "type": "object",
-          "required": [
-            "kind",
-            "aliases"
-          ]
+          "$ref": "#/$defs/suggestionContract"
         },
         "ifcWrite": {
-          "type": "object"
+          "$ref": "#/$defs/ifcWriteContract"
         },
         "extensionReason": {
           "type": "string"
@@ -249,7 +279,12 @@
           ]
         },
         "allowedRuntimeTypes": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
         }
       }
     },
@@ -275,7 +310,12 @@
           "type": "string"
         },
         "legacyNames": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
         },
         "visible": {
           "type": "boolean"
@@ -351,7 +391,10 @@
           "type": "string"
         },
         "requirement": {
-          "type": "string"
+          "enum": [
+            "REQUIRED",
+            "CONDITIONAL"
+          ]
         },
         "conditionId": {
           "type": [
@@ -369,36 +412,66 @@
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "uniqueItems": true
         },
         "dependencies": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "uniqueItems": true
         },
         "geometryChecks": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "uniqueItems": true
         },
         "propertyChecks": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "uniqueItems": true
         },
         "targetComparisons": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "uniqueItems": true
         },
         "source": {
           "type": "string"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "requirement": {
+                "const": "CONDITIONAL"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "conditionId": {
+                "type": "string"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "conditionId": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
     },
     "conditionContract": {
       "type": "object",
@@ -435,12 +508,300 @@
         }
       }
     },
-    "evidenceSourceContract": { "type": "object", "additionalProperties": false, "required": ["source"], "properties": { "source": {"type":"string"}, "sheet": {"type":"string"}, "range": {"type":"string"}, "count": {"type":"integer"} } },
-    "cardinalityContract": { "type": "object", "additionalProperties": false, "required": ["min","max"], "properties": { "min": {"type":"integer","minimum":0}, "max": {"type":["integer","null"],"minimum":0} } },
-    "carrierRoleContract": { "type":"object", "additionalProperties":false, "required":["roleId","displayName","modelFileTypes","ifcEntity","revitCategories","allowedElementKinds","nameAliases","familyAliases","typeAliases","cardinality","selectionPolicy","ifcOwnerStrategy"], "properties": { "roleId":{"type":"string"},"displayName":{"type":"string"},"modelFileTypes":{"type":"array","items":{"type":"string"}},"ifcEntity":{"type":"string"},"revitCategories":{"type":"array","items":{"type":"string"}},"allowedElementKinds":{"type":"array","items":{"type":"string"}},"nameAliases":{"type":"array","items":{"type":"string"}},"familyAliases":{"type":"array","items":{"type":"string"}},"typeAliases":{"type":"array","items":{"type":"string"}},"cardinality":{"$ref":"#/$defs/cardinalityContract"},"selectionPolicy":{"type":"string"},"ifcOwnerStrategy":{"type":"string"} } },
-    "modelProfileContract": { "type":"object", "additionalProperties":false, "required":["profileId","taskIds"], "properties": {"profileId":{"type":"string"},"taskIds":{"type":"array","items":{"type":"string"}}} },
-    "legacyAliasContract": { "type":"object", "additionalProperties":false, "required":["propertyId","alias"], "properties":{"propertyId":{"type":"string","format":"uuid"},"alias":{"type":"string"}} },
-    "stage01FieldRefContract": { "type":"object", "additionalProperties":false, "required":["fieldKey","propertyId","sourceRow"], "properties":{"fieldKey":{"type":"string"},"propertyId":{"type":"string","format":"uuid"},"sourceRow":{"type":"integer","minimum":2}} },
-    "stage01Contract": { "type":"object", "additionalProperties":false, "required":["fieldRefs"], "properties":{"fieldRefs":{"type":"array","items":{"$ref":"#/$defs/stage01FieldRefContract"}}} }
+    "requirementContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "level",
+        "conditionId"
+      ],
+      "properties": {
+        "level": {
+          "enum": [
+            "REQUIRED",
+            "CONDITIONAL",
+            "OPTIONAL",
+            "NOT_APPLICABLE",
+            "UNCLASSIFIED"
+          ]
+        },
+        "conditionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "suggestionContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "aliases"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "EXISTING_OR_ALIAS"
+          ]
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      }
+    },
+    "ifcWriteContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "writeStrategy",
+        "ownerStrategy"
+      ],
+      "properties": {
+        "writeStrategy": {
+          "enum": [
+            "CREATE_OR_UPDATE_PSET"
+          ]
+        },
+        "ownerStrategy": {
+          "enum": [
+            "SINGLE_ENTITY_BY_TYPE",
+            "BY_EXPORT_GUID",
+            "USER_SELECTED_EXPORTABLE_GENERIC_MODEL",
+            "CANONICAL_SPATIAL_ZONE_RECORD"
+          ]
+        }
+      }
+    },
+    "evidenceSourceContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source"
+      ],
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "sheet": {
+          "type": "string"
+        },
+        "range": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source": {
+                "const": "《MVD》规划报建.xlsx"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "sha256",
+              "sheet",
+              "range"
+            ]
+          }
+        }
+      ]
+    },
+    "cardinalityContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "min",
+        "max"
+      ],
+      "properties": {
+        "min": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "carrierRoleContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "roleId",
+        "displayName",
+        "modelFileTypes",
+        "ifcEntity",
+        "revitCategories",
+        "allowedElementKinds",
+        "nameAliases",
+        "familyAliases",
+        "typeAliases",
+        "cardinality",
+        "selectionPolicy",
+        "ifcOwnerStrategy"
+      ],
+      "properties": {
+        "roleId": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "modelFileTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "ifcEntity": {
+          "type": "string"
+        },
+        "revitCategories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "allowedElementKinds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "nameAliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "familyAliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "typeAliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "cardinality": {
+          "$ref": "#/$defs/cardinalityContract"
+        },
+        "selectionPolicy": {
+          "type": "string"
+        },
+        "ifcOwnerStrategy": {
+          "type": "string"
+        }
+      }
+    },
+    "modelProfileContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profileId",
+        "taskIds"
+      ],
+      "properties": {
+        "profileId": {
+          "type": "string"
+        },
+        "taskIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      }
+    },
+    "legacyAliasContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "propertyId",
+        "alias"
+      ],
+      "properties": {
+        "propertyId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "alias": {
+          "type": "string"
+        }
+      }
+    },
+    "stage01FieldRefContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fieldKey",
+        "propertyId",
+        "sourceRow"
+      ],
+      "properties": {
+        "fieldKey": {
+          "type": "string"
+        },
+        "propertyId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sourceRow": {
+          "type": "integer",
+          "minimum": 2
+        }
+      }
+    },
+    "stage01Contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fieldRefs"
+      ],
+      "properties": {
+        "fieldRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/stage01FieldRefContract"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    }
   }
 }

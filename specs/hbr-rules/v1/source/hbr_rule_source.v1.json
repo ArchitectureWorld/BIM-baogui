@@ -5,7 +5,8 @@
   "guidNamespace": "57736bb8-c060-558c-85d9-18226a3e3a4f",
   "evidenceSources": [
     {
-      "source": "E:/WXWork/1688852898190291/Cache/File/2026-07/《MVD》规划报建.xlsx",
+      "source": "《MVD》规划报建.xlsx",
+      "sha256": "63fac01de41f3bd149e4e857a81256e623382bbe9b3437ed69a2b5ace90628e4",
       "sheet": "Sheet1",
       "range": "A1:I357"
     },
@@ -33,9 +34,9 @@
         "rawPropertySetId": "Pset_报建信息属性集",
         "rawPropertySetName": "报建信息属性集",
         "rawProperty": "手机号码",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -102,9 +103,9 @@
         "rawPropertySetId": "Pset_报建信息属性集",
         "rawPropertySetName": "报建信息属性集",
         "rawProperty": "编号",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -171,9 +172,9 @@
         "rawPropertySetId": "Pset_报建信息属性集",
         "rawPropertySetName": "报建信息属性集",
         "rawProperty": "姓",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -240,9 +241,9 @@
         "rawPropertySetId": "Pset_报建信息属性集",
         "rawPropertySetName": "报建信息属性集",
         "rawProperty": "名",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -309,9 +310,9 @@
         "rawPropertySetId": "Pset_报建信息属性集",
         "rawPropertySetName": "报建信息属性集",
         "rawProperty": "邮箱地址",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -378,9 +379,9 @@
         "rawPropertySetId": "Pset_报建信息属性集",
         "rawPropertySetName": "报建信息属性集",
         "rawProperty": "公司",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -447,9 +448,9 @@
         "rawPropertySetId": "Pset_报建信息属性集",
         "rawPropertySetName": "报建信息属性集",
         "rawProperty": "公司性质",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -516,9 +517,9 @@
         "rawPropertySetId": "Pset_报建信息属性集",
         "rawPropertySetName": "报建信息属性集",
         "rawProperty": "部门",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -585,9 +586,9 @@
         "rawPropertySetId": "Pset_报建信息属性集",
         "rawPropertySetName": "报建信息属性集",
         "rawProperty": "国家",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -654,9 +655,9 @@
         "rawPropertySetId": "Pset_报建信息属性集",
         "rawPropertySetName": "报建信息属性集",
         "rawProperty": "城镇",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -723,9 +724,9 @@
         "rawPropertySetId": "Pset_报建信息属性集",
         "rawPropertySetName": "报建信息属性集",
         "rawProperty": "街道",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -792,9 +793,9 @@
         "rawPropertySetId": "Pset_报建信息属性集",
         "rawPropertySetName": "报建信息属性集",
         "rawProperty": "通信地址",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -861,9 +862,9 @@
         "rawPropertySetId": "Pset_报建信息属性集",
         "rawPropertySetName": "报建信息属性集",
         "rawProperty": "国家编码",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -930,9 +931,9 @@
         "rawPropertySetId": "Pset_报建信息属性集",
         "rawPropertySetName": "报建信息属性集",
         "rawProperty": "邮政编码",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -999,7 +1000,7 @@
         "rawPropertySetId": "Pset_地籍信息属性集",
         "rawPropertySetName": "地籍信息属性集",
         "rawProperty": "宗地数量",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcInteger",
         "rawUnit": "个"
       },
@@ -1068,9 +1069,9 @@
         "rawPropertySetId": "Pset_地籍信息属性集",
         "rawPropertySetName": "地籍信息属性集",
         "rawProperty": "宗地用途",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -1137,9 +1138,9 @@
         "rawPropertySetId": "Pset_地籍信息属性集",
         "rawPropertySetName": "地籍信息属性集",
         "rawProperty": "宗地编号",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -1206,9 +1207,9 @@
         "rawPropertySetId": "Pset_地籍信息属性集",
         "rawPropertySetName": "地籍信息属性集",
         "rawProperty": "宗地信息",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -1275,9 +1276,9 @@
         "rawPropertySetId": "Pset_地籍信息属性集",
         "rawPropertySetName": "地籍信息属性集",
         "rawProperty": "宗地质量等级",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -1344,9 +1345,9 @@
         "rawPropertySetId": "Pset_地籍信息属性集",
         "rawPropertySetName": "地籍信息属性集",
         "rawProperty": "宗地权力",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -1413,9 +1414,9 @@
         "rawPropertySetId": "Pset_地籍信息属性集",
         "rawPropertySetName": "地籍信息属性集",
         "rawProperty": "宗地权利人",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -1482,9 +1483,9 @@
         "rawPropertySetId": "Pset_地籍信息属性集",
         "rawPropertySetName": "地籍信息属性集",
         "rawProperty": "建筑物编码",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -1551,9 +1552,9 @@
         "rawPropertySetId": "Pset_登记信息属性集",
         "rawPropertySetName": "登记信息属性集",
         "rawProperty": "建设性质",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -1620,7 +1621,7 @@
         "rawPropertySetId": "Pset_登记信息属性集",
         "rawPropertySetName": "登记信息属性集",
         "rawProperty": "总建筑面积",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "m²"
       },
@@ -1690,9 +1691,9 @@
         "rawPropertySetId": "Pset_登记信息属性集",
         "rawPropertySetName": "登记信息属性集",
         "rawProperty": "建筑物编码",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -1759,9 +1760,9 @@
         "rawPropertySetId": "Pset_登记信息属性集",
         "rawPropertySetName": "登记信息属性集",
         "rawProperty": "现状名称",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -1828,9 +1829,9 @@
         "rawPropertySetId": "Pset_登记信息属性集",
         "rawPropertySetName": "登记信息属性集",
         "rawProperty": "审批名称",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -1897,9 +1898,9 @@
         "rawPropertySetId": "Pset_登记信息属性集",
         "rawPropertySetName": "登记信息属性集",
         "rawProperty": "详细地址",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -1966,9 +1967,9 @@
         "rawPropertySetId": "Pset_登记信息属性集",
         "rawPropertySetName": "登记信息属性集",
         "rawProperty": "不动产地址",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -2035,9 +2036,9 @@
         "rawPropertySetId": "Pset_登记信息属性集",
         "rawPropertySetName": "登记信息属性集",
         "rawProperty": "建成时间",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcDateTime",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -2104,9 +2105,9 @@
         "rawPropertySetId": "Pset_登记信息属性集",
         "rawPropertySetName": "登记信息属性集",
         "rawProperty": "建筑状态",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -2173,9 +2174,9 @@
         "rawPropertySetId": "Pset_登记信息属性集",
         "rawPropertySetName": "登记信息属性集",
         "rawProperty": "建设性质代码",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -2242,9 +2243,9 @@
         "rawPropertySetId": "Pset_区划信息属性集",
         "rawPropertySetName": "区划信息属性集",
         "rawProperty": "所属省级行政区",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -2311,9 +2312,9 @@
         "rawPropertySetId": "Pset_区划信息属性集",
         "rawPropertySetName": "区划信息属性集",
         "rawProperty": "省级行政区代码",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -2380,9 +2381,9 @@
         "rawPropertySetId": "Pset_区划信息属性集",
         "rawPropertySetName": "区划信息属性集",
         "rawProperty": "所属地级行政区",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -2449,9 +2450,9 @@
         "rawPropertySetId": "Pset_区划信息属性集",
         "rawPropertySetName": "区划信息属性集",
         "rawProperty": "地级行政区代码",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -2518,9 +2519,9 @@
         "rawPropertySetId": "Pset_区划信息属性集",
         "rawPropertySetName": "区划信息属性集",
         "rawProperty": "所属县级行政区",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -2587,9 +2588,9 @@
         "rawPropertySetId": "Pset_区划信息属性集",
         "rawPropertySetName": "区划信息属性集",
         "rawProperty": "县级行政区代码",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -2656,9 +2657,9 @@
         "rawPropertySetId": "Pset_区划信息属性集",
         "rawPropertySetName": "区划信息属性集",
         "rawProperty": "所属乡级行政区",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -2725,9 +2726,9 @@
         "rawPropertySetId": "Pset_区划信息属性集",
         "rawPropertySetName": "区划信息属性集",
         "rawProperty": "乡级行政区代码",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -2794,9 +2795,9 @@
         "rawPropertySetId": "Pset_区划信息属性集",
         "rawPropertySetName": "区划信息属性集",
         "rawProperty": "所属村（社区）",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -2863,9 +2864,9 @@
         "rawPropertySetId": "Pset_区划信息属性集",
         "rawPropertySetName": "区划信息属性集",
         "rawProperty": "村（社区）代码",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -2932,9 +2933,9 @@
         "rawPropertySetId": "Pset_区划信息属性集",
         "rawPropertySetName": "区划信息属性集",
         "rawProperty": "网格编码",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -3001,9 +3002,9 @@
         "rawPropertySetId": "Pset_区划信息属性集",
         "rawPropertySetName": "区划信息属性集",
         "rawProperty": "所属小区",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -3070,9 +3071,9 @@
         "rawPropertySetId": "Pset_区划信息属性集",
         "rawPropertySetName": "区划信息属性集",
         "rawProperty": "备注",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -3139,9 +3140,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "基点坐标 X",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -3209,9 +3210,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "基点坐标 Y",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -3279,7 +3280,7 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "基点高程",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "m"
       },
@@ -3349,9 +3350,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "备注",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -3418,9 +3419,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "项目编号",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -3487,9 +3488,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "项目名称",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -3556,9 +3557,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "建设单位",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -3625,9 +3626,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "项目地址",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -3694,9 +3695,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "设计单位",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -3763,9 +3764,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "设计人",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -3832,9 +3833,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "勘察单位",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -3901,9 +3902,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "咨询单位",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -3970,9 +3971,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "施工单位",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -4039,9 +4040,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "监理单位",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -4108,9 +4109,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "图审单位",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -4177,9 +4178,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "坐标系名称",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -4246,9 +4247,9 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "高程系名称",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -4315,7 +4316,7 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "经度",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "度"
       },
@@ -4385,7 +4386,7 @@
         "rawPropertySetId": "Pset_申报信息属性集",
         "rawPropertySetName": "申报信息属性集",
         "rawProperty": "纬度",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "度"
       },
@@ -4457,7 +4458,7 @@
         "rawProperty": "建筑密度",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -4526,7 +4527,7 @@
         "rawProperty": "容积率",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -4595,7 +4596,7 @@
         "rawProperty": "绿地率",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -4664,7 +4665,7 @@
         "rawProperty": "建筑限高",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -4733,7 +4734,7 @@
         "rawProperty": "海拔限高",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -4802,7 +4803,7 @@
         "rawProperty": "机动车位",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -4871,7 +4872,7 @@
         "rawProperty": "非机动车车位",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -4940,7 +4941,7 @@
         "rawProperty": "配置套值",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IFcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -5009,7 +5010,7 @@
         "rawProperty": "非机动车类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -5078,7 +5079,7 @@
         "rawProperty": "非机动车折算系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -5145,9 +5146,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "耐火等级",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -5214,9 +5215,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "建筑类型",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -5283,7 +5284,7 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "地上建筑层数",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcInteger",
         "rawUnit": "层"
       },
@@ -5352,7 +5353,7 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "地下建筑层数",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcInteger",
         "rawUnit": "层"
       },
@@ -5421,7 +5422,7 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "建筑高度",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "m"
       },
@@ -5491,7 +5492,7 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "建筑占地面积",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "m²"
       },
@@ -5561,7 +5562,7 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "建筑面积",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "m²"
       },
@@ -5631,9 +5632,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "登记用途",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -5700,9 +5701,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "建筑用途",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -5769,9 +5770,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "抗震性能等级",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -5838,7 +5839,7 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "建筑体积",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "m³"
       },
@@ -5908,7 +5909,7 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "人数",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcInteger",
         "rawUnit": "个"
       },
@@ -5977,7 +5978,7 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "地下建筑高度",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "m"
       },
@@ -6047,7 +6048,7 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "室内外高差最大值",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "m"
       },
@@ -6117,9 +6118,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "建筑名称",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -6186,9 +6187,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "建筑类型名称",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -6255,9 +6256,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "登记用途名称",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -6324,9 +6325,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "建筑用途名称",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -6393,9 +6394,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "抗震设防类别",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -6462,9 +6463,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "安全等级",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -6531,9 +6532,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "建筑类别",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -6600,9 +6601,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "建筑与设施用途分类",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -6669,9 +6670,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "容积率",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -6738,9 +6739,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "绿地率",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -6807,9 +6808,9 @@
         "rawPropertySetId": "Pset_建筑技术信息属性集",
         "rawPropertySetName": "建筑技术信息属性集",
         "rawProperty": "停车位数量",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcInteger",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -6948,7 +6949,7 @@
         "rawProperty": "建筑编号",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -7575,7 +7576,7 @@
         "rawProperty": "建筑状态",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -7644,7 +7645,7 @@
         "rawProperty": "临时永久",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -7713,7 +7714,7 @@
         "rawProperty": "结构类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -7782,7 +7783,7 @@
         "rawProperty": "形状",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -7851,7 +7852,7 @@
         "rawProperty": "山墙开窗",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -7920,7 +7921,7 @@
         "rawProperty": "民用建筑",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -8057,7 +8058,7 @@
         "rawPropertySetId": "Pset_建筑楼层信息属性集",
         "rawPropertySetName": "建筑楼层信息属性集",
         "rawProperty": "底标高",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "m"
       },
@@ -8127,9 +8128,9 @@
         "rawPropertySetId": "Pset_建筑楼层信息属性集",
         "rawPropertySetName": "建筑楼层信息属性集",
         "rawProperty": "主功能类别",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuildingStorey",
@@ -8196,9 +8197,9 @@
         "rawPropertySetId": "Pset_建筑楼层信息属性集",
         "rawPropertySetName": "建筑楼层信息属性集",
         "rawProperty": "子功能类别",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuildingStorey",
@@ -8265,9 +8266,9 @@
         "rawPropertySetId": "Pset_建筑楼层信息属性集",
         "rawPropertySetName": "建筑楼层信息属性集",
         "rawProperty": "楼层类型",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuildingStorey",
@@ -8334,7 +8335,7 @@
         "rawPropertySetId": "Pset_建筑楼层信息属性集",
         "rawPropertySetName": "建筑楼层信息属性集",
         "rawProperty": "建筑层高",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "mm"
       },
@@ -8346,7 +8347,8 @@
         "declaredType": "IfcReal",
         "canonicalUnit": "mm",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -8403,7 +8405,7 @@
         "rawPropertySetId": "Pset_建筑楼层信息属性集",
         "rawPropertySetName": "建筑楼层信息属性集",
         "rawProperty": "人数",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcInteger",
         "rawUnit": "个"
       },
@@ -8472,7 +8474,7 @@
         "rawPropertySetId": "Pset_建筑楼层信息属性集",
         "rawPropertySetName": "建筑楼层信息属性集",
         "rawProperty": "计算标高",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "mm"
       },
@@ -8484,7 +8486,8 @@
         "declaredType": "IfcReal",
         "canonicalUnit": "mm",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -8541,7 +8544,7 @@
         "rawPropertySetId": "Pset_建筑楼层信息属性集",
         "rawPropertySetName": "建筑楼层信息属性集",
         "rawProperty": "楼层面积",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "m²"
       },
@@ -8611,9 +8614,9 @@
         "rawPropertySetId": "Pset_建筑楼层信息属性集",
         "rawPropertySetName": "建筑楼层信息属性集",
         "rawProperty": "是否设置避难层",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuildingStorey",
@@ -8680,9 +8683,9 @@
         "rawPropertySetId": "Pset_建筑楼层信息属性集",
         "rawPropertySetName": "建筑楼层信息属性集",
         "rawProperty": "备注",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuildingStorey",
@@ -8749,9 +8752,9 @@
         "rawPropertySetId": "Pset_建筑楼层信息属性集",
         "rawPropertySetName": "建筑楼层信息属性集",
         "rawProperty": "楼层名称",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuildingStorey",
@@ -8818,9 +8821,9 @@
         "rawPropertySetId": "Pset_建筑楼层信息属性集",
         "rawPropertySetName": "建筑楼层信息属性集",
         "rawProperty": "楼层编号",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuildingStorey",
@@ -8887,9 +8890,9 @@
         "rawPropertySetId": "Pset_建筑楼层信息属性集",
         "rawPropertySetName": "建筑楼层信息属性集",
         "rawProperty": "楼层属性信息",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuildingStorey",
@@ -8958,7 +8961,7 @@
         "rawProperty": "建筑基底",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuildingStorey",
@@ -9025,7 +9028,7 @@
         "rawPropertySetId": "Pset_场地信息属性集",
         "rawPropertySetName": "场地信息属性集",
         "rawProperty": "长度",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "m"
       },
@@ -9095,7 +9098,7 @@
         "rawPropertySetId": "Pset_场地信息属性集",
         "rawPropertySetName": "场地信息属性集",
         "rawProperty": "宽度",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "m"
       },
@@ -9165,7 +9168,7 @@
         "rawPropertySetId": "Pset_场地信息属性集",
         "rawPropertySetName": "场地信息属性集",
         "rawProperty": "总用地面积",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "m²"
       },
@@ -9235,7 +9238,7 @@
         "rawPropertySetId": "Pset_场地信息属性集",
         "rawPropertySetName": "场地信息属性集",
         "rawProperty": "可建设用地面积",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
         "rawUnit": "m²"
       },
@@ -9305,9 +9308,9 @@
         "rawPropertySetId": "Pset_场地信息属性集",
         "rawPropertySetName": "场地信息属性集",
         "rawProperty": "建筑密度",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -9374,9 +9377,9 @@
         "rawPropertySetId": "Pset_场地信息属性集",
         "rawPropertySetName": "场地信息属性集",
         "rawProperty": "建筑比例",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -9443,9 +9446,9 @@
         "rawPropertySetId": "Pset_场地信息属性集",
         "rawPropertySetName": "场地信息属性集",
         "rawProperty": "混合用地比例",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -9512,9 +9515,9 @@
         "rawPropertySetId": "Pset_场地信息属性集",
         "rawPropertySetName": "场地信息属性集",
         "rawProperty": "容积率",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -9581,9 +9584,9 @@
         "rawPropertySetId": "Pset_场地信息属性集",
         "rawPropertySetName": "场地信息属性集",
         "rawProperty": "绿地率",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -9650,9 +9653,9 @@
         "rawPropertySetId": "Pset_场地信息属性集",
         "rawPropertySetName": "场地信息属性集",
         "rawProperty": "地块编号",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -9719,9 +9722,9 @@
         "rawPropertySetId": "Pset_场地信息属性集",
         "rawPropertySetName": "场地信息属性集",
         "rawProperty": "城市用地分类和使用",
-        "rawValueKind": "14",
+        "rawValueKind": "",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -9860,7 +9863,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -9999,7 +10002,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -10068,7 +10071,7 @@
         "rawProperty": "版本",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -10207,7 +10210,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -10276,7 +10279,7 @@
         "rawProperty": "用地类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -10415,7 +10418,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -10554,7 +10557,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -10693,7 +10696,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -10832,7 +10835,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -10971,7 +10974,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -11110,7 +11113,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -11249,7 +11252,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -11388,7 +11391,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -11457,7 +11460,7 @@
         "rawProperty": "构件类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -11596,7 +11599,7 @@
         "rawProperty": "计算系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -11665,7 +11668,7 @@
         "rawProperty": "计容系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -11734,7 +11737,7 @@
         "rawProperty": "备注",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -11803,7 +11806,7 @@
         "rawProperty": "建筑密度",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -11942,7 +11945,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -12011,7 +12014,7 @@
         "rawProperty": "所属建筑编号",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -12150,7 +12153,7 @@
         "rawProperty": "绿地类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -12219,7 +12222,7 @@
         "rawProperty": "折算系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -12288,7 +12291,7 @@
         "rawProperty": "区内道路类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -12427,7 +12430,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -12496,7 +12499,7 @@
         "rawProperty": "编号",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -12565,7 +12568,7 @@
         "rawProperty": "红线类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -12634,7 +12637,7 @@
         "rawProperty": "边界线编号",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -12703,7 +12706,7 @@
         "rawProperty": "边界类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -12772,7 +12775,7 @@
         "rawProperty": "界外类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -12841,7 +12844,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -12910,7 +12913,7 @@
         "rawProperty": "道路类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -13049,7 +13052,7 @@
         "rawProperty": "道路类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -13188,7 +13191,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -13257,7 +13260,7 @@
         "rawProperty": "名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSite",
@@ -13396,7 +13399,7 @@
         "rawProperty": "空间功能",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpace",
@@ -13465,7 +13468,7 @@
         "rawProperty": "功能",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpace",
@@ -13544,7 +13547,8 @@
         "declaredType": "IfcReal",
         "canonicalUnit": "mm",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -13743,7 +13747,7 @@
         "rawProperty": "空间使用特征",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpace",
@@ -13812,7 +13816,7 @@
         "rawProperty": "是否为室外停车场",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpace",
@@ -13881,7 +13885,7 @@
         "rawProperty": "停车位类别",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpace",
@@ -13950,7 +13954,7 @@
         "rawProperty": "停车位位置信息",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpace",
@@ -14019,7 +14023,7 @@
         "rawProperty": "停车位类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpace",
@@ -14088,7 +14092,7 @@
         "rawProperty": "备注",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpace",
@@ -14295,7 +14299,7 @@
         "rawProperty": "充电车位",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpace",
@@ -14364,7 +14368,7 @@
         "rawProperty": "公建车位",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpace",
@@ -14433,7 +14437,7 @@
         "rawProperty": "折算系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpace",
@@ -14571,7 +14575,7 @@
         "rawProperty": "主功能类别",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -14640,7 +14644,7 @@
         "rawProperty": "子功能类别",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -14709,7 +14713,7 @@
         "rawProperty": "区域类别",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -14778,7 +14782,7 @@
         "rawProperty": "区域标记",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -14847,7 +14851,7 @@
         "rawProperty": "计容系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -14916,7 +14920,7 @@
         "rawProperty": "计算系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -14995,7 +14999,8 @@
         "declaredType": "IfcReal",
         "canonicalUnit": "mm",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -15064,7 +15069,8 @@
         "declaredType": "IfcReal",
         "canonicalUnit": "mm",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -15133,7 +15139,8 @@
         "declaredType": "IfcReal",
         "canonicalUnit": "mm",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -15202,7 +15209,8 @@
         "declaredType": "IfcReal",
         "canonicalUnit": "mm",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -15271,7 +15279,8 @@
         "declaredType": "IfcReal",
         "canonicalUnit": "mm",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -15539,7 +15548,7 @@
         "rawProperty": "是否为疏散分区",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -15677,7 +15686,7 @@
         "rawProperty": "户型名",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -15746,7 +15755,7 @@
         "rawProperty": "户型标识",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -15815,7 +15824,7 @@
         "rawProperty": "居室个数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcInteger",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -15894,7 +15903,8 @@
         "declaredType": "IfcReal",
         "canonicalUnit": "mm",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -15963,7 +15973,8 @@
         "declaredType": "IfcReal",
         "canonicalUnit": "mm",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -16022,7 +16033,7 @@
         "rawProperty": "功能名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -16091,7 +16102,7 @@
         "rawProperty": "轮廓线",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -16160,7 +16171,7 @@
         "rawProperty": "疏散区域",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -16229,7 +16240,7 @@
         "rawProperty": "区域位置",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -16292,7 +16303,7 @@
         "row": 237,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_阳台信息属性集",
         "rawPropertySetName": "阳台信息属性集",
         "rawProperty": "投影面积",
@@ -16362,13 +16373,13 @@
         "row": 238,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_阳台信息属性集",
         "rawPropertySetName": "阳台信息属性集",
         "rawProperty": "公建大类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -16431,13 +16442,13 @@
         "row": 239,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_阳台信息属性集",
         "rawPropertySetName": "阳台信息属性集",
         "rawProperty": "公建小类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -16500,13 +16511,13 @@
         "row": 240,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_阳台信息属性集",
         "rawPropertySetName": "阳台信息属性集",
         "rawProperty": "计算系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -16569,13 +16580,13 @@
         "row": 241,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_阳台信息属性集",
         "rawPropertySetName": "阳台信息属性集",
         "rawProperty": "计容系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -16638,13 +16649,13 @@
         "row": 242,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_阳台信息属性集",
         "rawPropertySetName": "阳台信息属性集",
         "rawProperty": "间距审查",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -16707,13 +16718,13 @@
         "row": 243,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_阳台信息属性集",
         "rawPropertySetName": "阳台信息属性集",
         "rawProperty": "退让审查",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -16776,7 +16787,7 @@
         "row": 244,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_阳台信息属性集",
         "rawPropertySetName": "阳台信息属性集",
         "rawProperty": "长度",
@@ -16792,7 +16803,8 @@
         "declaredType": "IfcReal",
         "canonicalUnit": "mm",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -16805,7 +16817,7 @@
         "userModifiable": true,
         "bindingScope": "INSTANCE",
         "storageType": "Double",
-        "parameterType": "Number"
+        "parameterType": "Length"
       },
       "officialPlugin": {
         "inExtracted166": false,
@@ -16845,7 +16857,7 @@
         "row": 245,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_阳台信息属性集",
         "rawPropertySetName": "阳台信息属性集",
         "rawProperty": "进深",
@@ -16861,7 +16873,8 @@
         "declaredType": "IfcReal",
         "canonicalUnit": "mm",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -16874,7 +16887,7 @@
         "userModifiable": true,
         "bindingScope": "INSTANCE",
         "storageType": "Double",
-        "parameterType": "Number"
+        "parameterType": "Length"
       },
       "officialPlugin": {
         "inExtracted166": false,
@@ -16914,7 +16927,7 @@
         "row": 246,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_阳台信息属性集",
         "rawPropertySetName": "阳台信息属性集",
         "rawProperty": "高度",
@@ -16930,7 +16943,8 @@
         "declaredType": "IfcReal",
         "canonicalUnit": "mm",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -16943,7 +16957,7 @@
         "userModifiable": true,
         "bindingScope": "INSTANCE",
         "storageType": "Double",
-        "parameterType": "Number"
+        "parameterType": "Length"
       },
       "officialPlugin": {
         "inExtracted166": false,
@@ -16983,13 +16997,13 @@
         "row": 247,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_阳台信息属性集",
         "rawPropertySetName": "阳台信息属性集",
         "rawProperty": "是否有顶",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -17052,13 +17066,13 @@
         "row": 248,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_阳台信息属性集",
         "rawPropertySetName": "阳台信息属性集",
         "rawProperty": "是否为露台",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -17121,13 +17135,13 @@
         "row": 249,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_阳台信息属性集",
         "rawPropertySetName": "阳台信息属性集",
         "rawProperty": "是否封闭",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -17190,7 +17204,7 @@
         "row": 250,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_阳台信息属性集",
         "rawPropertySetName": "阳台信息属性集",
         "rawProperty": "标高",
@@ -17206,7 +17220,8 @@
         "declaredType": "IfcReal",
         "canonicalUnit": "mm",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -17219,7 +17234,7 @@
         "userModifiable": true,
         "bindingScope": "INSTANCE",
         "storageType": "Double",
-        "parameterType": "Number"
+        "parameterType": "Length"
       },
       "officialPlugin": {
         "inExtracted166": false,
@@ -17259,7 +17274,7 @@
         "row": 251,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_雨篷信息属性集",
         "rawPropertySetName": "雨篷信息属性集",
         "rawProperty": "投影面积",
@@ -17329,13 +17344,13 @@
         "row": 252,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_雨篷信息属性集",
         "rawPropertySetName": "雨篷信息属性集",
         "rawProperty": "公建大类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -17398,13 +17413,13 @@
         "row": 253,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_雨篷信息属性集",
         "rawPropertySetName": "雨篷信息属性集",
         "rawProperty": "公建小类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -17467,13 +17482,13 @@
         "row": 254,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_雨篷信息属性集",
         "rawPropertySetName": "雨篷信息属性集",
         "rawProperty": "计算系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -17536,13 +17551,13 @@
         "row": 255,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_雨篷信息属性集",
         "rawPropertySetName": "雨篷信息属性集",
         "rawProperty": "计容系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -17605,13 +17620,13 @@
         "row": 256,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_雨篷信息属性集",
         "rawPropertySetName": "雨篷信息属性集",
         "rawProperty": "间距审查",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -17674,13 +17689,13 @@
         "row": 257,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_雨篷信息属性集",
         "rawPropertySetName": "雨篷信息属性集",
         "rawProperty": "退让审查",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -17743,7 +17758,7 @@
         "row": 258,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_空调板信息属性集",
         "rawPropertySetName": "空调板信息属性集",
         "rawProperty": "投影面积",
@@ -17813,13 +17828,13 @@
         "row": 259,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_空调板信息属性集",
         "rawPropertySetName": "空调板信息属性集",
         "rawProperty": "公建大类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -17882,13 +17897,13 @@
         "row": 260,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_空调板信息属性集",
         "rawPropertySetName": "空调板信息属性集",
         "rawProperty": "公建小类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -17951,13 +17966,13 @@
         "row": 261,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_空调板信息属性集",
         "rawPropertySetName": "空调板信息属性集",
         "rawProperty": "计算系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -18020,13 +18035,13 @@
         "row": 262,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_空调板信息属性集",
         "rawPropertySetName": "空调板信息属性集",
         "rawProperty": "计容系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -18089,13 +18104,13 @@
         "row": 263,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_空调板信息属性集",
         "rawPropertySetName": "空调板信息属性集",
         "rawProperty": "间距审查",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -18158,13 +18173,13 @@
         "row": 264,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_空调板信息属性集",
         "rawPropertySetName": "空调板信息属性集",
         "rawProperty": "退让审查",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -18227,7 +18242,7 @@
         "row": 265,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_飘窗信息属性集",
         "rawPropertySetName": "飘窗信息属性集",
         "rawProperty": "投影面积",
@@ -18297,13 +18312,13 @@
         "row": 266,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_飘窗信息属性集",
         "rawPropertySetName": "飘窗信息属性集",
         "rawProperty": "公建大类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -18366,13 +18381,13 @@
         "row": 267,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_飘窗信息属性集",
         "rawPropertySetName": "飘窗信息属性集",
         "rawProperty": "公建小类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -18435,13 +18450,13 @@
         "row": 268,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_飘窗信息属性集",
         "rawPropertySetName": "飘窗信息属性集",
         "rawProperty": "计算系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -18504,13 +18519,13 @@
         "row": 269,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_飘窗信息属性集",
         "rawPropertySetName": "飘窗信息属性集",
         "rawProperty": "计容系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -18573,13 +18588,13 @@
         "row": 270,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_飘窗信息属性集",
         "rawPropertySetName": "飘窗信息属性集",
         "rawProperty": "间距审查",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -18642,13 +18657,13 @@
         "row": 271,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_飘窗信息属性集",
         "rawPropertySetName": "飘窗信息属性集",
         "rawProperty": "退让审查",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -18711,7 +18726,7 @@
         "row": 272,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_架空信息属性集",
         "rawPropertySetName": "架空信息属性集",
         "rawProperty": "投影面积",
@@ -18781,13 +18796,13 @@
         "row": 273,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_架空信息属性集",
         "rawPropertySetName": "架空信息属性集",
         "rawProperty": "公建大类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -18850,13 +18865,13 @@
         "row": 274,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_架空信息属性集",
         "rawPropertySetName": "架空信息属性集",
         "rawProperty": "公建小类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -18919,13 +18934,13 @@
         "row": 275,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_架空信息属性集",
         "rawPropertySetName": "架空信息属性集",
         "rawProperty": "计算系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -18988,13 +19003,13 @@
         "row": 276,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_架空信息属性集",
         "rawPropertySetName": "架空信息属性集",
         "rawProperty": "计容系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -19057,7 +19072,7 @@
         "row": 277,
         "rawEntityCn": "墙",
         "rawEntityId": "IfcWall",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_保温层信息属性集",
         "rawPropertySetName": "保温层信息属性集",
         "rawProperty": "投影面积",
@@ -19127,13 +19142,13 @@
         "row": 278,
         "rawEntityCn": "墙",
         "rawEntityId": "IfcWall",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_保温层信息属性集",
         "rawPropertySetName": "保温层信息属性集",
         "rawProperty": "公建大类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcWall",
@@ -19196,13 +19211,13 @@
         "row": 279,
         "rawEntityCn": "墙",
         "rawEntityId": "IfcWall",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_保温层信息属性集",
         "rawPropertySetName": "保温层信息属性集",
         "rawProperty": "公建小类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcWall",
@@ -19265,13 +19280,13 @@
         "row": 280,
         "rawEntityCn": "墙",
         "rawEntityId": "IfcWall",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_保温层信息属性集",
         "rawPropertySetName": "保温层信息属性集",
         "rawProperty": "计算系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcWall",
@@ -19334,13 +19349,13 @@
         "row": 281,
         "rawEntityCn": "墙",
         "rawEntityId": "IfcWall",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_保温层信息属性集",
         "rawPropertySetName": "保温层信息属性集",
         "rawProperty": "计容系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcWall",
@@ -19403,13 +19418,13 @@
         "row": 282,
         "rawEntityCn": "墙",
         "rawEntityId": "IfcWall",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_保温层信息属性集",
         "rawPropertySetName": "保温层信息属性集",
         "rawProperty": "间距审查",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcWall",
@@ -19472,13 +19487,13 @@
         "row": 283,
         "rawEntityCn": "墙",
         "rawEntityId": "IfcWall",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_保温层信息属性集",
         "rawPropertySetName": "保温层信息属性集",
         "rawProperty": "退让审查",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcWall",
@@ -19541,7 +19556,7 @@
         "row": 284,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_其它构件信息属性集",
         "rawPropertySetName": "其它构件信息属性集",
         "rawProperty": "投影面积",
@@ -19611,13 +19626,13 @@
         "row": 285,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_其它构件信息属性集",
         "rawPropertySetName": "其它构件信息属性集",
         "rawProperty": "公建大类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -19680,13 +19695,13 @@
         "row": 286,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_其它构件信息属性集",
         "rawPropertySetName": "其它构件信息属性集",
         "rawProperty": "公建小类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -19749,13 +19764,13 @@
         "row": 287,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_其它构件信息属性集",
         "rawPropertySetName": "其它构件信息属性集",
         "rawProperty": "计算系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -19818,13 +19833,13 @@
         "row": 288,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_其它构件信息属性集",
         "rawPropertySetName": "其它构件信息属性集",
         "rawProperty": "计容系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -19887,13 +19902,13 @@
         "row": 289,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_其它构件信息属性集",
         "rawPropertySetName": "其它构件信息属性集",
         "rawProperty": "备注",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -19956,13 +19971,13 @@
         "row": 290,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_其它构件信息属性集",
         "rawPropertySetName": "其它构件信息属性集",
         "rawProperty": "间距审查",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -20025,13 +20040,13 @@
         "row": 291,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_其它构件信息属性集",
         "rawPropertySetName": "其它构件信息属性集",
         "rawProperty": "退让审查",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -20094,7 +20109,7 @@
         "row": 292,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_楼顶间信息属性集",
         "rawPropertySetName": "楼顶间信息属性集",
         "rawProperty": "投影面积",
@@ -20164,13 +20179,13 @@
         "row": 293,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_楼顶间信息属性集",
         "rawPropertySetName": "楼顶间信息属性集",
         "rawProperty": "公建大类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -20233,13 +20248,13 @@
         "row": 294,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_楼顶间信息属性集",
         "rawPropertySetName": "楼顶间信息属性集",
         "rawProperty": "公建小类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -20302,13 +20317,13 @@
         "row": 295,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_楼顶间信息属性集",
         "rawPropertySetName": "楼顶间信息属性集",
         "rawProperty": "计算系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -20371,13 +20386,13 @@
         "row": 296,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_楼顶间信息属性集",
         "rawPropertySetName": "楼顶间信息属性集",
         "rawProperty": "计容系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -20440,13 +20455,13 @@
         "row": 297,
         "rawEntityCn": "项目",
         "rawEntityId": "IfcProject",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_Manifest",
         "rawPropertySetName": "自述信息属性集",
         "rawProperty": "阶段",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -20509,13 +20524,13 @@
         "row": 298,
         "rawEntityCn": "项目",
         "rawEntityId": "IfcProject",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_Manifest",
         "rawPropertySetName": "自述信息属性集",
         "rawProperty": "应用模型精度",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -20578,13 +20593,13 @@
         "row": 299,
         "rawEntityCn": "项目",
         "rawEntityId": "IfcProject",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_Manifest",
         "rawPropertySetName": "自述信息属性集",
         "rawProperty": "实际模型精度",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcProject",
@@ -20854,13 +20869,13 @@
         "row": 303,
         "rawEntityCn": "空间区域",
         "rawEntityId": "IfcSpatialZone",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_停车场信息属性集",
         "rawPropertySetName": "停车场信息属性集",
         "rawProperty": "车场类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -20923,13 +20938,13 @@
         "row": 304,
         "rawEntityCn": "空间区域",
         "rawEntityId": "IfcSpatialZone",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_停车场信息属性集",
         "rawPropertySetName": "停车场信息属性集",
         "rawProperty": "是否为充电车场",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -20992,13 +21007,13 @@
         "row": 305,
         "rawEntityCn": "空间区域",
         "rawEntityId": "IfcSpatialZone",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_停车场信息属性集",
         "rawPropertySetName": "停车场信息属性集",
         "rawProperty": "投影面积",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -21061,13 +21076,13 @@
         "row": 306,
         "rawEntityCn": "空间区域",
         "rawEntityId": "IfcSpatialZone",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_停车场信息属性集",
         "rawPropertySetName": "停车场信息属性集",
         "rawProperty": "公建车位",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSpatialZone",
@@ -21130,13 +21145,13 @@
         "row": 307,
         "rawEntityCn": "屋顶",
         "rawEntityId": "IfcRoof",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_屋顶信息属性集",
         "rawPropertySetName": "屋顶信息属性集",
         "rawProperty": "屋顶类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcRoof",
@@ -21199,7 +21214,7 @@
         "row": 308,
         "rawEntityCn": "屋顶",
         "rawEntityId": "IfcRoof",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_屋顶信息属性集",
         "rawPropertySetName": "屋顶信息属性集",
         "rawProperty": "投影面积",
@@ -21269,13 +21284,13 @@
         "row": 309,
         "rawEntityCn": "屋顶",
         "rawEntityId": "IfcRoof",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_屋顶信息属性集",
         "rawPropertySetName": "屋顶信息属性集",
         "rawProperty": "公建大类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcRoof",
@@ -21338,13 +21353,13 @@
         "row": 310,
         "rawEntityCn": "屋顶",
         "rawEntityId": "IfcRoof",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_屋顶信息属性集",
         "rawPropertySetName": "屋顶信息属性集",
         "rawProperty": "公建小类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcRoof",
@@ -21407,13 +21422,13 @@
         "row": 311,
         "rawEntityCn": "屋顶",
         "rawEntityId": "IfcRoof",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_屋顶信息属性集",
         "rawPropertySetName": "屋顶信息属性集",
         "rawProperty": "计算系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcRoof",
@@ -21476,13 +21491,13 @@
         "row": 312,
         "rawEntityCn": "屋顶",
         "rawEntityId": "IfcRoof",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_屋顶信息属性集",
         "rawPropertySetName": "屋顶信息属性集",
         "rawProperty": "计容系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcRoof",
@@ -21545,13 +21560,13 @@
         "row": 313,
         "rawEntityCn": "楼梯段",
         "rawEntityId": "IfcStairFlight",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_楼梯段信息属性集",
         "rawPropertySetName": "楼梯段信息属性集",
         "rawProperty": "水平投影面积",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcStairFlight",
@@ -21614,13 +21629,13 @@
         "row": 314,
         "rawEntityCn": "楼梯段",
         "rawEntityId": "IfcStairFlight",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_楼梯段信息属性集",
         "rawPropertySetName": "楼梯段信息属性集",
         "rawProperty": "是否为室外楼梯",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcStairFlight",
@@ -21683,13 +21698,13 @@
         "row": 315,
         "rawEntityCn": "楼梯段",
         "rawEntityId": "IfcStairFlight",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_楼梯段信息属性集",
         "rawPropertySetName": "楼梯段信息属性集",
         "rawProperty": "公建大类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcStairFlight",
@@ -21752,13 +21767,13 @@
         "row": 316,
         "rawEntityCn": "楼梯段",
         "rawEntityId": "IfcStairFlight",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_楼梯段信息属性集",
         "rawPropertySetName": "楼梯段信息属性集",
         "rawProperty": "公建小类",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcStairFlight",
@@ -21821,13 +21836,13 @@
         "row": 317,
         "rawEntityCn": "楼梯段",
         "rawEntityId": "IfcStairFlight",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_楼梯段信息属性集",
         "rawPropertySetName": "楼梯段信息属性集",
         "rawProperty": "计算系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcStairFlight",
@@ -21890,13 +21905,13 @@
         "row": 318,
         "rawEntityCn": "楼梯段",
         "rawEntityId": "IfcStairFlight",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_楼梯段信息属性集",
         "rawPropertySetName": "楼梯段信息属性集",
         "rawProperty": "计容系数",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcStairFlight",
@@ -21959,13 +21974,13 @@
         "row": 319,
         "rawEntityCn": "楼梯段",
         "rawEntityId": "IfcStairFlight",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_楼梯段信息属性集",
         "rawPropertySetName": "楼梯段信息属性集",
         "rawProperty": "间距审查",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcStairFlight",
@@ -22028,13 +22043,13 @@
         "row": 320,
         "rawEntityCn": "楼梯段",
         "rawEntityId": "IfcStairFlight",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_楼梯段信息属性集",
         "rawPropertySetName": "楼梯段信息属性集",
         "rawProperty": "退让审查",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcStairFlight",
@@ -22097,13 +22112,13 @@
         "row": 321,
         "rawEntityCn": "墙",
         "rawEntityId": "IfcWall",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_墙信息属性集",
         "rawPropertySetName": "墙信息属性集",
         "rawProperty": "高度",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcWall",
@@ -22166,13 +22181,13 @@
         "row": 322,
         "rawEntityCn": "墙",
         "rawEntityId": "IfcWall",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_墙信息属性集",
         "rawPropertySetName": "墙信息属性集",
         "rawProperty": "是否为女儿墙",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcWall",
@@ -22235,13 +22250,13 @@
         "row": 323,
         "rawEntityCn": "窗",
         "rawEntityId": "IfcWindow",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_窗信息属性集",
         "rawPropertySetName": "窗信息属性集",
         "rawProperty": "标高",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcWindow",
@@ -22304,13 +22319,13 @@
         "row": 324,
         "rawEntityCn": "窗",
         "rawEntityId": "IfcWindow",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_窗信息属性集",
         "rawPropertySetName": "窗信息属性集",
         "rawProperty": "底高度",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcWindow",
@@ -22373,13 +22388,13 @@
         "row": 325,
         "rawEntityCn": "窗",
         "rawEntityId": "IfcWindow",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_窗信息属性集",
         "rawPropertySetName": "窗信息属性集",
         "rawProperty": "窗台高",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcWindow",
@@ -22442,13 +22457,13 @@
         "row": 326,
         "rawEntityCn": "窗",
         "rawEntityId": "IfcWindow",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_窗信息属性集",
         "rawPropertySetName": "窗信息属性集",
         "rawProperty": "高度",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcWindow",
@@ -22511,13 +22526,13 @@
         "row": 327,
         "rawEntityCn": "窗",
         "rawEntityId": "IfcWindow",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_窗信息属性集",
         "rawPropertySetName": "窗信息属性集",
         "rawProperty": "宽度",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcWindow",
@@ -22580,13 +22595,13 @@
         "row": 328,
         "rawEntityCn": "窗",
         "rawEntityId": "IfcWindow",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_窗信息属性集",
         "rawPropertySetName": "窗信息属性集",
         "rawProperty": "户型显示名",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcWindow",
@@ -22649,13 +22664,13 @@
         "row": 329,
         "rawEntityCn": "建筑",
         "rawEntityId": "IfcBuilding",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_绿色建筑信息属性集",
         "rawPropertySetName": "绿色建筑信息属性集",
         "rawProperty": "是否有自动监控管理功能",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -22718,13 +22733,13 @@
         "row": 330,
         "rawEntityCn": "建筑",
         "rawEntityId": "IfcBuilding",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_绿色建筑信息属性集",
         "rawPropertySetName": "绿色建筑信息属性集",
         "rawProperty": "是否具有完善的操作规程和应急预案",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -22787,13 +22802,13 @@
         "row": 331,
         "rawEntityCn": "建筑",
         "rawEntityId": "IfcBuilding",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_绿色建筑信息属性集",
         "rawPropertySetName": "绿色建筑信息属性集",
         "rawProperty": "是否具有智能化服务系统",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcBoolean",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcBuilding",
@@ -22856,13 +22871,13 @@
         "row": 332,
         "rawEntityCn": "板",
         "rawEntityId": "IfcSlab",
-        "rawIfcElementOrType": "14",
+        "rawIfcElementOrType": "",
         "rawPropertySetId": "Pset_结构板信息属性集",
         "rawPropertySetName": "结构板信息属性集",
         "rawProperty": "水平投影面积",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcReal",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcSlab",
@@ -22931,7 +22946,7 @@
         "rawProperty": "企业名称",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -23000,7 +23015,7 @@
         "rawProperty": "单位性质",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -23069,7 +23084,7 @@
         "rawProperty": "社会统一信用代码",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -23138,7 +23153,7 @@
         "rawProperty": "注册地区编码",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -23207,7 +23222,7 @@
         "rawProperty": "企业营业地址",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -23276,7 +23291,7 @@
         "rawProperty": "邮政编码",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -23345,7 +23360,7 @@
         "rawProperty": "法定代表人姓名",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -23414,7 +23429,7 @@
         "rawProperty": "法定代表人证件类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -23483,7 +23498,7 @@
         "rawProperty": "法定代表人证件号码",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -23552,7 +23567,7 @@
         "rawProperty": "注册资本",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -23621,7 +23636,7 @@
         "rawProperty": "注册资本币种",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -23690,7 +23705,7 @@
         "rawProperty": "成立日期",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcDate",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -23759,7 +23774,7 @@
         "rawProperty": "办公电话",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -23828,7 +23843,7 @@
         "rawProperty": "传真号码",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -23897,7 +23912,7 @@
         "rawProperty": "联系人姓名",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -23966,7 +23981,7 @@
         "rawProperty": "联系人办公电话",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -24035,7 +24050,7 @@
         "rawProperty": "联系人手机号码",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -24104,7 +24119,7 @@
         "rawProperty": "企业联系邮箱",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -24173,7 +24188,7 @@
         "rawProperty": "企业网址",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -24242,7 +24257,7 @@
         "rawProperty": "企业经营状态",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -24311,7 +24326,7 @@
         "rawProperty": "企业备注",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -24380,7 +24395,7 @@
         "rawProperty": "企业编码",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcText",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -24449,7 +24464,7 @@
         "rawProperty": "项目参建类型",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcLabel",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -24518,7 +24533,7 @@
         "rawProperty": "项目进场时间",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcDateTime",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -24587,7 +24602,7 @@
         "rawProperty": "项目退场时间",
         "rawValueKind": "P_SINGLEVALUE",
         "rawDeclaredType": "IfcDateTime",
-        "rawUnit": "14"
+        "rawUnit": ""
       },
       "ifc": {
         "entity": "IfcOrganization",
@@ -24736,7 +24751,8 @@
         "declaredType": "IfcReal",
         "canonicalUnit": "mm",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -25494,7 +25510,9 @@
         "建筑轮廓不重复"
       ],
       "propertyChecks": [],
-      "targetComparisons": [],
+      "targetComparisons": [
+        "planning.building_density"
+      ],
       "source": "TaskRuleCatalog.cs"
     },
     {
@@ -25670,7 +25688,9 @@
       "propertyChecks": [
         "折算面积计算有效"
       ],
-      "targetComparisons": [],
+      "targetComparisons": [
+        "planning.green_rate"
+      ],
       "source": "TaskRuleCatalog.cs"
     },
     {
@@ -25763,7 +25783,11 @@
       ],
       "geometryChecks": [],
       "propertyChecks": [],
-      "targetComparisons": [],
+      "targetComparisons": [
+        "planning.building_density",
+        "planning.floor_area_ratio",
+        "planning.green_rate"
+      ],
       "source": "TaskRuleCatalog.cs"
     },
     {
@@ -25841,7 +25865,9 @@
         "高度与标高一致",
         "面积与几何一致"
       ],
-      "targetComparisons": [],
+      "targetComparisons": [
+        "planning.floor_area_ratio"
+      ],
       "source": "TaskRuleCatalog.cs"
     },
     {
@@ -25927,7 +25953,11 @@
       ],
       "geometryChecks": [],
       "propertyChecks": [],
-      "targetComparisons": [],
+      "targetComparisons": [
+        "planning.building_density",
+        "planning.floor_area_ratio",
+        "planning.green_rate"
+      ],
       "source": "TaskRuleCatalog.cs"
     },
     {
@@ -26071,7 +26101,11 @@
       ],
       "geometryChecks": [],
       "propertyChecks": [],
-      "targetComparisons": [],
+      "targetComparisons": [
+        "planning.building_density",
+        "planning.floor_area_ratio",
+        "planning.green_rate"
+      ],
       "source": "TaskRuleCatalog.cs"
     }
   ],

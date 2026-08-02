@@ -1,6 +1,7 @@
 import json
 import re
 import uuid
+import hashlib
 from pathlib import Path
 
 
@@ -70,6 +71,7 @@ def test_old_166_ids_guid_seeds_canonical_keys_and_aliases_are_frozen():
         assert rule["canonicalKey"] == legacy["canonicalKey"]
         assert legacy["canonical"]["revitParameterName"] in rule["revit"]["legacyNames"]
         assert rule["officialPlugin"]["originalIdentity"] == "|".join(_old_identity(legacy))
+        assert str(uuid.uuid5(uuid.UUID(old["idNamespace"]), legacy["canonicalKey"])) == property_id
 
 
 def test_new_mvd_only_ids_are_written_fixed_uuid5_values():
@@ -256,6 +258,9 @@ def test_tasks_and_conditions_are_traceable_to_the_existing_catalogs():
     assert {condition["source"] for condition in source["conditions"]} <= {
         "RuleActivationCatalog.cs", "Stage01RegistryProvider.cs"
     }
+    activation_expected = dict(re.findall(r'\["([^"]+)"\]\s*=\s*"([^"]+)"', activation_catalog))
+    activation_actual = {c["conditionId"]: c["activationRuleId"] for c in source["conditions"] if c["activationRuleId"] is not None}
+    assert activation_actual == activation_expected
 
 
 def test_mvd_source_evidence_and_canonical_fields_remain_workbook_faithful():
@@ -291,3 +296,79 @@ def test_tasks_and_conditions_are_complete_rebuildable_catalog_records():
     assert conditions["site.other_land"]["activationRuleId"] == "HBR.SITE.OTHER_LAND"
     assert conditions["building.roof"]["activationRuleId"] is None
     assert conditions["building.roof"]["evidenceStatus"] == "NOT_IN_LEGACY_ACTIVATION_CATALOG"
+
+
+def test_task_targets_and_complete_payload_are_frozen():
+    source = _load(SOURCE_PATH)
+    tasks = {task["taskId"]: task for task in source["tasks"]}
+    density = "planning.building_density"
+    far = "planning.floor_area_ratio"
+    green = "planning.green_rate"
+    expected = {
+        "SITE.BUILDING_FOOTPRINT": [density], "SITE.GREEN": [green],
+        "SITE.TARGET_CHECK": [density, far, green], "ABOVE.BODY": [far],
+        "ABOVE.INHERIT_TARGETS": [density, far, green],
+        "UNDERGROUND.INHERIT_TARGETS": [density, far, green],
+    }
+    assert {key: tasks[key]["targetComparisons"] for key in expected} == expected
+    normalized = json.dumps(source["tasks"], ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    assert hashlib.sha256(normalized.encode()).hexdigest() == "850a1a6007e34bf1ef0827221cd08d5fd6c25843a3c226381f24e85677357923"
+
+
+def test_mvd_raw_blanks_are_real_empty_cells_not_style_sentinel_values():
+    source = _load(SOURCE_PATH)
+    mvd = [rule for rule in source["properties"] if rule["contractKind"] == "MVD"]
+    for key in ("rawValueKind", "rawUnit", "rawIfcElementOrType"):
+        assert all(rule["source"][key] != "14" for rule in mvd)
+    assert sum(rule["source"]["rawValueKind"] == "" for rule in mvd) == 113
+    assert sum(rule["source"]["rawUnit"] == "" for rule in mvd) == 272
+    assert sum(rule["source"]["rawIfcElementOrType"] == "" for rule in mvd) == 93
+    workbook = source["evidenceSources"][0]
+    assert workbook["source"] == "《MVD》规划报建.xlsx"
+    assert re.fullmatch(r"[0-9a-f]{64}", workbook["sha256"])
+
+
+def test_reference_collections_are_unique_and_task_dependencies_form_profile_dags():
+    source = _load(SOURCE_PATH)
+    for collection, key in (("carrierRoles","roleId"),("conditions","conditionId"),("tasks","taskId"),("modelProfiles","profileId")):
+        values = [item[key] for item in source[collection]]
+        assert len(values) == len(set(values))
+    aliases = [(item["propertyId"], item["alias"]) for item in source["legacyAliases"]]
+    assert len(aliases) == len(set(aliases)) == 166
+    tasks = {item["taskId"]: item for item in source["tasks"]}
+    for profile in source["modelProfiles"]:
+        assert len(profile["taskIds"]) == len(set(profile["taskIds"]))
+        ids = set(profile["taskIds"])
+        assert all(dep in ids for task_id in ids for dep in tasks[task_id]["dependencies"])
+        visiting, visited = set(), set()
+        def visit(task_id):
+            assert task_id not in visiting
+            if task_id in visited: return
+            visiting.add(task_id)
+            for dep in tasks[task_id]["dependencies"]: visit(dep)
+            visiting.remove(task_id); visited.add(task_id)
+        for task_id in ids: visit(task_id)
+    refs = [(r["fieldKey"], r["sourceRow"], r["propertyId"]) for r in source["stage01"]["fieldRefs"]]
+    assert len(refs) == len(set(refs)) == 102
+    frozen = {
+        "carrierRoles": "6f2c90a21b46b26ae82289766c1712f386d7a3432cc2fa6beba8f11f6d829d91",
+        "conditions": "5941f38c19608314006dafdfa82744afad65bce50391edaee0b91f9b158b26bd",
+        "modelProfiles": "2e01a821c5afb7db3e85a2d789ac6277afe8b6589b7a7034b6919e8ecb083b4f",
+        "legacyAliases": "1a18f522e13b6072d12b52e644e165e9bdf10283daf7b525a2ca02578b3b5a80",
+    }
+    for key, digest in frozen.items():
+        payload = json.dumps(source[key], ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        assert hashlib.sha256(payload.encode()).hexdigest() == digest
+    stage_payload = json.dumps(sorted(refs), ensure_ascii=False, separators=(",", ":"))
+    assert hashlib.sha256(stage_payload.encode()).hexdigest() == "9c1ea357d65558736ecc6d2f43bf15cf6d8e64f2491e63bf8f0d18b0e75264fb"
+
+
+def test_real_runtime_and_revit_types_follow_all_supported_dimensions():
+    source = _load(SOURCE_PATH)
+    expected = {"m":"IfcLengthMeasure","mm":"IfcLengthMeasure","m2":"IfcAreaMeasure","m3":"IfcVolumeMeasure","deg":"IfcPlaneAngleMeasure"}
+    mm_rules = [rule for rule in source["properties"] if rule["ifc"]["declaredType"] == "IfcReal" and rule["ifc"]["canonicalUnit"] == "mm"]
+    assert len(mm_rules) == 15
+    for rule in source["properties"]:
+        if rule["ifc"]["declaredType"] != "IfcReal" or rule["ifc"]["canonicalUnit"] not in expected: continue
+        assert {"IfcReal", expected[rule["ifc"]["canonicalUnit"]]} <= set(rule["ifc"]["allowedRuntimeTypes"])
+        assert rule["revit"]["parameterType"] == {"m":"Length","mm":"Length","m2":"Area","m3":"Volume","deg":"Angle"}[rule["ifc"]["canonicalUnit"]]

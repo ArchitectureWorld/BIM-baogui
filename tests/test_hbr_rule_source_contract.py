@@ -1,4 +1,5 @@
 import json
+import copy
 from pathlib import Path
 
 import jsonschema
@@ -147,3 +148,24 @@ def test_schema_closes_all_top_level_collection_item_contracts():
     assert schema["properties"]["modelProfiles"]["items"] == {"$ref": "#/$defs/modelProfileContract"}
     assert schema["properties"]["legacyAliases"]["items"] == {"$ref": "#/$defs/legacyAliasContract"}
     assert schema["properties"]["stage01"] == {"$ref": "#/$defs/stage01Contract"}
+
+
+def test_schema_rejects_invalid_core_business_shapes():
+    schema = _load(SCHEMA_PATH)
+    source = _load(SOURCE_PATH)
+    validator = jsonschema.Draft202012Validator(schema, format_checker=jsonschema.FormatChecker())
+    mutations = []
+    def mutate(path, value):
+        candidate = copy.deepcopy(source)
+        cursor = candidate
+        for key in path[:-1]: cursor = cursor[key]
+        cursor[path[-1]] = value
+        mutations.append(candidate)
+    mutate(["properties", 0, "carrierRoleIds"], [123])
+    mutate(["properties", 0, "requirement"], {})
+    mutate(["properties", 0, "stageOwnership"], ["BOGUS"])
+    mutate(["properties", 0, "suggestion"], {"kind": "TYPO", "aliases": [7]})
+    mutate(["properties", 0, "ifcWrite"], {})
+    mutate(["properties", 0, "ifc", "allowedRuntimeTypes"], [7])
+    mutate(["tasks", 0, "requirement"], "BOGUS")
+    assert all(list(validator.iter_errors(candidate)) for candidate in mutations)
