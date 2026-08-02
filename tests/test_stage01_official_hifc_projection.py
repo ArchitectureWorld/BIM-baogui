@@ -34,6 +34,15 @@ def test_stage01_projection_delegates_dual_write_and_revit_readback():
     assert "OfficialParameterWriteItem" in service
     assert "ParameterBindings.Insert" in projection
     assert "ParameterBindings.ReInsert" in projection
+    assert "ResolveParameterGroup(projection)" in projection
+    assert "BuiltInParameterGroup.PG_MATERIALS" in projection
+    assert "BuiltInParameterGroup.PG_PHASING" in projection
+    assert "OfficialSourceParameterGroup" in projection
+    assert "projection.SharedParameterType" in projection
+    assert "OfficialSourceParameterType" in projection
+    assert "OfficialSourceValuePolicy.Normalize" in projection
+    assert "RemoveLegacyOfficialBindings" in projection
+    assert "SharedParameterElement.Lookup" in projection
     assert "get_Parameter(projection.Guid)" in projection
     assert "document.Regenerate()" in projection
     assert "ReadbackMatches" in projection

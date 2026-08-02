@@ -56,9 +56,9 @@ namespace BIMBaoGui.Stage01.Revit
 
       List<ProjectionWrite> projections = ExpandProjections(items);
       ValidateConflictingWrites(projections);
-      PreflightExistingOfficialParameters(projections);
-
       var messages = new List<string>();
+      RemoveLegacyOfficialBindings(document, projections, messages);
+      PreflightExistingOfficialParameters(projections);
       EnsureDefinitionsAndBindings(document, projections, messages);
 
       foreach (ProjectionWrite projection in projections)
@@ -66,7 +66,7 @@ namespace BIMBaoGui.Stage01.Revit
         Parameter parameter = ResolveParameter(projection);
         OfficialParameterTypeDecision decision = ValidateParameterType(
           parameter,
-          projection.Mapping.SharedParameterType,
+          projection.SharedParameterType,
           projection);
         if (parameter.IsReadOnly)
           throw new InvalidOperationException(
@@ -83,7 +83,7 @@ namespace BIMBaoGui.Stage01.Revit
         Parameter parameter = ResolveParameter(projection);
         OfficialParameterTypeDecision decision = ValidateParameterType(
           parameter,
-          projection.Mapping.SharedParameterType,
+          projection.SharedParameterType,
           projection);
         if (!ReadbackMatches(
           parameter,
@@ -139,6 +139,7 @@ namespace BIMBaoGui.Stage01.Revit
           Guid = item.Mapping.ParameterGuid,
           Name = item.Mapping.ParameterName,
           Kind = CanonicalProjectionKind,
+          SharedParameterType = item.Mapping.SharedParameterType,
           RequiresGeneratedDefinition = false
         });
 
@@ -149,10 +150,13 @@ namespace BIMBaoGui.Stage01.Revit
           {
             Mapping = item.Mapping,
             Target = item.Target,
-            RawValue = item.RawValue ?? string.Empty,
+            RawValue = OfficialSourceValuePolicy.Normalize(
+              item.Mapping.IfcDataType,
+              item.RawValue),
             Guid = item.Mapping.OfficialSourceParameterGuid,
             Name = item.Mapping.OfficialSourceParameterName,
             Kind = OfficialProjectionKind,
+            SharedParameterType = item.Mapping.OfficialSourceParameterType,
             RequiresGeneratedDefinition = true
           });
         }
@@ -217,24 +221,63 @@ namespace BIMBaoGui.Stage01.Revit
       foreach (ProjectionWrite projection in projections
         .Where(item => item.Kind == OfficialProjectionKind))
       {
-        IList<Parameter> exact = projection.Target.GetParameters(
-          projection.Name);
+        IList<Parameter> exact = GetExactNameParametersInExpectedGroup(
+          projection);
         if (exact != null && exact.Count > 1)
           throw new InvalidOperationException(
             DuplicateOfficialSourceParameterCode
-            + "：目标对象已经存在多个同名参数“"
+            + "：目标对象已经存在多个同名同组参数“"
             + projection.Name
-            + "”，官方导出器的名称读取结果不确定。" );
+            + "”；参数组="
+            + projection.Mapping.OfficialSourceParameterGroup
+            + "。" );
         if (exact != null && exact.Count == 1)
         {
           projection.ExistingExactNameParameter = exact[0];
           projection.RequiresGeneratedDefinition = false;
           ValidateParameterType(
             exact[0],
-            projection.Mapping.SharedParameterType,
+            projection.SharedParameterType,
             projection);
         }
       }
+    }
+
+    private static void RemoveLegacyOfficialBindings(
+      Document document,
+      IEnumerable<ProjectionWrite> projections,
+      ICollection<string> messages)
+    {
+      int removed = 0;
+      foreach (ProjectionWrite projection in projections
+        .Where(item => item.Kind == OfficialProjectionKind)
+        .GroupBy(item => item.Mapping.LegacyOfficialSourceParameterGuid)
+        .Select(group => group.First()))
+      {
+        Guid legacyGuid = projection.Mapping.LegacyOfficialSourceParameterGuid;
+        if (legacyGuid == Guid.Empty || legacyGuid == projection.Guid) continue;
+
+        SharedParameterElement legacy = SharedParameterElement.Lookup(
+          document,
+          legacyGuid);
+        if (legacy == null) continue;
+        Definition definition = legacy.GetDefinition();
+        if (definition == null) continue;
+        if (!string.Equals(
+          definition.Name,
+          projection.Name,
+          StringComparison.Ordinal))
+          throw new InvalidOperationException(
+            "LEGACY_OFFICIAL_SOURCE_GUID_COLLISION：GUID="
+            + legacyGuid.ToString("D")
+            + "；期望参数="
+            + projection.Name
+            + "；实际参数="
+            + definition.Name);
+        if (document.ParameterBindings.Remove(definition)) removed++;
+      }
+      if (removed > 0)
+        messages.Add("已迁移并移除 " + removed + " 个旧版官方源参数绑定。");
     }
 
     private static void EnsureDefinitionsAndBindings(
@@ -295,13 +338,15 @@ namespace BIMBaoGui.Stage01.Revit
           Binding binding = projection.Mapping.IsTypeBinding
             ? (Binding)application.Create.NewTypeBinding(categories)
             : application.Create.NewInstanceBinding(categories);
+          BuiltInParameterGroup parameterGroup = ResolveParameterGroup(
+            projection);
           bool inserted;
           try
           {
             inserted = document.ParameterBindings.Insert(
               definition,
               binding,
-              BuiltInParameterGroup.PG_DATA);
+              parameterGroup);
           }
           catch (Exception exception)
           {
@@ -320,7 +365,7 @@ namespace BIMBaoGui.Stage01.Revit
               reinserted = document.ParameterBindings.ReInsert(
                 definition,
                 binding,
-                BuiltInParameterGroup.PG_DATA);
+                parameterGroup);
             }
             catch (Exception exception)
             {
@@ -361,6 +406,7 @@ namespace BIMBaoGui.Stage01.Revit
         + "：参数=" + projection.Name
         + "；GUID=" + projection.Guid.ToString("D")
         + "；类别=" + projection.Mapping.Category
+        + "；参数组=" + GetExpectedParameterGroupLabel(projection)
         + "；投影=" + projection.Kind
         + "；原始异常=" + exception.GetType().FullName
         + "：" + exception.Message,
@@ -453,7 +499,7 @@ namespace BIMBaoGui.Stage01.Revit
             .Append(Sanitize(item.Name))
             .Append('\t')
             .Append(OfficialParameterTypeContract.Resolve(
-              item.Mapping.SharedParameterType).SemanticType)
+              item.SharedParameterType).SemanticType)
             .Append("\t\t")
             .Append(group.Id.ToString(CultureInfo.InvariantCulture))
             .Append("\t1\tOfficial exact source alias | ")
@@ -475,17 +521,62 @@ namespace BIMBaoGui.Stage01.Revit
       if (projection.ExistingExactNameParameter != null)
         return projection.ExistingExactNameParameter;
 
-      IList<Parameter> exact = projection.Target.GetParameters(projection.Name);
+      IList<Parameter> exact = GetExactNameParametersInExpectedGroup(projection);
       if (exact == null || exact.Count == 0)
         throw new InvalidOperationException(
-          projection.Kind + " 参数未绑定：" + projection.Name);
+          projection.Kind
+          + " 参数未绑定："
+          + projection.Name
+          + "；参数组="
+          + GetExpectedParameterGroupLabel(projection));
       if (exact.Count > 1)
         throw new InvalidOperationException(
           DuplicateOfficialSourceParameterCode
-          + "：写入时检测到多个同名参数“"
+          + "：写入时检测到多个同名同组参数“"
           + projection.Name
           + "”。" );
       return exact[0];
+    }
+
+    private static IList<Parameter> GetExactNameParametersInExpectedGroup(
+      ProjectionWrite projection)
+    {
+      BuiltInParameterGroup expected = ResolveParameterGroup(projection);
+      return (projection.Target.GetParameters(projection.Name)
+        ?? new List<Parameter>())
+        .Where(parameter => parameter?.Definition != null
+          && parameter.Definition.ParameterGroup == expected)
+        .ToList();
+    }
+
+    private static BuiltInParameterGroup ResolveParameterGroup(
+      ProjectionWrite projection)
+    {
+      if (projection.Kind == CanonicalProjectionKind)
+        return BuiltInParameterGroup.PG_DATA;
+
+      switch ((projection.Mapping.OfficialSourceParameterGroup
+        ?? string.Empty).Trim())
+      {
+      case "材质和装饰":
+        return BuiltInParameterGroup.PG_MATERIALS;
+      case "阶段化":
+        return BuiltInParameterGroup.PG_PHASING;
+      default:
+        throw new InvalidOperationException(
+          "UNSUPPORTED_OFFICIAL_SOURCE_PARAMETER_GROUP：参数="
+          + projection.Name
+          + "；官方参数组="
+          + projection.Mapping.OfficialSourceParameterGroup);
+      }
+    }
+
+    private static string GetExpectedParameterGroupLabel(
+      ProjectionWrite projection)
+    {
+      return projection.Kind == CanonicalProjectionKind
+        ? "数据"
+        : projection.Mapping.OfficialSourceParameterGroup;
     }
 
     private static OfficialParameterTypeDecision ValidateParameterType(
@@ -729,6 +820,7 @@ namespace BIMBaoGui.Stage01.Revit
       public Guid Guid { get; set; }
       public string Name { get; set; }
       public string Kind { get; set; }
+      public string SharedParameterType { get; set; }
       public bool RequiresGeneratedDefinition { get; set; }
       public Parameter ExistingExactNameParameter { get; set; }
     }

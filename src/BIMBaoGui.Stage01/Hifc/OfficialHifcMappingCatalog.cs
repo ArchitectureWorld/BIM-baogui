@@ -140,8 +140,10 @@ namespace BIMBaoGui.Stage01.Hifc
         if (!Guid.TryParse(item.parameterGuid, out Guid guid))
           throw new InvalidDataException("无效参数 GUID：" + item.parameterGuid);
         if (string.IsNullOrWhiteSpace(item.propertyId)
-          || string.IsNullOrWhiteSpace(item.parameterName))
-          throw new InvalidDataException("H-IFC 映射缺少 propertyId 或参数名。");
+          || string.IsNullOrWhiteSpace(item.parameterName)
+          || string.IsNullOrWhiteSpace(item.officialSourceParameterGroup))
+          throw new InvalidDataException(
+            "H-IFC 映射缺少 propertyId、参数名或官方源参数组。");
         if (!rules.TryGetValue(item.propertyId, out RuleRecord rule)
           || rule.official == null || rule.canonical == null)
           throw new InvalidDataException("参数绑定找不到对应规则：" + item.propertyId);
@@ -156,6 +158,9 @@ namespace BIMBaoGui.Stage01.Hifc
         string bindingScope = string.IsNullOrWhiteSpace(item.bindingScope)
           ? "INSTANCE"
           : item.bindingScope.Trim();
+        string officialSourceParameterType =
+          OfficialSourceParameterTypePolicy.Resolve(
+            rule.official.ifcDataType);
         result.Add(new OfficialHifcMapping
         {
           PropertyId = item.propertyId,
@@ -173,11 +178,22 @@ namespace BIMBaoGui.Stage01.Hifc
           Unit = rule.official.unit ?? string.Empty,
           SourceParameterOverride = sourceOverride,
           OfficialSourceParameterName = officialSourceName,
+          OfficialSourceParameterGroup =
+            (item.officialSourceParameterGroup ?? string.Empty).Trim(),
+          OfficialSourceParameterType = officialSourceParameterType,
           OfficialSourceParameterGuid = OfficialSourceAliasPolicy.CreateGuid(
             bindingScope,
             item.category,
             item.carrier,
-            officialSourceName)
+            item.officialSourceParameterGroup,
+            officialSourceName,
+            officialSourceParameterType),
+          LegacyOfficialSourceParameterGuid =
+            OfficialSourceAliasPolicy.CreateLegacyGuid(
+              bindingScope,
+              item.category,
+              item.carrier,
+              officialSourceName)
         });
       }
 
@@ -213,6 +229,7 @@ namespace BIMBaoGui.Stage01.Hifc
       public string category { get; set; }
       public string carrier { get; set; }
       public string persistenceMode { get; set; }
+      public string officialSourceParameterGroup { get; set; }
     }
 
     private sealed class RuleEnvelope

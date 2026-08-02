@@ -23,8 +23,11 @@ namespace BIMBaoGui.Stage01.Core.Tests
           Assert.False(string.IsNullOrWhiteSpace(mapping.IfcProperty));
           Assert.False(string.IsNullOrWhiteSpace(mapping.SharedParameterType));
           Assert.False(string.IsNullOrWhiteSpace(mapping.OfficialSourceParameterName));
+          Assert.False(string.IsNullOrWhiteSpace(mapping.OfficialSourceParameterGroup));
+          Assert.False(string.IsNullOrWhiteSpace(mapping.OfficialSourceParameterType));
           Assert.NotEqual(Guid.Empty, mapping.ParameterGuid);
           Assert.NotEqual(Guid.Empty, mapping.OfficialSourceParameterGuid);
+          Assert.NotEqual(Guid.Empty, mapping.LegacyOfficialSourceParameterGuid);
         });
       });
 
@@ -68,6 +71,39 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void OfficialSourceGroups_MatchTheExtractedRevit2020PluginContract()
+    {
+      OfficialHifcMapping[] mappings = OfficialHifcMappingCatalog.Instance
+        .Mappings
+        .ToArray();
+
+      Assert.Equal(164, mappings.Count(mapping =>
+        mapping.OfficialSourceParameterGroup == "材质和装饰"));
+      Assert.Equal(2, mappings.Count(mapping =>
+        mapping.OfficialSourceParameterGroup == "阶段化"));
+
+      OfficialHifcMapping[] coordinates = mappings
+        .Where(mapping => mapping.PropertySet == "申报信息属性集"
+          && new[] { "基点坐标X", "基点坐标Y", "基点高程" }
+            .Contains(mapping.IfcProperty))
+        .ToArray();
+      Assert.Equal(3, coordinates.Length);
+      Assert.All(coordinates, mapping => Assert.Equal(
+        "材质和装饰",
+        mapping.OfficialSourceParameterGroup));
+      Assert.All(coordinates, mapping => Assert.Equal(
+        "IfcReal",
+        mapping.IfcDataType));
+      Assert.All(coordinates, mapping => Assert.Equal("m", mapping.Unit));
+      Assert.All(coordinates, mapping => Assert.Equal(
+        "NUMBER",
+        mapping.OfficialSourceParameterType));
+      Assert.All(coordinates, mapping => Assert.NotEqual(
+        mapping.LegacyOfficialSourceParameterGuid,
+        mapping.OfficialSourceParameterGuid));
+    }
+
+    [Fact]
     public void Catalog_NormalizesFallbackOfficialNamesAndBindingScopesForWriting()
     {
       OfficialHifcMapping[] mappings = OfficialHifcMappingCatalog.Instance
@@ -100,10 +136,10 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Assert.True(catalog.TryResolve(
         "HIFC.登记信息属性集.建筑物编码", out OfficialHifcMapping registrationCode));
 
-      Assert.Equal(
+      Assert.NotEqual(
         zoningRemark.OfficialSourceParameterGuid,
         filingRemark.OfficialSourceParameterGuid);
-      Assert.Equal(
+      Assert.NotEqual(
         cadastralCode.OfficialSourceParameterGuid,
         registrationCode.OfficialSourceParameterGuid);
       Assert.NotEqual(
@@ -111,12 +147,10 @@ namespace BIMBaoGui.Stage01.Core.Tests
         cadastralCode.OfficialSourceParameterGuid);
       Assert.NotEqual(zoningRemark.ParameterGuid, filingRemark.ParameterGuid);
       Assert.NotEqual(cadastralCode.ParameterGuid, registrationCode.ParameterGuid);
-      Assert.Equal(
-        new Guid("99d2e51c-a1b7-5bd5-8757-d757305ded16"),
-        zoningRemark.OfficialSourceParameterGuid);
-      Assert.Equal(
-        new Guid("ffed4846-f6c9-58f3-bc99-003346a49344"),
-        cadastralCode.OfficialSourceParameterGuid);
+      Assert.Equal("材质和装饰", zoningRemark.OfficialSourceParameterGroup);
+      Assert.Equal("阶段化", filingRemark.OfficialSourceParameterGroup);
+      Assert.Equal("材质和装饰", cadastralCode.OfficialSourceParameterGroup);
+      Assert.Equal("阶段化", registrationCode.OfficialSourceParameterGroup);
     }
 
     private static string Flatten(Exception exception)

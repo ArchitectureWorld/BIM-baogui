@@ -11,7 +11,9 @@ namespace BIMBaoGui.Stage01.Hifc
       string bindingScope,
       string revitCategory,
       string carrier,
-      string officialExactSourceName)
+      string officialSourceParameterGroup,
+      string officialExactSourceName,
+      string officialSourceParameterType)
     {
       return DeterministicGuidV5.Create(
         Namespace,
@@ -19,10 +21,46 @@ namespace BIMBaoGui.Stage01.Hifc
           bindingScope,
           revitCategory,
           carrier,
+          officialSourceParameterGroup,
+          officialExactSourceName,
+          officialSourceParameterType));
+    }
+
+    public static Guid CreateLegacyGuid(
+      string bindingScope,
+      string revitCategory,
+      string carrier,
+      string officialExactSourceName)
+    {
+      return DeterministicGuidV5.Create(
+        Namespace,
+        CreateLegacyIdentity(
+          bindingScope,
+          revitCategory,
+          carrier,
           officialExactSourceName));
     }
 
     private static string CreateIdentity(
+      string bindingScope,
+      string revitCategory,
+      string carrier,
+      string officialSourceParameterGroup,
+      string officialExactSourceName,
+      string officialSourceParameterType)
+    {
+      return CreateLegacyIdentity(
+          bindingScope,
+          revitCategory,
+          carrier,
+          officialExactSourceName)
+        + "|"
+        + Normalize(officialSourceParameterGroup)
+        + "|"
+        + Normalize(officialSourceParameterType);
+    }
+
+    private static string CreateLegacyIdentity(
       string bindingScope,
       string revitCategory,
       string carrier,

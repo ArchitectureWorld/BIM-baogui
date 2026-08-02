@@ -42,6 +42,7 @@ def test_mapping_catalog_source_data_can_be_loaded_without_alias_collisions():
     assert not missing, f"bindings missing rules: {missing}"
 
     categoryless = []
+    source_groups = Counter()
     for item in bindings:
         assert item.get("parameterGuid")
         assert item.get("parameterName")
@@ -52,6 +53,8 @@ def test_mapping_catalog_source_data_can_be_loaded_without_alias_collisions():
         assert rule["official"].get("propertySet")
         assert rule["official"].get("ifcProperty")
         assert rule["canonical"].get("sharedParameterType")
+        assert item.get("officialSourceParameterGroup")
+        source_groups[item["officialSourceParameterGroup"]] += 1
 
         if not item.get("category"):
             entity = rule["official"]["ifcEntity"]
@@ -63,3 +66,4 @@ def test_mapping_catalog_source_data_can_be_loaded_without_alias_collisions():
             )
 
     assert categoryless, "Expected the official package to contain non-Revit blocked mappings"
+    assert source_groups == Counter({"材质和装饰": 164, "阶段化": 2})

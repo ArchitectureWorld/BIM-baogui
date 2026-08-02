@@ -53,8 +53,8 @@
     },
     {
       "path": "generated/GH_HIFC_ParameterBindings.json",
-      "size": 86562,
-      "sha256": "1460c1e7623dd78d3f645a4123465155dd42f53a2da2e707adcd61f0a5a289b5"
+      "size": 98009,
+      "sha256": "f6ec2d2fac5d2a260a559c5e4efa1db88575ba4cdb598b8c5160832d31b9ca33"
     },
     {
       "path": "generated/GH_HIFC_SharedParameters.txt",

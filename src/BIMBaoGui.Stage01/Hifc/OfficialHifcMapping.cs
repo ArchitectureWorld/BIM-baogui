@@ -19,7 +19,10 @@ namespace BIMBaoGui.Stage01.Hifc
     public string Unit { get; set; } = string.Empty;
     public string SourceParameterOverride { get; set; } = string.Empty;
     public string OfficialSourceParameterName { get; set; } = string.Empty;
+    public string OfficialSourceParameterGroup { get; set; } = string.Empty;
+    public string OfficialSourceParameterType { get; set; } = string.Empty;
     public Guid OfficialSourceParameterGuid { get; set; }
+    public Guid LegacyOfficialSourceParameterGuid { get; set; }
 
     public bool IsTypeBinding =>
       string.Equals(

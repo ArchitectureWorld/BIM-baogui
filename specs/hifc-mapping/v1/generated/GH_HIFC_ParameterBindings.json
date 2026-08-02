@@ -10,7 +10,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "af4bff12-341b-5a9a-af35-fc96d254bc29",
@@ -21,7 +22,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "67831bf2-f2d9-55e6-966e-228b25639b60",
@@ -32,7 +34,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "fae5f6e1-1a58-58c7-9382-04eecdc98938",
@@ -43,7 +46,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "43b52fa7-4954-5409-9389-4eddb97807a2",
@@ -54,7 +58,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "e54445ee-c15b-5233-b8d0-2991ac68ec1d",
@@ -65,7 +70,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "5d235535-c334-58c7-a89d-ceed585af80e",
@@ -76,7 +82,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "b63cd3da-0706-5aa4-b56e-78487cfc4200",
@@ -87,7 +94,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "8c33c80b-dc4f-5449-a423-fc96ccd2e205",
@@ -98,7 +106,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "776bc08d-6b5e-5702-8c75-a0dc7ce550c9",
@@ -109,7 +118,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "5960b21b-a181-5ab8-b19d-af8b489a9e00",
@@ -120,7 +130,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "4225a5de-c942-54aa-874a-28a1e67ce39c",
@@ -131,7 +142,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "a585f761-7784-57f5-8654-7d66d0d790c4",
@@ -142,7 +154,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "1d57021d-c5fe-5ab6-8e3c-8bb03cb91825",
@@ -153,7 +166,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "d6ae425b-72fa-5780-b966-f0e42daf5f06",
@@ -164,7 +178,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "9fd4908e-67fc-5512-b70c-01ebaf5ed3e0",
@@ -175,7 +190,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "f8219b18-8adf-50d6-aa2d-a9276b72fed4",
@@ -186,7 +202,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "ee41f5a8-562b-56f4-b8ef-331783746e09",
@@ -197,7 +214,8 @@
       "carrier": "LEVEL",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "fe006691-f26b-5f32-84ed-48147931fd59",
@@ -208,7 +226,8 @@
       "carrier": "LEVEL",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "8525b14a-2c98-5709-b7f0-9274316cd623",
@@ -219,7 +238,8 @@
       "carrier": "LEVEL",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "145ab588-2d01-53ee-9750-60934a4facf2",
@@ -230,7 +250,8 @@
       "carrier": "LEVEL",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "87fcb9cd-9135-5d8e-943a-9227b827e63a",
@@ -241,7 +262,8 @@
       "carrier": "LEVEL",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "efbf0b9e-083c-54d9-8581-44811e78930e",
@@ -252,7 +274,8 @@
       "carrier": "LEVEL",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "eb80c674-763b-5320-abc4-9350264e562d",
@@ -263,7 +286,8 @@
       "carrier": "LEVEL",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "6fde5de4-c3fb-540d-8e51-24dfd6c10cc2",
@@ -274,7 +298,8 @@
       "carrier": "LEVEL",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "d598f456-0a03-5932-94fa-4340267a5b6b",
@@ -285,7 +310,8 @@
       "carrier": "LEVEL",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "ab751846-9a7e-5da7-b5bf-b4ee75f4eed0",
@@ -296,7 +322,8 @@
       "carrier": "LEVEL",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "dcb26f3c-743b-5001-a4bc-5a9bfbf82664",
@@ -307,7 +334,8 @@
       "carrier": "LEVEL",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "9b782e09-f1b3-596d-82c8-f5bcb521b85d",
@@ -318,7 +346,8 @@
       "carrier": "LEVEL",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "7dc1a82e-f3d0-5210-b3bf-6b517da25d80",
@@ -329,7 +358,8 @@
       "carrier": "LEVEL",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "394bfb85-520d-54e3-bfbf-43361892e152",
@@ -340,7 +370,8 @@
       "carrier": "FAMILY_INSTANCE",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "2d8ff363-ceae-5f83-9aa6-436c745f9467",
@@ -351,7 +382,8 @@
       "carrier": "MEP_CURVE",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "ff217d10-c277-50fb-8e5e-8cc2ac8f4585",
@@ -362,7 +394,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "a4046c1c-f111-5ba8-b660-ba575b91dcb8",
@@ -373,7 +406,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "016f92ab-ab2c-5dff-a9cc-4d9669d5e768",
@@ -384,7 +418,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "15ea15ae-b3b2-5d89-a8db-d71adc52730c",
@@ -395,7 +430,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "adf23867-0ab2-55a6-92ba-3cf152211838",
@@ -406,7 +442,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "5d49bfa4-abf6-5452-b883-224f5dcb1c55",
@@ -417,7 +454,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "e4660fa7-7ba9-5106-a4fc-26e3d99c6175",
@@ -428,7 +466,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "c126e2f9-f901-5ab9-92a6-b35b2149fb26",
@@ -439,7 +478,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "ee61922d-8e32-5335-bd57-86051aa8d070",
@@ -450,7 +490,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "552c8321-b375-5435-9a9a-9289151af68b",
@@ -461,7 +502,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "4ec72816-e05d-559c-9057-d00c231f0999",
@@ -472,7 +514,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "ce9763ab-6165-5acb-b614-21546eaee300",
@@ -483,7 +526,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "372dc78b-8892-5c29-8f1e-aa81a0abbc23",
@@ -494,7 +538,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "9017d53a-1dbb-546d-85be-c9fcf4a8179b",
@@ -505,7 +550,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "e2863620-23a5-5b29-ad0b-47338d2d1915",
@@ -516,7 +562,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "b5e28005-8282-5b0d-a45e-1b3d0d136aa2",
@@ -527,7 +574,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "850cddde-0248-5ef0-b1b6-f32da97b5e9c",
@@ -538,7 +586,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "0f672079-ebb1-5f9f-9a46-3aae7e6357bf",
@@ -549,7 +598,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "49a38f13-a54f-5358-882a-d6806ca226c1",
@@ -560,7 +610,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "13a37612-c9af-5dca-9bde-6fd540b2b114",
@@ -571,7 +622,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "e91c6b3d-556d-526b-a66b-545553f20fc8",
@@ -582,7 +634,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "aea197df-c1c3-57bf-9ff4-87111e73b12d",
@@ -593,7 +646,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "64ec6d92-f85d-557c-bade-1ec7c172b60f",
@@ -604,7 +658,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "bff42cce-915d-54ec-905b-5f4dfff1ec98",
@@ -615,7 +670,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "c8769206-33f2-5b17-9daf-645394c6c922",
@@ -626,7 +682,8 @@
       "carrier": "CANONICAL_DATASTORE",
       "persistenceMode": "DATASTORE_ONLY",
       "createSharedParameter": false,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "03081502-9a44-56cf-9ea9-e1f0497dc960",
@@ -637,7 +694,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "fab11af2-f8a0-5ecd-ab98-93f4aa107117",
@@ -648,7 +706,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "f5fb1085-d152-54b4-bd49-772bfb02b85a",
@@ -659,7 +718,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "a01463f1-8712-535f-a95d-c80fc3e96a52",
@@ -670,7 +730,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "4accb54c-af84-595c-84f5-53b1f4e52a7b",
@@ -681,7 +742,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "9e597bc8-8a38-5092-a29b-f2397d01d636",
@@ -692,7 +754,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "a19ffb03-1ff5-5a77-a034-ece77683e4f1",
@@ -703,7 +766,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "115197c0-f548-53d9-b2d8-9f3bfeb0f344",
@@ -714,7 +778,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "9783358f-0e15-53c4-8fc8-d21992910e2e",
@@ -725,7 +790,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "d4c3e40e-787c-581b-9c35-41e952f1546a",
@@ -736,7 +802,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "dddaaca4-50ce-5edd-978d-0f25561aeb60",
@@ -747,7 +814,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "b9da15e4-7834-5f31-bb2c-6b1c04d2c5b2",
@@ -758,7 +826,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "287fef4d-9bfc-5918-9d15-f0b1aa31a786",
@@ -769,7 +838,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "a33cbb43-34eb-5ff2-ad8e-889c19378b97",
@@ -780,7 +850,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "f93bcef9-1b43-5881-9b4f-8a5029883013",
@@ -791,7 +862,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "a1f96b77-cd72-5231-a164-d43df2bc9eb9",
@@ -802,7 +874,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "3b69cba3-5700-5f07-9854-d6303992bfef",
@@ -813,7 +886,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "40a6afb5-cd11-5e56-916c-6992675988dd",
@@ -824,7 +898,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "3ba0a149-717d-585b-bb67-501ccb3654d6",
@@ -835,7 +910,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "e2c13e23-2112-564d-8e17-543ba3896508",
@@ -846,7 +922,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "42ddddcb-4973-5dc1-b87f-b0908f7f5fa1",
@@ -857,7 +934,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "e686d8c2-710a-5068-b683-43dec25252b4",
@@ -868,7 +946,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "22438777-1419-5970-b97d-2c3c44f7a6e5",
@@ -879,7 +958,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "ca21e324-046b-5bfd-84c8-0d3470082303",
@@ -890,7 +970,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "3c02cb6f-d4bc-5b3d-b44d-6c0d258b9bb2",
@@ -901,7 +982,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "阶段化"
     },
     {
       "propertyId": "b45c2d7d-690c-55c2-a23c-626ad81962fb",
@@ -912,7 +994,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "960ac606-d0c1-5a1b-9f2e-d70d3a8eb712",
@@ -923,7 +1006,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "21ef1d33-e8c4-51f9-8bb0-23250c872ad3",
@@ -934,7 +1018,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "422ad455-a88f-5d62-8b5d-562bc1aaf5f1",
@@ -945,7 +1030,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "da99190d-498d-5db7-b542-681c434f3ca9",
@@ -956,7 +1042,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "e63e116d-b988-56fb-946d-e19937c1cb00",
@@ -967,7 +1054,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "af44d874-a366-5fb5-a65b-6242ad8f452f",
@@ -978,7 +1066,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "90a26e62-372f-5ee6-ab76-5cddcdc6a585",
@@ -989,7 +1078,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "ebce5979-d12b-5ef6-aded-b5405d60239a",
@@ -1000,7 +1090,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "af67c862-ef9f-511d-b130-ae25a71dcd56",
@@ -1011,7 +1102,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "9f9274e8-2c65-5dc4-96ed-739d01238b5a",
@@ -1022,7 +1114,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "aeed20b9-9696-5b6e-bdb0-be78184aa624",
@@ -1033,7 +1126,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "82b8d283-7365-532f-b7d2-4b3dd62944cd",
@@ -1044,7 +1138,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "e9793406-5361-5df6-a2d6-4c036b86d411",
@@ -1055,7 +1150,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "0e043599-3185-5783-9212-6e128bc2119a",
@@ -1066,7 +1162,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "3dfc9422-4506-58d0-b375-3630ac8e60e2",
@@ -1077,7 +1174,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "796ccc78-42d0-51dc-928b-4ec3379de9c5",
@@ -1088,7 +1186,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "3eb5d633-e567-53fe-a60f-b7982c49a396",
@@ -1099,7 +1198,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "7a3fe440-fd30-52fa-9633-c9c5a4d211b8",
@@ -1110,7 +1210,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "73742866-4015-51ac-a863-9020cca3088f",
@@ -1121,7 +1222,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "6b407894-09d4-529a-9f9f-a031219cdeaa",
@@ -1132,7 +1234,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "1a64ef8d-e97c-5fa1-b53f-52b969b6198a",
@@ -1143,7 +1246,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "50164757-c346-5005-a1b8-7b423c6b8de5",
@@ -1154,7 +1258,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "2e11c6d5-e6c2-52ed-8eab-7b47c54092e7",
@@ -1165,7 +1270,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "阶段化"
     },
     {
       "propertyId": "7e970f3c-876f-5873-9f00-dcec9a6f1366",
@@ -1176,7 +1282,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "2bc733cd-c7a1-57fa-b206-1baeb71881d4",
@@ -1187,7 +1294,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "5e1b3023-55c2-5563-8b62-f23d8749c5f3",
@@ -1198,7 +1306,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "26858ad1-f88e-5ad4-aedb-7542eb907dd2",
@@ -1209,7 +1318,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "39f99f8a-50e8-5908-ab1d-9dbab0bcf95f",
@@ -1220,7 +1330,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "dfaccc71-32f5-50a9-9a41-a611158edb29",
@@ -1231,7 +1342,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "59d2c258-bf95-56f0-9431-873712c9e330",
@@ -1242,7 +1354,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "69056d87-4196-541e-9e34-848c1ec15947",
@@ -1253,7 +1366,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "620fcfe3-2c21-5fd4-8d6d-f0ed878c5a78",
@@ -1264,7 +1378,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "1e44a14b-e063-55c5-9294-fce4eb5f62ca",
@@ -1275,7 +1390,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "b7559143-785b-5c93-bcc6-6934c5c20dba",
@@ -1286,7 +1402,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "38a62192-ecac-5e2d-9fc0-3b8d40afd27b",
@@ -1297,7 +1414,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "3a7d90c2-9ccb-5d74-b13c-30c892693048",
@@ -1308,7 +1426,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "bc08027b-56bf-5c99-b9e7-9ba2f2a0e2d4",
@@ -1319,7 +1438,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "e951b3e2-8e17-5443-9b6b-570d07067856",
@@ -1330,7 +1450,8 @@
       "carrier": "PROJECT_INFORMATION",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "f9082ba0-18db-5088-a869-ff6c5508c1e0",
@@ -1341,7 +1462,8 @@
       "carrier": "PROJECT_LOCATION_AND_DATASTORE",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "a22bdc72-1d8d-5bfd-a37f-7d1819e1026a",
@@ -1352,7 +1474,8 @@
       "carrier": "PROJECT_LOCATION_AND_DATASTORE",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "62b4f19b-abd7-5c69-bd4f-c835086ab860",
@@ -1363,7 +1486,8 @@
       "carrier": "PROJECT_LOCATION_AND_DATASTORE",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "dc2f4635-80f9-59fb-839e-83930134a202",
@@ -1374,7 +1498,8 @@
       "carrier": "PROJECT_LOCATION_AND_DATASTORE",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "93e51676-237e-56a8-8f28-2da845422e2e",
@@ -1385,7 +1510,8 @@
       "carrier": "PROJECT_LOCATION_AND_DATASTORE",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "13b91bbc-ecf2-55eb-82f6-55934e9016f8",
@@ -1396,7 +1522,8 @@
       "carrier": "PROJECT_LOCATION_AND_DATASTORE",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "eb809ddd-5dce-5392-982b-27db93436eb5",
@@ -1407,7 +1534,8 @@
       "carrier": "PROJECT_LOCATION_AND_DATASTORE",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "201a00ac-3672-5ded-83d2-ed96f81bfabf",
@@ -1418,7 +1546,8 @@
       "carrier": "PROJECT_LOCATION_AND_DATASTORE",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "f630ad47-b006-5127-badd-b1660cf996c3",
@@ -1429,7 +1558,8 @@
       "carrier": "PROJECT_LOCATION_AND_DATASTORE",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "99acd0fb-b90d-5251-8274-dcab2ceab18b",
@@ -1440,7 +1570,8 @@
       "carrier": "PROJECT_LOCATION_AND_DATASTORE",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "951c219f-f6c3-5728-97ff-0e42503982e3",
@@ -1451,7 +1582,8 @@
       "carrier": "PROJECT_LOCATION_AND_DATASTORE",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "d2a48388-b781-5c8a-9244-f1adc5a79e45",
@@ -1462,7 +1594,8 @@
       "carrier": "ROOM",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "98aaa7d3-2140-5376-abde-cad36b29d9ed",
@@ -1473,7 +1606,8 @@
       "carrier": "ROOM",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "4fd3bcbd-d320-5949-86c0-e1b2c6c79515",
@@ -1484,7 +1618,8 @@
       "carrier": "ROOM",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "b6c39636-ffc5-5bc9-8a3c-3b0ada970321",
@@ -1495,7 +1630,8 @@
       "carrier": "ROOM",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "eb7e896f-f4a2-5e04-aba2-1103f0d8f2fa",
@@ -1506,7 +1642,8 @@
       "carrier": "ROOM",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "05a9d8a0-b339-5c55-a513-91b063345850",
@@ -1517,7 +1654,8 @@
       "carrier": "ROOM",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "b0f93329-020f-589c-bd5b-92cc50d90c13",
@@ -1528,7 +1666,8 @@
       "carrier": "ROOM",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "775004b3-dcda-5dd9-b976-5707b129f5e7",
@@ -1539,7 +1678,8 @@
       "carrier": "ROOM",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "4eaec192-453e-5465-9955-8a2fd54c24b1",
@@ -1550,7 +1690,8 @@
       "carrier": "ROOM",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "a3cfcd77-9d58-5991-994e-df5bd4ca7347",
@@ -1561,7 +1702,8 @@
       "carrier": "ROOM",
       "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "d9ae268e-8d11-59e7-bbff-dc7521ec7889",
@@ -1572,7 +1714,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "3946f931-0bb6-56c0-b5ca-ee77c3221ccf",
@@ -1583,7 +1726,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "5e479cf6-397b-5f2f-86e8-73853351e2d9",
@@ -1594,7 +1738,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "1c9ad233-a3e3-5424-bb70-e3308b7f6817",
@@ -1605,7 +1750,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "1e3385f9-6300-5d8e-b8f2-84eeb245f5a3",
@@ -1616,7 +1762,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "bbc361b1-c64a-5c4d-ba93-3274fbb54e10",
@@ -1627,7 +1774,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "96a6110a-e942-5b0e-84d6-250a3c3731d7",
@@ -1638,7 +1786,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "e785c854-7db2-535a-a248-f4a9b3f6d1a5",
@@ -1649,7 +1798,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "8d205332-db56-5000-b454-79e798c90862",
@@ -1660,7 +1810,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "b231bc10-78ba-530c-8606-078c564bd93c",
@@ -1671,7 +1822,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "e45da1fa-445e-5ca5-bf16-d09a759a38ea",
@@ -1682,7 +1834,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "d0afc77a-72ac-53ea-9cf0-8a694dd054ec",
@@ -1693,7 +1846,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "781b8594-95bc-5ba6-8d14-20d12014b671",
@@ -1704,7 +1858,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "b64ef278-8f25-542b-813f-7c9be6e0b248",
@@ -1715,7 +1870,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "9833b38e-0aa5-5ab2-b3b4-e6984f5c70f6",
@@ -1726,7 +1882,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "87b285c2-887d-55d2-81a4-15714b521537",
@@ -1737,7 +1894,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "6c0a892f-8261-5ef4-ab95-76bc40264205",
@@ -1748,7 +1906,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "22ae04c3-aacc-5b35-b7e9-27a4b5f5dbab",
@@ -1759,7 +1918,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "11035c44-05a7-55f2-9681-dca574a974aa",
@@ -1770,7 +1930,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "68f998c7-0c0a-5ebe-bf51-c1b1536f7fbc",
@@ -1781,7 +1942,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "8769f8aa-095d-5749-9ecc-71dff6cb1c45",
@@ -1792,7 +1954,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "c62cfd5f-2a50-5230-9c5d-4037c39061bf",
@@ -1803,7 +1966,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "84df74c2-a7e5-5a98-a5e0-4458e49a3973",
@@ -1814,7 +1978,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     },
     {
       "propertyId": "c95d3ff7-ddb7-54ef-9b1f-7f64cb7a7b21",
@@ -1825,7 +1990,8 @@
       "carrier": "AREA_OR_CANONICAL_DATASTORE",
       "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
       "createSharedParameter": true,
-      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。"
+      "note": "类别绑定仅用于 Revit 可见镜像；最终 IFC 属性由 canonical data graph 驱动。",
+      "officialSourceParameterGroup": "材质和装饰"
     }
   ]
 }
