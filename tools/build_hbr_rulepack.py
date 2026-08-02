@@ -82,6 +82,7 @@ _LEGACY_PROJECTION_FIELDS = {
     "sharedParameterType",
     "officialSourceParameterGroup",
     "sourceParameterOverride",
+    "officialUnit",
 }
 _INTERNAL_WORKFLOW_FIELD_FIELDS = {
     "fieldKey",
@@ -90,6 +91,8 @@ _INTERNAL_WORKFLOW_FIELD_FIELDS = {
     "uiGroup",
     "sourceKind",
     "allowedValues",
+    "essential",
+    "defaultStrategy",
     "defaultValue",
 }
 _STAGE01_FIELD_REF_FIELDS = {
@@ -99,7 +102,11 @@ _STAGE01_FIELD_REF_FIELDS = {
     "uiGroup",
     "sourceKind",
     "writeInStage01",
+    "essential",
+    "defaultStrategy",
+    "defaultValue",
 }
+_SPATIAL_MAPPING_FIELDS = {"sourceName", "fieldKey", "targetName", "unit"}
 _ENTITY_POLICY_FIELDS = {
     "ifcEntity",
     "officialObjectMappingEvidence",
@@ -152,6 +159,28 @@ _PROPERTY_REQUIREMENTS = {
     "UNCLASSIFIED",
 }
 _TASK_REQUIREMENTS = {"REQUIRED", "CONDITIONAL"}
+_DEFAULT_STRATEGIES = {"NONE", "STATIC", "NEW_GUID"}
+_NEW_GUID_FIELD_KEY = "HBR|FileIdentity|FileGuid"
+_EXPECTED_SPATIAL_MAPPINGS = [
+    {
+        "sourceName": "X",
+        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 X",
+        "targetName": "NorthSouth",
+        "unit": "m",
+    },
+    {
+        "sourceName": "Y",
+        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+        "targetName": "EastWest",
+        "unit": "m",
+    },
+    {
+        "sourceName": "Elevation",
+        "fieldKey": "IfcProject|Pset_申报信息属性集|基点高程",
+        "targetName": "Elevation",
+        "unit": "m",
+    },
+]
 _OWNER_STRATEGIES = {
     "SINGLE_ENTITY_BY_TYPE",
     "BY_EXPORT_GUID",
@@ -272,6 +301,7 @@ _COMPATIBILITY_PROPERTY_FIELDS = {
     "canonicalKey",
     "parameterGuid",
     "originalIdentity",
+    "officialUnit",
 }
 _COMPATIBILITY_BASELINE_ID = "HBR-WUHAN-PLANNING-COMPATIBILITY"
 _COMPATIBILITY_BASELINE_VERSION = "1.1.0"
@@ -286,6 +316,9 @@ _LEGACY_METADATA_DIGEST_NAMES = (
     "entityPolicies",
     "exceptions",
     "profileActivationRuleIds",
+    "spatialMappings",
+    "conditionDefaults",
+    "defaultActiveGroup",
 )
 _LEGACY_PROJECTION_FIELDS = (
     "category",
@@ -294,6 +327,7 @@ _LEGACY_PROJECTION_FIELDS = (
     "sharedParameterType",
     "officialSourceParameterGroup",
     "sourceParameterOverride",
+    "officialUnit",
 )
 
 
@@ -323,6 +357,9 @@ def _legacy_metadata_projections(source):
                         "uiGroup",
                         "sourceKind",
                         "writeInStage01",
+                        "essential",
+                        "defaultStrategy",
+                        "defaultValue",
                     )
                 }
                 for item in stage01["fieldRefs"]
@@ -369,6 +406,17 @@ def _legacy_metadata_projections(source):
             ),
             key=lambda item: item["profileId"],
         ),
+        "spatialMappings": [
+            dict(item) for item in stage01["spatialMappings"]
+        ],
+        "conditionDefaults": [
+            {
+                "conditionId": condition["conditionId"],
+                "defaultActive": condition["defaultActive"],
+            }
+            for condition in source["conditions"]
+        ],
+        "defaultActiveGroup": stage01["defaultActiveGroup"],
     }
 
 
@@ -481,8 +529,15 @@ def _validate_evidence_shape(evidence, path):
 
 def _validate_legacy_projection_shape(projection, path):
     _expect_object(projection, path, required=_LEGACY_PROJECTION_FIELDS)
-    for key in _LEGACY_PROJECTION_FIELDS:
+    for key in set(_LEGACY_PROJECTION_FIELDS) - {"officialUnit"}:
         _expect_string(projection[key], f"{path}.{key}")
+    _expect_nullable_string(projection["officialUnit"], f"{path}.officialUnit")
+    if projection["officialUnit"] is not None:
+        _expect_string(
+            projection["officialUnit"],
+            f"{path}.officialUnit",
+            nonempty=True,
+        )
     for key in (
         "carrier",
         "persistenceMode",
@@ -498,6 +553,22 @@ def _validate_legacy_projection_shape(projection, path):
         _expect_empty_or_nonblank_string(
             projection[key],
             f"{path}.{key}",
+        )
+
+
+def _validate_default_projection_shape(field, path):
+    _expect_boolean(field["essential"], f"{path}.essential")
+    _expect_string(
+        field["defaultStrategy"],
+        f"{path}.defaultStrategy",
+        nonempty=True,
+    )
+    _expect_nullable_string(field["defaultValue"], f"{path}.defaultValue")
+    if field["defaultValue"] is not None:
+        _expect_string(
+            field["defaultValue"],
+            f"{path}.defaultValue",
+            nonempty=True,
         )
 
 
@@ -724,11 +795,13 @@ def _validate_structure(source):
                 "activationRuleId",
                 "evidenceStatus",
                 "source",
+                "defaultActive",
             },
         )
         for key in ("conditionId", "displayName", "group", "evidenceStatus", "source"):
             _expect_string(condition[key], f"{path}.{key}")
         _expect_nullable_string(condition["activationRuleId"], f"{path}.activationRuleId")
+        _expect_boolean(condition["defaultActive"], f"{path}.defaultActive")
 
     for index, task in enumerate(source["tasks"]):
         _validate_task_shape(task, f"tasks[{index}]")
@@ -747,6 +820,8 @@ def _validate_structure(source):
         required={
             "fieldRefs",
             "internalWorkflowFields",
+            "spatialMappings",
+            "defaultActiveGroup",
             "officialPluginCompatibility",
         },
     )
@@ -760,6 +835,7 @@ def _validate_structure(source):
         _expect_string(reference["uiGroup"], f"{path}.uiGroup", nonempty=True)
         _expect_string(reference["sourceKind"], f"{path}.sourceKind", nonempty=True)
         _expect_boolean(reference["writeInStage01"], f"{path}.writeInStage01")
+        _validate_default_projection_shape(reference, path)
 
     internal_fields = stage01["internalWorkflowFields"]
     _expect_array(
@@ -784,6 +860,24 @@ def _validate_structure(source):
                 f"{path}.defaultValue",
                 nonempty=True,
             )
+        _validate_default_projection_shape(field, path)
+
+    spatial_mappings = stage01["spatialMappings"]
+    _expect_array(
+        spatial_mappings,
+        f"{migrated_stage01}.spatialMappings",
+        minimum=1,
+    )
+    for index, mapping in enumerate(spatial_mappings):
+        path = f"{migrated_stage01}.spatialMappings[{index}]"
+        _expect_object(mapping, path, required=_SPATIAL_MAPPING_FIELDS)
+        for key in _SPATIAL_MAPPING_FIELDS:
+            _expect_string(mapping[key], f"{path}.{key}", nonempty=True)
+    _expect_string(
+        stage01["defaultActiveGroup"],
+        f"{migrated_stage01}.defaultActiveGroup",
+        nonempty=True,
+    )
 
     compatibility = stage01["officialPluginCompatibility"]
     compatibility_path = f"{migrated_stage01}.officialPluginCompatibility"
@@ -857,6 +951,34 @@ def _validate_requirement(requirement, condition_ids, label, allowed_levels):
         _require(
             condition_id is None,
             f"{label}.conditionId must be null when level is not CONDITIONAL",
+        )
+
+
+def _validate_default_projection(field, label):
+    strategy = field["defaultStrategy"]
+    value = field["defaultValue"]
+    _require(
+        strategy in _DEFAULT_STRATEGIES,
+        f"{label}.defaultStrategy has unsupported value {strategy!r}",
+    )
+    if strategy == "NONE":
+        _require(
+            value is None,
+            f"{label} defaultStrategy NONE requires defaultValue null",
+        )
+    elif strategy == "STATIC":
+        _require(
+            type(value) is str and bool(value.strip()),
+            f"{label} defaultStrategy STATIC requires defaultValue to be non-empty",
+        )
+    else:
+        _require(
+            field["fieldKey"] == _NEW_GUID_FIELD_KEY,
+            f"{label} defaultStrategy NEW_GUID is only valid for {_NEW_GUID_FIELD_KEY}",
+        )
+        _require(
+            value is None,
+            f"{label} defaultStrategy NEW_GUID requires defaultValue null",
         )
 
 
@@ -934,6 +1056,7 @@ def validate_semantics(source):
     stage01 = source["stage01"]
     stage_refs = stage01["fieldRefs"]
     internal_fields = stage01["internalWorkflowFields"]
+    spatial_mappings = stage01["spatialMappings"]
     compatibility = stage01["officialPluginCompatibility"]
     entity_policies = compatibility["entityPolicies"]
     plugin_exceptions = compatibility["exceptions"]
@@ -949,6 +1072,10 @@ def validate_semantics(source):
     _require(
         len(internal_fields) == 12,
         "migrated metadata internalWorkflowFields must contain exactly 12 records",
+    )
+    _require(
+        len(spatial_mappings) == 3,
+        "migrated metadata stage01.spatialMappings must contain exactly 3 records",
     )
     _require(
         len(entity_policies) == 9,
@@ -970,6 +1097,7 @@ def validate_semantics(source):
     )
     for index, field in enumerate(internal_fields):
         label = f"migrated metadata internalWorkflowFields[{index}]"
+        _validate_default_projection(field, label)
         _require(
             field["type"] in {"string", "enum", "guid", "number", "boolean"},
             f"{label}.type has an unsupported value",
@@ -984,6 +1112,49 @@ def validate_semantics(source):
                 field["defaultValue"] in field["allowedValues"],
                 f"{label}.defaultValue must belong to allowedValues",
             )
+
+    all_stage_fields = internal_fields + stage_refs
+    all_stage_field_keys = [field["fieldKey"] for field in all_stage_fields]
+    _require(
+        len(all_stage_fields) == 114,
+        "stage01 default contracts must contain exactly 114 fields",
+    )
+    _require_unique(all_stage_field_keys, "stage01 default contract fieldKey")
+    for index, reference in enumerate(stage_refs):
+        _validate_default_projection(
+            reference,
+            f"migrated metadata stage01.fieldRefs[{index}]",
+        )
+    new_guid_keys = [
+        field["fieldKey"]
+        for field in all_stage_fields
+        if field["defaultStrategy"] == "NEW_GUID"
+    ]
+    _require(
+        new_guid_keys == [_NEW_GUID_FIELD_KEY],
+        "stage01 default contracts must contain exactly one NEW_GUID strategy for HBR|FileIdentity|FileGuid",
+    )
+
+    spatial_sources = [mapping["sourceName"] for mapping in spatial_mappings]
+    spatial_targets = [mapping["targetName"] for mapping in spatial_mappings]
+    spatial_field_keys = [mapping["fieldKey"] for mapping in spatial_mappings]
+    _require_unique(spatial_sources, "stage01.spatialMappings.sourceName")
+    _require_unique(spatial_targets, "stage01.spatialMappings.targetName")
+    _require_unique(spatial_field_keys, "stage01.spatialMappings.fieldKey")
+    for index, field_key in enumerate(spatial_field_keys):
+        _require(
+            field_key in set(all_stage_field_keys),
+            f"stage01.spatialMappings[{index}].fieldKey references an unknown stage01 field",
+        )
+    _require(
+        spatial_mappings == _EXPECTED_SPATIAL_MAPPINGS,
+        "stage01.spatialMappings must preserve fixed order X -> NorthSouth, Y -> EastWest, Elevation -> Elevation with unit m",
+    )
+    stage_groups = {field["uiGroup"] for field in all_stage_fields}
+    _require(
+        stage01["defaultActiveGroup"] in stage_groups,
+        "stage01.defaultActiveGroup must reference an existing uiGroup",
+    )
 
     mvd_rules = [rule for rule in properties if rule["contractKind"] == "MVD"]
     extension_rules = [
@@ -1369,6 +1540,10 @@ def validate_semantics(source):
     for index, condition in enumerate(conditions):
         label = f"conditions[{index}]"
         _require(
+            condition["defaultActive"] is False,
+            f"{label}.defaultActive must preserve the legacy false default",
+        )
+        _require(
             condition["source"]
             in {"RuleActivationCatalog.cs", "Stage01RegistryProvider.cs"},
             f"{label}.source has an unsupported value",
@@ -1577,8 +1752,15 @@ def validate_compatibility(source, baseline):
     for index, item in enumerate(official_properties):
         path = f"compatibility baseline.officialProperties[{index}]"
         _expect_object(item, path, required=_COMPATIBILITY_PROPERTY_FIELDS)
-        for key in _COMPATIBILITY_PROPERTY_FIELDS:
+        for key in _COMPATIBILITY_PROPERTY_FIELDS - {"officialUnit"}:
             _expect_string(item[key], f"{path}.{key}", nonempty=True)
+        _expect_nullable_string(item["officialUnit"], f"{path}.officialUnit")
+        if item["officialUnit"] is not None:
+            _expect_string(
+                item["officialUnit"],
+                f"{path}.officialUnit",
+                nonempty=True,
+            )
         _parse_uuid5(item["propertyId"], f"{path}.propertyId")
         _parse_uuid5(item["parameterGuid"], f"{path}.parameterGuid")
 
@@ -1623,6 +1805,9 @@ def validate_compatibility(source, baseline):
             "canonicalKey": rule["canonicalKey"],
             "parameterGuid": rule["revit"]["parameterGuid"],
             "originalIdentity": rule["officialPlugin"]["originalIdentity"],
+            "officialUnit": rule["officialPlugin"]["legacyProjection"][
+                "officialUnit"
+            ],
         }
         for key in _COMPATIBILITY_PROPERTY_FIELDS:
             _require(

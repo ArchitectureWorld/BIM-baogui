@@ -300,6 +300,7 @@ namespace BIMBaoGui.Stage01.Rules
       SourceParameterOverride = HbrDomain.String(
         dto.sourceParameterOverride,
         path + ".sourceParameterOverride");
+      OfficialUnit = dto.officialUnit;
     }
 
     public string Category { get; }
@@ -308,6 +309,7 @@ namespace BIMBaoGui.Stage01.Rules
     public string SharedParameterType { get; }
     public string OfficialSourceParameterGroup { get; }
     public string SourceParameterOverride { get; }
+    public string OfficialUnit { get; }
   }
 
   public sealed class HbrRequirement
@@ -448,6 +450,7 @@ namespace BIMBaoGui.Stage01.Rules
         dto.evidenceStatus,
         path + ".evidenceStatus");
       Source = HbrDomain.String(dto.source, path + ".source");
+      DefaultActive = dto.defaultActive;
     }
 
     public string ConditionId { get; }
@@ -456,6 +459,7 @@ namespace BIMBaoGui.Stage01.Rules
     public string ActivationRuleId { get; }
     public string EvidenceStatus { get; }
     public string Source { get; }
+    public bool DefaultActive { get; }
   }
 
   public sealed class HbrTaskRule
@@ -534,6 +538,13 @@ namespace BIMBaoGui.Stage01.Rules
         dto.internalWorkflowFields,
         path + ".internalWorkflowFields",
         (item, itemPath) => new HbrInternalWorkflowField(item, itemPath));
+      SpatialMappings = HbrDomain.ConvertList(
+        dto.spatialMappings,
+        path + ".spatialMappings",
+        (item, itemPath) => new HbrSpatialMapping(item, itemPath));
+      DefaultActiveGroup = HbrDomain.NonBlank(
+        dto.defaultActiveGroup,
+        path + ".defaultActiveGroup");
       OfficialPluginCompatibility = new HbrOfficialPluginCompatibility(
         HbrDomain.Required(
           dto.officialPluginCompatibility,
@@ -543,6 +554,8 @@ namespace BIMBaoGui.Stage01.Rules
 
     public IReadOnlyList<HbrStage01FieldRef> FieldRefs { get; }
     public IReadOnlyList<HbrInternalWorkflowField> InternalWorkflowFields { get; }
+    public IReadOnlyList<HbrSpatialMapping> SpatialMappings { get; }
+    public string DefaultActiveGroup { get; }
     public HbrOfficialPluginCompatibility OfficialPluginCompatibility { get; }
   }
 
@@ -557,6 +570,11 @@ namespace BIMBaoGui.Stage01.Rules
       UiGroup = HbrDomain.NonBlank(dto.uiGroup, path + ".uiGroup");
       SourceKind = HbrDomain.NonBlank(dto.sourceKind, path + ".sourceKind");
       WriteInStage01 = dto.writeInStage01;
+      Essential = dto.essential;
+      DefaultStrategy = HbrDomain.NonBlank(
+        dto.defaultStrategy,
+        path + ".defaultStrategy");
+      DefaultValue = dto.defaultValue;
     }
 
     public string FieldKey { get; }
@@ -565,6 +583,9 @@ namespace BIMBaoGui.Stage01.Rules
     public string UiGroup { get; }
     public string SourceKind { get; }
     public bool WriteInStage01 { get; }
+    public bool Essential { get; }
+    public string DefaultStrategy { get; }
+    public string DefaultValue { get; }
   }
 
   public sealed class HbrInternalWorkflowField
@@ -582,6 +603,10 @@ namespace BIMBaoGui.Stage01.Rules
       AllowedValues = HbrDomain.FreezeStrings(
         dto.allowedValues,
         path + ".allowedValues");
+      Essential = dto.essential;
+      DefaultStrategy = HbrDomain.NonBlank(
+        dto.defaultStrategy,
+        path + ".defaultStrategy");
       DefaultValue = dto.defaultValue;
     }
 
@@ -591,7 +616,26 @@ namespace BIMBaoGui.Stage01.Rules
     public string UiGroup { get; }
     public string SourceKind { get; }
     public IReadOnlyList<string> AllowedValues { get; }
+    public bool Essential { get; }
+    public string DefaultStrategy { get; }
     public string DefaultValue { get; }
+  }
+
+  public sealed class HbrSpatialMapping
+  {
+    internal HbrSpatialMapping(HbrSpatialMappingDto dto, string path)
+    {
+      dto = HbrDomain.Required(dto, path);
+      SourceName = HbrDomain.NonBlank(dto.sourceName, path + ".sourceName");
+      FieldKey = HbrDomain.NonBlank(dto.fieldKey, path + ".fieldKey");
+      TargetName = HbrDomain.NonBlank(dto.targetName, path + ".targetName");
+      Unit = HbrDomain.NonBlank(dto.unit, path + ".unit");
+    }
+
+    public string SourceName { get; }
+    public string FieldKey { get; }
+    public string TargetName { get; }
+    public string Unit { get; }
   }
 
   public sealed class HbrOfficialPluginCompatibility
@@ -808,6 +852,7 @@ namespace BIMBaoGui.Stage01.Rules
     public string sharedParameterType { get; set; }
     public string officialSourceParameterGroup { get; set; }
     public string sourceParameterOverride { get; set; }
+    public string officialUnit { get; set; }
   }
 
   internal sealed class HbrRequirementDto
@@ -865,6 +910,7 @@ namespace BIMBaoGui.Stage01.Rules
     public string activationRuleId { get; set; }
     public string evidenceStatus { get; set; }
     public string source { get; set; }
+    public bool defaultActive { get; set; }
   }
 
   internal sealed class HbrTaskRuleDto
@@ -895,6 +941,8 @@ namespace BIMBaoGui.Stage01.Rules
   {
     public List<HbrStage01FieldRefDto> fieldRefs { get; set; }
     public List<HbrInternalWorkflowFieldDto> internalWorkflowFields { get; set; }
+    public List<HbrSpatialMappingDto> spatialMappings { get; set; }
+    public string defaultActiveGroup { get; set; }
     public HbrOfficialPluginCompatibilityDto officialPluginCompatibility { get; set; }
   }
 
@@ -906,6 +954,9 @@ namespace BIMBaoGui.Stage01.Rules
     public string uiGroup { get; set; }
     public string sourceKind { get; set; }
     public bool writeInStage01 { get; set; }
+    public bool essential { get; set; }
+    public string defaultStrategy { get; set; }
+    public string defaultValue { get; set; }
   }
 
   internal sealed class HbrInternalWorkflowFieldDto
@@ -916,7 +967,17 @@ namespace BIMBaoGui.Stage01.Rules
     public string uiGroup { get; set; }
     public string sourceKind { get; set; }
     public List<string> allowedValues { get; set; }
+    public bool essential { get; set; }
+    public string defaultStrategy { get; set; }
     public string defaultValue { get; set; }
+  }
+
+  internal sealed class HbrSpatialMappingDto
+  {
+    public string sourceName { get; set; }
+    public string fieldKey { get; set; }
+    public string targetName { get; set; }
+    public string unit { get; set; }
   }
 
   internal sealed class HbrOfficialPluginCompatibilityDto

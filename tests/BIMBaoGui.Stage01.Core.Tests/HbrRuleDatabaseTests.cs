@@ -222,6 +222,9 @@ namespace BIMBaoGui.Stage01.Core.Tests
         package.Stage01.InternalWorkflowFields,
         package.Stage01.InternalWorkflowFields[0]);
       AssertReadOnly(
+        package.Stage01.SpatialMappings,
+        package.Stage01.SpatialMappings[0]);
+      AssertReadOnly(
         package.Stage01.InternalWorkflowFields[0].AllowedValues,
         "MUTATION");
       AssertReadOnly(
@@ -265,6 +268,9 @@ namespace BIMBaoGui.Stage01.Core.Tests
         type.GetProperties(BindingFlags.Public | BindingFlags.Instance),
         propertyInfo => propertyInfo.SetMethod != null
           && propertyInfo.SetMethod.IsPublic));
+      Assert.All(domainTypes, type => Assert.DoesNotContain(
+        type.GetProperties(BindingFlags.Public | BindingFlags.Instance),
+        propertyInfo => propertyInfo.PropertyType.IsArray));
       Assert.Equal(359, package.Properties.Count);
       Assert.Same(property, database.PropertiesById[property.PropertyId]);
     }

@@ -71,7 +71,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -148,7 +149,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -225,7 +227,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -302,7 +305,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -379,7 +383,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -456,7 +461,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -533,7 +539,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -610,7 +617,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -687,7 +695,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -764,7 +773,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -841,7 +851,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -918,7 +929,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -995,7 +1007,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -1072,7 +1085,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -1149,7 +1163,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "INTEGER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "个"
         }
       },
       "carrierRoleIds": [
@@ -1226,7 +1241,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -1303,7 +1319,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -1380,7 +1397,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -1457,7 +1475,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -1534,7 +1553,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -1611,7 +1631,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -1688,7 +1709,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -1765,7 +1787,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -1843,7 +1866,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "AREA",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m²"
         }
       },
       "carrierRoleIds": [
@@ -1920,7 +1944,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "阶段化",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -1997,7 +2022,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -2074,7 +2100,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -2151,7 +2178,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -2228,7 +2256,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -2305,7 +2334,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -2382,7 +2412,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -2459,7 +2490,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -2536,7 +2568,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -2613,7 +2646,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -2690,7 +2724,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -2767,7 +2802,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -2844,7 +2880,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -2921,7 +2958,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -2998,7 +3036,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -3075,7 +3114,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -3152,7 +3192,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -3229,7 +3270,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -3306,7 +3348,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -3383,7 +3426,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -3460,7 +3504,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -3538,7 +3583,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m"
         }
       },
       "carrierRoleIds": [
@@ -3616,7 +3662,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m"
         }
       },
       "carrierRoleIds": [
@@ -3694,7 +3741,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m"
         }
       },
       "carrierRoleIds": [
@@ -3771,7 +3819,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "阶段化",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -3848,7 +3897,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -3925,7 +3975,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -4002,7 +4053,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -4079,7 +4131,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -4156,7 +4209,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -4233,7 +4287,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -4310,7 +4365,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -4387,7 +4443,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -4464,7 +4521,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -4541,7 +4599,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -4618,7 +4677,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -4695,7 +4755,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -4772,7 +4833,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -4850,7 +4912,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "ANGLE",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "度"
         }
       },
       "carrierRoleIds": [
@@ -4928,7 +4991,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "ANGLE",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "度"
         }
       },
       "carrierRoleIds": [
@@ -5695,7 +5759,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -5841,7 +5906,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "INTEGER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "层"
         }
       },
       "carrierRoleIds": [
@@ -5918,7 +5984,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "INTEGER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "层"
         }
       },
       "carrierRoleIds": [
@@ -5996,7 +6063,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m"
         }
       },
       "carrierRoleIds": [
@@ -6074,7 +6142,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "AREA",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m²"
         }
       },
       "carrierRoleIds": [
@@ -6152,7 +6221,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "AREA",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m²"
         }
       },
       "carrierRoleIds": [
@@ -6367,7 +6437,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -6445,7 +6516,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "VOLUME",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m³"
         }
       },
       "carrierRoleIds": [
@@ -6522,7 +6594,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "INTEGER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "个"
         }
       },
       "carrierRoleIds": [
@@ -6600,7 +6673,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m"
         }
       },
       "carrierRoleIds": [
@@ -6678,7 +6752,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m"
         }
       },
       "carrierRoleIds": [
@@ -6755,7 +6830,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -6832,7 +6908,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -6909,7 +6986,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -6986,7 +7064,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -7063,7 +7142,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -7140,7 +7220,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -8744,7 +8825,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m"
         }
       },
       "carrierRoleIds": [
@@ -8821,7 +8903,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -8898,7 +8981,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -8975,7 +9059,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -9053,7 +9138,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "mm"
         }
       },
       "carrierRoleIds": [
@@ -9130,7 +9216,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "INTEGER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "个"
         }
       },
       "carrierRoleIds": [
@@ -9208,7 +9295,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "mm"
         }
       },
       "carrierRoleIds": [
@@ -9286,7 +9374,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "AREA",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m²"
         }
       },
       "carrierRoleIds": [
@@ -9363,7 +9452,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "YESNO",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -9440,7 +9530,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -9517,7 +9608,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -9594,7 +9686,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -9671,7 +9764,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -9818,7 +9912,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m"
         }
       },
       "carrierRoleIds": [
@@ -9896,7 +9991,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m"
         }
       },
       "carrierRoleIds": [
@@ -9974,7 +10070,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "AREA",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m²"
         }
       },
       "carrierRoleIds": [
@@ -10052,7 +10149,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "AREA",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m²"
         }
       },
       "carrierRoleIds": [
@@ -10129,7 +10227,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "NUMBER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -10206,7 +10305,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "NUMBER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -10283,7 +10383,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "NUMBER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -10360,7 +10461,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "NUMBER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -10437,7 +10539,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "NUMBER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -10514,7 +10617,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -10591,7 +10695,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -14413,7 +14518,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "mm"
         }
       },
       "carrierRoleIds": [
@@ -14491,7 +14597,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "AREA",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m²"
         }
       },
       "carrierRoleIds": [
@@ -14569,7 +14676,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "AREA",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m²"
         }
       },
       "carrierRoleIds": [
@@ -14646,7 +14754,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -14723,7 +14832,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "YESNO",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -14800,7 +14910,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -14877,7 +14988,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -15023,7 +15135,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -15445,7 +15558,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "INTEGER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "个"
         }
       },
       "carrierRoleIds": [
@@ -15522,7 +15636,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -15599,7 +15714,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -15676,7 +15792,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -15753,7 +15870,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -15830,7 +15948,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "NUMBER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -15907,7 +16026,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "NUMBER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -15985,7 +16105,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "mm"
         }
       },
       "carrierRoleIds": [
@@ -16063,7 +16184,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "mm"
         }
       },
       "carrierRoleIds": [
@@ -16141,7 +16263,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "mm"
         }
       },
       "carrierRoleIds": [
@@ -16219,7 +16342,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "mm"
         }
       },
       "carrierRoleIds": [
@@ -16297,7 +16421,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "mm"
         }
       },
       "carrierRoleIds": [
@@ -16375,7 +16500,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "AREA",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m²"
         }
       },
       "carrierRoleIds": [
@@ -16453,7 +16579,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "AREA",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "m²"
         }
       },
       "carrierRoleIds": [
@@ -16530,7 +16657,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "INTEGER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "层"
         }
       },
       "carrierRoleIds": [
@@ -16607,7 +16735,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "YESNO",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -16684,7 +16813,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "INTEGER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "个"
         }
       },
       "carrierRoleIds": [
@@ -16969,7 +17099,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "mm"
         }
       },
       "carrierRoleIds": [
@@ -17047,7 +17178,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "mm"
         }
       },
       "carrierRoleIds": [
@@ -17193,7 +17325,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -17270,7 +17403,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -17347,7 +17481,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -21783,7 +21918,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "INTEGER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "个"
         }
       },
       "carrierRoleIds": [
@@ -21860,7 +21996,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "INTEGER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "个"
         }
       },
       "carrierRoleIds": [
@@ -21937,7 +22074,8 @@
           "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
           "sharedParameterType": "INTEGER",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "个"
         }
       },
       "carrierRoleIds": [
@@ -24085,7 +24223,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -24162,7 +24301,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -24239,7 +24379,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -24316,7 +24457,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -24393,7 +24535,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -24470,7 +24613,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -24547,7 +24691,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -24624,7 +24769,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -24701,7 +24847,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -24778,7 +24925,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -24855,7 +25003,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -24932,7 +25081,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -25009,7 +25159,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -25086,7 +25237,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -25163,7 +25315,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -25240,7 +25393,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -25317,7 +25471,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -25394,7 +25549,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -25471,7 +25627,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -25548,7 +25705,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -25625,7 +25783,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -25702,7 +25861,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -25779,7 +25939,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -25856,7 +26017,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -25933,7 +26095,8 @@
           "persistenceMode": "DATASTORE_ONLY",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -26010,7 +26173,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -26089,7 +26253,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "LENGTH",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": "mm"
         }
       },
       "carrierRoleIds": [
@@ -26167,7 +26332,8 @@
           "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
           "sharedParameterType": "TEXT",
           "officialSourceParameterGroup": "材质和装饰",
-          "sourceParameterOverride": ""
+          "sourceParameterOverride": "",
+          "officialUnit": null
         }
       },
       "carrierRoleIds": [
@@ -26653,7 +26819,8 @@
       "group": "10_项目条件",
       "activationRuleId": "HBR.SITE.OTHER_LAND",
       "evidenceStatus": "LEGACY_ACTIVATION_CATALOG",
-      "source": "RuleActivationCatalog.cs"
+      "source": "RuleActivationCatalog.cs",
+      "defaultActive": false
     },
     {
       "conditionId": "site.road_redline",
@@ -26661,7 +26828,8 @@
       "group": "10_项目条件",
       "activationRuleId": "HBR.SITE.ROAD_REDLINE",
       "evidenceStatus": "LEGACY_ACTIVATION_CATALOG",
-      "source": "RuleActivationCatalog.cs"
+      "source": "RuleActivationCatalog.cs",
+      "defaultActive": false
     },
     {
       "conditionId": "site.road_centerline",
@@ -26669,7 +26837,8 @@
       "group": "10_项目条件",
       "activationRuleId": "HBR.SITE.ROAD_CENTERLINE",
       "evidenceStatus": "LEGACY_ACTIVATION_CATALOG",
-      "source": "RuleActivationCatalog.cs"
+      "source": "RuleActivationCatalog.cs",
+      "defaultActive": false
     },
     {
       "conditionId": "site.internal_roads",
@@ -26677,7 +26846,8 @@
       "group": "10_项目条件",
       "activationRuleId": "HBR.SITE.INTERNAL_ROADS",
       "evidenceStatus": "LEGACY_ACTIVATION_CATALOG",
-      "source": "RuleActivationCatalog.cs"
+      "source": "RuleActivationCatalog.cs",
+      "defaultActive": false
     },
     {
       "conditionId": "site.fire_lane",
@@ -26685,7 +26855,8 @@
       "group": "10_项目条件",
       "activationRuleId": "HBR.SITE.FIRE_LANE",
       "evidenceStatus": "LEGACY_ACTIVATION_CATALOG",
-      "source": "RuleActivationCatalog.cs"
+      "source": "RuleActivationCatalog.cs",
+      "defaultActive": false
     },
     {
       "conditionId": "site.fire_field",
@@ -26693,7 +26864,8 @@
       "group": "10_项目条件",
       "activationRuleId": "HBR.SITE.FIRE_FIELD",
       "evidenceStatus": "LEGACY_ACTIVATION_CATALOG",
-      "source": "RuleActivationCatalog.cs"
+      "source": "RuleActivationCatalog.cs",
+      "defaultActive": false
     },
     {
       "conditionId": "site.green",
@@ -26701,7 +26873,8 @@
       "group": "10_项目条件",
       "activationRuleId": "HBR.SITE.GREEN",
       "evidenceStatus": "LEGACY_ACTIVATION_CATALOG",
-      "source": "RuleActivationCatalog.cs"
+      "source": "RuleActivationCatalog.cs",
+      "defaultActive": false
     },
     {
       "conditionId": "site.outdoor_parking",
@@ -26709,7 +26882,8 @@
       "group": "10_项目条件",
       "activationRuleId": "HBR.SITE.OUTDOOR_PARKING",
       "evidenceStatus": "LEGACY_ACTIVATION_CATALOG",
-      "source": "RuleActivationCatalog.cs"
+      "source": "RuleActivationCatalog.cs",
+      "defaultActive": false
     },
     {
       "conditionId": "site.civil_defense",
@@ -26717,7 +26891,8 @@
       "group": "10_项目条件",
       "activationRuleId": "HBR.COMMON.CIVIL_DEFENSE",
       "evidenceStatus": "LEGACY_ACTIVATION_CATALOG",
-      "source": "RuleActivationCatalog.cs"
+      "source": "RuleActivationCatalog.cs",
+      "defaultActive": false
     },
     {
       "conditionId": "site.structures",
@@ -26725,7 +26900,8 @@
       "group": "10_项目条件",
       "activationRuleId": "HBR.SITE.STRUCTURES",
       "evidenceStatus": "LEGACY_ACTIVATION_CATALOG",
-      "source": "RuleActivationCatalog.cs"
+      "source": "RuleActivationCatalog.cs",
+      "defaultActive": false
     },
     {
       "conditionId": "building.roof",
@@ -26733,7 +26909,8 @@
       "group": "10_项目条件",
       "activationRuleId": null,
       "evidenceStatus": "NOT_IN_LEGACY_ACTIVATION_CATALOG",
-      "source": "Stage01RegistryProvider.cs"
+      "source": "Stage01RegistryProvider.cs",
+      "defaultActive": false
     },
     {
       "conditionId": "building.balcony",
@@ -26741,7 +26918,8 @@
       "group": "10_项目条件",
       "activationRuleId": null,
       "evidenceStatus": "NOT_IN_LEGACY_ACTIVATION_CATALOG",
-      "source": "Stage01RegistryProvider.cs"
+      "source": "Stage01RegistryProvider.cs",
+      "defaultActive": false
     },
     {
       "conditionId": "building.canopy",
@@ -26749,7 +26927,8 @@
       "group": "10_项目条件",
       "activationRuleId": null,
       "evidenceStatus": "NOT_IN_LEGACY_ACTIVATION_CATALOG",
-      "source": "Stage01RegistryProvider.cs"
+      "source": "Stage01RegistryProvider.cs",
+      "defaultActive": false
     },
     {
       "conditionId": "underground.parking",
@@ -26757,7 +26936,8 @@
       "group": "10_项目条件",
       "activationRuleId": null,
       "evidenceStatus": "NOT_IN_LEGACY_ACTIVATION_CATALOG",
-      "source": "Stage01RegistryProvider.cs"
+      "source": "Stage01RegistryProvider.cs",
+      "defaultActive": false
     }
   ],
   "tasks": [
@@ -28136,7 +28316,10 @@
         "sourceRow": 2,
         "uiGroup": "05_报建联系人",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|编号",
@@ -28144,7 +28327,10 @@
         "sourceRow": 3,
         "uiGroup": "05_报建联系人",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|姓",
@@ -28152,7 +28338,10 @@
         "sourceRow": 4,
         "uiGroup": "05_报建联系人",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|名",
@@ -28160,7 +28349,10 @@
         "sourceRow": 5,
         "uiGroup": "05_报建联系人",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|邮箱地址",
@@ -28168,7 +28360,10 @@
         "sourceRow": 6,
         "uiGroup": "05_报建联系人",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|公司",
@@ -28176,7 +28371,10 @@
         "sourceRow": 7,
         "uiGroup": "05_报建联系人",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|公司性质",
@@ -28184,7 +28382,10 @@
         "sourceRow": 8,
         "uiGroup": "05_报建联系人",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|部门",
@@ -28192,7 +28393,10 @@
         "sourceRow": 9,
         "uiGroup": "05_报建联系人",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|国家",
@@ -28200,7 +28404,10 @@
         "sourceRow": 10,
         "uiGroup": "05_报建联系人",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|城镇",
@@ -28208,7 +28415,10 @@
         "sourceRow": 11,
         "uiGroup": "05_报建联系人",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|街道",
@@ -28216,7 +28426,10 @@
         "sourceRow": 12,
         "uiGroup": "05_报建联系人",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|通信地址",
@@ -28224,7 +28437,10 @@
         "sourceRow": 13,
         "uiGroup": "05_报建联系人",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|国家编码",
@@ -28232,7 +28448,10 @@
         "sourceRow": 14,
         "uiGroup": "05_报建联系人",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|邮政编码",
@@ -28240,7 +28459,10 @@
         "sourceRow": 15,
         "uiGroup": "05_报建联系人",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|宗地数量",
@@ -28248,7 +28470,10 @@
         "sourceRow": 16,
         "uiGroup": "04_地籍信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|宗地用途",
@@ -28256,7 +28481,10 @@
         "sourceRow": 17,
         "uiGroup": "04_地籍信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|宗地编号",
@@ -28264,7 +28492,10 @@
         "sourceRow": 18,
         "uiGroup": "04_地籍信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|宗地信息",
@@ -28272,7 +28503,10 @@
         "sourceRow": 19,
         "uiGroup": "04_地籍信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|宗地质量等级",
@@ -28280,7 +28514,10 @@
         "sourceRow": 20,
         "uiGroup": "04_地籍信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|宗地权力",
@@ -28288,7 +28525,10 @@
         "sourceRow": 21,
         "uiGroup": "04_地籍信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|宗地权利人",
@@ -28296,7 +28536,10 @@
         "sourceRow": 22,
         "uiGroup": "04_地籍信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|建筑物编码",
@@ -28304,7 +28547,10 @@
         "sourceRow": 23,
         "uiGroup": "04_地籍信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|建设性质",
@@ -28312,7 +28558,10 @@
         "sourceRow": 24,
         "uiGroup": "07_登记信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|总建筑面积",
@@ -28320,7 +28569,10 @@
         "sourceRow": 25,
         "uiGroup": "07_登记信息",
         "sourceKind": "later_model_calculation_or_external_value",
-        "writeInStage01": false
+        "writeInStage01": false,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|建筑物编码",
@@ -28328,7 +28580,10 @@
         "sourceRow": 26,
         "uiGroup": "07_登记信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|现状名称",
@@ -28336,7 +28591,10 @@
         "sourceRow": 27,
         "uiGroup": "07_登记信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|审批名称",
@@ -28344,7 +28602,10 @@
         "sourceRow": 28,
         "uiGroup": "07_登记信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|详细地址",
@@ -28352,7 +28613,10 @@
         "sourceRow": 29,
         "uiGroup": "07_登记信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|不动产地址",
@@ -28360,7 +28624,10 @@
         "sourceRow": 30,
         "uiGroup": "07_登记信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|建成时间",
@@ -28368,7 +28635,10 @@
         "sourceRow": 31,
         "uiGroup": "07_登记信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|建筑状态",
@@ -28376,7 +28646,10 @@
         "sourceRow": 32,
         "uiGroup": "07_登记信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|建设性质代码",
@@ -28384,7 +28657,10 @@
         "sourceRow": 33,
         "uiGroup": "07_登记信息",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|所属省级行政区",
@@ -28392,7 +28668,10 @@
         "sourceRow": 34,
         "uiGroup": "03_行政区划",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|省级行政区代码",
@@ -28400,7 +28679,10 @@
         "sourceRow": 35,
         "uiGroup": "03_行政区划",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|所属地级行政区",
@@ -28408,7 +28690,10 @@
         "sourceRow": 36,
         "uiGroup": "03_行政区划",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|地级行政区代码",
@@ -28416,7 +28701,10 @@
         "sourceRow": 37,
         "uiGroup": "03_行政区划",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|所属县级行政区",
@@ -28424,7 +28712,10 @@
         "sourceRow": 38,
         "uiGroup": "03_行政区划",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|县级行政区代码",
@@ -28432,7 +28723,10 @@
         "sourceRow": 39,
         "uiGroup": "03_行政区划",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|所属乡级行政区",
@@ -28440,7 +28734,10 @@
         "sourceRow": 40,
         "uiGroup": "03_行政区划",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|乡级行政区代码",
@@ -28448,7 +28745,10 @@
         "sourceRow": 41,
         "uiGroup": "03_行政区划",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|所属村（社区）",
@@ -28456,7 +28756,10 @@
         "sourceRow": 42,
         "uiGroup": "03_行政区划",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|村（社区）代码",
@@ -28464,7 +28767,10 @@
         "sourceRow": 43,
         "uiGroup": "03_行政区划",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|网格编码",
@@ -28472,7 +28778,10 @@
         "sourceRow": 44,
         "uiGroup": "03_行政区划",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|所属小区",
@@ -28480,7 +28789,10 @@
         "sourceRow": 45,
         "uiGroup": "03_行政区划",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|备注",
@@ -28488,7 +28800,10 @@
         "sourceRow": 46,
         "uiGroup": "03_行政区划",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 X",
@@ -28496,7 +28811,10 @@
         "sourceRow": 47,
         "uiGroup": "02_坐标与高程",
         "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 Y",
@@ -28504,7 +28822,10 @@
         "sourceRow": 48,
         "uiGroup": "02_坐标与高程",
         "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|基点高程",
@@ -28512,7 +28833,10 @@
         "sourceRow": 49,
         "uiGroup": "02_坐标与高程",
         "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|备注",
@@ -28520,7 +28844,10 @@
         "sourceRow": 50,
         "uiGroup": "01_文件与项目身份",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|项目编号",
@@ -28528,7 +28855,10 @@
         "sourceRow": 51,
         "uiGroup": "01_文件与项目身份",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|项目名称",
@@ -28536,7 +28866,10 @@
         "sourceRow": 52,
         "uiGroup": "01_文件与项目身份",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|建设单位",
@@ -28544,7 +28877,10 @@
         "sourceRow": 53,
         "uiGroup": "01_文件与项目身份",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|项目地址",
@@ -28552,7 +28888,10 @@
         "sourceRow": 54,
         "uiGroup": "01_文件与项目身份",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|设计单位",
@@ -28560,7 +28899,10 @@
         "sourceRow": 55,
         "uiGroup": "01_文件与项目身份",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|设计人",
@@ -28568,7 +28910,10 @@
         "sourceRow": 56,
         "uiGroup": "01_文件与项目身份",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|勘察单位",
@@ -28576,7 +28921,10 @@
         "sourceRow": 57,
         "uiGroup": "01_文件与项目身份",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|咨询单位",
@@ -28584,7 +28932,10 @@
         "sourceRow": 58,
         "uiGroup": "01_文件与项目身份",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|施工单位",
@@ -28592,7 +28943,10 @@
         "sourceRow": 59,
         "uiGroup": "01_文件与项目身份",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|监理单位",
@@ -28600,7 +28954,10 @@
         "sourceRow": 60,
         "uiGroup": "01_文件与项目身份",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|图审单位",
@@ -28608,7 +28965,10 @@
         "sourceRow": 61,
         "uiGroup": "01_文件与项目身份",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|坐标系名称",
@@ -28616,7 +28976,10 @@
         "sourceRow": 62,
         "uiGroup": "02_坐标与高程",
         "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "STATIC",
+        "defaultValue": "CGCS2000"
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|高程系名称",
@@ -28624,7 +28987,10 @@
         "sourceRow": 63,
         "uiGroup": "02_坐标与高程",
         "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "STATIC",
+        "defaultValue": "1985国家高程基准"
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|经度",
@@ -28632,7 +28998,10 @@
         "sourceRow": 64,
         "uiGroup": "02_坐标与高程",
         "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|纬度",
@@ -28640,7 +29009,10 @@
         "sourceRow": 65,
         "uiGroup": "02_坐标与高程",
         "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|建筑密度",
@@ -28648,7 +29020,10 @@
         "sourceRow": 66,
         "uiGroup": "08_规划控制指标",
         "sourceKind": "GH_planning_condition_input",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|容积率",
@@ -28656,7 +29031,10 @@
         "sourceRow": 67,
         "uiGroup": "08_规划控制指标",
         "sourceKind": "GH_planning_condition_input",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|绿地率",
@@ -28664,7 +29042,10 @@
         "sourceRow": 68,
         "uiGroup": "08_规划控制指标",
         "sourceKind": "GH_planning_condition_input",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|建筑限高",
@@ -28672,7 +29053,10 @@
         "sourceRow": 69,
         "uiGroup": "08_规划控制指标",
         "sourceKind": "GH_planning_condition_input",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|海拔限高",
@@ -28680,7 +29064,10 @@
         "sourceRow": 70,
         "uiGroup": "08_规划控制指标",
         "sourceKind": "GH_planning_condition_input",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|机动车位",
@@ -28688,7 +29075,10 @@
         "sourceRow": 71,
         "uiGroup": "08_规划控制指标",
         "sourceKind": "GH_planning_condition_input",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|非机动车车位",
@@ -28696,7 +29086,10 @@
         "sourceRow": 72,
         "uiGroup": "08_规划控制指标",
         "sourceKind": "GH_planning_condition_input",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|配置套值",
@@ -28704,7 +29097,10 @@
         "sourceRow": 73,
         "uiGroup": "08_规划控制指标",
         "sourceKind": "GH_planning_condition_input",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|非机动车类型",
@@ -28712,7 +29108,10 @@
         "sourceRow": 74,
         "uiGroup": "08_规划控制指标",
         "sourceKind": "GH_planning_condition_input",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|非机动车折算系数",
@@ -28720,7 +29119,10 @@
         "sourceRow": 75,
         "uiGroup": "08_规划控制指标",
         "sourceKind": "GH_planning_condition_input",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_Manifest|阶段",
@@ -28728,7 +29130,10 @@
         "sourceRow": 297,
         "uiGroup": "01_文件与阶段",
         "sourceKind": "GH_manual_and_system",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "STATIC",
+        "defaultValue": "规划报建"
       },
       {
         "fieldKey": "IfcProject|Pset_Manifest|应用模型精度",
@@ -28736,7 +29141,10 @@
         "sourceRow": 298,
         "uiGroup": "01_文件与阶段",
         "sourceKind": "GH_manual_and_system",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcProject|Pset_Manifest|实际模型精度",
@@ -28744,7 +29152,10 @@
         "sourceRow": 299,
         "uiGroup": "01_文件与阶段",
         "sourceKind": "GH_manual_and_system",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|企业名称",
@@ -28752,7 +29163,10 @@
         "sourceRow": 333,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|单位性质",
@@ -28760,7 +29174,10 @@
         "sourceRow": 334,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|社会统一信用代码",
@@ -28768,7 +29185,10 @@
         "sourceRow": 335,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|注册地区编码",
@@ -28776,7 +29196,10 @@
         "sourceRow": 336,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|企业营业地址",
@@ -28784,7 +29207,10 @@
         "sourceRow": 337,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|邮政编码",
@@ -28792,7 +29218,10 @@
         "sourceRow": 338,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|法定代表人姓名",
@@ -28800,7 +29229,10 @@
         "sourceRow": 339,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|法定代表人证件类型",
@@ -28808,7 +29240,10 @@
         "sourceRow": 340,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|法定代表人证件号码",
@@ -28816,7 +29251,10 @@
         "sourceRow": 341,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|注册资本",
@@ -28824,7 +29262,10 @@
         "sourceRow": 342,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|注册资本币种",
@@ -28832,7 +29273,10 @@
         "sourceRow": 343,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|成立日期",
@@ -28840,7 +29284,10 @@
         "sourceRow": 344,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|办公电话",
@@ -28848,7 +29295,10 @@
         "sourceRow": 345,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|传真号码",
@@ -28856,7 +29306,10 @@
         "sourceRow": 346,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|联系人姓名",
@@ -28864,7 +29317,10 @@
         "sourceRow": 347,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|联系人办公电话",
@@ -28872,7 +29328,10 @@
         "sourceRow": 348,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|联系人手机号码",
@@ -28880,7 +29339,10 @@
         "sourceRow": 349,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|企业联系邮箱",
@@ -28888,7 +29350,10 @@
         "sourceRow": 350,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|企业网址",
@@ -28896,7 +29361,10 @@
         "sourceRow": 351,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|企业经营状态",
@@ -28904,7 +29372,10 @@
         "sourceRow": 352,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|企业备注",
@@ -28912,7 +29383,10 @@
         "sourceRow": 353,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|企业编码",
@@ -28920,7 +29394,10 @@
         "sourceRow": 354,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|项目参建类型",
@@ -28928,7 +29405,10 @@
         "sourceRow": 355,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": true,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|项目进场时间",
@@ -28936,7 +29416,10 @@
         "sourceRow": 356,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|项目退场时间",
@@ -28944,7 +29427,10 @@
         "sourceRow": 357,
         "uiGroup": "06_参建组织",
         "sourceKind": "GH_manual_or_external",
-        "writeInStage01": true
+        "writeInStage01": true,
+        "essential": false,
+        "defaultStrategy": "NONE",
+        "defaultValue": null
       }
     ],
     "internalWorkflowFields": [
@@ -28955,6 +29441,8 @@
         "uiGroup": "01_文件与项目身份",
         "sourceKind": "GH_manual",
         "allowedValues": [],
+        "essential": true,
+        "defaultStrategy": "NONE",
         "defaultValue": null
       },
       {
@@ -28964,6 +29452,8 @@
         "uiGroup": "01_文件与项目身份",
         "sourceKind": "GH_manual",
         "allowedValues": [],
+        "essential": true,
+        "defaultStrategy": "NONE",
         "defaultValue": null
       },
       {
@@ -28977,7 +29467,9 @@
           "单体建筑—地上",
           "单体建筑—地下"
         ],
-        "defaultValue": null
+        "essential": true,
+        "defaultStrategy": "STATIC",
+        "defaultValue": "总平模型"
       },
       {
         "fieldKey": "HBR|FileIdentity|ModelScope",
@@ -28986,7 +29478,9 @@
         "uiGroup": "01_文件与项目身份",
         "sourceKind": "GH_manual",
         "allowedValues": [],
-        "defaultValue": null
+        "essential": true,
+        "defaultStrategy": "STATIC",
+        "defaultValue": "项目总平面报规模型"
       },
       {
         "fieldKey": "HBR|FileIdentity|FileGuid",
@@ -28995,6 +29489,8 @@
         "uiGroup": "01_文件与阶段",
         "sourceKind": "system_generated",
         "allowedValues": [],
+        "essential": true,
+        "defaultStrategy": "NEW_GUID",
         "defaultValue": null
       },
       {
@@ -29004,6 +29500,8 @@
         "uiGroup": "01_文件与阶段",
         "sourceKind": "system_generated",
         "allowedValues": [],
+        "essential": true,
+        "defaultStrategy": "STATIC",
         "defaultValue": "0.1.0"
       },
       {
@@ -29021,7 +29519,9 @@
           "初始化通过",
           "已修改待重新提交"
         ],
-        "defaultValue": null
+        "essential": true,
+        "defaultStrategy": "STATIC",
+        "defaultValue": "未初始化"
       },
       {
         "fieldKey": "HBR|SpatialReference|TrueNorthAngle",
@@ -29030,7 +29530,9 @@
         "uiGroup": "02_坐标与高程",
         "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
         "allowedValues": [],
-        "defaultValue": null
+        "essential": true,
+        "defaultStrategy": "STATIC",
+        "defaultValue": "0"
       },
       {
         "fieldKey": "HBR|ProjectUnits|Length",
@@ -29041,6 +29543,8 @@
         "allowedValues": [
           "m"
         ],
+        "essential": true,
+        "defaultStrategy": "STATIC",
         "defaultValue": "m"
       },
       {
@@ -29052,6 +29556,8 @@
         "allowedValues": [
           "m²"
         ],
+        "essential": true,
+        "defaultStrategy": "STATIC",
         "defaultValue": "m²"
       },
       {
@@ -29063,6 +29569,8 @@
         "allowedValues": [
           "°"
         ],
+        "essential": true,
+        "defaultStrategy": "STATIC",
         "defaultValue": "°"
       },
       {
@@ -29072,9 +29580,32 @@
         "uiGroup": "00_当前Revit文件",
         "sourceKind": "Revit_scan",
         "allowedValues": [],
+        "essential": false,
+        "defaultStrategy": "NONE",
         "defaultValue": null
       }
     ],
+    "spatialMappings": [
+      {
+        "sourceName": "X",
+        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 X",
+        "targetName": "NorthSouth",
+        "unit": "m"
+      },
+      {
+        "sourceName": "Y",
+        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+        "targetName": "EastWest",
+        "unit": "m"
+      },
+      {
+        "sourceName": "Elevation",
+        "fieldKey": "IfcProject|Pset_申报信息属性集|基点高程",
+        "targetName": "Elevation",
+        "unit": "m"
+      }
+    ],
+    "defaultActiveGroup": "01_文件与项目身份",
     "officialPluginCompatibility": {
       "entityPolicies": [
         {

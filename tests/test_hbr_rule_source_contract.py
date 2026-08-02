@@ -83,6 +83,8 @@ def test_source_contains_complete_legacy_compatibility_metadata():
             "uiGroup",
             "sourceKind",
             "allowedValues",
+            "essential",
+            "defaultStrategy",
             "defaultValue",
         }
         == set(field)
@@ -98,6 +100,9 @@ def test_source_contains_complete_legacy_compatibility_metadata():
             "uiGroup",
             "sourceKind",
             "writeInStage01",
+            "essential",
+            "defaultStrategy",
+            "defaultValue",
         }
         == set(reference)
         for reference in stage01["fieldRefs"]
@@ -115,6 +120,7 @@ def test_source_contains_complete_legacy_compatibility_metadata():
         "sharedParameterType",
         "officialSourceParameterGroup",
         "sourceParameterOverride",
+        "officialUnit",
     }
     assert len(official) == 166
     assert all(
@@ -130,6 +136,37 @@ def test_source_contains_complete_legacy_compatibility_metadata():
 
     assert len(source["modelProfiles"]) == 3
     assert all("activationRuleIds" in profile for profile in source["modelProfiles"])
+
+    assert stage01["spatialMappings"] == [
+        {
+            "sourceName": "X",
+            "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 X",
+            "targetName": "NorthSouth",
+            "unit": "m",
+        },
+        {
+            "sourceName": "Y",
+            "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+            "targetName": "EastWest",
+            "unit": "m",
+        },
+        {
+            "sourceName": "Elevation",
+            "fieldKey": "IfcProject|Pset_申报信息属性集|基点高程",
+            "targetName": "Elevation",
+            "unit": "m",
+        },
+    ]
+    assert stage01["defaultActiveGroup"] == "01_文件与项目身份"
+    assert len(source["conditions"]) == 14
+    assert all(condition["defaultActive"] is False for condition in source["conditions"])
+    all_fields = internal_fields + stage01["fieldRefs"]
+    assert len(all_fields) == 114
+    assert all(
+        field["defaultStrategy"] in {"NONE", "STATIC", "NEW_GUID"}
+        and type(field["essential"]) is bool
+        for field in all_fields
+    )
 
 
 def test_hifc_extensions_are_exactly_the_three_verified_identities():
@@ -225,6 +262,8 @@ def test_schema_closes_all_migrated_legacy_metadata_contracts():
             "uiGroup",
             "sourceKind",
             "allowedValues",
+            "essential",
+            "defaultStrategy",
             "defaultValue",
         },
         "legacyProjectionContract": {
@@ -234,6 +273,7 @@ def test_schema_closes_all_migrated_legacy_metadata_contracts():
             "sharedParameterType",
             "officialSourceParameterGroup",
             "sourceParameterOverride",
+            "officialUnit",
         },
         "officialPluginCompatibilityContract": {"entityPolicies", "exceptions"},
         "officialPluginEntityPolicyContract": {
@@ -256,12 +296,25 @@ def test_schema_closes_all_migrated_legacy_metadata_contracts():
         "uiGroup",
         "sourceKind",
         "writeInStage01",
+        "essential",
+        "defaultStrategy",
+        "defaultValue",
     }
     assert set(definitions["stage01Contract"]["required"]) == {
         "fieldRefs",
         "internalWorkflowFields",
+        "spatialMappings",
+        "defaultActiveGroup",
         "officialPluginCompatibility",
     }
+    assert set(definitions["spatialMappingContract"]["required"]) == {
+        "sourceName",
+        "fieldKey",
+        "targetName",
+        "unit",
+    }
+    assert definitions["spatialMappingContract"]["additionalProperties"] is False
+    assert "defaultActive" in definitions["conditionContract"]["required"]
     assert "activationRuleIds" in definitions["modelProfileContract"]["required"]
 
 

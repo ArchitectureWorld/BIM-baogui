@@ -395,7 +395,8 @@
         "persistenceMode",
         "sharedParameterType",
         "officialSourceParameterGroup",
-        "sourceParameterOverride"
+        "sourceParameterOverride",
+        "officialUnit"
       ],
       "properties": {
         "category": {
@@ -425,6 +426,13 @@
         "sourceParameterOverride": {
           "type": "string",
           "pattern": "^(?!\\s+$)"
+        },
+        "officialUnit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "\\S"
         }
       }
     },
@@ -552,7 +560,8 @@
         "group",
         "activationRuleId",
         "evidenceStatus",
-        "source"
+        "source",
+        "defaultActive"
       ],
       "properties": {
         "conditionId": {
@@ -575,6 +584,9 @@
         },
         "source": {
           "type": "string"
+        },
+        "defaultActive": {
+          "type": "boolean"
         }
       }
     },
@@ -860,7 +872,10 @@
         "sourceRow",
         "uiGroup",
         "sourceKind",
-        "writeInStage01"
+        "writeInStage01",
+        "essential",
+        "defaultStrategy",
+        "defaultValue"
       ],
       "properties": {
         "fieldKey": {
@@ -888,8 +903,62 @@
         },
         "writeInStage01": {
           "type": "boolean"
+        },
+        "essential": {
+          "type": "boolean"
+        },
+        "defaultStrategy": {
+          "enum": [
+            "NONE",
+            "STATIC",
+            "NEW_GUID"
+          ]
+        },
+        "defaultValue": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "\\S"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "defaultStrategy": { "const": "NONE" } } },
+          "then": { "properties": { "defaultValue": { "type": "null" } } }
+        },
+        {
+          "if": { "properties": { "defaultStrategy": { "const": "STATIC" } } },
+          "then": {
+            "properties": {
+              "defaultValue": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "defaultStrategy": { "const": "NEW_GUID" } } },
+          "then": {
+            "properties": {
+              "fieldKey": { "const": "HBR|FileIdentity|FileGuid" },
+              "defaultValue": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "fieldKey": { "const": "HBR|FileIdentity|FileGuid" }
+            }
+          },
+          "then": {
+            "properties": { "defaultStrategy": { "const": "NEW_GUID" } }
+          }
+        }
+      ]
     },
     "internalWorkflowFieldContract": {
       "type": "object",
@@ -901,6 +970,8 @@
         "uiGroup",
         "sourceKind",
         "allowedValues",
+        "essential",
+        "defaultStrategy",
         "defaultValue"
       ],
       "properties": {
@@ -941,12 +1012,85 @@
           },
           "uniqueItems": true
         },
+        "essential": {
+          "type": "boolean"
+        },
+        "defaultStrategy": {
+          "enum": [
+            "NONE",
+            "STATIC",
+            "NEW_GUID"
+          ]
+        },
         "defaultValue": {
           "type": [
             "string",
             "null"
           ],
           "pattern": "\\S"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "defaultStrategy": { "const": "NONE" } } },
+          "then": { "properties": { "defaultValue": { "type": "null" } } }
+        },
+        {
+          "if": { "properties": { "defaultStrategy": { "const": "STATIC" } } },
+          "then": {
+            "properties": {
+              "defaultValue": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "defaultStrategy": { "const": "NEW_GUID" } } },
+          "then": {
+            "properties": {
+              "fieldKey": { "const": "HBR|FileIdentity|FileGuid" },
+              "defaultValue": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "fieldKey": { "const": "HBR|FileIdentity|FileGuid" }
+            }
+          },
+          "then": {
+            "properties": { "defaultStrategy": { "const": "NEW_GUID" } }
+          }
+        }
+      ]
+    },
+    "spatialMappingContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceName",
+        "fieldKey",
+        "targetName",
+        "unit"
+      ],
+      "properties": {
+        "sourceName": {
+          "enum": ["X", "Y", "Elevation"]
+        },
+        "fieldKey": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "targetName": {
+          "enum": ["NorthSouth", "EastWest", "Elevation"]
+        },
+        "unit": {
+          "const": "m"
         }
       }
     },
@@ -1037,6 +1181,8 @@
       "required": [
         "fieldRefs",
         "internalWorkflowFields",
+        "spatialMappings",
+        "defaultActiveGroup",
         "officialPluginCompatibility"
       ],
       "properties": {
@@ -1055,6 +1201,20 @@
           },
           "minItems": 1,
           "uniqueItems": true
+        },
+        "spatialMappings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/spatialMappingContract"
+          },
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true
+        },
+        "defaultActiveGroup": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
         },
         "officialPluginCompatibility": {
           "$ref": "#/$defs/officialPluginCompatibilityContract"

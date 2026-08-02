@@ -61,6 +61,9 @@ LEGACY_METADATA_DIGEST_NAMES = (
     "entityPolicies",
     "exceptions",
     "profileActivationRuleIds",
+    "spatialMappings",
+    "conditionDefaults",
+    "defaultActiveGroup",
 )
 
 
@@ -83,6 +86,7 @@ def _legacy_metadata_projections(source):
         "sharedParameterType",
         "officialSourceParameterGroup",
         "sourceParameterOverride",
+        "officialUnit",
     )
     return {
         "internalWorkflowFields": sorted(
@@ -99,6 +103,9 @@ def _legacy_metadata_projections(source):
                         "uiGroup",
                         "sourceKind",
                         "writeInStage01",
+                        "essential",
+                        "defaultStrategy",
+                        "defaultValue",
                     )
                 }
                 for item in stage01["fieldRefs"]
@@ -145,6 +152,15 @@ def _legacy_metadata_projections(source):
             ),
             key=lambda item: item["profileId"],
         ),
+        "spatialMappings": [dict(item) for item in stage01["spatialMappings"]],
+        "conditionDefaults": [
+            {
+                "conditionId": condition["conditionId"],
+                "defaultActive": condition["defaultActive"],
+            }
+            for condition in source["conditions"]
+        ],
+        "defaultActiveGroup": stage01["defaultActiveGroup"],
     }
 
 
@@ -184,6 +200,7 @@ def test_compatibility_baseline_freezes_only_verified_published_identity_fields(
                     item["official"]["ifcProperty"],
                 )
             ),
+            "officialUnit": item["official"]["unit"],
         }
         for item in legacy["properties"]
     ]
@@ -191,7 +208,13 @@ def test_compatibility_baseline_freezes_only_verified_published_identity_fields(
     assert baseline["officialProperties"] == expected_from_legacy
     assert all(
         set(item)
-        == {"propertyId", "canonicalKey", "parameterGuid", "originalIdentity"}
+        == {
+            "propertyId",
+            "canonicalKey",
+            "parameterGuid",
+            "originalIdentity",
+            "officialUnit",
+        }
         for item in baseline["officialProperties"]
     )
 
@@ -201,6 +224,9 @@ def test_compatibility_baseline_freezes_only_verified_published_identity_fields(
             "canonicalKey": item["canonicalKey"],
             "parameterGuid": item["revit"]["parameterGuid"],
             "originalIdentity": item["officialPlugin"]["originalIdentity"],
+            "officialUnit": item["officialPlugin"]["legacyProjection"][
+                "officialUnit"
+            ],
         }
         for item in source["properties"]
         if item["officialPlugin"]["inExtracted166"]
@@ -806,6 +832,85 @@ def _drop_legacy_projection_field(source):
     official["officialPlugin"]["legacyProjection"].pop("sharedParameterType")
 
 
+def _drop_official_unit(source):
+    official = next(
+        rule
+        for rule in source["properties"]
+        if rule["officialPlugin"]["inExtracted166"]
+    )
+    official["officialPlugin"]["legacyProjection"].pop("officialUnit")
+
+
+def _drop_spatial_mappings(source):
+    source["stage01"].pop("spatialMappings")
+
+
+def _swap_x_spatial_target(source):
+    mappings = source["stage01"]["spatialMappings"]
+    mappings[0]["targetName"], mappings[1]["targetName"] = (
+        mappings[1]["targetName"],
+        mappings[0]["targetName"],
+    )
+
+
+def _duplicate_spatial_source(source):
+    mappings = source["stage01"]["spatialMappings"]
+    mappings[1]["sourceName"] = mappings[0]["sourceName"]
+
+
+def _duplicate_spatial_target(source):
+    mappings = source["stage01"]["spatialMappings"]
+    mappings[1]["targetName"] = mappings[0]["targetName"]
+
+
+def _duplicate_spatial_field(source):
+    mappings = source["stage01"]["spatialMappings"]
+    mappings[1]["fieldKey"] = mappings[0]["fieldKey"]
+
+
+def _drop_field_essential(source):
+    source["stage01"]["fieldRefs"][0].pop("essential")
+
+
+def _give_none_strategy_a_value(source):
+    field = next(
+        item
+        for item in source["stage01"]["fieldRefs"]
+        if item["defaultStrategy"] == "NONE"
+    )
+    field["defaultValue"] = "INVALID"
+
+
+def _remove_static_strategy_value(source):
+    fields = (
+        source["stage01"]["internalWorkflowFields"]
+        + source["stage01"]["fieldRefs"]
+    )
+    field = next(item for item in fields if item["defaultStrategy"] == "STATIC")
+    field["defaultValue"] = None
+
+
+def _give_new_guid_strategy_a_value(source):
+    field = next(
+        item
+        for item in source["stage01"]["internalWorkflowFields"]
+        if item["defaultStrategy"] == "NEW_GUID"
+    )
+    field["defaultValue"] = "INVALID"
+
+
+def _drop_condition_default(source):
+    source["conditions"][0].pop("defaultActive")
+
+
+def _drop_default_active_group(source):
+    source["stage01"].pop("defaultActiveGroup")
+
+
+def _use_unknown_default_active_group(source):
+    source["stage01"]["defaultActiveGroup"] = "99_不存在"
+
+
 def _truncate_official_plugin_exceptions(source):
     source["stage01"]["officialPluginCompatibility"]["exceptions"].pop()
 
@@ -968,6 +1073,74 @@ def _drift_profile_activation_rule_id(source):
     ],
 )
 def test_validate_semantics_rejects_missing_or_truncated_migrated_metadata(
+    mutation, message
+):
+    from tools.build_hbr_rulepack import validate_semantics
+
+    source = _load_source()
+    mutation(source)
+
+    with pytest.raises(ValueError, match=message):
+        validate_semantics(source)
+
+
+def test_validate_semantics_accepts_complete_projection_contract_counts():
+    from tools.build_hbr_rulepack import validate_semantics
+
+    source = _load_source()
+    validate_semantics(source)
+
+    official = [
+        rule
+        for rule in source["properties"]
+        if rule["officialPlugin"]["inExtracted166"]
+    ]
+    fields = (
+        source["stage01"]["internalWorkflowFields"]
+        + source["stage01"]["fieldRefs"]
+    )
+    assert len(official) == 166
+    assert len(source["stage01"]["spatialMappings"]) == 3
+    assert len(fields) == 114
+    assert len(source["conditions"]) == 14
+    assert all("officialUnit" in rule["officialPlugin"]["legacyProjection"] for rule in official)
+    assert all("defaultActive" in condition for condition in source["conditions"])
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (_drop_official_unit, r"missing required fields: officialUnit"),
+        (_drop_spatial_mappings, r"spatialMappings"),
+        (_swap_x_spatial_target, r"spatialMappings.*X.*NorthSouth"),
+        (_duplicate_spatial_source, r"spatialMappings.sourceName.*unique"),
+        (_duplicate_spatial_target, r"spatialMappings.targetName.*unique"),
+        (_duplicate_spatial_field, r"spatialMappings.fieldKey.*unique"),
+        (_drop_field_essential, r"fieldRefs.*essential"),
+        (_give_none_strategy_a_value, r"defaultStrategy NONE.*defaultValue.*null"),
+        (_remove_static_strategy_value, r"defaultStrategy STATIC.*defaultValue.*non-empty"),
+        (_give_new_guid_strategy_a_value, r"defaultStrategy NEW_GUID.*defaultValue.*null"),
+        (_drop_condition_default, r"conditions.*defaultActive"),
+        (_drop_default_active_group, r"defaultActiveGroup"),
+        (_use_unknown_default_active_group, r"defaultActiveGroup.*existing uiGroup"),
+    ],
+    ids=[
+        "missing-official-unit",
+        "missing-spatial-node",
+        "swapped-x-target",
+        "duplicate-spatial-source",
+        "duplicate-spatial-target",
+        "duplicate-spatial-field",
+        "missing-essential",
+        "none-with-value",
+        "static-without-value",
+        "new-guid-with-value",
+        "missing-condition-default",
+        "missing-active-group",
+        "unknown-active-group",
+    ],
+)
+def test_validate_semantics_rejects_invalid_projection_contract(
     mutation, message
 ):
     from tools.build_hbr_rulepack import validate_semantics

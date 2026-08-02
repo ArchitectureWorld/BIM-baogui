@@ -3,12 +3,15 @@
   "baselineId": "HBR-WUHAN-PLANNING-COMPATIBILITY",
   "baselineVersion": "1.1.0",
   "legacyMetadataDigests": {
-    "internalWorkflowFields": "7751a87575fc00ae340dfd23e42ccf0db0af63b775e3f9b519c4864e76b6b9ab",
-    "stage01FieldMetadata": "21743b9398255cc694182e5f407dbf8d371a6b630699e0ba524f2e66b122309b",
-    "officialLegacyProjection": "cb6328f77c473b80f5b1d2ddc453b02b9ff3f678e0216a4fc2218a5afdf0110f",
+    "internalWorkflowFields": "2a22bcafd210ed5ae5077c5696c9d8935b667c0dc4d55a84f202cc4a9b5feb78",
+    "stage01FieldMetadata": "a4567722c47f6fbb4e56249edf4f0a96b8f0c846ff4f18e0a20f114c7d818a4e",
+    "officialLegacyProjection": "484126369ea28cfda9d8d670b27c94d4a458bbd13d9fd05c998c1f38cc407b64",
     "entityPolicies": "76ad736eebddbaf8b1519a14dd5dbdb44d149e8d158c1673d85160bb8f98125e",
     "exceptions": "054e7b77d8925d4b49c592cf0335dc3ae7c02b67e011fbbca43eea4d3084b964",
-    "profileActivationRuleIds": "228276d9e42ce4fd1f0ee4fff175c15855d3c3efe08493aab7dfc05d31c100c3"
+    "profileActivationRuleIds": "228276d9e42ce4fd1f0ee4fff175c15855d3c3efe08493aab7dfc05d31c100c3",
+    "spatialMappings": "970deede2eda404c0dc1ca389ce207f0e0fec0926f37fe19c4b0eab7061be553",
+    "conditionDefaults": "68a82064a207083c3dd533eb889ed70d5ca1feaf67715b6859fddff2fd93b2b4",
+    "defaultActiveGroup": "24b778e84a9e5d0fe783fadaf3573196baff1ed34d370be1c222c59a4d4e4339"
   },
   "workbookEvidence": {
     "logicalSource": "《MVD》规划报建.xlsx",
@@ -19,997 +22,1163 @@
       "propertyId": "3b51a805-d2d0-5c8c-b4ef-37447db54f55",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|耐火等级",
       "parameterGuid": "3b51a805-d2d0-5c8c-b4ef-37447db54f55",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|耐火等级"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|耐火等级",
+      "officialUnit": null
     },
     {
       "propertyId": "af4bff12-341b-5a9a-af35-fc96d254bc29",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|地上建筑层数",
       "parameterGuid": "af4bff12-341b-5a9a-af35-fc96d254bc29",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|地上建筑层数"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|地上建筑层数",
+      "officialUnit": "层"
     },
     {
       "propertyId": "67831bf2-f2d9-55e6-966e-228b25639b60",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|地下建筑层数",
       "parameterGuid": "67831bf2-f2d9-55e6-966e-228b25639b60",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|地下建筑层数"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|地下建筑层数",
+      "officialUnit": "层"
     },
     {
       "propertyId": "fae5f6e1-1a58-58c7-9382-04eecdc98938",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|建筑高度",
       "parameterGuid": "fae5f6e1-1a58-58c7-9382-04eecdc98938",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑高度"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑高度",
+      "officialUnit": "m"
     },
     {
       "propertyId": "43b52fa7-4954-5409-9389-4eddb97807a2",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|建筑占地面积",
       "parameterGuid": "43b52fa7-4954-5409-9389-4eddb97807a2",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑占地面积"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑占地面积",
+      "officialUnit": "m²"
     },
     {
       "propertyId": "e54445ee-c15b-5233-b8d0-2991ac68ec1d",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|建筑面积",
       "parameterGuid": "e54445ee-c15b-5233-b8d0-2991ac68ec1d",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑面积"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑面积",
+      "officialUnit": "m²"
     },
     {
       "propertyId": "5d235535-c334-58c7-a89d-ceed585af80e",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|抗震性能等级",
       "parameterGuid": "5d235535-c334-58c7-a89d-ceed585af80e",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|抗震性能等级"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|抗震性能等级",
+      "officialUnit": null
     },
     {
       "propertyId": "b63cd3da-0706-5aa4-b56e-78487cfc4200",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|建筑体积",
       "parameterGuid": "b63cd3da-0706-5aa4-b56e-78487cfc4200",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑体积"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑体积",
+      "officialUnit": "m³"
     },
     {
       "propertyId": "8c33c80b-dc4f-5449-a423-fc96ccd2e205",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|人数",
       "parameterGuid": "8c33c80b-dc4f-5449-a423-fc96ccd2e205",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|人数"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|人数",
+      "officialUnit": "个"
     },
     {
       "propertyId": "776bc08d-6b5e-5702-8c75-a0dc7ce550c9",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|地下建筑高度",
       "parameterGuid": "776bc08d-6b5e-5702-8c75-a0dc7ce550c9",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|地下建筑高度"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|地下建筑高度",
+      "officialUnit": "m"
     },
     {
       "propertyId": "5960b21b-a181-5ab8-b19d-af8b489a9e00",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|室内外高差最大值",
       "parameterGuid": "5960b21b-a181-5ab8-b19d-af8b489a9e00",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|室内外高差最大值"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|室内外高差最大值",
+      "officialUnit": "m"
     },
     {
       "propertyId": "4225a5de-c942-54aa-874a-28a1e67ce39c",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|建筑名称",
       "parameterGuid": "4225a5de-c942-54aa-874a-28a1e67ce39c",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑名称"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑名称",
+      "officialUnit": null
     },
     {
       "propertyId": "a585f761-7784-57f5-8654-7d66d0d790c4",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|建筑类型名称",
       "parameterGuid": "a585f761-7784-57f5-8654-7d66d0d790c4",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑类型名称"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑类型名称",
+      "officialUnit": null
     },
     {
       "propertyId": "1d57021d-c5fe-5ab6-8e3c-8bb03cb91825",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|登记用途名称",
       "parameterGuid": "1d57021d-c5fe-5ab6-8e3c-8bb03cb91825",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|登记用途名称"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|登记用途名称",
+      "officialUnit": null
     },
     {
       "propertyId": "d6ae425b-72fa-5780-b966-f0e42daf5f06",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|建筑用途名称",
       "parameterGuid": "d6ae425b-72fa-5780-b966-f0e42daf5f06",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑用途名称"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑用途名称",
+      "officialUnit": null
     },
     {
       "propertyId": "9fd4908e-67fc-5512-b70c-01ebaf5ed3e0",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|抗震设防类别",
       "parameterGuid": "9fd4908e-67fc-5512-b70c-01ebaf5ed3e0",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|抗震设防类别"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|抗震设防类别",
+      "officialUnit": null
     },
     {
       "propertyId": "f8219b18-8adf-50d6-aa2d-a9276b72fed4",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuilding|建筑技术信息属性集|安全等级",
       "parameterGuid": "f8219b18-8adf-50d6-aa2d-a9276b72fed4",
-      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|安全等级"
+      "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|安全等级",
+      "officialUnit": null
     },
     {
       "propertyId": "ee41f5a8-562b-56f4-b8ef-331783746e09",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuildingStorey|建筑楼层信息属性集|底标高",
       "parameterGuid": "ee41f5a8-562b-56f4-b8ef-331783746e09",
-      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|底标高"
+      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|底标高",
+      "officialUnit": "m"
     },
     {
       "propertyId": "fe006691-f26b-5f32-84ed-48147931fd59",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuildingStorey|建筑楼层信息属性集|主功能类别",
       "parameterGuid": "fe006691-f26b-5f32-84ed-48147931fd59",
-      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|主功能类别"
+      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|主功能类别",
+      "officialUnit": null
     },
     {
       "propertyId": "8525b14a-2c98-5709-b7f0-9274316cd623",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuildingStorey|建筑楼层信息属性集|子功能类别",
       "parameterGuid": "8525b14a-2c98-5709-b7f0-9274316cd623",
-      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|子功能类别"
+      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|子功能类别",
+      "officialUnit": null
     },
     {
       "propertyId": "145ab588-2d01-53ee-9750-60934a4facf2",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuildingStorey|建筑楼层信息属性集|楼层类型",
       "parameterGuid": "145ab588-2d01-53ee-9750-60934a4facf2",
-      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层类型"
+      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层类型",
+      "officialUnit": null
     },
     {
       "propertyId": "87fcb9cd-9135-5d8e-943a-9227b827e63a",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuildingStorey|建筑楼层信息属性集|建筑层高",
       "parameterGuid": "87fcb9cd-9135-5d8e-943a-9227b827e63a",
-      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|建筑层高"
+      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|建筑层高",
+      "officialUnit": "mm"
     },
     {
       "propertyId": "efbf0b9e-083c-54d9-8581-44811e78930e",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuildingStorey|建筑楼层信息属性集|人数",
       "parameterGuid": "efbf0b9e-083c-54d9-8581-44811e78930e",
-      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|人数"
+      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|人数",
+      "officialUnit": "个"
     },
     {
       "propertyId": "eb80c674-763b-5320-abc4-9350264e562d",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuildingStorey|建筑楼层信息属性集|计算标高",
       "parameterGuid": "eb80c674-763b-5320-abc4-9350264e562d",
-      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|计算标高"
+      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|计算标高",
+      "officialUnit": "mm"
     },
     {
       "propertyId": "6fde5de4-c3fb-540d-8e51-24dfd6c10cc2",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuildingStorey|建筑楼层信息属性集|楼层面积",
       "parameterGuid": "6fde5de4-c3fb-540d-8e51-24dfd6c10cc2",
-      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层面积"
+      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层面积",
+      "officialUnit": "m²"
     },
     {
       "propertyId": "d598f456-0a03-5932-94fa-4340267a5b6b",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuildingStorey|建筑楼层信息属性集|是否设置避难层",
       "parameterGuid": "d598f456-0a03-5932-94fa-4340267a5b6b",
-      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|是否设置避难层"
+      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|是否设置避难层",
+      "officialUnit": null
     },
     {
       "propertyId": "ab751846-9a7e-5da7-b5bf-b4ee75f4eed0",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuildingStorey|建筑楼层信息属性集|备注",
       "parameterGuid": "ab751846-9a7e-5da7-b5bf-b4ee75f4eed0",
-      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|备注"
+      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|备注",
+      "officialUnit": null
     },
     {
       "propertyId": "dcb26f3c-743b-5001-a4bc-5a9bfbf82664",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuildingStorey|建筑楼层信息属性集|楼层名称",
       "parameterGuid": "dcb26f3c-743b-5001-a4bc-5a9bfbf82664",
-      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层名称"
+      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层名称",
+      "officialUnit": null
     },
     {
       "propertyId": "9b782e09-f1b3-596d-82c8-f5bcb521b85d",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuildingStorey|建筑楼层信息属性集|楼层编号",
       "parameterGuid": "9b782e09-f1b3-596d-82c8-f5bcb521b85d",
-      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层编号"
+      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层编号",
+      "officialUnit": null
     },
     {
       "propertyId": "7dc1a82e-f3d0-5210-b3bf-6b517da25d80",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcBuildingStorey|建筑楼层信息属性集|楼层属性信息",
       "parameterGuid": "7dc1a82e-f3d0-5210-b3bf-6b517da25d80",
-      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层属性信息"
+      "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层属性信息",
+      "officialUnit": null
     },
     {
       "propertyId": "394bfb85-520d-54e3-bfbf-43361892e152",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcDoor|门信息属性集|开启方向",
       "parameterGuid": "394bfb85-520d-54e3-bfbf-43361892e152",
-      "originalIdentity": "IfcDoor|Pset_门信息属性集|开启方向"
+      "originalIdentity": "IfcDoor|Pset_门信息属性集|开启方向",
+      "officialUnit": null
     },
     {
       "propertyId": "2d8ff363-ceae-5f83-9aa6-436c745f9467",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcDuctSegment|风管段信息属性集|隔热层厚度",
       "parameterGuid": "2d8ff363-ceae-5f83-9aa6-436c745f9467",
-      "originalIdentity": "IfcDuctSegment|Pset_风管段信息属性集|隔热层厚度"
+      "originalIdentity": "IfcDuctSegment|Pset_风管段信息属性集|隔热层厚度",
+      "officialUnit": "mm"
     },
     {
       "propertyId": "ff217d10-c277-50fb-8e5e-8cc2ac8f4585",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|企业名称",
       "parameterGuid": "ff217d10-c277-50fb-8e5e-8cc2ac8f4585",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业名称"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业名称",
+      "officialUnit": null
     },
     {
       "propertyId": "a4046c1c-f111-5ba8-b660-ba575b91dcb8",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|单位性质",
       "parameterGuid": "a4046c1c-f111-5ba8-b660-ba575b91dcb8",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|单位性质"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|单位性质",
+      "officialUnit": null
     },
     {
       "propertyId": "016f92ab-ab2c-5dff-a9cc-4d9669d5e768",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|社会统一信用代码",
       "parameterGuid": "016f92ab-ab2c-5dff-a9cc-4d9669d5e768",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|社会统一信用代码"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|社会统一信用代码",
+      "officialUnit": null
     },
     {
       "propertyId": "15ea15ae-b3b2-5d89-a8db-d71adc52730c",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|注册地区编码",
       "parameterGuid": "15ea15ae-b3b2-5d89-a8db-d71adc52730c",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|注册地区编码"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|注册地区编码",
+      "officialUnit": null
     },
     {
       "propertyId": "adf23867-0ab2-55a6-92ba-3cf152211838",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|企业营业地址",
       "parameterGuid": "adf23867-0ab2-55a6-92ba-3cf152211838",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业营业地址"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业营业地址",
+      "officialUnit": null
     },
     {
       "propertyId": "5d49bfa4-abf6-5452-b883-224f5dcb1c55",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|邮政编码",
       "parameterGuid": "5d49bfa4-abf6-5452-b883-224f5dcb1c55",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|邮政编码"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|邮政编码",
+      "officialUnit": null
     },
     {
       "propertyId": "e4660fa7-7ba9-5106-a4fc-26e3d99c6175",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|法定代表人姓名",
       "parameterGuid": "e4660fa7-7ba9-5106-a4fc-26e3d99c6175",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|法定代表人姓名"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|法定代表人姓名",
+      "officialUnit": null
     },
     {
       "propertyId": "c126e2f9-f901-5ab9-92a6-b35b2149fb26",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|法定代表人证件类型",
       "parameterGuid": "c126e2f9-f901-5ab9-92a6-b35b2149fb26",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|法定代表人证件类型"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|法定代表人证件类型",
+      "officialUnit": null
     },
     {
       "propertyId": "ee61922d-8e32-5335-bd57-86051aa8d070",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|法定代表人证件号码",
       "parameterGuid": "ee61922d-8e32-5335-bd57-86051aa8d070",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|法定代表人证件号码"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|法定代表人证件号码",
+      "officialUnit": null
     },
     {
       "propertyId": "552c8321-b375-5435-9a9a-9289151af68b",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|注册资本",
       "parameterGuid": "552c8321-b375-5435-9a9a-9289151af68b",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|注册资本"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|注册资本",
+      "officialUnit": null
     },
     {
       "propertyId": "4ec72816-e05d-559c-9057-d00c231f0999",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|注册资本币种",
       "parameterGuid": "4ec72816-e05d-559c-9057-d00c231f0999",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|注册资本币种"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|注册资本币种",
+      "officialUnit": null
     },
     {
       "propertyId": "ce9763ab-6165-5acb-b614-21546eaee300",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|成立日期",
       "parameterGuid": "ce9763ab-6165-5acb-b614-21546eaee300",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|成立日期"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|成立日期",
+      "officialUnit": null
     },
     {
       "propertyId": "372dc78b-8892-5c29-8f1e-aa81a0abbc23",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|办公电话",
       "parameterGuid": "372dc78b-8892-5c29-8f1e-aa81a0abbc23",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|办公电话"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|办公电话",
+      "officialUnit": null
     },
     {
       "propertyId": "9017d53a-1dbb-546d-85be-c9fcf4a8179b",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|传真号码",
       "parameterGuid": "9017d53a-1dbb-546d-85be-c9fcf4a8179b",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|传真号码"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|传真号码",
+      "officialUnit": null
     },
     {
       "propertyId": "e2863620-23a5-5b29-ad0b-47338d2d1915",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|联系人姓名",
       "parameterGuid": "e2863620-23a5-5b29-ad0b-47338d2d1915",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|联系人姓名"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|联系人姓名",
+      "officialUnit": null
     },
     {
       "propertyId": "b5e28005-8282-5b0d-a45e-1b3d0d136aa2",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|联系人办公电话",
       "parameterGuid": "b5e28005-8282-5b0d-a45e-1b3d0d136aa2",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|联系人办公电话"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|联系人办公电话",
+      "officialUnit": null
     },
     {
       "propertyId": "850cddde-0248-5ef0-b1b6-f32da97b5e9c",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|联系人手机号码",
       "parameterGuid": "850cddde-0248-5ef0-b1b6-f32da97b5e9c",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|联系人手机号码"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|联系人手机号码",
+      "officialUnit": null
     },
     {
       "propertyId": "0f672079-ebb1-5f9f-9a46-3aae7e6357bf",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|企业联系邮箱",
       "parameterGuid": "0f672079-ebb1-5f9f-9a46-3aae7e6357bf",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业联系邮箱"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业联系邮箱",
+      "officialUnit": null
     },
     {
       "propertyId": "49a38f13-a54f-5358-882a-d6806ca226c1",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|企业网址",
       "parameterGuid": "49a38f13-a54f-5358-882a-d6806ca226c1",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业网址"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业网址",
+      "officialUnit": null
     },
     {
       "propertyId": "13a37612-c9af-5dca-9bde-6fd540b2b114",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|企业经营状态",
       "parameterGuid": "13a37612-c9af-5dca-9bde-6fd540b2b114",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业经营状态"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业经营状态",
+      "officialUnit": null
     },
     {
       "propertyId": "e91c6b3d-556d-526b-a66b-545553f20fc8",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|企业备注",
       "parameterGuid": "e91c6b3d-556d-526b-a66b-545553f20fc8",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业备注"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业备注",
+      "officialUnit": null
     },
     {
       "propertyId": "aea197df-c1c3-57bf-9ff4-87111e73b12d",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|企业编码",
       "parameterGuid": "aea197df-c1c3-57bf-9ff4-87111e73b12d",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业编码"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业编码",
+      "officialUnit": null
     },
     {
       "propertyId": "64ec6d92-f85d-557c-bade-1ec7c172b60f",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|项目参建类型",
       "parameterGuid": "64ec6d92-f85d-557c-bade-1ec7c172b60f",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|项目参建类型"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|项目参建类型",
+      "officialUnit": null
     },
     {
       "propertyId": "bff42cce-915d-54ec-905b-5f4dfff1ec98",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|项目进场时间",
       "parameterGuid": "bff42cce-915d-54ec-905b-5f4dfff1ec98",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|项目进场时间"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|项目进场时间",
+      "officialUnit": null
     },
     {
       "propertyId": "c8769206-33f2-5b17-9daf-645394c6c922",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcOrganization|组织通用属性集|项目退场时间",
       "parameterGuid": "c8769206-33f2-5b17-9daf-645394c6c922",
-      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|项目退场时间"
+      "originalIdentity": "IfcOrganization|Pset_组织通用属性集|项目退场时间",
+      "officialUnit": null
     },
     {
       "propertyId": "03081502-9a44-56cf-9ea9-e1f0497dc960",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|报建信息属性集|手机号码",
       "parameterGuid": "03081502-9a44-56cf-9ea9-e1f0497dc960",
-      "originalIdentity": "IfcProject|Pset_报建信息属性集|手机号码"
+      "originalIdentity": "IfcProject|Pset_报建信息属性集|手机号码",
+      "officialUnit": null
     },
     {
       "propertyId": "fab11af2-f8a0-5ecd-ab98-93f4aa107117",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|报建信息属性集|编号",
       "parameterGuid": "fab11af2-f8a0-5ecd-ab98-93f4aa107117",
-      "originalIdentity": "IfcProject|Pset_报建信息属性集|编号"
+      "originalIdentity": "IfcProject|Pset_报建信息属性集|编号",
+      "officialUnit": null
     },
     {
       "propertyId": "f5fb1085-d152-54b4-bd49-772bfb02b85a",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|报建信息属性集|姓",
       "parameterGuid": "f5fb1085-d152-54b4-bd49-772bfb02b85a",
-      "originalIdentity": "IfcProject|Pset_报建信息属性集|姓"
+      "originalIdentity": "IfcProject|Pset_报建信息属性集|姓",
+      "officialUnit": null
     },
     {
       "propertyId": "a01463f1-8712-535f-a95d-c80fc3e96a52",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|报建信息属性集|名",
       "parameterGuid": "a01463f1-8712-535f-a95d-c80fc3e96a52",
-      "originalIdentity": "IfcProject|Pset_报建信息属性集|名"
+      "originalIdentity": "IfcProject|Pset_报建信息属性集|名",
+      "officialUnit": null
     },
     {
       "propertyId": "4accb54c-af84-595c-84f5-53b1f4e52a7b",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|报建信息属性集|邮箱地址",
       "parameterGuid": "4accb54c-af84-595c-84f5-53b1f4e52a7b",
-      "originalIdentity": "IfcProject|Pset_报建信息属性集|邮箱地址"
+      "originalIdentity": "IfcProject|Pset_报建信息属性集|邮箱地址",
+      "officialUnit": null
     },
     {
       "propertyId": "9e597bc8-8a38-5092-a29b-f2397d01d636",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|报建信息属性集|公司",
       "parameterGuid": "9e597bc8-8a38-5092-a29b-f2397d01d636",
-      "originalIdentity": "IfcProject|Pset_报建信息属性集|公司"
+      "originalIdentity": "IfcProject|Pset_报建信息属性集|公司",
+      "officialUnit": null
     },
     {
       "propertyId": "a19ffb03-1ff5-5a77-a034-ece77683e4f1",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|报建信息属性集|公司性质",
       "parameterGuid": "a19ffb03-1ff5-5a77-a034-ece77683e4f1",
-      "originalIdentity": "IfcProject|Pset_报建信息属性集|公司性质"
+      "originalIdentity": "IfcProject|Pset_报建信息属性集|公司性质",
+      "officialUnit": null
     },
     {
       "propertyId": "115197c0-f548-53d9-b2d8-9f3bfeb0f344",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|报建信息属性集|部门",
       "parameterGuid": "115197c0-f548-53d9-b2d8-9f3bfeb0f344",
-      "originalIdentity": "IfcProject|Pset_报建信息属性集|部门"
+      "originalIdentity": "IfcProject|Pset_报建信息属性集|部门",
+      "officialUnit": null
     },
     {
       "propertyId": "9783358f-0e15-53c4-8fc8-d21992910e2e",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|报建信息属性集|国家",
       "parameterGuid": "9783358f-0e15-53c4-8fc8-d21992910e2e",
-      "originalIdentity": "IfcProject|Pset_报建信息属性集|国家"
+      "originalIdentity": "IfcProject|Pset_报建信息属性集|国家",
+      "officialUnit": null
     },
     {
       "propertyId": "d4c3e40e-787c-581b-9c35-41e952f1546a",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|报建信息属性集|城镇",
       "parameterGuid": "d4c3e40e-787c-581b-9c35-41e952f1546a",
-      "originalIdentity": "IfcProject|Pset_报建信息属性集|城镇"
+      "originalIdentity": "IfcProject|Pset_报建信息属性集|城镇",
+      "officialUnit": null
     },
     {
       "propertyId": "dddaaca4-50ce-5edd-978d-0f25561aeb60",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|报建信息属性集|街道",
       "parameterGuid": "dddaaca4-50ce-5edd-978d-0f25561aeb60",
-      "originalIdentity": "IfcProject|Pset_报建信息属性集|街道"
+      "originalIdentity": "IfcProject|Pset_报建信息属性集|街道",
+      "officialUnit": null
     },
     {
       "propertyId": "b9da15e4-7834-5f31-bb2c-6b1c04d2c5b2",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|报建信息属性集|通信地址",
       "parameterGuid": "b9da15e4-7834-5f31-bb2c-6b1c04d2c5b2",
-      "originalIdentity": "IfcProject|Pset_报建信息属性集|通信地址"
+      "originalIdentity": "IfcProject|Pset_报建信息属性集|通信地址",
+      "officialUnit": null
     },
     {
       "propertyId": "287fef4d-9bfc-5918-9d15-f0b1aa31a786",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|报建信息属性集|国家编码",
       "parameterGuid": "287fef4d-9bfc-5918-9d15-f0b1aa31a786",
-      "originalIdentity": "IfcProject|Pset_报建信息属性集|国家编码"
+      "originalIdentity": "IfcProject|Pset_报建信息属性集|国家编码",
+      "officialUnit": null
     },
     {
       "propertyId": "a33cbb43-34eb-5ff2-ad8e-889c19378b97",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|报建信息属性集|邮政编码",
       "parameterGuid": "a33cbb43-34eb-5ff2-ad8e-889c19378b97",
-      "originalIdentity": "IfcProject|Pset_报建信息属性集|邮政编码"
+      "originalIdentity": "IfcProject|Pset_报建信息属性集|邮政编码",
+      "officialUnit": null
     },
     {
       "propertyId": "f93bcef9-1b43-5881-9b4f-8a5029883013",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|地籍信息属性集|宗地数量",
       "parameterGuid": "f93bcef9-1b43-5881-9b4f-8a5029883013",
-      "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地数量"
+      "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地数量",
+      "officialUnit": "个"
     },
     {
       "propertyId": "a1f96b77-cd72-5231-a164-d43df2bc9eb9",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|地籍信息属性集|宗地用途",
       "parameterGuid": "a1f96b77-cd72-5231-a164-d43df2bc9eb9",
-      "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地用途"
+      "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地用途",
+      "officialUnit": null
     },
     {
       "propertyId": "3b69cba3-5700-5f07-9854-d6303992bfef",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|地籍信息属性集|宗地编号",
       "parameterGuid": "3b69cba3-5700-5f07-9854-d6303992bfef",
-      "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地编号"
+      "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地编号",
+      "officialUnit": null
     },
     {
       "propertyId": "40a6afb5-cd11-5e56-916c-6992675988dd",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|地籍信息属性集|宗地信息",
       "parameterGuid": "40a6afb5-cd11-5e56-916c-6992675988dd",
-      "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地信息"
+      "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地信息",
+      "officialUnit": null
     },
     {
       "propertyId": "3ba0a149-717d-585b-bb67-501ccb3654d6",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|地籍信息属性集|宗地质量等级",
       "parameterGuid": "3ba0a149-717d-585b-bb67-501ccb3654d6",
-      "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地质量等级"
+      "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地质量等级",
+      "officialUnit": null
     },
     {
       "propertyId": "e2c13e23-2112-564d-8e17-543ba3896508",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|地籍信息属性集|宗地权力",
       "parameterGuid": "e2c13e23-2112-564d-8e17-543ba3896508",
-      "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地权力"
+      "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地权力",
+      "officialUnit": null
     },
     {
       "propertyId": "42ddddcb-4973-5dc1-b87f-b0908f7f5fa1",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|地籍信息属性集|宗地权利人",
       "parameterGuid": "42ddddcb-4973-5dc1-b87f-b0908f7f5fa1",
-      "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地权利人"
+      "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地权利人",
+      "officialUnit": null
     },
     {
       "propertyId": "e686d8c2-710a-5068-b683-43dec25252b4",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|地籍信息属性集|建筑物编码",
       "parameterGuid": "e686d8c2-710a-5068-b683-43dec25252b4",
-      "originalIdentity": "IfcProject|Pset_地籍信息属性集|建筑物编码"
+      "originalIdentity": "IfcProject|Pset_地籍信息属性集|建筑物编码",
+      "officialUnit": null
     },
     {
       "propertyId": "22438777-1419-5970-b97d-2c3c44f7a6e5",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|登记信息属性集|建设性质",
       "parameterGuid": "22438777-1419-5970-b97d-2c3c44f7a6e5",
-      "originalIdentity": "IfcProject|Pset_登记信息属性集|建设性质"
+      "originalIdentity": "IfcProject|Pset_登记信息属性集|建设性质",
+      "officialUnit": null
     },
     {
       "propertyId": "ca21e324-046b-5bfd-84c8-0d3470082303",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|登记信息属性集|总建筑面积",
       "parameterGuid": "ca21e324-046b-5bfd-84c8-0d3470082303",
-      "originalIdentity": "IfcProject|Pset_登记信息属性集|总建筑面积"
+      "originalIdentity": "IfcProject|Pset_登记信息属性集|总建筑面积",
+      "officialUnit": "m²"
     },
     {
       "propertyId": "3c02cb6f-d4bc-5b3d-b44d-6c0d258b9bb2",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|登记信息属性集|建筑物编码",
       "parameterGuid": "3c02cb6f-d4bc-5b3d-b44d-6c0d258b9bb2",
-      "originalIdentity": "IfcProject|Pset_登记信息属性集|建筑物编码"
+      "originalIdentity": "IfcProject|Pset_登记信息属性集|建筑物编码",
+      "officialUnit": null
     },
     {
       "propertyId": "b45c2d7d-690c-55c2-a23c-626ad81962fb",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|登记信息属性集|现状名称",
       "parameterGuid": "b45c2d7d-690c-55c2-a23c-626ad81962fb",
-      "originalIdentity": "IfcProject|Pset_登记信息属性集|现状名称"
+      "originalIdentity": "IfcProject|Pset_登记信息属性集|现状名称",
+      "officialUnit": null
     },
     {
       "propertyId": "960ac606-d0c1-5a1b-9f2e-d70d3a8eb712",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|登记信息属性集|审批名称",
       "parameterGuid": "960ac606-d0c1-5a1b-9f2e-d70d3a8eb712",
-      "originalIdentity": "IfcProject|Pset_登记信息属性集|审批名称"
+      "originalIdentity": "IfcProject|Pset_登记信息属性集|审批名称",
+      "officialUnit": null
     },
     {
       "propertyId": "21ef1d33-e8c4-51f9-8bb0-23250c872ad3",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|登记信息属性集|详细地址",
       "parameterGuid": "21ef1d33-e8c4-51f9-8bb0-23250c872ad3",
-      "originalIdentity": "IfcProject|Pset_登记信息属性集|详细地址"
+      "originalIdentity": "IfcProject|Pset_登记信息属性集|详细地址",
+      "officialUnit": null
     },
     {
       "propertyId": "422ad455-a88f-5d62-8b5d-562bc1aaf5f1",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|登记信息属性集|不动产地址",
       "parameterGuid": "422ad455-a88f-5d62-8b5d-562bc1aaf5f1",
-      "originalIdentity": "IfcProject|Pset_登记信息属性集|不动产地址"
+      "originalIdentity": "IfcProject|Pset_登记信息属性集|不动产地址",
+      "officialUnit": null
     },
     {
       "propertyId": "da99190d-498d-5db7-b542-681c434f3ca9",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|登记信息属性集|建成时间",
       "parameterGuid": "da99190d-498d-5db7-b542-681c434f3ca9",
-      "originalIdentity": "IfcProject|Pset_登记信息属性集|建成时间"
+      "originalIdentity": "IfcProject|Pset_登记信息属性集|建成时间",
+      "officialUnit": null
     },
     {
       "propertyId": "e63e116d-b988-56fb-946d-e19937c1cb00",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|登记信息属性集|建筑状态",
       "parameterGuid": "e63e116d-b988-56fb-946d-e19937c1cb00",
-      "originalIdentity": "IfcProject|Pset_登记信息属性集|建筑状态"
+      "originalIdentity": "IfcProject|Pset_登记信息属性集|建筑状态",
+      "officialUnit": null
     },
     {
       "propertyId": "af44d874-a366-5fb5-a65b-6242ad8f452f",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|登记信息属性集|建设性质代码",
       "parameterGuid": "af44d874-a366-5fb5-a65b-6242ad8f452f",
-      "originalIdentity": "IfcProject|Pset_登记信息属性集|建设性质代码"
+      "originalIdentity": "IfcProject|Pset_登记信息属性集|建设性质代码",
+      "officialUnit": null
     },
     {
       "propertyId": "90a26e62-372f-5ee6-ab76-5cddcdc6a585",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|区划信息属性集|所属省级行政区",
       "parameterGuid": "90a26e62-372f-5ee6-ab76-5cddcdc6a585",
-      "originalIdentity": "IfcProject|Pset_区划信息属性集|所属省级行政区"
+      "originalIdentity": "IfcProject|Pset_区划信息属性集|所属省级行政区",
+      "officialUnit": null
     },
     {
       "propertyId": "ebce5979-d12b-5ef6-aded-b5405d60239a",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|区划信息属性集|省级行政区代码",
       "parameterGuid": "ebce5979-d12b-5ef6-aded-b5405d60239a",
-      "originalIdentity": "IfcProject|Pset_区划信息属性集|省级行政区代码"
+      "originalIdentity": "IfcProject|Pset_区划信息属性集|省级行政区代码",
+      "officialUnit": null
     },
     {
       "propertyId": "af67c862-ef9f-511d-b130-ae25a71dcd56",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|区划信息属性集|所属地级行政区",
       "parameterGuid": "af67c862-ef9f-511d-b130-ae25a71dcd56",
-      "originalIdentity": "IfcProject|Pset_区划信息属性集|所属地级行政区"
+      "originalIdentity": "IfcProject|Pset_区划信息属性集|所属地级行政区",
+      "officialUnit": null
     },
     {
       "propertyId": "9f9274e8-2c65-5dc4-96ed-739d01238b5a",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|区划信息属性集|地级行政区代码",
       "parameterGuid": "9f9274e8-2c65-5dc4-96ed-739d01238b5a",
-      "originalIdentity": "IfcProject|Pset_区划信息属性集|地级行政区代码"
+      "originalIdentity": "IfcProject|Pset_区划信息属性集|地级行政区代码",
+      "officialUnit": null
     },
     {
       "propertyId": "aeed20b9-9696-5b6e-bdb0-be78184aa624",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|区划信息属性集|所属县级行政区",
       "parameterGuid": "aeed20b9-9696-5b6e-bdb0-be78184aa624",
-      "originalIdentity": "IfcProject|Pset_区划信息属性集|所属县级行政区"
+      "originalIdentity": "IfcProject|Pset_区划信息属性集|所属县级行政区",
+      "officialUnit": null
     },
     {
       "propertyId": "82b8d283-7365-532f-b7d2-4b3dd62944cd",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|区划信息属性集|县级行政区代码",
       "parameterGuid": "82b8d283-7365-532f-b7d2-4b3dd62944cd",
-      "originalIdentity": "IfcProject|Pset_区划信息属性集|县级行政区代码"
+      "originalIdentity": "IfcProject|Pset_区划信息属性集|县级行政区代码",
+      "officialUnit": null
     },
     {
       "propertyId": "e9793406-5361-5df6-a2d6-4c036b86d411",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|区划信息属性集|所属乡级行政区",
       "parameterGuid": "e9793406-5361-5df6-a2d6-4c036b86d411",
-      "originalIdentity": "IfcProject|Pset_区划信息属性集|所属乡级行政区"
+      "originalIdentity": "IfcProject|Pset_区划信息属性集|所属乡级行政区",
+      "officialUnit": null
     },
     {
       "propertyId": "0e043599-3185-5783-9212-6e128bc2119a",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|区划信息属性集|乡级行政区代码",
       "parameterGuid": "0e043599-3185-5783-9212-6e128bc2119a",
-      "originalIdentity": "IfcProject|Pset_区划信息属性集|乡级行政区代码"
+      "originalIdentity": "IfcProject|Pset_区划信息属性集|乡级行政区代码",
+      "officialUnit": null
     },
     {
       "propertyId": "3dfc9422-4506-58d0-b375-3630ac8e60e2",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|区划信息属性集|所属村（社区）",
       "parameterGuid": "3dfc9422-4506-58d0-b375-3630ac8e60e2",
-      "originalIdentity": "IfcProject|Pset_区划信息属性集|所属村（社区）"
+      "originalIdentity": "IfcProject|Pset_区划信息属性集|所属村（社区）",
+      "officialUnit": null
     },
     {
       "propertyId": "796ccc78-42d0-51dc-928b-4ec3379de9c5",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|区划信息属性集|村（社区）代码",
       "parameterGuid": "796ccc78-42d0-51dc-928b-4ec3379de9c5",
-      "originalIdentity": "IfcProject|Pset_区划信息属性集|村（社区）代码"
+      "originalIdentity": "IfcProject|Pset_区划信息属性集|村（社区）代码",
+      "officialUnit": null
     },
     {
       "propertyId": "3eb5d633-e567-53fe-a60f-b7982c49a396",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|区划信息属性集|网格编码",
       "parameterGuid": "3eb5d633-e567-53fe-a60f-b7982c49a396",
-      "originalIdentity": "IfcProject|Pset_区划信息属性集|网格编码"
+      "originalIdentity": "IfcProject|Pset_区划信息属性集|网格编码",
+      "officialUnit": null
     },
     {
       "propertyId": "7a3fe440-fd30-52fa-9633-c9c5a4d211b8",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|区划信息属性集|所属小区",
       "parameterGuid": "7a3fe440-fd30-52fa-9633-c9c5a4d211b8",
-      "originalIdentity": "IfcProject|Pset_区划信息属性集|所属小区"
+      "originalIdentity": "IfcProject|Pset_区划信息属性集|所属小区",
+      "officialUnit": null
     },
     {
       "propertyId": "73742866-4015-51ac-a863-9020cca3088f",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|区划信息属性集|备注",
       "parameterGuid": "73742866-4015-51ac-a863-9020cca3088f",
-      "originalIdentity": "IfcProject|Pset_区划信息属性集|备注"
+      "originalIdentity": "IfcProject|Pset_区划信息属性集|备注",
+      "officialUnit": null
     },
     {
       "propertyId": "6b407894-09d4-529a-9f9f-a031219cdeaa",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|基点坐标X",
       "parameterGuid": "6b407894-09d4-529a-9f9f-a031219cdeaa",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|基点坐标X"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|基点坐标X",
+      "officialUnit": "m"
     },
     {
       "propertyId": "1a64ef8d-e97c-5fa1-b53f-52b969b6198a",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|基点坐标Y",
       "parameterGuid": "1a64ef8d-e97c-5fa1-b53f-52b969b6198a",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|基点坐标Y"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|基点坐标Y",
+      "officialUnit": "m"
     },
     {
       "propertyId": "50164757-c346-5005-a1b8-7b423c6b8de5",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|基点高程",
       "parameterGuid": "50164757-c346-5005-a1b8-7b423c6b8de5",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|基点高程"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|基点高程",
+      "officialUnit": "m"
     },
     {
       "propertyId": "2e11c6d5-e6c2-52ed-8eab-7b47c54092e7",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|备注",
       "parameterGuid": "2e11c6d5-e6c2-52ed-8eab-7b47c54092e7",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|备注"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|备注",
+      "officialUnit": null
     },
     {
       "propertyId": "7e970f3c-876f-5873-9f00-dcec9a6f1366",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|项目编号",
       "parameterGuid": "7e970f3c-876f-5873-9f00-dcec9a6f1366",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|项目编号"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|项目编号",
+      "officialUnit": null
     },
     {
       "propertyId": "2bc733cd-c7a1-57fa-b206-1baeb71881d4",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|项目名称",
       "parameterGuid": "2bc733cd-c7a1-57fa-b206-1baeb71881d4",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|项目名称"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|项目名称",
+      "officialUnit": null
     },
     {
       "propertyId": "5e1b3023-55c2-5563-8b62-f23d8749c5f3",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|建设单位",
       "parameterGuid": "5e1b3023-55c2-5563-8b62-f23d8749c5f3",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|建设单位"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|建设单位",
+      "officialUnit": null
     },
     {
       "propertyId": "26858ad1-f88e-5ad4-aedb-7542eb907dd2",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|项目地址",
       "parameterGuid": "26858ad1-f88e-5ad4-aedb-7542eb907dd2",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|项目地址"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|项目地址",
+      "officialUnit": null
     },
     {
       "propertyId": "39f99f8a-50e8-5908-ab1d-9dbab0bcf95f",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|设计单位",
       "parameterGuid": "39f99f8a-50e8-5908-ab1d-9dbab0bcf95f",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|设计单位"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|设计单位",
+      "officialUnit": null
     },
     {
       "propertyId": "dfaccc71-32f5-50a9-9a41-a611158edb29",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|设计人",
       "parameterGuid": "dfaccc71-32f5-50a9-9a41-a611158edb29",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|设计人"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|设计人",
+      "officialUnit": null
     },
     {
       "propertyId": "59d2c258-bf95-56f0-9431-873712c9e330",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|勘察单位",
       "parameterGuid": "59d2c258-bf95-56f0-9431-873712c9e330",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|勘察单位"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|勘察单位",
+      "officialUnit": null
     },
     {
       "propertyId": "69056d87-4196-541e-9e34-848c1ec15947",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|咨询单位",
       "parameterGuid": "69056d87-4196-541e-9e34-848c1ec15947",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|咨询单位"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|咨询单位",
+      "officialUnit": null
     },
     {
       "propertyId": "620fcfe3-2c21-5fd4-8d6d-f0ed878c5a78",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|施工单位",
       "parameterGuid": "620fcfe3-2c21-5fd4-8d6d-f0ed878c5a78",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|施工单位"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|施工单位",
+      "officialUnit": null
     },
     {
       "propertyId": "1e44a14b-e063-55c5-9294-fce4eb5f62ca",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|监理单位",
       "parameterGuid": "1e44a14b-e063-55c5-9294-fce4eb5f62ca",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|监理单位"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|监理单位",
+      "officialUnit": null
     },
     {
       "propertyId": "b7559143-785b-5c93-bcc6-6934c5c20dba",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|图审单位",
       "parameterGuid": "b7559143-785b-5c93-bcc6-6934c5c20dba",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|图审单位"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|图审单位",
+      "officialUnit": null
     },
     {
       "propertyId": "38a62192-ecac-5e2d-9fc0-3b8d40afd27b",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|坐标系名称",
       "parameterGuid": "38a62192-ecac-5e2d-9fc0-3b8d40afd27b",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|坐标系名称"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|坐标系名称",
+      "officialUnit": null
     },
     {
       "propertyId": "3a7d90c2-9ccb-5d74-b13c-30c892693048",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|高程系名称",
       "parameterGuid": "3a7d90c2-9ccb-5d74-b13c-30c892693048",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|高程系名称"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|高程系名称",
+      "officialUnit": null
     },
     {
       "propertyId": "bc08027b-56bf-5c99-b9e7-9ba2f2a0e2d4",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|经度",
       "parameterGuid": "bc08027b-56bf-5c99-b9e7-9ba2f2a0e2d4",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|经度"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|经度",
+      "officialUnit": "度"
     },
     {
       "propertyId": "e951b3e2-8e17-5443-9b6b-570d07067856",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcProject|申报信息属性集|纬度",
       "parameterGuid": "e951b3e2-8e17-5443-9b6b-570d07067856",
-      "originalIdentity": "IfcProject|Pset_申报信息属性集|纬度"
+      "originalIdentity": "IfcProject|Pset_申报信息属性集|纬度",
+      "officialUnit": "度"
     },
     {
       "propertyId": "f9082ba0-18db-5088-a869-ff6c5508c1e0",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSite|场地信息属性集|长度",
       "parameterGuid": "f9082ba0-18db-5088-a869-ff6c5508c1e0",
-      "originalIdentity": "IfcSite|Pset_场地信息属性集|长度"
+      "originalIdentity": "IfcSite|Pset_场地信息属性集|长度",
+      "officialUnit": "m"
     },
     {
       "propertyId": "a22bdc72-1d8d-5bfd-a37f-7d1819e1026a",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSite|场地信息属性集|宽度",
       "parameterGuid": "a22bdc72-1d8d-5bfd-a37f-7d1819e1026a",
-      "originalIdentity": "IfcSite|Pset_场地信息属性集|宽度"
+      "originalIdentity": "IfcSite|Pset_场地信息属性集|宽度",
+      "officialUnit": "m"
     },
     {
       "propertyId": "62b4f19b-abd7-5c69-bd4f-c835086ab860",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSite|场地信息属性集|总用地面积",
       "parameterGuid": "62b4f19b-abd7-5c69-bd4f-c835086ab860",
-      "originalIdentity": "IfcSite|Pset_场地信息属性集|总用地面积"
+      "originalIdentity": "IfcSite|Pset_场地信息属性集|总用地面积",
+      "officialUnit": "m²"
     },
     {
       "propertyId": "dc2f4635-80f9-59fb-839e-83930134a202",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSite|场地信息属性集|可建设用地面积",
       "parameterGuid": "dc2f4635-80f9-59fb-839e-83930134a202",
-      "originalIdentity": "IfcSite|Pset_场地信息属性集|可建设用地面积"
+      "originalIdentity": "IfcSite|Pset_场地信息属性集|可建设用地面积",
+      "officialUnit": "m²"
     },
     {
       "propertyId": "93e51676-237e-56a8-8f28-2da845422e2e",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSite|场地信息属性集|建筑密度",
       "parameterGuid": "93e51676-237e-56a8-8f28-2da845422e2e",
-      "originalIdentity": "IfcSite|Pset_场地信息属性集|建筑密度"
+      "originalIdentity": "IfcSite|Pset_场地信息属性集|建筑密度",
+      "officialUnit": null
     },
     {
       "propertyId": "13b91bbc-ecf2-55eb-82f6-55934e9016f8",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSite|场地信息属性集|建筑比例",
       "parameterGuid": "13b91bbc-ecf2-55eb-82f6-55934e9016f8",
-      "originalIdentity": "IfcSite|Pset_场地信息属性集|建筑比例"
+      "originalIdentity": "IfcSite|Pset_场地信息属性集|建筑比例",
+      "officialUnit": null
     },
     {
       "propertyId": "eb809ddd-5dce-5392-982b-27db93436eb5",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSite|场地信息属性集|混合用地比例",
       "parameterGuid": "eb809ddd-5dce-5392-982b-27db93436eb5",
-      "originalIdentity": "IfcSite|Pset_场地信息属性集|混合用地比例"
+      "originalIdentity": "IfcSite|Pset_场地信息属性集|混合用地比例",
+      "officialUnit": null
     },
     {
       "propertyId": "201a00ac-3672-5ded-83d2-ed96f81bfabf",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSite|场地信息属性集|容积率",
       "parameterGuid": "201a00ac-3672-5ded-83d2-ed96f81bfabf",
-      "originalIdentity": "IfcSite|Pset_场地信息属性集|容积率"
+      "originalIdentity": "IfcSite|Pset_场地信息属性集|容积率",
+      "officialUnit": null
     },
     {
       "propertyId": "f630ad47-b006-5127-badd-b1660cf996c3",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSite|场地信息属性集|绿地率",
       "parameterGuid": "f630ad47-b006-5127-badd-b1660cf996c3",
-      "originalIdentity": "IfcSite|Pset_场地信息属性集|绿地率"
+      "originalIdentity": "IfcSite|Pset_场地信息属性集|绿地率",
+      "officialUnit": null
     },
     {
       "propertyId": "99acd0fb-b90d-5251-8274-dcab2ceab18b",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSite|场地信息属性集|地块编号",
       "parameterGuid": "99acd0fb-b90d-5251-8274-dcab2ceab18b",
-      "originalIdentity": "IfcSite|Pset_场地信息属性集|地块编号"
+      "originalIdentity": "IfcSite|Pset_场地信息属性集|地块编号",
+      "officialUnit": null
     },
     {
       "propertyId": "951c219f-f6c3-5728-97ff-0e42503982e3",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSite|场地信息属性集|城市用地分类和使用",
       "parameterGuid": "951c219f-f6c3-5728-97ff-0e42503982e3",
-      "originalIdentity": "IfcSite|Pset_场地信息属性集|城市用地分类和使用"
+      "originalIdentity": "IfcSite|Pset_场地信息属性集|城市用地分类和使用",
+      "officialUnit": null
     },
     {
       "propertyId": "d2a48388-b781-5c8a-9244-f1adc5a79e45",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpace|建筑空间信息属性集|空间形成方式",
       "parameterGuid": "d2a48388-b781-5c8a-9244-f1adc5a79e45",
-      "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|空间形成方式"
+      "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|空间形成方式",
+      "officialUnit": null
     },
     {
       "propertyId": "98aaa7d3-2140-5376-abde-cad36b29d9ed",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpace|建筑空间信息属性集|高度",
       "parameterGuid": "98aaa7d3-2140-5376-abde-cad36b29d9ed",
-      "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|高度"
+      "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|高度",
+      "officialUnit": "mm"
     },
     {
       "propertyId": "4fd3bcbd-d320-5949-86c0-e1b2c6c79515",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpace|建筑空间信息属性集|净面积",
       "parameterGuid": "4fd3bcbd-d320-5949-86c0-e1b2c6c79515",
-      "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|净面积"
+      "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|净面积",
+      "officialUnit": "m²"
     },
     {
       "propertyId": "b6c39636-ffc5-5bc9-8a3c-3b0ada970321",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpace|建筑空间信息属性集|总建筑面积",
       "parameterGuid": "b6c39636-ffc5-5bc9-8a3c-3b0ada970321",
-      "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|总建筑面积"
+      "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|总建筑面积",
+      "officialUnit": "m²"
     },
     {
       "propertyId": "eb7e896f-f4a2-5e04-aba2-1103f0d8f2fa",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpace|建筑空间信息属性集|空间使用特征",
       "parameterGuid": "eb7e896f-f4a2-5e04-aba2-1103f0d8f2fa",
-      "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|空间使用特征"
+      "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|空间使用特征",
+      "officialUnit": null
     },
     {
       "propertyId": "05a9d8a0-b339-5c55-a513-91b063345850",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpace|停车位信息属性集|是否为室外停车场",
       "parameterGuid": "05a9d8a0-b339-5c55-a513-91b063345850",
-      "originalIdentity": "IfcSpace|Pset_停车位信息属性集|是否为室外停车场"
+      "originalIdentity": "IfcSpace|Pset_停车位信息属性集|是否为室外停车场",
+      "officialUnit": null
     },
     {
       "propertyId": "b0f93329-020f-589c-bd5b-92cc50d90c13",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpace|停车位信息属性集|停车位类别",
       "parameterGuid": "b0f93329-020f-589c-bd5b-92cc50d90c13",
-      "originalIdentity": "IfcSpace|Pset_停车位信息属性集|停车位类别"
+      "originalIdentity": "IfcSpace|Pset_停车位信息属性集|停车位类别",
+      "officialUnit": null
     },
     {
       "propertyId": "775004b3-dcda-5dd9-b976-5707b129f5e7",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpace|停车位信息属性集|停车位位置信息",
       "parameterGuid": "775004b3-dcda-5dd9-b976-5707b129f5e7",
-      "originalIdentity": "IfcSpace|Pset_停车位信息属性集|停车位位置信息"
+      "originalIdentity": "IfcSpace|Pset_停车位信息属性集|停车位位置信息",
+      "officialUnit": null
     },
     {
       "propertyId": "4eaec192-453e-5465-9955-8a2fd54c24b1",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpace|停车位信息属性集|备注",
       "parameterGuid": "4eaec192-453e-5465-9955-8a2fd54c24b1",
-      "originalIdentity": "IfcSpace|Pset_停车位信息属性集|备注"
+      "originalIdentity": "IfcSpace|Pset_停车位信息属性集|备注",
+      "officialUnit": null
     },
     {
       "propertyId": "a3cfcd77-9d58-5991-994e-df5bd4ca7347",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpace|居住建筑空间信息属性集|人数",
       "parameterGuid": "a3cfcd77-9d58-5991-994e-df5bd4ca7347",
-      "originalIdentity": "IfcSpace|Pset_居住建筑空间信息属性集|人数"
+      "originalIdentity": "IfcSpace|Pset_居住建筑空间信息属性集|人数",
+      "officialUnit": "个"
     },
     {
       "propertyId": "d9ae268e-8d11-59e7-bbff-dc7521ec7889",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|主功能类别",
       "parameterGuid": "d9ae268e-8d11-59e7-bbff-dc7521ec7889",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|主功能类别"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|主功能类别",
+      "officialUnit": null
     },
     {
       "propertyId": "3946f931-0bb6-56c0-b5ca-ee77c3221ccf",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|子功能类别",
       "parameterGuid": "3946f931-0bb6-56c0-b5ca-ee77c3221ccf",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|子功能类别"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|子功能类别",
+      "officialUnit": null
     },
     {
       "propertyId": "5e479cf6-397b-5f2f-86e8-73853351e2d9",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|区域类别",
       "parameterGuid": "5e479cf6-397b-5f2f-86e8-73853351e2d9",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域类别"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域类别",
+      "officialUnit": null
     },
     {
       "propertyId": "1c9ad233-a3e3-5424-bb70-e3308b7f6817",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|区域标记",
       "parameterGuid": "1c9ad233-a3e3-5424-bb70-e3308b7f6817",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域标记"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域标记",
+      "officialUnit": null
     },
     {
       "propertyId": "1e3385f9-6300-5d8e-b8f2-84eeb245f5a3",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|计容系数",
       "parameterGuid": "1e3385f9-6300-5d8e-b8f2-84eeb245f5a3",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计容系数"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计容系数",
+      "officialUnit": null
     },
     {
       "propertyId": "bbc361b1-c64a-5c4d-ba93-3274fbb54e10",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|计算系数",
       "parameterGuid": "bbc361b1-c64a-5c4d-ba93-3274fbb54e10",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计算系数"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计算系数",
+      "officialUnit": null
     },
     {
       "propertyId": "96a6110a-e942-5b0e-84d6-250a3c3731d7",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|结构净高",
       "parameterGuid": "96a6110a-e942-5b0e-84d6-250a3c3731d7",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|结构净高"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|结构净高",
+      "officialUnit": "mm"
     },
     {
       "propertyId": "e785c854-7db2-535a-a248-f4a9b3f6d1a5",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|建筑净高",
       "parameterGuid": "e785c854-7db2-535a-a248-f4a9b3f6d1a5",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|建筑净高"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|建筑净高",
+      "officialUnit": "mm"
     },
     {
       "propertyId": "8d205332-db56-5000-b454-79e798c90862",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|结构层高",
       "parameterGuid": "8d205332-db56-5000-b454-79e798c90862",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|结构层高"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|结构层高",
+      "officialUnit": "mm"
     },
     {
       "propertyId": "b231bc10-78ba-530c-8606-078c564bd93c",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|计算标高",
       "parameterGuid": "b231bc10-78ba-530c-8606-078c564bd93c",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计算标高"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计算标高",
+      "officialUnit": "mm"
     },
     {
       "propertyId": "e45da1fa-445e-5ca5-bf16-d09a759a38ea",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|计算标高（埋深）",
       "parameterGuid": "e45da1fa-445e-5ca5-bf16-d09a759a38ea",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计算标高（埋深）"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计算标高（埋深）",
+      "officialUnit": "mm"
     },
     {
       "propertyId": "d0afc77a-72ac-53ea-9cf0-8a694dd054ec",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|面积",
       "parameterGuid": "d0afc77a-72ac-53ea-9cf0-8a694dd054ec",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|面积"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|面积",
+      "officialUnit": "m²"
     },
     {
       "propertyId": "781b8594-95bc-5ba6-8d14-20d12014b671",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|建筑面积",
       "parameterGuid": "781b8594-95bc-5ba6-8d14-20d12014b671",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|建筑面积"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|建筑面积",
+      "officialUnit": "m²"
     },
     {
       "propertyId": "b64ef278-8f25-542b-813f-7c9be6e0b248",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|楼层数量",
       "parameterGuid": "b64ef278-8f25-542b-813f-7c9be6e0b248",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|楼层数量"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|楼层数量",
+      "officialUnit": "层"
     },
     {
       "propertyId": "9833b38e-0aa5-5ab2-b3b4-e6984f5c70f6",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|是否为疏散分区",
       "parameterGuid": "9833b38e-0aa5-5ab2-b3b4-e6984f5c70f6",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|是否为疏散分区"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|是否为疏散分区",
+      "officialUnit": null
     },
     {
       "propertyId": "87b285c2-887d-55d2-81a4-15714b521537",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|区域人数",
       "parameterGuid": "87b285c2-887d-55d2-81a4-15714b521537",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域人数"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域人数",
+      "officialUnit": "个"
     },
     {
       "propertyId": "6c0a892f-8261-5ef4-ab95-76bc40264205",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|区域长度",
       "parameterGuid": "6c0a892f-8261-5ef4-ab95-76bc40264205",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域长度"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域长度",
+      "officialUnit": "mm"
     },
     {
       "propertyId": "22ae04c3-aacc-5b35-b7e9-27a4b5f5dbab",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|区域宽度",
       "parameterGuid": "22ae04c3-aacc-5b35-b7e9-27a4b5f5dbab",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域宽度"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域宽度",
+      "officialUnit": "mm"
     },
     {
       "propertyId": "11035c44-05a7-55f2-9681-dca574a974aa",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|轮廓线",
       "parameterGuid": "11035c44-05a7-55f2-9681-dca574a974aa",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|轮廓线"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|轮廓线",
+      "officialUnit": null
     },
     {
       "propertyId": "68f998c7-0c0a-5ebe-bf51-c1b1536f7fbc",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|疏散区域",
       "parameterGuid": "68f998c7-0c0a-5ebe-bf51-c1b1536f7fbc",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|疏散区域"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|疏散区域",
+      "officialUnit": null
     },
     {
       "propertyId": "8769f8aa-095d-5749-9ecc-71dff6cb1c45",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|建筑区域信息属性集|区域位置",
       "parameterGuid": "8769f8aa-095d-5749-9ecc-71dff6cb1c45",
-      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域位置"
+      "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域位置",
+      "officialUnit": null
     },
     {
       "propertyId": "c62cfd5f-2a50-5230-9c5d-4037c39061bf",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|停车场信息属性集|机动车位数量",
       "parameterGuid": "c62cfd5f-2a50-5230-9c5d-4037c39061bf",
-      "originalIdentity": "IfcSpatialZone|Pset_停车场信息属性集|机动车位数量"
+      "originalIdentity": "IfcSpatialZone|Pset_停车场信息属性集|机动车位数量",
+      "officialUnit": "个"
     },
     {
       "propertyId": "84df74c2-a7e5-5a98-a5e0-4458e49a3973",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|停车场信息属性集|非机动车位数量",
       "parameterGuid": "84df74c2-a7e5-5a98-a5e0-4458e49a3973",
-      "originalIdentity": "IfcSpatialZone|Pset_停车场信息属性集|非机动车位数量"
+      "originalIdentity": "IfcSpatialZone|Pset_停车场信息属性集|非机动车位数量",
+      "officialUnit": "个"
     },
     {
       "propertyId": "c95d3ff7-ddb7-54ef-9b1f-7f64cb7a7b21",
       "canonicalKey": "WH-DB42T1001-2025|HIFC规划报建|IfcSpatialZone|停车场信息属性集|无障碍车位数量",
       "parameterGuid": "c95d3ff7-ddb7-54ef-9b1f-7f64cb7a7b21",
-      "originalIdentity": "IfcSpatialZone|Pset_停车场信息属性集|无障碍车位数量"
+      "originalIdentity": "IfcSpatialZone|Pset_停车场信息属性集|无障碍车位数量",
+      "officialUnit": "个"
     }
   ]
 }

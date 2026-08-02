@@ -208,6 +208,98 @@ namespace BIMBaoGui.Stage01.Core.Tests
         13,
         package.Stage01.OfficialPluginCompatibility.Exceptions.Count);
     }
+
+    [Fact]
+    public void Load_materializes_official_units_and_complete_stage01_projection_contract()
+    {
+      HbrRulePackage package = HbrRulePackageLoader.Load(
+        new MemoryStream(HbrRulePackTestFixture.ReadEmbeddedPackBytes()));
+
+      HbrRuleProperty[] official = package.Properties
+        .Where(item => item.OfficialPlugin.InExtracted166)
+        .ToArray();
+      Assert.Equal(166, official.Length);
+      Assert.All(official, item => Assert.NotNull(
+        item.OfficialPlugin.LegacyProjection));
+
+      HbrRuleProperty x = Assert.Single(
+        official,
+        item => item.PropertyId == "6b407894-09d4-529a-9f9f-a031219cdeaa");
+      HbrRuleProperty y = Assert.Single(
+        official,
+        item => item.PropertyId == "1a64ef8d-e97c-5fa1-b53f-52b969b6198a");
+      HbrRuleProperty elevation = Assert.Single(
+        official,
+        item => item.PropertyId == "50164757-c346-5005-a1b8-7b423c6b8de5");
+      Assert.Null(x.Ifc.SourceUnit);
+      Assert.Null(y.Ifc.SourceUnit);
+      Assert.Equal("m", x.OfficialPlugin.LegacyProjection.OfficialUnit);
+      Assert.Equal("m", y.OfficialPlugin.LegacyProjection.OfficialUnit);
+      Assert.Equal("m", elevation.OfficialPlugin.LegacyProjection.OfficialUnit);
+
+      Assert.Collection(
+        package.Stage01.SpatialMappings,
+        item =>
+        {
+          Assert.Equal("X", item.SourceName);
+          Assert.Equal(
+            "IfcProject|Pset_申报信息属性集|基点坐标 X",
+            item.FieldKey);
+          Assert.Equal("NorthSouth", item.TargetName);
+          Assert.Equal("m", item.Unit);
+        },
+        item =>
+        {
+          Assert.Equal("Y", item.SourceName);
+          Assert.Equal(
+            "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+            item.FieldKey);
+          Assert.Equal("EastWest", item.TargetName);
+          Assert.Equal("m", item.Unit);
+        },
+        item =>
+        {
+          Assert.Equal("Elevation", item.SourceName);
+          Assert.Equal(
+            "IfcProject|Pset_申报信息属性集|基点高程",
+            item.FieldKey);
+          Assert.Equal("Elevation", item.TargetName);
+          Assert.Equal("m", item.Unit);
+        });
+
+      var defaults = package.Stage01.InternalWorkflowFields
+        .Select(item => new
+        {
+          item.FieldKey,
+          item.Essential,
+          item.DefaultStrategy,
+          item.DefaultValue,
+        })
+        .Concat(package.Stage01.FieldRefs.Select(item => new
+        {
+          item.FieldKey,
+          item.Essential,
+          item.DefaultStrategy,
+          item.DefaultValue,
+        }))
+        .ToArray();
+      Assert.Equal(114, defaults.Length);
+      Assert.Equal(27, defaults.Count(item => item.Essential));
+      var fileGuid = Assert.Single(
+        defaults,
+        item => item.FieldKey == "HBR|FileIdentity|FileGuid");
+      Assert.Equal("NEW_GUID", fileGuid.DefaultStrategy);
+      Assert.Null(fileGuid.DefaultValue);
+      var workflowVersion = Assert.Single(
+        defaults,
+        item => item.FieldKey == "HBR|Workflow|Version");
+      Assert.Equal("STATIC", workflowVersion.DefaultStrategy);
+      Assert.Equal("0.1.0", workflowVersion.DefaultValue);
+      Assert.Equal("01_文件与项目身份", package.Stage01.DefaultActiveGroup);
+      Assert.Equal(14, package.Conditions.Count);
+      Assert.All(package.Conditions, condition => Assert.False(
+        condition.DefaultActive));
+    }
   }
 
   internal static class HbrRulePackTestFixture

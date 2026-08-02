@@ -27,6 +27,10 @@ OLD_COMPATIBILITY_PATH = (
 STAGE01_REGISTRY_PROVIDER_PATH = (
     ROOT / "src/BIMBaoGui.Stage01/Infrastructure/Stage01RegistryProvider.cs"
 )
+STAGE01_KEYS_PATH = ROOT / "src/BIMBaoGui.Stage01/Core/Stage01Keys.cs"
+PLANNING_TARGET_REQUIREMENT_POLICY_PATH = (
+    ROOT / "src/BIMBaoGui.Stage01/Core/PlanningTargetRequirementPolicy.cs"
+)
 OFFICIAL_MAPPING_CATALOG_PATH = (
     ROOT / "src/BIMBaoGui.Stage01/Hifc/OfficialHifcMappingCatalog.cs"
 )
@@ -75,6 +79,53 @@ VERIFIED_POLICY_FIELD_PRESENCE = {
     )
 }
 
+ESSENTIAL_FIELD_KEYS = frozenset(
+    {
+        "HBR|FileIdentity|SubitemCode",
+        "HBR|FileIdentity|SubitemName",
+        "HBR|FileIdentity|ModelFileType",
+        "HBR|FileIdentity|ModelScope",
+        "HBR|FileIdentity|FileGuid",
+        "HBR|Workflow|Version",
+        "HBR|Workflow|InitializationStatus",
+        "HBR|SpatialReference|TrueNorthAngle",
+        "HBR|ProjectUnits|Length",
+        "HBR|ProjectUnits|Area",
+        "HBR|ProjectUnits|Angle",
+        "IfcProject|Pset_申报信息属性集|项目编号",
+        "IfcProject|Pset_申报信息属性集|项目名称",
+        "IfcProject|Pset_申报信息属性集|项目地址",
+        "IfcProject|Pset_申报信息属性集|建设单位",
+        "IfcProject|Pset_申报信息属性集|设计单位",
+        "IfcProject|Pset_Manifest|阶段",
+        "IfcProject|Pset_申报信息属性集|基点坐标 X",
+        "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+        "IfcProject|Pset_申报信息属性集|基点高程",
+        "IfcProject|Pset_申报信息属性集|坐标系名称",
+        "IfcProject|Pset_申报信息属性集|高程系名称",
+        "IfcOrganization|Pset_组织通用属性集|企业名称",
+        "IfcOrganization|Pset_组织通用属性集|社会统一信用代码",
+        "IfcOrganization|Pset_组织通用属性集|项目参建类型",
+        "IfcOrganization|Pset_组织通用属性集|联系人姓名",
+        "IfcOrganization|Pset_组织通用属性集|联系人手机号码",
+    }
+)
+
+STATIC_DEFAULTS = {
+    "HBR|FileIdentity|ModelFileType": "总平模型",
+    "HBR|FileIdentity|ModelScope": "项目总平面报规模型",
+    "HBR|Workflow|Version": "0.1.0",
+    "HBR|Workflow|InitializationStatus": "未初始化",
+    "IfcProject|Pset_Manifest|阶段": "规划报建",
+    "IfcProject|Pset_申报信息属性集|坐标系名称": "CGCS2000",
+    "IfcProject|Pset_申报信息属性集|高程系名称": "1985国家高程基准",
+    "HBR|SpatialReference|TrueNorthAngle": "0",
+    "HBR|ProjectUnits|Length": "m",
+    "HBR|ProjectUnits|Area": "m²",
+    "HBR|ProjectUnits|Angle": "°",
+}
+FILE_GUID_KEY = "HBR|FileIdentity|FileGuid"
+
 
 def _load(path: Path):
     with path.open(encoding="utf-8") as stream:
@@ -104,6 +155,32 @@ def _old_identity(rule):
 
 def _compact_csharp(path):
     return " ".join(path.read_text(encoding="utf-8").split())
+
+
+def _essential_keys_from_legacy_provider():
+    keys_source = STAGE01_KEYS_PATH.read_text(encoding="utf-8")
+    key_constants = dict(
+        re.findall(
+            r'public const string ([A-Za-z0-9_]+) = "([^"]+)";',
+            keys_source,
+        )
+    )
+    provider_source = STAGE01_REGISTRY_PROVIDER_PATH.read_text(
+        encoding="utf-8"
+    )
+    match = re.search(
+        r'HashSet<string> EssentialKeys.*?\{(.*?)\n\s*\};',
+        provider_source,
+        re.DOTALL,
+    )
+    assert match is not None
+    tokens = re.findall(r'Stage01Keys\.([A-Za-z0-9_]+)|"([^"]+)"', match.group(1))
+    resolved = {
+        key_constants[constant] if constant else literal
+        for constant, literal in tokens
+    }
+    assert len(resolved) == len(tokens) == 27
+    return frozenset(resolved)
 
 
 def _assert_legacy_runtime_projection_contracts():
@@ -191,6 +268,7 @@ def _project_internal_field_like_legacy_runtime(legacy):
     default_value = legacy["default"] if "default" in legacy else None
     if default_value is None or not default_value.strip():
         default_value = None
+    default_contract = _expected_default_contract(field_key)
     return {
         "fieldKey": field_key,
         "label": legacy["property"],
@@ -198,8 +276,21 @@ def _project_internal_field_like_legacy_runtime(legacy):
         "uiGroup": legacy["ui_group"],
         "sourceKind": legacy["source_kind"],
         "allowedValues": [] if allowed_values is None else allowed_values,
-        "defaultValue": default_value,
+        "essential": field_key in ESSENTIAL_FIELD_KEYS,
+        "defaultStrategy": default_contract["defaultStrategy"],
+        "defaultValue": default_contract["defaultValue"],
     }
+
+
+def _expected_default_contract(field_key):
+    if field_key == FILE_GUID_KEY:
+        return {"defaultStrategy": "NEW_GUID", "defaultValue": None}
+    if field_key in STATIC_DEFAULTS:
+        return {
+            "defaultStrategy": "STATIC",
+            "defaultValue": STATIC_DEFAULTS[field_key],
+        }
+    return {"defaultStrategy": "NONE", "defaultValue": None}
 
 
 def _project_official_mapping_like_legacy_runtime(binding, legacy_rule):
@@ -213,6 +304,7 @@ def _project_official_mapping_like_legacy_runtime(binding, legacy_rule):
     source_parameter_override = legacy_rule["official"][
         "sourceParameterOverride"
     ]
+    official_unit = legacy_rule["official"]["unit"]
     return {
         "category": "" if category is None else category.strip(),
         "carrier": "" if carrier is None else carrier,
@@ -230,6 +322,7 @@ def _project_official_mapping_like_legacy_runtime(binding, legacy_rule):
             if source_parameter_override is None
             else source_parameter_override
         ),
+        "officialUnit": official_unit,
     }
 
 
@@ -287,7 +380,9 @@ def test_legacy_projection_oracle_models_runtime_null_and_whitespace_semantics()
         "uiGroup": "Synthetic",
         "sourceKind": "system_generated",
         "allowedValues": [],
-        "defaultValue": None,
+        "essential": True,
+        "defaultStrategy": "STATIC",
+        "defaultValue": "m",
     }
 
     assert _project_entity_policy_like_legacy_runtime("IfcSynthetic", None) == {
@@ -307,7 +402,7 @@ def test_legacy_projection_oracle_models_runtime_null_and_whitespace_semantics()
         },
         {
             "canonical": {"sharedParameterType": None},
-            "official": {"sourceParameterOverride": None},
+            "official": {"sourceParameterOverride": None, "unit": None},
         },
     ) == {
         "category": "",
@@ -316,6 +411,7 @@ def test_legacy_projection_oracle_models_runtime_null_and_whitespace_semantics()
         "sharedParameterType": "",
         "officialSourceParameterGroup": "",
         "sourceParameterOverride": "",
+        "officialUnit": None,
     }
 
 
@@ -448,6 +544,111 @@ def test_migrated_metadata_is_exactly_equivalent_to_legacy_resources():
         for item in source["stage01"]["officialPluginCompatibility"]["exceptions"]
     }
     assert actual_exceptions == expected_exceptions
+
+
+def test_stage01_defaults_essential_spatial_and_condition_contracts_equal_runtime():
+    source = _load(SOURCE_PATH)
+    old_stage01 = _load(OLD_STAGE01_PATH)
+    provider = _compact_csharp(STAGE01_REGISTRY_PROVIDER_PATH)
+    planning_policy = _compact_csharp(
+        PLANNING_TARGET_REQUIREMENT_POLICY_PATH
+    )
+    stage01 = source["stage01"]
+
+    assert {"spatialMappings", "defaultActiveGroup"} <= set(stage01)
+    assert stage01["spatialMappings"] == [
+        {
+            "sourceName": "X",
+            "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 X",
+            "targetName": "NorthSouth",
+            "unit": "m",
+        },
+        {
+            "sourceName": "Y",
+            "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+            "targetName": "EastWest",
+            "unit": "m",
+        },
+        {
+            "sourceName": "Elevation",
+            "fieldKey": "IfcProject|Pset_申报信息属性集|基点高程",
+            "targetName": "Elevation",
+            "unit": "m",
+        },
+    ]
+
+    fields = stage01["internalWorkflowFields"] + stage01["fieldRefs"]
+    assert len(fields) == 114
+    assert _essential_keys_from_legacy_provider() == ESSENTIAL_FIELD_KEYS
+    assert {field["fieldKey"] for field in fields if field["essential"]} == (
+        ESSENTIAL_FIELD_KEYS
+    )
+    for field in fields:
+        expected = _expected_default_contract(field["fieldKey"])
+        assert {
+            "defaultStrategy": field["defaultStrategy"],
+            "defaultValue": field["defaultValue"],
+        } == expected
+
+    legacy_effective = {}
+    for field in old_stage01["internal_workflow_fields"]:
+        if "default" in field and field["default"] is not None:
+            if field["default"].strip():
+                legacy_effective[field["field_key"]] = field["default"]
+    legacy_set_if_empty = [
+        (FILE_GUID_KEY, "<GUID>"),
+        ("HBR|Workflow|Version", "0.5.0"),
+        ("HBR|Workflow|InitializationStatus", "未初始化"),
+        ("HBR|FileIdentity|ModelFileType", "总平模型"),
+        ("HBR|FileIdentity|ModelScope", "项目总平面报规模型"),
+        ("IfcProject|Pset_Manifest|阶段", "规划报建"),
+        ("IfcProject|Pset_申报信息属性集|坐标系名称", "CGCS2000"),
+        ("IfcProject|Pset_申报信息属性集|高程系名称", "1985国家高程基准"),
+        ("HBR|SpatialReference|TrueNorthAngle", "0"),
+        ("HBR|ProjectUnits|Length", "m"),
+        ("HBR|ProjectUnits|Area", "m²"),
+        ("HBR|ProjectUnits|Angle", "°"),
+    ]
+    for field_key, value in legacy_set_if_empty:
+        if field_key not in legacy_effective or not legacy_effective[field_key].strip():
+            legacy_effective[field_key] = value
+
+    projected_effective = {}
+    for field in fields:
+        if field["defaultStrategy"] == "STATIC":
+            projected_effective[field["fieldKey"]] = field["defaultValue"]
+        elif field["defaultStrategy"] == "NEW_GUID":
+            projected_effective[field["fieldKey"]] = "<GUID>"
+    assert projected_effective == legacy_effective
+    assert projected_effective["HBR|Workflow|Version"] == "0.1.0"
+    for runtime_contract in (
+        'SetIfEmpty(model, Stage01Keys.FileGuid, Guid.NewGuid().ToString("D"));',
+        'SetIfEmpty(model, Stage01Keys.WorkflowVersion, "0.5.0");',
+        'SetIfEmpty(model, Stage01Keys.InitializationStatus, "未初始化");',
+        "SetIfEmpty(model, Stage01Keys.ModelFileType, PlanningTargetRequirementPolicy.SiteModel);",
+        'SetIfEmpty(model, Stage01Keys.ModelScope, "项目总平面报规模型");',
+        'SetIfEmpty(model, Stage01Keys.Stage, "规划报建");',
+        'SetIfEmpty(model, Stage01Keys.CoordinateSystem, "CGCS2000");',
+        'SetIfEmpty(model, Stage01Keys.ElevationSystem, "1985国家高程基准");',
+        'SetIfEmpty(model, Stage01Keys.TrueNorthAngle, "0");',
+        'SetIfEmpty(model, Stage01Keys.LengthUnit, "m");',
+        'SetIfEmpty(model, Stage01Keys.AreaUnit, "m²");',
+        'SetIfEmpty(model, Stage01Keys.AngleUnit, "°");',
+    ):
+        assert runtime_contract in provider
+    assert 'public const string SiteModel = "总平模型";' in planning_policy
+
+    condition_ids = re.findall(
+        r'new ConditionDefinition\("([^"]+)"', provider
+    )
+    assert len(condition_ids) == 14
+    assert [condition["conditionId"] for condition in source["conditions"]] == (
+        condition_ids
+    )
+    assert all(condition["defaultActive"] is False for condition in source["conditions"])
+    assert "model.SetCondition(condition.Key, false);" in provider
+    assert stage01["defaultActiveGroup"] == "01_文件与项目身份"
+    assert 'model.ActiveGroup = "01_文件与项目身份";' in provider
 
 
 def test_all_identities_ids_and_parameter_guids_are_unique():
@@ -760,7 +961,7 @@ def test_reference_collections_are_unique_and_task_dependencies_form_profile_dag
     assert len(refs) == len(set(refs)) == 102
     frozen = {
         "carrierRoles": "6f2c90a21b46b26ae82289766c1712f386d7a3432cc2fa6beba8f11f6d829d91",
-        "conditions": "5941f38c19608314006dafdfa82744afad65bce50391edaee0b91f9b158b26bd",
+        "conditions": "26a810386985cd144f15dc9dfae610c1af7f63c1fb927acf30399d2a103f81b5",
         "modelProfiles": "9a00bb19f642bf5ad98e39e589873b2d422378cf5e838b02e63cbd35cbef5b05",
         "legacyAliases": "1a18f522e13b6072d12b52e644e165e9bdf10283daf7b525a2ca02578b3b5a80",
     }
