@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using BIMBaoGui.Stage01.Core;
+using BIMBaoGui.Stage01.Hifc;
 using BIMBaoGui.Stage01.Revit;
 
 namespace BIMBaoGui.Stage01.Context
@@ -14,6 +15,8 @@ namespace BIMBaoGui.Stage01.Context
       snapshot = snapshot ?? new RevitDocumentSnapshot();
       string modelFileType = model.GetValue(Stage01Keys.ModelFileType);
       RuleActivationResult activation = RuleActivationCatalog.Compile(modelFileType, model.Conditions);
+      Stage01OfficialCompatibilityDecision compatibility =
+        Stage01OfficialCompatibilityPolicy.Evaluate(model.Organizations);
       var spatial = new HBRSpatialReference(
         model.GetValue(Stage01Keys.CoordinateSystem),
         model.GetValue(Stage01Keys.ElevationSystem),
@@ -43,6 +46,7 @@ namespace BIMBaoGui.Stage01.Context
         activation.Activated,
         activation.NotApplicable,
         initializationPassed,
+        compatibility.IsCompatible,
         HBRContextVersions.RulePack,
         CanonicalPayload.Sha256(payload),
         string.Empty);

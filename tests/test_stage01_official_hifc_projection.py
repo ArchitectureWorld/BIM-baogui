@@ -20,9 +20,11 @@ def test_stage01_projects_all_nonempty_project_fields_through_catalog():
 
 def test_stage01_projection_preserves_but_blocks_unverified_organizations():
     service = read("src/BIMBaoGui.Stage01/Revit/Stage01OfficialHifcProjectionService.cs")
+    policy = read("src/BIMBaoGui.Stage01/Hifc/Stage01OfficialCompatibilityPolicy.cs")
     assert "payload.organizations" in service
-    assert "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT" in service
-    assert "不伪装成 IfcProject 参数" in service
+    assert "Stage01OfficialCompatibilityPolicy.Evaluate" in service
+    assert "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT" in policy
+    assert "不伪装成 IfcProject 参数" in policy
 
 
 def test_stage01_projection_delegates_dual_write_and_revit_readback():

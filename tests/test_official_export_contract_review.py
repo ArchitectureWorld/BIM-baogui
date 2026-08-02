@@ -95,10 +95,14 @@ def test_stage01_projection_is_registry_driven_not_ten_field_hardcoding():
     projection = read(
         "src/BIMBaoGui.Stage01/Revit/Stage01OfficialHifcProjectionService.cs"
     )
+    compatibility = read(
+        "src/BIMBaoGui.Stage01/Hifc/Stage01OfficialCompatibilityPolicy.cs"
+    )
     assert "FieldMappings" not in projection
     assert "TryResolveStage01FieldKey" in projection
     assert "payload.organizations" in projection
-    assert "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT" in projection
+    assert "Stage01OfficialCompatibilityPolicy.Evaluate" in projection
+    assert "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT" in compatibility
 
 
 def test_non_project_properties_never_default_to_project_information():

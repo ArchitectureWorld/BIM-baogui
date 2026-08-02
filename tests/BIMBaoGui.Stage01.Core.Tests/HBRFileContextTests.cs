@@ -28,6 +28,17 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void Hash_ChangesWhenOfficialCompatibilityChanges()
+    {
+      HBRFileContext compatible = BuildContext(reverse: false, green: true, officialCompatible: true);
+      HBRFileContext incompatible = BuildContext(reverse: false, green: true, officialCompatible: false);
+
+      Assert.NotEqual(compatible.FileContextHash, incompatible.FileContextHash);
+      Assert.True(compatible.IsReady);
+      Assert.False(incompatible.IsReady);
+    }
+
+    [Fact]
     public void CanonicalJson_RoundTripsAndVerifiesHash()
     {
       HBRFileContext source = BuildContext(reverse: false, green: true);
@@ -36,10 +47,17 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Assert.True(HBRFileContextCanonicalizer.TryParse(json, out HBRFileContext restored, out string error), error);
       Assert.Equal(source.FileContextHash, restored.FileContextHash);
       Assert.Equal(source.ModelFileType, restored.ModelFileType);
+      Assert.True(restored.OfficialProtocolCompatible);
+      Assert.True(
+        json.IndexOf("\"officialProtocolCompatible\"", StringComparison.Ordinal)
+          < json.IndexOf("\"rulePackVersion\"", StringComparison.Ordinal));
       Assert.Equal("≤2.00", restored.PlanningTargets[PlanningTargetCatalog.FloorAreaRatioCode].ToMvdText());
     }
 
-    private static HBRFileContext BuildContext(bool reverse, bool green)
+    private static HBRFileContext BuildContext(
+      bool reverse,
+      bool green,
+      bool officialCompatible = true)
     {
       var targets = new Dictionary<string, PlanningTargetValue>(StringComparer.Ordinal);
       if (reverse)
@@ -81,6 +99,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
         new[] { "HBR.SITE.BASE", "HBR.SITE.GREEN" },
         new[] { "HBR.SITE.OUTDOOR_PARKING" },
         true,
+        officialCompatible,
         "0.1.0",
         "payload-hash",
         string.Empty);

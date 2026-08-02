@@ -30,12 +30,12 @@ def test_enqueue_failure_is_recorded_as_a_real_failed_commit():
     assert 'Status = "初始化失败"' in component
 
 
-def test_patch_build_uses_v082_without_bumping_file_context_schema():
+def test_hardening_branch_bumps_context_contract_before_plugin_release():
     project = read("src/BIMBaoGui.Stage01/BIMBaoGui.Stage01.csproj")
     assembly = read("src/BIMBaoGui.Stage01/AssemblyInfo.cs")
     versions = read("src/BIMBaoGui.Stage01/Context/HBRContextVersions.cs")
     workflow = read(".github/workflows/build-stage01-gha.yml")
     assert "<Version>0.8.2</Version>" in project
     assert 'public override string Version => "0.8.2"' in assembly
-    assert 'FileContextSchema = "0.8.0"' in versions
+    assert 'FileContextSchema = "0.9.0"' in versions
     assert "0.8.2.0" in workflow

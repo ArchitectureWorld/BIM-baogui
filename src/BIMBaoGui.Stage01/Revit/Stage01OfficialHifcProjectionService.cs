@@ -11,9 +11,6 @@ namespace BIMBaoGui.Stage01.Revit
 {
   internal static class Stage01OfficialHifcProjectionService
   {
-    private const string OrganizationBlockedCode =
-      "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT";
-
     public static IReadOnlyList<string> WriteAndVerify(
       Document document,
       string payloadJson)
@@ -61,15 +58,9 @@ namespace BIMBaoGui.Stage01.Revit
         });
       }
 
-      if (payload.organizations.Any(record =>
-        record != null
-        && record.Values.Any(value => !string.IsNullOrWhiteSpace(value))))
-      {
-        messages.Add(
-          OrganizationBlockedCode
-          + "：IfcOrganization 的官方 Revit 写入/导出协议尚未确认；"
-          + "组织数据已保存在 HBR 初始化载荷中，但不伪装成 IfcProject 参数。" );
-      }
+      Stage01OfficialCompatibilityDecision compatibility =
+        Stage01OfficialCompatibilityPolicy.Evaluate(payload.organizations);
+      messages.AddRange(compatibility.Blockers);
 
       if (items.Count == 0)
       {

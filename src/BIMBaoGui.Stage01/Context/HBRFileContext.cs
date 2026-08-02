@@ -25,6 +25,7 @@ namespace BIMBaoGui.Stage01.Context
       IEnumerable<string> activatedRuleIds,
       IEnumerable<string> notApplicableRuleIds,
       bool initializationPassed,
+      bool officialProtocolCompatible,
       string rulePackVersion,
       string sourcePayloadHash,
       string fileContextHash)
@@ -46,6 +47,7 @@ namespace BIMBaoGui.Stage01.Context
       ActivatedRuleIds = (activatedRuleIds ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.Ordinal).OrderBy(x => x, StringComparer.Ordinal).ToArray();
       NotApplicableRuleIds = (notApplicableRuleIds ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.Ordinal).OrderBy(x => x, StringComparer.Ordinal).ToArray();
       InitializationPassed = initializationPassed;
+      OfficialProtocolCompatible = officialProtocolCompatible;
       RulePackVersion = rulePackVersion ?? string.Empty;
       SourcePayloadHash = sourcePayloadHash ?? string.Empty;
       FileContextHash = fileContextHash ?? string.Empty;
@@ -68,6 +70,7 @@ namespace BIMBaoGui.Stage01.Context
     public IReadOnlyList<string> ActivatedRuleIds { get; }
     public IReadOnlyList<string> NotApplicableRuleIds { get; }
     public bool InitializationPassed { get; }
+    public bool OfficialProtocolCompatible { get; }
     public string RulePackVersion { get; }
     public string SourcePayloadHash { get; }
     public string FileContextHash { get; }
@@ -76,7 +79,9 @@ namespace BIMBaoGui.Stage01.Context
       && !string.IsNullOrWhiteSpace(RevitDocumentFingerprint)
       && !string.IsNullOrWhiteSpace(FileContextHash);
 
-    public bool IsReady => IsValid && InitializationPassed;
+    public bool IsReady => IsValid
+      && InitializationPassed
+      && OfficialProtocolCompatible;
 
     internal HBRFileContext WithHash(string hash)
     {
@@ -98,6 +103,7 @@ namespace BIMBaoGui.Stage01.Context
         ActivatedRuleIds,
         NotApplicableRuleIds,
         InitializationPassed,
+        OfficialProtocolCompatible,
         RulePackVersion,
         SourcePayloadHash,
         hash);

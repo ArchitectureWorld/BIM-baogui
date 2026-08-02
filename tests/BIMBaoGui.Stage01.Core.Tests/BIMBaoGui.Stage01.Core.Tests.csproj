@@ -43,6 +43,7 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialSourceAliasPolicy.cs" Link="Hifc\OfficialSourceAliasPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialSourceAliasWritePolicy.cs" Link="Hifc\OfficialSourceAliasWritePolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialParameterTypeContract.cs" Link="Hifc\OfficialParameterTypeContract.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\Stage01OfficialCompatibilityPolicy.cs" Link="Hifc\Stage01OfficialCompatibilityPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialPluginCompatibilityCatalog.cs" Link="Hifc\OfficialPluginCompatibilityCatalog.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\HBRTaskPlan.cs" Link="TaskPlanning\HBRTaskPlan.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\HBRTaskPlanCanonicalizer.cs" Link="TaskPlanning\HBRTaskPlanCanonicalizer.cs" />

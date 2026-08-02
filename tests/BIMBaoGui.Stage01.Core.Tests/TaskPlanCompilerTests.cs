@@ -80,6 +80,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
         ready.ActivatedRuleIds,
         ready.NotApplicableRuleIds,
         false,
+        ready.OfficialProtocolCompatible,
         ready.RulePackVersion,
         ready.SourcePayloadHash,
         string.Empty);
@@ -89,6 +90,44 @@ namespace BIMBaoGui.Stage01.Core.Tests
 
       Assert.False(result.Success);
       Assert.Contains(result.Blockers, message => message.Contains("初始化尚未通过"));
+    }
+
+    [Fact]
+    public void OfficialProtocolIncompatibleContext_IsBlockedIndependentlyOfInitialization()
+    {
+      HBRFileContext ready = BuildContext(
+        PlanningTargetRequirementPolicy.SiteModel,
+        new Dictionary<string, bool>());
+      var provisional = new HBRFileContext(
+        ready.SchemaVersion,
+        ready.WorkflowVersion,
+        ready.FileGuid,
+        ready.RevitDocumentFingerprint,
+        ready.RevitDocumentTitle,
+        ready.ProjectNumber,
+        ready.ProjectName,
+        ready.SubitemCode,
+        ready.SubitemName,
+        ready.ModelFileType,
+        ready.ModelScope,
+        ready.SpatialReference,
+        ready.PlanningTargets.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal),
+        ready.ProjectConditions.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal),
+        ready.ActivatedRuleIds,
+        ready.NotApplicableRuleIds,
+        true,
+        false,
+        ready.RulePackVersion,
+        ready.SourcePayloadHash,
+        string.Empty);
+      HBRFileContext incompatible = provisional.WithHash(
+        HBRFileContextCanonicalizer.ComputeHash(provisional));
+
+      TaskPlanCompilationResult result = TaskPlanCompiler.Compile(incompatible);
+
+      Assert.False(result.Success);
+      Assert.DoesNotContain(result.Blockers, message => message.Contains("初始化尚未通过"));
+      Assert.Contains(result.Blockers, message => message.Contains("官方 H-IFC 参数协议兼容性尚未通过"));
     }
 
     internal static HBRFileContext BuildContext(string modelFileType, IDictionary<string, bool> conditions)
@@ -118,6 +157,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
         conditions,
         activation.Activated,
         activation.NotApplicable,
+        true,
         true,
         HBRContextVersions.RulePack,
         "payload-hash",

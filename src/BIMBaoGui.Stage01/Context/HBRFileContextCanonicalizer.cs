@@ -56,6 +56,7 @@ namespace BIMBaoGui.Stage01.Context
           ReadStrings(root, "activatedRuleIds"),
           ReadStrings(root, "notApplicableRuleIds"),
           ReadBoolean(root, "initializationPassed"),
+          ReadBoolean(root, "officialProtocolCompatible"),
           ReadRootString(root, "rulePackVersion"),
           ReadRootString(root, "sourcePayloadHash"),
           ReadRootString(root, "fileContextHash"));
@@ -105,6 +106,7 @@ namespace BIMBaoGui.Stage01.Context
       builder.Append(",\"notApplicableRuleIds\":");
       AppendStrings(builder, context.NotApplicableRuleIds);
       builder.Append(",\"initializationPassed\":").Append(context.InitializationPassed ? "true" : "false");
+      builder.Append(",\"officialProtocolCompatible\":").Append(context.OfficialProtocolCompatible ? "true" : "false");
       AppendProperty(builder, "rulePackVersion", context.RulePackVersion, false);
       AppendProperty(builder, "sourcePayloadHash", context.SourcePayloadHash, false);
       if (includeHash) AppendProperty(builder, "fileContextHash", context.FileContextHash, false);

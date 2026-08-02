@@ -24,7 +24,13 @@ def test_plugin_patch_and_file_context_schema_versions_are_explicit():
     versions = read("src/BIMBaoGui.Stage01/Context/HBRContextVersions.cs")
     payload = read("src/BIMBaoGui.Stage01/Core/CanonicalPayload.cs")
     assert 'public override string Version => "0.8.2"' in assembly
-    assert 'FileContextSchema = "0.8.0"' in versions
+    context = read("src/BIMBaoGui.Stage01/Context/HBRFileContext.cs")
+    canonicalizer = read("src/BIMBaoGui.Stage01/Context/HBRFileContextCanonicalizer.cs")
+    factory = read("src/BIMBaoGui.Stage01/Context/HBRFileContextFactory.cs")
+    assert 'FileContextSchema = "0.9.0"' in versions
+    assert "OfficialProtocolCompatible" in context
+    assert '"officialProtocolCompatible"' in canonicalizer
+    assert "Stage01OfficialCompatibilityPolicy.Evaluate" in factory
     assert "HBRContextVersions.FileContextSchema" in payload
 
 
