@@ -13,11 +13,18 @@ namespace BIMBaoGui.Stage01.Mvd
 
     private IfcStepDocument(
       IReadOnlyList<Statement> statements,
-      Dictionary<int, IfcStepEntity> entities)
+      Dictionary<int, IfcStepEntity> entities,
+      string schema)
     {
       _statements = statements;
       _entities = entities;
+      Schema = schema;
     }
+
+    public string Schema { get; }
+    public IEnumerable<IfcStepEntity> Entities => _entities.Values
+      .Where(entity => !entity.IsDeleted)
+      .OrderBy(entity => entity.Id);
 
     public static IfcStepDocument Parse(string text)
     {
@@ -25,6 +32,7 @@ namespace BIMBaoGui.Stage01.Mvd
 
       var statements = new List<Statement>();
       var entities = new Dictionary<int, IfcStepEntity>();
+      string schema = null;
       int start = 0;
       bool insideString = false;
 
@@ -58,6 +66,10 @@ namespace BIMBaoGui.Stage01.Mvd
             throw new InvalidDataException("IFC STEP 实体编号重复：#" + entity.Id);
           entities.Add(entity.Id, entity);
         }
+        else if (schema == null)
+        {
+          schema = TryParseSchema(segment);
+        }
         statements.Add(new Statement(segment, entity));
         start = index + 1;
       }
@@ -69,7 +81,7 @@ namespace BIMBaoGui.Stage01.Mvd
       if (entities.Count == 0)
         throw new InvalidDataException("IFC STEP 文件不包含实体。");
 
-      return new IfcStepDocument(statements, entities);
+      return new IfcStepDocument(statements, entities, schema ?? string.Empty);
     }
 
     public IfcStepEntity GetEntity(int id)
@@ -77,6 +89,11 @@ namespace BIMBaoGui.Stage01.Mvd
       if (!_entities.TryGetValue(id, out IfcStepEntity entity))
         throw new KeyNotFoundException("找不到 IFC STEP 实体：#" + id);
       return entity;
+    }
+
+    public bool TryGetEntity(int id, out IfcStepEntity entity)
+    {
+      return _entities.TryGetValue(id, out entity) && !entity.IsDeleted;
     }
 
     public IEnumerable<IfcStepEntity> OfType(string type)
@@ -141,6 +158,23 @@ namespace BIMBaoGui.Stage01.Mvd
         arguments,
         segment,
         segment.Substring(0, leadingLength));
+    }
+
+    private static string TryParseSchema(string segment)
+    {
+      string trimmed = segment.Trim();
+      const string prefix = "FILE_SCHEMA(";
+      if (!trimmed.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+        || !trimmed.EndsWith(");", StringComparison.Ordinal))
+        return null;
+      string body = trimmed.Substring(prefix.Length, trimmed.Length - prefix.Length - 2).Trim();
+      if (body.Length < 2 || body[0] != '(' || body[body.Length - 1] != ')')
+        throw new InvalidDataException("IFC STEP FILE_SCHEMA 无效。");
+      IReadOnlyList<string> schemas = IfcStepSyntax.SplitTopLevelArguments(
+        body.Substring(1, body.Length - 2));
+      if (schemas.Count == 0)
+        throw new InvalidDataException("IFC STEP FILE_SCHEMA 为空。");
+      return IfcStepSyntax.DecodeString(schemas[0]);
     }
 
     private sealed class Statement

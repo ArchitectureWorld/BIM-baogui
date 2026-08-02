@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Linq;
 
 namespace BIMBaoGui.Stage01.Mvd
 {
@@ -148,6 +149,77 @@ namespace BIMBaoGui.Stage01.Mvd
         builder.Append(value[index]);
       }
       return builder.ToString();
+    }
+
+    public static int ParseReference(string token)
+    {
+      if (string.IsNullOrWhiteSpace(token)
+        || token[0] != '#'
+        || !int.TryParse(token.Substring(1), out int id)
+        || id <= 0)
+        throw new InvalidDataException("IFC STEP 引用无效：" + token);
+      return id;
+    }
+
+    public static IReadOnlyList<int> ParseReferenceList(string token)
+    {
+      if (string.IsNullOrWhiteSpace(token)
+        || token.Length < 2
+        || token[0] != '('
+        || token[token.Length - 1] != ')')
+        throw new InvalidDataException("IFC STEP 引用列表无效：" + token);
+      string inner = token.Substring(1, token.Length - 2).Trim();
+      if (inner.Length == 0) return Array.Empty<int>();
+      return SplitTopLevelArguments(inner)
+        .Select(ParseReference)
+        .ToArray();
+    }
+
+    public static string FormatReferenceList(IEnumerable<int> references)
+    {
+      if (references == null) throw new ArgumentNullException(nameof(references));
+      return "(" + string.Join(",", references.Select(id => "#" + id)) + ")";
+    }
+
+    public static bool TryParseTypedValue(
+      string token,
+      out string type,
+      out string inner)
+    {
+      type = null;
+      inner = null;
+      if (string.IsNullOrWhiteSpace(token)) return false;
+      int open = token.IndexOf('(');
+      if (open <= 0 || token[token.Length - 1] != ')') return false;
+      string candidateType = token.Substring(0, open).Trim();
+      string candidateInner = token.Substring(
+        open + 1,
+        token.Length - open - 2).Trim();
+      if (candidateType.Length == 0 || candidateInner.Length == 0) return false;
+      SplitTopLevelArguments(candidateInner);
+      type = candidateType.ToUpperInvariant();
+      inner = candidateInner;
+      return true;
+    }
+
+    public static string FormatTypedValue(string type, string inner)
+    {
+      if (string.IsNullOrWhiteSpace(type))
+        throw new ArgumentException("IFC 值类型不能为空。", nameof(type));
+      if (string.IsNullOrWhiteSpace(inner))
+        throw new ArgumentException("IFC 值不能为空。", nameof(inner));
+      return type.Trim().ToUpperInvariant() + "(" + inner.Trim() + ")";
+    }
+
+    public static bool IsFiniteNumber(string token)
+    {
+      return double.TryParse(
+          token,
+          NumberStyles.Float,
+          CultureInfo.InvariantCulture,
+          out double value)
+        && !double.IsNaN(value)
+        && !double.IsInfinity(value);
     }
 
     private static bool StartsWith(string value, int index, string prefix)
