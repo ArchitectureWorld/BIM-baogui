@@ -43,6 +43,10 @@ def test_schema_closes_top_level_and_property_contracts():
     assert schema["$defs"]["propertyRule"]["additionalProperties"] is False
     assert schema["$defs"]["ifcContract"]["additionalProperties"] is False
     assert schema["$defs"]["revitContract"]["additionalProperties"] is False
+    required = set(schema["$defs"]["propertyRule"]["required"])
+    assert {"stageOwnership", "suggestion", "ifcWrite"} <= required
+    assert {"artifact", "sheet", "row"} <= set(schema["$defs"]["sourceContract"]["required"])
+    assert {"bindingScope", "storageType", "parameterType"} <= set(schema["$defs"]["revitContract"]["required"])
 
 
 def test_rule_source_preserves_verified_set_relationships():
@@ -100,3 +104,24 @@ def test_required_top_level_sections_are_present():
     assert source["schemaVersion"] == "1.0.0"
     assert source["packageId"] == "HBR-WUHAN-PLANNING"
     assert len(source["modelProfiles"]) == 3
+
+
+def test_property_contracts_have_the_planned_implementation_sections():
+    source = _load(SOURCE_PATH)
+    for rule in source["properties"]:
+        assert rule["source"]["artifact"]
+        assert rule["source"]["sheet"]
+        assert rule["source"]["row"] is None or rule["source"]["row"] >= 2
+        assert rule["revit"]["bindingScope"] == "INSTANCE"
+        assert rule["revit"]["storageType"]
+        assert rule["revit"]["parameterType"]
+        assert rule["officialPlugin"]["evidenceStatus"]
+        assert rule["carrierRoleIds"]
+        assert rule["stageOwnership"] == ["STAGE02", "STAGE03"]
+        assert rule["suggestion"]["kind"] == "EXISTING_OR_ALIAS"
+        assert rule["ifcWrite"]["writeStrategy"] == "CREATE_OR_UPDATE_PSET"
+    assert all(
+        rule["extensionReason"]
+        for rule in source["properties"]
+        if rule["contractKind"] == "HIFC_EXTENSION"
+    )

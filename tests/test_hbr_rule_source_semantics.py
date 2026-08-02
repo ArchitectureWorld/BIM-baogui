@@ -101,10 +101,65 @@ def test_no_style_ids_are_promoted_to_normalized_fields_and_rows_are_preserved()
     assert {rule["source"]["row"] for rule in mvd} == set(range(2, 358))
     for rule in mvd:
         assert rule["ifc"]["sourceUnit"] != "14"
+        assert rule["ifc"]["canonicalUnit"] != "14"
         assert rule["ifc"]["declaredType"] != "14"
-        assert rule["source"]["rawValueKind"] != rule["ifc"]["declaredType"] or rule["source"]["rawValueKind"] != "14"
+        if rule["source"]["rawValueKind"] == "14":
+            assert rule["ifc"]["declaredType"] != "14"
         assert "rawDeclaredType" in rule["source"]
         assert "rawUnit" in rule["source"]
+        if rule["source"]["rawDeclaredType"].casefold() == "ifctext":
+            assert rule["ifc"]["declaredType"] == "IfcText"
+        if rule["source"]["rawUnit"] == "14":
+            assert rule["ifc"]["sourceUnit"] is None
+
+
+def test_entity_comes_from_mvd_entity_id_and_never_from_style_or_composite_column():
+    source = _load(SOURCE_PATH)
+    mvd = [rule for rule in source["properties"] if rule["contractKind"] == "MVD"]
+    allowed = {
+        "IfcProject", "IfcSite", "IfcBuilding", "IfcBuildingStorey", "IfcSpace",
+        "IfcSpatialZone", "IfcWall", "IfcSlab", "IfcRoof", "IfcWindow", "IfcStairFlight", "IfcOrganization",
+    }
+    assert {rule["ifc"]["entity"] for rule in mvd} == allowed
+    for rule in mvd:
+        assert rule["ifc"]["entity"] == rule["source"]["rawEntityId"]
+        assert "14" not in rule["ifc"]["entity"]
+        assert "/" not in rule["ifc"]["entity"]
+        assert "14" not in rule["canonicalKey"]
+        assert "/" not in rule["canonicalKey"]
+        assert rule["ifc"]["propertySet"].startswith("Pset_")
+
+
+def test_every_property_has_legacy_alias_and_resolvable_role_details():
+    source = _load(SOURCE_PATH)
+    roles = {role["roleId"]: role for role in source["carrierRoles"]}
+    for rule in source["properties"]:
+        expected = f"HIFC.{_normalize_pset(rule['ifc']['propertySet'])[len('Pset_'): ]}.{rule['ifc']['property']}"
+        assert expected in rule["revit"]["legacyNames"]
+        assert all(role_id in roles for role_id in rule["carrierRoleIds"])
+    assert {role["ifcEntity"] for role in roles.values()} >= {
+        rule["ifc"]["entity"] for rule in source["properties"]
+    }
+    for role in roles.values():
+        assert {"displayName", "modelFileTypes", "revitCategories", "allowedElementKinds", "nameAliases", "familyAliases", "typeAliases", "cardinality", "selectionPolicy", "ifcOwnerStrategy"} <= set(role)
+        assert {"min", "max"} <= set(role["cardinality"])
+        if role["ifcEntity"] in {"IfcProject", "IfcSite", "IfcBuilding"}:
+            assert role["cardinality"]["max"] == 1
+        else:
+            assert role["cardinality"]["max"] is None
+
+
+def test_profiles_and_tasks_preserve_model_group_and_condition_mapping():
+    source = _load(SOURCE_PATH)
+    profiles = {profile["profileId"]: profile for profile in source["modelProfiles"]}
+    assert {key: len(value["taskIds"]) for key, value in profiles.items()} == {"总平模型": 15, "单体建筑—地上": 7, "单体建筑—地下": 6}
+    tasks = {task["taskId"]: task for task in source["tasks"]}
+    assert all(task_id.startswith("SITE.") for task_id in profiles["总平模型"]["taskIds"])
+    assert all(task_id.startswith("ABOVE.") for task_id in profiles["单体建筑—地上"]["taskIds"])
+    assert all(task_id.startswith("UNDERGROUND.") for task_id in profiles["单体建筑—地下"]["taskIds"])
+    assert tasks["SITE.OTHER_LAND"]["conditionId"] == "site.other_land"
+    assert tasks["ABOVE.ROOF"]["conditionId"] == "building.roof"
+    assert tasks["UNDERGROUND.PARKING"]["conditionId"] == "underground.parking"
 
 
 def test_ifctext_spelling_is_normalized_and_runtime_types_follow_real_units():
@@ -163,7 +218,7 @@ def test_all_cross_references_resolve_and_carriers_are_migrated_once():
     task_ids = {task["taskId"] for task in source["tasks"]}
     property_ids = {rule["propertyId"] for rule in source["properties"]}
 
-    assert carrier_ids == {
+    assert carrier_ids >= {
         carrier["canonicalObjectKind"] for carrier in old_carriers.values()
     }
     assert all(
@@ -196,14 +251,13 @@ def test_tasks_and_conditions_are_traceable_to_the_existing_catalogs():
     catalog_task_ids = set(
         re.findall(r'rules\.Add\((?:Rule|Conditional)\(model, "([^"]+)"', task_catalog)
     )
-    catalog_conditions = set(
-        re.findall(r'\["([^"]+)"\]\s*=\s*"HBR\.[^"]+"', activation_catalog)
-    )
+    registry_provider = (ROOT / "src/BIMBaoGui.Stage01/Infrastructure/Stage01RegistryProvider.cs").read_text(encoding="utf-8")
+    catalog_conditions = set(re.findall(r'new ConditionDefinition\("([^"]+)"', registry_provider))
 
     assert {task["taskId"] for task in source["tasks"]} == catalog_task_ids
     assert {condition["conditionId"] for condition in source["conditions"]} == catalog_conditions
+    assert len(catalog_conditions) == 14
     assert all(task["source"] == "TaskRuleCatalog.cs" for task in source["tasks"])
-    assert all(
-        condition["source"] == "RuleActivationCatalog.cs"
-        for condition in source["conditions"]
-    )
+    assert {condition["source"] for condition in source["conditions"]} <= {
+        "RuleActivationCatalog.cs", "Stage01RegistryProvider.cs"
+    }

@@ -71,7 +71,10 @@
         "revit",
         "officialPlugin",
         "carrierRoleIds",
-        "requirement"
+        "requirement",
+        "stageOwnership",
+        "suggestion",
+        "ifcWrite"
       ],
       "properties": {
         "propertyId": {
@@ -88,7 +91,7 @@
           ]
         },
         "source": {
-          "type": "object"
+          "$ref": "#/$defs/sourceContract"
         },
         "ifc": {
           "$ref": "#/$defs/ifcContract"
@@ -104,8 +107,53 @@
         },
         "requirement": {
           "type": "object"
+        },
+        "stageOwnership": {
+          "type": "array"
+        },
+        "suggestion": {
+          "type": "object",
+          "required": [
+            "kind",
+            "aliases"
+          ]
+        },
+        "ifcWrite": {
+          "type": "object"
+        },
+        "extensionReason": {
+          "type": "string"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "contractKind": {
+                "const": "HIFC_EXTENSION"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "extensionReason"
+            ]
+          }
+        }
+      ]
+    },
+    "sourceContract": {
+      "type": "object",
+      "required": [
+        "artifact",
+        "sheet",
+        "row",
+        "rawEntityId",
+        "rawIfcElementOrType",
+        "rawValueKind",
+        "rawDeclaredType",
+        "rawUnit"
+      ]
     },
     "ifcContract": {
       "type": "object",
@@ -157,7 +205,10 @@
         "parameterName",
         "legacyNames",
         "visible",
-        "userModifiable"
+        "userModifiable",
+        "bindingScope",
+        "storageType",
+        "parameterType"
       ],
       "properties": {
         "parameterGuid": {
@@ -175,6 +226,15 @@
         },
         "userModifiable": {
           "type": "boolean"
+        },
+        "bindingScope": {
+          "type": "string"
+        },
+        "storageType": {
+          "type": "string"
+        },
+        "parameterType": {
+          "type": "string"
         }
       }
     }
