@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using BIMBaoGui.Stage01.Core;
 
 namespace BIMBaoGui.Stage01.Revit
 {
@@ -14,6 +15,7 @@ namespace BIMBaoGui.Stage01.Revit
     public bool IsInitialized { get; set; }
     public bool PayloadMatches { get; set; }
     public bool RequiresWorkflowMigration { get; set; }
+    public Stage01StorageDecision StorageDecision { get; set; } = Stage01StorageDecision.NoRecord;
     public string DocumentTitle { get; set; } = string.Empty;
     public string DocumentPath { get; set; } = string.Empty;
     public string RevitVersion { get; set; } = string.Empty;

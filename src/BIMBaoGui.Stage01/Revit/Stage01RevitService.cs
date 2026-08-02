@@ -14,6 +14,8 @@ namespace BIMBaoGui.Stage01.Revit
   {
     private const double CoordinateToleranceMeters = 0.0001;
     private const double AngleToleranceDegrees = 0.0001;
+    private const string CorruptStorageMessage =
+      "检测到损坏或不完整的 Stage01 初始化存储记录。为防止覆盖现有数据，已阻止读取和写入；请先修复 Revit DataStorage。";
 
     public static RevitDocumentSnapshot ReadSnapshot(Stage01Model model)
     {
@@ -60,12 +62,13 @@ namespace BIMBaoGui.Stage01.Revit
       snapshot.IsBlank = snapshot.BlockingElements.Count == 0;
 
       StoredInitialization stored = Stage01Storage.Read(document);
-      snapshot.IsInitialized = stored != null
-        && !string.IsNullOrWhiteSpace(stored.PayloadHash);
+      Stage01StorageDecision storageDecision = EvaluateStorage(stored);
+      snapshot.StorageDecision = storageDecision;
+      snapshot.IsInitialized = storageDecision.IsInitialized;
       snapshot.StoredPayloadHash = stored?.PayloadHash ?? string.Empty;
       snapshot.StoredPayloadJson = stored?.PayloadJson ?? string.Empty;
       snapshot.StoredWorkflowVersion = stored?.WorkflowVersion ?? string.Empty;
-      snapshot.RequiresWorkflowMigration = RequiresWorkflowMigration(stored);
+      snapshot.RequiresWorkflowMigration = storageDecision.RequiresWorkflowMigration;
       string currentHash = CanonicalPayload.Sha256(CanonicalPayload.Build(model));
       snapshot.PayloadMatches = snapshot.IsInitialized
         && !snapshot.RequiresWorkflowMigration
@@ -83,11 +86,15 @@ namespace BIMBaoGui.Stage01.Revit
         messages.Add("请先保存当前 RVT 文件。");
       if (snapshot.IsReadOnly)
         messages.Add("当前文档为只读状态。");
-      if (!snapshot.IsBlank && !snapshot.IsInitialized)
+      if (storageDecision.State == Stage01StorageState.CorruptInitialization)
+        messages.Add(CorruptStorageMessage);
+      if (!snapshot.IsBlank && storageDecision.RequiresBlankModelGate)
         messages.Add(
           "当前文件已存在正式建模内容或外部链接，不符合“尚未开始正式建模”的初始化条件。");
 
-      if (snapshot.RequiresWorkflowMigration)
+      if (storageDecision.State == Stage01StorageState.CorruptInitialization)
+        snapshot.Status = "初始化存储损坏";
+      else if (snapshot.RequiresWorkflowMigration)
         snapshot.Status = "旧版初始化待升级";
       else if (snapshot.IsInitialized)
         snapshot.Status = snapshot.PayloadMatches
@@ -122,12 +129,15 @@ namespace BIMBaoGui.Stage01.Revit
         return new[] { hostError };
 
       StoredInitialization stored = Stage01Storage.Read(document);
-      if (stored != null && !string.IsNullOrWhiteSpace(stored.PayloadJson))
+      Stage01StorageDecision storageDecision = EvaluateStorage(stored);
+      if (storageDecision.State == Stage01StorageState.CorruptInitialization)
+        return new[] { CorruptStorageMessage };
+      if (storageDecision.IsInitialized)
       {
         if (Stage01PayloadCodec.TryApply(stored.PayloadJson, model, out string payloadError))
         {
           messages.Add("已读取当前 Revit 文件中的初始化记录。");
-          if (RequiresWorkflowMigration(stored))
+          if (storageDecision.RequiresWorkflowMigration)
             messages.Add(
               "检测到旧版初始化 "
               + (stored.WorkflowVersion ?? string.Empty)
@@ -228,12 +238,13 @@ namespace BIMBaoGui.Stage01.Revit
         return Failure("请先保存当前 RVT 文件。");
 
       StoredInitialization existing = Stage01Storage.Read(document);
+      Stage01StorageDecision storageDecision = EvaluateStorage(existing);
+      if (storageDecision.State == Stage01StorageState.CorruptInitialization)
+        return Failure(CorruptStorageMessage);
       ValidationResult validation = Stage01Validator.Validate(
         model,
         Stage01RegistryProvider.Instance.Fields,
-        existing == null
-          ? Stage01ValidationMode.FirstInitialization
-          : Stage01ValidationMode.ExistingInitialization);
+        storageDecision.ValidationMode);
       if (!validation.IsValid)
         return Failure(
           validation.Messages
@@ -241,12 +252,12 @@ namespace BIMBaoGui.Stage01.Revit
             .Select(item => item.Message)
             .ToArray());
 
-      bool requiresMigration = RequiresWorkflowMigration(existing);
-      if (existing != null && !model.AllowReinitialize && !requiresMigration)
+      bool requiresMigration = storageDecision.RequiresWorkflowMigration;
+      if (storageDecision.RequiresReinitializePermission && !model.AllowReinitialize)
         return Failure("当前文件已经初始化。如确需覆盖，请先启用“允许重新初始化”。");
 
       IReadOnlyList<string> blockers = BlankFileGate.FindBlockingElements(document);
-      if (blockers.Count > 0 && existing == null)
+      if (blockers.Count > 0 && storageDecision.RequiresBlankModelGate)
         return Failure(new[] { "实质模型门禁未通过。" }.Concat(blockers).ToArray());
 
       string fileGuid = model.GetValue(Stage01Keys.FileGuid);
@@ -355,13 +366,15 @@ namespace BIMBaoGui.Stage01.Revit
       }
     }
 
-    private static bool RequiresWorkflowMigration(StoredInitialization stored)
+    private static Stage01StorageDecision EvaluateStorage(StoredInitialization stored)
     {
-      return stored != null
-        && !string.Equals(
-          stored.WorkflowVersion ?? string.Empty,
-          HBRContextVersions.FileContextSchema,
-          StringComparison.Ordinal);
+      return Stage01StorageStatePolicy.Evaluate(
+        stored != null,
+        stored?.PayloadJson,
+        stored?.PayloadHash,
+        stored?.FileGuid,
+        stored?.WorkflowVersion,
+        HBRContextVersions.FileContextSchema);
     }
 
     private static void ApplyUnits(Document document)
@@ -479,7 +492,8 @@ namespace BIMBaoGui.Stage01.Revit
         errors.Add("项目名称回读不一致。");
 
       StoredInitialization stored = Stage01Storage.Read(document);
-      if (stored == null)
+      Stage01StorageDecision storageDecision = EvaluateStorage(stored);
+      if (!storageDecision.IsInitialized)
         errors.Add("初始化记录未写入 Revit DataStorage。");
       else
       {

@@ -34,6 +34,7 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Keys.cs" Link="Core\Stage01Keys.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Model.cs" Link="Core\Stage01Model.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01PayloadCodec.cs" Link="Core\Stage01PayloadCodec.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01StorageStatePolicy.cs" Link="Core\Stage01StorageStatePolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01UiPolicy.cs" Link="Core\Stage01UiPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Validation.cs" Link="Core\Stage01Validation.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\DeterministicGuidV5.cs" Link="Hifc\DeterministicGuidV5.cs" />

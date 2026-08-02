@@ -644,9 +644,11 @@ namespace BIMBaoGui.Stage01.UI
       _confirmBlank = new RectangleF(x, y, viewport.Width, 38);
       _allowReinitialize = new RectangleF(x, y + 47, viewport.Width, 38);
       _showAllFields = new RectangleF(x, y + 94, viewport.Width, 38);
+      bool requiresBlankConfirmation = _owner.Snapshot.StorageDecision.RequiresBlankConfirmation;
       DrawToggleRow(graphics, _confirmBlank,
-        "确认当前文件尚未开始正式建模（允许 Revit 模板默认内容） *",
-        _owner.Model.ConfirmBlankProject, true);
+        "确认当前文件尚未开始正式建模（允许 Revit 模板默认内容）"
+          + (requiresBlankConfirmation ? " *" : string.Empty),
+        _owner.Model.ConfirmBlankProject, requiresBlankConfirmation);
       DrawToggleRow(graphics, _allowReinitialize,
         "允许覆盖当前文件已有的初始化记录",
         _owner.Model.AllowReinitialize, false);
