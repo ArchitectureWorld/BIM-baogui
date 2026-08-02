@@ -3,6 +3,7 @@ import copy
 from pathlib import Path
 
 import jsonschema
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -66,6 +67,69 @@ def test_rule_source_preserves_verified_set_relationships():
     assert len(stage01) == 102
     assert sum(ref["propertyId"] in official_ids for ref in stage01) == 89
     assert sum(not p["officialPlugin"]["inExtracted166"] for p in mvd) == 193
+
+
+def test_source_contains_complete_legacy_compatibility_metadata():
+    source = _load(SOURCE_PATH)
+    stage01 = source["stage01"]
+
+    internal_fields = stage01["internalWorkflowFields"]
+    assert len(internal_fields) == 12
+    assert all(
+        {
+            "fieldKey",
+            "label",
+            "type",
+            "uiGroup",
+            "sourceKind",
+            "allowedValues",
+            "defaultValue",
+        }
+        == set(field)
+        for field in internal_fields
+    )
+
+    assert len(stage01["fieldRefs"]) == 102
+    assert all(
+        {
+            "fieldKey",
+            "propertyId",
+            "sourceRow",
+            "uiGroup",
+            "sourceKind",
+            "writeInStage01",
+        }
+        == set(reference)
+        for reference in stage01["fieldRefs"]
+    )
+
+    official = [
+        rule
+        for rule in source["properties"]
+        if rule["officialPlugin"]["inExtracted166"]
+    ]
+    projection_fields = {
+        "category",
+        "carrier",
+        "persistenceMode",
+        "sharedParameterType",
+        "officialSourceParameterGroup",
+        "sourceParameterOverride",
+    }
+    assert len(official) == 166
+    assert all(
+        projection_fields
+        == set(rule["officialPlugin"]["legacyProjection"])
+        for rule in official
+    )
+
+    compatibility = stage01["officialPluginCompatibility"]
+    assert len(compatibility["entityPolicies"]) == 9
+    assert len(compatibility["exceptions"]) == 13
+    assert all(exception["reason"].strip() for exception in compatibility["exceptions"])
+
+    assert len(source["modelProfiles"]) == 3
+    assert all("activationRuleIds" in profile for profile in source["modelProfiles"])
 
 
 def test_hifc_extensions_are_exactly_the_three_verified_identities():
@@ -150,6 +214,57 @@ def test_schema_closes_all_top_level_collection_item_contracts():
     assert schema["properties"]["stage01"] == {"$ref": "#/$defs/stage01Contract"}
 
 
+def test_schema_closes_all_migrated_legacy_metadata_contracts():
+    schema = _load(SCHEMA_PATH)
+    definitions = schema["$defs"]
+    expected_required = {
+        "internalWorkflowFieldContract": {
+            "fieldKey",
+            "label",
+            "type",
+            "uiGroup",
+            "sourceKind",
+            "allowedValues",
+            "defaultValue",
+        },
+        "legacyProjectionContract": {
+            "category",
+            "carrier",
+            "persistenceMode",
+            "sharedParameterType",
+            "officialSourceParameterGroup",
+            "sourceParameterOverride",
+        },
+        "officialPluginCompatibilityContract": {"entityPolicies", "exceptions"},
+        "officialPluginEntityPolicyContract": {
+            "ifcEntity",
+            "officialObjectMappingEvidence",
+            "revitCarrier",
+            "writePolicy",
+            "officialExportVerified",
+        },
+        "officialPluginExceptionContract": {"fieldKey", "reason"},
+    }
+    for definition, required in expected_required.items():
+        assert definitions[definition]["additionalProperties"] is False
+        assert set(definitions[definition]["required"]) == required
+
+    assert set(definitions["stage01FieldRefContract"]["required"]) == {
+        "fieldKey",
+        "propertyId",
+        "sourceRow",
+        "uiGroup",
+        "sourceKind",
+        "writeInStage01",
+    }
+    assert set(definitions["stage01Contract"]["required"]) == {
+        "fieldRefs",
+        "internalWorkflowFields",
+        "officialPluginCompatibility",
+    }
+    assert "activationRuleIds" in definitions["modelProfileContract"]["required"]
+
+
 def test_schema_rejects_invalid_core_business_shapes():
     schema = _load(SCHEMA_PATH)
     source = _load(SOURCE_PATH)
@@ -174,3 +289,41 @@ def test_schema_rejects_invalid_core_business_shapes():
     mutate(["properties", non_official_index, "officialPlugin"], {"inExtracted166": False, "evidenceStatus": "OFFICIAL_EXTRACTED", "originalIdentity": "fake"})
     mutate(["carrierRoles", 0, "cardinality"], {"min": 2, "max": 1})
     assert all(list(validator.iter_errors(candidate)) for candidate in mutations)
+
+
+@pytest.mark.parametrize(
+    "field",
+    (
+        "carrier",
+        "persistenceMode",
+        "sharedParameterType",
+        "officialSourceParameterGroup",
+    ),
+)
+def test_schema_rejects_empty_required_legacy_projection_values(field):
+    schema = _load(SCHEMA_PATH)
+    source = _load(SOURCE_PATH)
+    candidate = copy.deepcopy(source)
+    official = next(
+        rule
+        for rule in candidate["properties"]
+        if rule["officialPlugin"]["inExtracted166"]
+    )
+    official["officialPlugin"]["legacyProjection"][field] = ""
+
+    errors = list(jsonschema.Draft202012Validator(schema).iter_errors(candidate))
+
+    assert errors
+
+
+def test_schema_rejects_blank_official_plugin_exception_reason():
+    schema = _load(SCHEMA_PATH)
+    source = _load(SOURCE_PATH)
+    candidate = copy.deepcopy(source)
+    candidate["stage01"]["officialPluginCompatibility"]["exceptions"][0][
+        "reason"
+    ] = "   "
+
+    errors = list(jsonschema.Draft202012Validator(schema).iter_errors(candidate))
+
+    assert errors

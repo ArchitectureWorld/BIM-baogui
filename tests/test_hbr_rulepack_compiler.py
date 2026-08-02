@@ -2,6 +2,7 @@ import copy
 import hashlib
 import json
 import os
+import re
 import struct
 import subprocess
 import sys
@@ -53,6 +54,100 @@ def _replace_exact_string_values(value, old, new):
                 _replace_exact_string_values(item, old, new)
 
 
+LEGACY_METADATA_DIGEST_NAMES = (
+    "internalWorkflowFields",
+    "stage01FieldMetadata",
+    "officialLegacyProjection",
+    "entityPolicies",
+    "exceptions",
+    "profileActivationRuleIds",
+)
+
+
+def _canonical_sha256(value):
+    payload = json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _legacy_metadata_projections(source):
+    stage01 = source["stage01"]
+    official_projection_fields = (
+        "category",
+        "carrier",
+        "persistenceMode",
+        "sharedParameterType",
+        "officialSourceParameterGroup",
+        "sourceParameterOverride",
+    )
+    return {
+        "internalWorkflowFields": sorted(
+            (dict(item) for item in stage01["internalWorkflowFields"]),
+            key=lambda item: item["fieldKey"],
+        ),
+        "stage01FieldMetadata": sorted(
+            (
+                {
+                    key: item[key]
+                    for key in (
+                        "fieldKey",
+                        "sourceRow",
+                        "uiGroup",
+                        "sourceKind",
+                        "writeInStage01",
+                    )
+                }
+                for item in stage01["fieldRefs"]
+            ),
+            key=lambda item: (item["fieldKey"], item["sourceRow"]),
+        ),
+        "officialLegacyProjection": sorted(
+            (
+                {
+                    "propertyId": rule["propertyId"],
+                    **{
+                        key: rule["officialPlugin"]["legacyProjection"][key]
+                        for key in official_projection_fields
+                    },
+                }
+                for rule in source["properties"]
+                if rule["officialPlugin"]["inExtracted166"]
+            ),
+            key=lambda item: item["propertyId"],
+        ),
+        "entityPolicies": sorted(
+            (
+                dict(item)
+                for item in stage01["officialPluginCompatibility"][
+                    "entityPolicies"
+                ]
+            ),
+            key=lambda item: item["ifcEntity"],
+        ),
+        "exceptions": sorted(
+            (
+                dict(item)
+                for item in stage01["officialPluginCompatibility"]["exceptions"]
+            ),
+            key=lambda item: item["fieldKey"],
+        ),
+        "profileActivationRuleIds": sorted(
+            (
+                {
+                    "profileId": profile["profileId"],
+                    "activationRuleIds": profile["activationRuleIds"],
+                }
+                for profile in source["modelProfiles"]
+            ),
+            key=lambda item: item["profileId"],
+        ),
+    }
+
+
 def test_compatibility_baseline_freezes_only_verified_published_identity_fields():
     baseline = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
     legacy = json.loads(LEGACY_CATALOG_PATH.read_text(encoding="utf-8"))
@@ -64,7 +159,10 @@ def test_compatibility_baseline_freezes_only_verified_published_identity_fields(
         "baselineVersion",
         "workbookEvidence",
         "officialProperties",
+        "legacyMetadataDigests",
     }
+    assert baseline["schemaVersion"] == "1.1.0"
+    assert baseline["baselineVersion"] == "1.1.0"
     assert baseline["workbookEvidence"] == {
         "logicalSource": "《MVD》规划报建.xlsx",
         "sha256": "63fac01de41f3bd149e4e857a81256e623382bbe9b3437ed69a2b5ace90628e4",
@@ -111,6 +209,17 @@ def test_compatibility_baseline_freezes_only_verified_published_identity_fields(
     assert {
         item["propertyId"]: item for item in baseline["officialProperties"]
     } == {item["propertyId"]: item for item in expected_from_source}
+
+    projections = _legacy_metadata_projections(source)
+    assert set(projections) == set(LEGACY_METADATA_DIGEST_NAMES)
+    assert baseline["legacyMetadataDigests"] == {
+        name: _canonical_sha256(projections[name])
+        for name in LEGACY_METADATA_DIGEST_NAMES
+    }
+    assert all(
+        re.fullmatch(r"[0-9a-f]{64}", digest)
+        for digest in baseline["legacyMetadataDigests"].values()
+    )
 
 
 def test_compiler_rejects_published_original_identity_drift(tmp_path):
@@ -237,6 +346,24 @@ def test_compiler_allows_valid_non_frozen_business_field_updates(tmp_path):
             ),
             "workbookEvidence.logicalSource",
         ),
+        (
+            lambda baseline: baseline["legacyMetadataDigests"].pop(
+                "exceptions"
+            ),
+            "legacyMetadataDigests.*missing required fields.*exceptions",
+        ),
+        (
+            lambda baseline: baseline["legacyMetadataDigests"].update(
+                {"unexpected": "0" * 64}
+            ),
+            "legacyMetadataDigests.*unexpected fields.*unexpected",
+        ),
+        (
+            lambda baseline: baseline["legacyMetadataDigests"].update(
+                {"entityPolicies": "not-a-sha256"}
+            ),
+            "legacyMetadataDigests.entityPolicies.*64 lowercase hex",
+        ),
     ],
     ids=[
         "open-top-level",
@@ -244,6 +371,9 @@ def test_compiler_allows_valid_non_frozen_business_field_updates(tmp_path):
         "open-record",
         "duplicate-property-id",
         "wrong-workbook-source",
+        "missing-legacy-digest",
+        "open-legacy-digests",
+        "invalid-legacy-digest",
     ],
 )
 def test_compiler_rejects_invalid_compatibility_baseline(
@@ -268,8 +398,8 @@ def test_compiler_rejects_duplicate_json_keys_in_baseline(tmp_path):
 
     baseline_text = BASELINE_PATH.read_text(encoding="utf-8")
     duplicate_key_text = baseline_text.replace(
-        '"schemaVersion": "1.0.0",',
-        '"schemaVersion": "1.0.0",\n  "schemaVersion": "1.0.0",',
+        '"schemaVersion": "1.1.0",',
+        '"schemaVersion": "1.1.0",\n  "schemaVersion": "1.1.0",',
         1,
     )
     invalid_baseline = tmp_path / "duplicate key baseline.json"
@@ -590,6 +720,248 @@ def _drop_required_property_field(source):
 
 def _add_unknown_top_level_field(source):
     source["unexpected"] = True
+
+
+def _drop_internal_workflow_fields(source):
+    source["stage01"].pop("internalWorkflowFields")
+
+
+def _truncate_internal_workflow_fields(source):
+    source["stage01"]["internalWorkflowFields"].pop()
+
+
+def _drop_field_ref_ui_group(source):
+    source["stage01"]["fieldRefs"][0].pop("uiGroup")
+
+
+def _drop_legacy_projection(source):
+    official = next(
+        rule
+        for rule in source["properties"]
+        if rule["officialPlugin"]["inExtracted166"]
+    )
+    official["officialPlugin"].pop("legacyProjection")
+
+
+def _drop_legacy_projection_field(source):
+    official = next(
+        rule
+        for rule in source["properties"]
+        if rule["officialPlugin"]["inExtracted166"]
+    )
+    official["officialPlugin"]["legacyProjection"].pop("sharedParameterType")
+
+
+def _truncate_official_plugin_exceptions(source):
+    source["stage01"]["officialPluginCompatibility"]["exceptions"].pop()
+
+
+def _drop_profile_activation_rule_ids(source):
+    source["modelProfiles"][0].pop("activationRuleIds")
+
+
+def _blank_official_plugin_exception_reason(source):
+    source["stage01"]["officialPluginCompatibility"]["exceptions"][0][
+        "reason"
+    ] = "   "
+
+
+def _duplicate_internal_workflow_field(source):
+    source["stage01"]["internalWorkflowFields"][-1] = copy.deepcopy(
+        source["stage01"]["internalWorkflowFields"][0]
+    )
+
+
+def _duplicate_entity_policy(source):
+    policies = source["stage01"]["officialPluginCompatibility"]["entityPolicies"]
+    policies[-1] = copy.deepcopy(policies[0])
+
+
+def _dangle_official_plugin_exception(source):
+    source["stage01"]["officialPluginCompatibility"]["exceptions"][0][
+        "fieldKey"
+    ] = "IfcProject|Pset_Missing|Missing"
+
+
+def _dangle_profile_activation_rule(source):
+    source["modelProfiles"][0]["activationRuleIds"][0] = "MISSING.ACTIVATION.RULE"
+
+
+def _duplicate_profile_activation_rule(source):
+    activation_ids = source["modelProfiles"][0]["activationRuleIds"]
+    activation_ids.append(activation_ids[0])
+
+
+def _drift_internal_workflow_label(source):
+    source["stage01"]["internalWorkflowFields"][0]["label"] += "_DRIFT"
+
+
+def _drift_field_ref_ui_group(source):
+    source["stage01"]["fieldRefs"][0]["uiGroup"] += "_DRIFT"
+
+
+def _move_nonwritable_field_ref(source):
+    references = source["stage01"]["fieldRefs"]
+    nonwritable = next(item for item in references if not item["writeInStage01"])
+    writable = next(item for item in references if item["writeInStage01"])
+    nonwritable["writeInStage01"] = True
+    writable["writeInStage01"] = False
+
+
+def _drift_legacy_projection_carrier(source):
+    official = next(
+        rule
+        for rule in source["properties"]
+        if rule["officialPlugin"]["inExtracted166"]
+    )
+    official["officialPlugin"]["legacyProjection"]["carrier"] += "_DRIFT"
+
+
+def _drift_entity_policy_evidence(source):
+    source["stage01"]["officialPluginCompatibility"]["entityPolicies"][0][
+        "officialObjectMappingEvidence"
+    ] = "UNVERIFIED"
+
+
+def _drift_official_plugin_exception_reason(source):
+    source["stage01"]["officialPluginCompatibility"]["exceptions"][0][
+        "reason"
+    ] += "_DRIFT"
+
+
+def _drift_profile_activation_rule_id(source):
+    source["modelProfiles"][0]["activationRuleIds"][0] = (
+        "HBR.BUILDING.ABOVE.BASE"
+    )
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (
+            _drop_internal_workflow_fields,
+            r"migrated metadata.*internalWorkflowFields",
+        ),
+        (
+            _truncate_internal_workflow_fields,
+            r"migrated metadata.*internalWorkflowFields.*exactly 12",
+        ),
+        (_drop_field_ref_ui_group, r"migrated metadata.*fieldRefs.*uiGroup"),
+        (_drop_legacy_projection, r"migrated metadata.*legacyProjection"),
+        (
+            _drop_legacy_projection_field,
+            r"migrated metadata.*legacyProjection.*sharedParameterType",
+        ),
+        (
+            _truncate_official_plugin_exceptions,
+            r"migrated metadata.*exceptions.*exactly 13",
+        ),
+        (
+            _drop_profile_activation_rule_ids,
+            r"migrated metadata.*activationRuleIds",
+        ),
+        (
+            _blank_official_plugin_exception_reason,
+            r"migrated metadata.*reason.*non-empty",
+        ),
+    ],
+)
+def test_validate_semantics_rejects_missing_or_truncated_migrated_metadata(
+    mutation, message
+):
+    from tools.build_hbr_rulepack import validate_semantics
+
+    source = _load_source()
+    mutation(source)
+
+    with pytest.raises(ValueError, match=message):
+        validate_semantics(source)
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (
+            _duplicate_internal_workflow_field,
+            r"migrated metadata.*internalWorkflowFields.fieldKey.*unique",
+        ),
+        (
+            _duplicate_entity_policy,
+            r"migrated metadata.*entityPolicies.ifcEntity.*unique",
+        ),
+        (
+            _dangle_stage_property,
+            r"migrated metadata.*fieldRefs.*unknown property reference",
+        ),
+        (
+            _dangle_official_plugin_exception,
+            r"migrated metadata.*exceptions.*unknown field reference",
+        ),
+        (
+            _dangle_profile_activation_rule,
+            r"migrated metadata.*unknown activation rule reference",
+        ),
+        (
+            _duplicate_profile_activation_rule,
+            r"migrated metadata.*activationRuleIds.*unique",
+        ),
+    ],
+)
+def test_validate_semantics_rejects_duplicate_or_dangling_migrated_references(
+    mutation, message
+):
+    from tools.build_hbr_rulepack import validate_semantics
+
+    source = _load_source()
+    mutation(source)
+
+    with pytest.raises(ValueError, match=message):
+        validate_semantics(source)
+
+
+@pytest.mark.parametrize(
+    ("mutation", "section"),
+    [
+        (_drift_internal_workflow_label, "internalWorkflowFields"),
+        (_drift_field_ref_ui_group, "stage01FieldMetadata"),
+        (_move_nonwritable_field_ref, "stage01FieldMetadata"),
+        (_drift_legacy_projection_carrier, "officialLegacyProjection"),
+        (_drift_entity_policy_evidence, "entityPolicies"),
+        (_drift_official_plugin_exception_reason, "exceptions"),
+        (_drift_profile_activation_rule_id, "profileActivationRuleIds"),
+    ],
+)
+def test_validate_compatibility_rejects_legacy_equivalence_value_drift(
+    mutation, section
+):
+    from tools.build_hbr_rulepack import validate_compatibility
+
+    source = _load_source()
+    baseline = _load_baseline()
+    mutation(source)
+
+    with pytest.raises(
+        ValueError,
+        match=rf"migrated metadata.*{section}.*legacy equivalence",
+    ):
+        validate_compatibility(source, baseline)
+
+
+@pytest.mark.parametrize("section", LEGACY_METADATA_DIGEST_NAMES)
+def test_validate_compatibility_rejects_legacy_metadata_digest_tampering(
+    section,
+):
+    from tools.build_hbr_rulepack import validate_compatibility
+
+    source = _load_source()
+    baseline = _load_baseline()
+    baseline["legacyMetadataDigests"][section] = "0" * 64
+
+    with pytest.raises(
+        ValueError,
+        match=rf"migrated metadata.*{section}.*legacy equivalence",
+    ):
+        validate_compatibility(source, baseline)
 
 
 def test_compile_rulepack_is_deterministic_and_has_a_verified_header(tmp_path):

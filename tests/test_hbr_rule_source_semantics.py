@@ -15,6 +15,31 @@ OLD_STAGE01_PATH = (
 OLD_CARRIERS_PATH = (
     ROOT / "specs/hifc-mapping/v1/data/implementation_object_carriers.v1.json"
 )
+OLD_BINDINGS_PATH = (
+    ROOT / "specs/hifc-mapping/v1/generated/GH_HIFC_ParameterBindings.json"
+)
+OLD_COMPATIBILITY_PATH = (
+    ROOT
+    / "specs/hifc-mapping/v1/data/official_plugin_compatibility_status.v1.json"
+)
+RULE_ACTIVATION_CATALOG_PATH = (
+    ROOT / "src/BIMBaoGui.Stage01/Context/RuleActivationCatalog.cs"
+)
+PLANNING_TARGET_CATALOG_PATH = (
+    ROOT / "src/BIMBaoGui.Stage01/Core/PlanningTargetCatalog.cs"
+)
+STAGE01_REGISTRY_PROVIDER_PATH = (
+    ROOT / "src/BIMBaoGui.Stage01/Infrastructure/Stage01RegistryProvider.cs"
+)
+OFFICIAL_MAPPING_CATALOG_PATH = (
+    ROOT / "src/BIMBaoGui.Stage01/Hifc/OfficialHifcMappingCatalog.cs"
+)
+OFFICIAL_COMPATIBILITY_CATALOG_PATH = (
+    ROOT / "src/BIMBaoGui.Stage01/Hifc/OfficialPluginCompatibilityCatalog.cs"
+)
+PLANNING_TARGET_POLICY_PATH = (
+    ROOT / "src/BIMBaoGui.Stage01/Core/PlanningTargetRequirementPolicy.cs"
+)
 
 
 def _load(path: Path):
@@ -41,6 +66,331 @@ def _old_identity(rule):
         _normalize_pset(official["propertySet"]),
         official["ifcProperty"],
     )
+
+
+def _compact_csharp(path):
+    return " ".join(path.read_text(encoding="utf-8").split())
+
+
+def _assert_legacy_runtime_projection_contracts():
+    registry = _compact_csharp(STAGE01_REGISTRY_PROVIDER_PATH)
+    assert (
+        "AllowedValues = source.allowed_values ?? Array.Empty<string>()"
+        in registry
+    )
+    assert (
+        "if (!string.IsNullOrWhiteSpace(source.@default)) "
+        "defaults[source.field_key] = source.@default;"
+        in registry
+    )
+
+    mapping = _compact_csharp(OFFICIAL_MAPPING_CATALOG_PATH)
+    for contract in (
+        "Category = (item.category ?? string.Empty).Trim(),",
+        "Carrier = item.carrier ?? string.Empty,",
+        "PersistenceMode = item.persistenceMode ?? string.Empty,",
+        "SharedParameterType = rule.canonical.sharedParameterType ?? string.Empty,",
+        "string sourceOverride = rule.official.sourceParameterOverride ?? string.Empty;",
+        "SourceParameterOverride = sourceOverride,",
+        "OfficialSourceParameterGroup = "
+        "(item.officialSourceParameterGroup ?? string.Empty).Trim(),",
+    ):
+        assert contract in mapping
+
+    compatibility = _compact_csharp(OFFICIAL_COMPATIBILITY_CATALOG_PATH)
+    for contract in (
+        "EntityPolicyRecord source = item.Value ?? new EntityPolicyRecord();",
+        "OfficialObjectMappingEvidence = "
+        'source.officialObjectMappingEvidence ?? "UNVERIFIED",',
+        "RevitCarrier = source.revitCarrier ?? string.Empty,",
+        "WritePolicy = source.writePolicy ?? "
+        '"BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",',
+        "OfficialExportVerified = source.officialExportVerified",
+    ):
+        assert contract in compatibility
+
+    policy = _compact_csharp(PLANNING_TARGET_POLICY_PATH)
+    for contract in (
+        "if (PlanningTargetCatalog.Get(metricCode) == null) "
+        "return PlanningTargetRequirement.NotApplicable;",
+        "if (string.Equals(modelFileType, SiteModel, StringComparison.Ordinal)) "
+        "return PlanningTargetRequirement.Required;",
+        "if (string.Equals(modelFileType, AboveGroundModel, StringComparison.Ordinal) "
+        "|| string.Equals(modelFileType, UndergroundModel, StringComparison.Ordinal)) "
+        "return PlanningTargetRequirement.Inherited;",
+    ):
+        assert contract in policy
+
+    activation = _compact_csharp(RULE_ACTIVATION_CATALOG_PATH)
+    for contract in (
+        "PlanningTargetRequirement requirement = "
+        "PlanningTargetRequirementPolicy.GetRequirement("
+        "modelFileType, definition.MetricCode);",
+        'string ruleId = "HBR.TARGET." + '
+        'definition.MetricCode.Substring("planning.".Length).ToUpperInvariant();',
+        "if (requirement == PlanningTargetRequirement.NotApplicable) "
+        "notApplicable.Add(ruleId); else activated.Add(ruleId);",
+    ):
+        assert contract in activation
+
+
+def _project_internal_field_like_legacy_runtime(legacy):
+    allowed_values = legacy.get("allowed_values")
+    default_value = legacy.get("default")
+    if default_value is None or not default_value.strip():
+        default_value = None
+    return {
+        "fieldKey": legacy["field_key"],
+        "label": legacy["property"],
+        "type": legacy["type"],
+        "uiGroup": legacy["ui_group"],
+        "sourceKind": legacy["source_kind"],
+        "allowedValues": [] if allowed_values is None else allowed_values,
+        "defaultValue": default_value,
+    }
+
+
+def _project_official_mapping_like_legacy_runtime(binding, legacy_rule):
+    category = binding.get("category")
+    carrier = binding.get("carrier")
+    persistence_mode = binding.get("persistenceMode")
+    parameter_group = binding.get("officialSourceParameterGroup")
+    shared_parameter_type = legacy_rule["canonical"].get(
+        "sharedParameterType"
+    )
+    source_parameter_override = legacy_rule["official"].get(
+        "sourceParameterOverride"
+    )
+    return {
+        "category": "" if category is None else category.strip(),
+        "carrier": "" if carrier is None else carrier,
+        "persistenceMode": (
+            "" if persistence_mode is None else persistence_mode
+        ),
+        "sharedParameterType": (
+            "" if shared_parameter_type is None else shared_parameter_type
+        ),
+        "officialSourceParameterGroup": (
+            "" if parameter_group is None else parameter_group.strip()
+        ),
+        "sourceParameterOverride": (
+            ""
+            if source_parameter_override is None
+            else source_parameter_override
+        ),
+    }
+
+
+def _project_entity_policy_like_legacy_runtime(ifc_entity, legacy):
+    legacy = {} if legacy is None else legacy
+    evidence = legacy.get("officialObjectMappingEvidence")
+    carrier = legacy.get("revitCarrier")
+    write_policy = legacy.get("writePolicy")
+    return {
+        "ifcEntity": ifc_entity,
+        "officialObjectMappingEvidence": (
+            "UNVERIFIED" if evidence is None else evidence
+        ),
+        "revitCarrier": "" if carrier is None else carrier,
+        "writePolicy": (
+            "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT"
+            if write_policy is None
+            else write_policy
+        ),
+        "officialExportVerified": legacy.get(
+            "officialExportVerified", False
+        ),
+    }
+
+
+def test_legacy_projection_oracle_models_runtime_null_and_whitespace_semantics():
+    _assert_legacy_runtime_projection_contracts()
+    internal = {
+        "field_key": "HBR|Workflow|Synthetic",
+        "property": "Synthetic",
+        "type": "string",
+        "ui_group": "Synthetic",
+        "source_kind": "system_generated",
+        "allowed_values": None,
+        "default": "   ",
+    }
+    assert _project_internal_field_like_legacy_runtime(internal) == {
+        "fieldKey": "HBR|Workflow|Synthetic",
+        "label": "Synthetic",
+        "type": "string",
+        "uiGroup": "Synthetic",
+        "sourceKind": "system_generated",
+        "allowedValues": [],
+        "defaultValue": None,
+    }
+
+    assert _project_entity_policy_like_legacy_runtime("IfcSynthetic", None) == {
+        "ifcEntity": "IfcSynthetic",
+        "officialObjectMappingEvidence": "UNVERIFIED",
+        "revitCarrier": "",
+        "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+        "officialExportVerified": False,
+    }
+
+    assert _project_official_mapping_like_legacy_runtime(
+        {
+            "category": None,
+            "carrier": None,
+            "persistenceMode": None,
+            "officialSourceParameterGroup": None,
+        },
+        {
+            "canonical": {"sharedParameterType": None},
+            "official": {"sourceParameterOverride": None},
+        },
+    ) == {
+        "category": "",
+        "carrier": "",
+        "persistenceMode": "",
+        "sharedParameterType": "",
+        "officialSourceParameterGroup": "",
+        "sourceParameterOverride": "",
+    }
+
+
+def _legacy_fixed_activation_rule_ids():
+    _assert_legacy_runtime_projection_contracts()
+    activation_catalog = RULE_ACTIVATION_CATALOG_PATH.read_text(encoding="utf-8")
+    planning_catalog = PLANNING_TARGET_CATALOG_PATH.read_text(encoding="utf-8")
+    profile_constants = {
+        "总平模型": "SiteModel",
+        "单体建筑—地上": "AboveGroundModel",
+        "单体建筑—地下": "UndergroundModel",
+    }
+    target_ids = {
+        "HBR.TARGET." + metric.removeprefix("planning.").upper()
+        for metric in re.findall(
+            r'public const string \w+Code = "(planning\.[^"]+)";',
+            planning_catalog,
+        )
+    }
+    assert target_ids == {
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE",
+    }
+    target_requirement_by_profile_constant = {
+        "SiteModel": "Required",
+        "AboveGroundModel": "Inherited",
+        "UndergroundModel": "Inherited",
+    }
+
+    result = {}
+    for profile_id, constant in profile_constants.items():
+        marker = f"PlanningTargetRequirementPolicy.{constant}"
+        marker_index = activation_catalog.index(marker)
+        block_start = activation_catalog.index("{", marker_index)
+        block_end = activation_catalog.index("}", block_start)
+        branch = activation_catalog[block_start:block_end]
+        fixed_ids = set(re.findall(r'activated\.Add\("([^"]+)"\);', branch))
+        assert fixed_ids
+        applicable_target_ids = (
+            set()
+            if target_requirement_by_profile_constant[constant]
+            == "NotApplicable"
+            else target_ids
+        )
+        result[profile_id] = sorted(fixed_ids | applicable_target_ids)
+    return result
+
+
+def test_migrated_metadata_is_exactly_equivalent_to_legacy_resources():
+    _assert_legacy_runtime_projection_contracts()
+    source = _load(SOURCE_PATH)
+    old_stage01 = _load(OLD_STAGE01_PATH)
+    old_rules = _load(OLD_OFFICIAL_PATH)
+    old_bindings = _load(OLD_BINDINGS_PATH)
+    old_compatibility = _load(OLD_COMPATIBILITY_PATH)
+
+    expected_internal = {}
+    for legacy in old_stage01["internal_workflow_fields"]:
+        expected_internal[legacy["field_key"]] = (
+            _project_internal_field_like_legacy_runtime(legacy)
+        )
+    actual_internal = {
+        item["fieldKey"]: item
+        for item in source["stage01"]["internalWorkflowFields"]
+    }
+    assert actual_internal == expected_internal
+
+    expected_refs = {
+        (legacy["field_key"], legacy["source_row"]): {
+            "uiGroup": legacy["ui_group"],
+            "sourceKind": legacy["source_kind"],
+            "writeInStage01": legacy["write_in_stage01"],
+        }
+        for legacy in old_stage01["mvd_fields"]
+    }
+    actual_refs = {
+        (reference["fieldKey"], reference["sourceRow"]): {
+            "uiGroup": reference["uiGroup"],
+            "sourceKind": reference["sourceKind"],
+            "writeInStage01": reference["writeInStage01"],
+        }
+        for reference in source["stage01"]["fieldRefs"]
+    }
+    assert actual_refs == expected_refs
+
+    bindings_by_id = {
+        item["propertyId"]: item for item in old_bindings["bindings"]
+    }
+    rules_by_id = {item["propertyId"]: item for item in old_rules["properties"]}
+    assert set(bindings_by_id) == set(rules_by_id)
+    expected_projections = {}
+    for property_id, binding in bindings_by_id.items():
+        legacy_rule = rules_by_id[property_id]
+        expected_projections[property_id] = (
+            _project_official_mapping_like_legacy_runtime(
+                binding, legacy_rule
+            )
+        )
+    actual_projections = {
+        rule["propertyId"]: rule["officialPlugin"]["legacyProjection"]
+        for rule in source["properties"]
+        if rule["officialPlugin"]["inExtracted166"]
+    }
+    assert actual_projections == expected_projections
+    assert sum(value["category"] == "" for value in actual_projections.values()) == 25
+    assert all(
+        value["sourceParameterOverride"] == ""
+        for value in actual_projections.values()
+    )
+
+    expected_policies = {}
+    for ifc_entity, legacy in old_compatibility["entities"].items():
+        expected_policies[ifc_entity] = (
+            _project_entity_policy_like_legacy_runtime(ifc_entity, legacy)
+        )
+    actual_policies = {
+        item["ifcEntity"]: item
+        for item in source["stage01"]["officialPluginCompatibility"][
+            "entityPolicies"
+        ]
+    }
+    assert actual_policies == expected_policies
+
+    reasons = old_compatibility["stage01ProjectFieldExceptionReasons"]
+    expected_exceptions = {
+        field_key: {"fieldKey": field_key, "reason": reasons[field_key]}
+        for field_key in old_compatibility["stage01ProjectFieldExceptions"]
+    }
+    actual_exceptions = {
+        item["fieldKey"]: item
+        for item in source["stage01"]["officialPluginCompatibility"]["exceptions"]
+    }
+    assert actual_exceptions == expected_exceptions
+
+    expected_activation = _legacy_fixed_activation_rule_ids()
+    actual_activation = {
+        profile["profileId"]: profile["activationRuleIds"]
+        for profile in source["modelProfiles"]
+    }
+    assert actual_activation == expected_activation
 
 
 def test_all_identities_ids_and_parameter_guids_are_unique():
@@ -354,7 +704,7 @@ def test_reference_collections_are_unique_and_task_dependencies_form_profile_dag
     frozen = {
         "carrierRoles": "6f2c90a21b46b26ae82289766c1712f386d7a3432cc2fa6beba8f11f6d829d91",
         "conditions": "5941f38c19608314006dafdfa82744afad65bce50391edaee0b91f9b158b26bd",
-        "modelProfiles": "2e01a821c5afb7db3e85a2d789ac6277afe8b6589b7a7034b6919e8ecb083b4f",
+        "modelProfiles": "9a00bb19f642bf5ad98e39e589873b2d422378cf5e838b02e63cbd35cbef5b05",
         "legacyAliases": "1a18f522e13b6072d12b52e644e165e9bdf10283daf7b525a2ca02578b3b5a80",
     }
     for key, digest in frozen.items():

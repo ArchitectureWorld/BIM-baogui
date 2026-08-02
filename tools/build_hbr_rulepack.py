@@ -75,6 +75,39 @@ _REVIT_FIELDS = {
     "parameterType",
 }
 _OFFICIAL_FIELDS = {"inExtracted166", "evidenceStatus", "originalIdentity"}
+_LEGACY_PROJECTION_FIELDS = {
+    "category",
+    "carrier",
+    "persistenceMode",
+    "sharedParameterType",
+    "officialSourceParameterGroup",
+    "sourceParameterOverride",
+}
+_INTERNAL_WORKFLOW_FIELD_FIELDS = {
+    "fieldKey",
+    "label",
+    "type",
+    "uiGroup",
+    "sourceKind",
+    "allowedValues",
+    "defaultValue",
+}
+_STAGE01_FIELD_REF_FIELDS = {
+    "fieldKey",
+    "propertyId",
+    "sourceRow",
+    "uiGroup",
+    "sourceKind",
+    "writeInStage01",
+}
+_ENTITY_POLICY_FIELDS = {
+    "ifcEntity",
+    "officialObjectMappingEvidence",
+    "revitCarrier",
+    "writePolicy",
+    "officialExportVerified",
+}
+_OFFICIAL_PLUGIN_EXCEPTION_FIELDS = {"fieldKey", "reason"}
 _REQUIREMENT_FIELDS = {"level", "conditionId"}
 _SUGGESTION_FIELDS = {"kind", "aliases"}
 _IFC_WRITE_FIELDS = {"writeStrategy", "ownerStrategy"}
@@ -189,12 +222,50 @@ _EXPECTED_PROFILE_SIZES = {
     "单体建筑—地上": 7,
     "单体建筑—地下": 6,
 }
+_EXPECTED_PROFILE_ACTIVATION_RULE_IDS = {
+    "总平模型": [
+        "HBR.SITE.BASE",
+        "HBR.SITE.BUILDING_FOOTPRINT",
+        "HBR.SITE.NET_LAND",
+        "HBR.SITE.TOTAL_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE",
+    ],
+    "单体建筑—地上": [
+        "HBR.BUILDING.ABOVE.BASE",
+        "HBR.BUILDING.ABOVE.BODY",
+        "HBR.BUILDING.ABOVE.LEVELS",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE",
+    ],
+    "单体建筑—地下": [
+        "HBR.BUILDING.UNDERGROUND.BASE",
+        "HBR.BUILDING.UNDERGROUND.BODY",
+        "HBR.BUILDING.UNDERGROUND.LEVELS",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE",
+    ],
+}
+_SHARED_PARAMETER_TYPES = {
+    "TEXT",
+    "INTEGER",
+    "AREA",
+    "NUMBER",
+    "LENGTH",
+    "ANGLE",
+    "VOLUME",
+    "YESNO",
+}
 _COMPATIBILITY_BASELINE_FIELDS = {
     "schemaVersion",
     "baselineId",
     "baselineVersion",
     "workbookEvidence",
     "officialProperties",
+    "legacyMetadataDigests",
 }
 _COMPATIBILITY_PROPERTY_FIELDS = {
     "propertyId",
@@ -203,9 +274,26 @@ _COMPATIBILITY_PROPERTY_FIELDS = {
     "originalIdentity",
 }
 _COMPATIBILITY_BASELINE_ID = "HBR-WUHAN-PLANNING-COMPATIBILITY"
+_COMPATIBILITY_BASELINE_VERSION = "1.1.0"
 _COMPATIBILITY_WORKBOOK_SOURCE = "《MVD》规划报建.xlsx"
 _COMPATIBILITY_WORKBOOK_SHA256 = (
     "63fac01de41f3bd149e4e857a81256e623382bbe9b3437ed69a2b5ace90628e4"
+)
+_LEGACY_METADATA_DIGEST_NAMES = (
+    "internalWorkflowFields",
+    "stage01FieldMetadata",
+    "officialLegacyProjection",
+    "entityPolicies",
+    "exceptions",
+    "profileActivationRuleIds",
+)
+_LEGACY_PROJECTION_FIELDS = (
+    "category",
+    "carrier",
+    "persistenceMode",
+    "sharedParameterType",
+    "officialSourceParameterGroup",
+    "sourceParameterOverride",
 )
 
 
@@ -216,6 +304,80 @@ def canonical_bytes(source):
         sort_keys=True,
         separators=(",", ":"),
     ).encode("utf-8")
+
+
+def _legacy_metadata_projections(source):
+    stage01 = source["stage01"]
+    return {
+        "internalWorkflowFields": sorted(
+            (dict(item) for item in stage01["internalWorkflowFields"]),
+            key=lambda item: item["fieldKey"],
+        ),
+        "stage01FieldMetadata": sorted(
+            (
+                {
+                    key: item[key]
+                    for key in (
+                        "fieldKey",
+                        "sourceRow",
+                        "uiGroup",
+                        "sourceKind",
+                        "writeInStage01",
+                    )
+                }
+                for item in stage01["fieldRefs"]
+            ),
+            key=lambda item: (item["fieldKey"], item["sourceRow"]),
+        ),
+        "officialLegacyProjection": sorted(
+            (
+                {
+                    "propertyId": rule["propertyId"],
+                    **{
+                        key: rule["officialPlugin"]["legacyProjection"][key]
+                        for key in _LEGACY_PROJECTION_FIELDS
+                    },
+                }
+                for rule in source["properties"]
+                if rule["officialPlugin"]["inExtracted166"]
+            ),
+            key=lambda item: item["propertyId"],
+        ),
+        "entityPolicies": sorted(
+            (
+                dict(item)
+                for item in stage01["officialPluginCompatibility"][
+                    "entityPolicies"
+                ]
+            ),
+            key=lambda item: item["ifcEntity"],
+        ),
+        "exceptions": sorted(
+            (
+                dict(item)
+                for item in stage01["officialPluginCompatibility"]["exceptions"]
+            ),
+            key=lambda item: item["fieldKey"],
+        ),
+        "profileActivationRuleIds": sorted(
+            (
+                {
+                    "profileId": profile["profileId"],
+                    "activationRuleIds": profile["activationRuleIds"],
+                }
+                for profile in source["modelProfiles"]
+            ),
+            key=lambda item: item["profileId"],
+        ),
+    }
+
+
+def _legacy_metadata_digests(source):
+    projections = _legacy_metadata_projections(source)
+    return {
+        name: hashlib.sha256(canonical_bytes(projections[name])).hexdigest()
+        for name in _LEGACY_METADATA_DIGEST_NAMES
+    }
 
 
 def _require(condition, message):
@@ -302,6 +464,22 @@ def _validate_evidence_shape(evidence, path):
         _expect_integer(evidence["count"], f"{path}.count")
 
 
+def _validate_legacy_projection_shape(projection, path):
+    _expect_object(projection, path, required=_LEGACY_PROJECTION_FIELDS)
+    for key in _LEGACY_PROJECTION_FIELDS:
+        _expect_string(projection[key], f"{path}.{key}")
+    for key in (
+        "carrier",
+        "persistenceMode",
+        "sharedParameterType",
+        "officialSourceParameterGroup",
+    ):
+        _require(
+            bool(projection[key]),
+            f"{path}.{key} must be a non-empty string",
+        )
+
+
 def _validate_property_shape(rule, path):
     _expect_object(rule, path, required=_PROPERTY_FIELDS, optional={"extensionReason"})
     for key in ("propertyId", "canonicalKey", "contractKind"):
@@ -349,7 +527,12 @@ def _validate_property_shape(rule, path):
     _expect_boolean(revit["userModifiable"], f"{path}.revit.userModifiable")
 
     official = rule["officialPlugin"]
-    _expect_object(official, f"{path}.officialPlugin", required=_OFFICIAL_FIELDS)
+    _expect_object(
+        official,
+        f"{path}.officialPlugin",
+        required=_OFFICIAL_FIELDS,
+        optional={"legacyProjection"},
+    )
     _expect_boolean(
         official["inExtracted166"],
         f"{path}.officialPlugin.inExtracted166",
@@ -363,6 +546,21 @@ def _validate_property_shape(rule, path):
         official["originalIdentity"],
         f"{path}.officialPlugin.originalIdentity",
     )
+    migrated_path = f"migrated metadata {path}.officialPlugin.legacyProjection"
+    if official["inExtracted166"]:
+        _require(
+            "legacyProjection" in official,
+            f"{migrated_path} is required for an official property",
+        )
+        _validate_legacy_projection_shape(
+            official["legacyProjection"],
+            migrated_path,
+        )
+    else:
+        _require(
+            "legacyProjection" not in official,
+            f"{migrated_path} must be absent for a non-official property",
+        )
 
     _expect_string_array(rule["carrierRoleIds"], f"{path}.carrierRoleIds", minimum=1)
 
@@ -478,9 +676,19 @@ def _validate_structure(source):
 
     for index, profile in enumerate(source["modelProfiles"]):
         path = f"modelProfiles[{index}]"
-        _expect_object(profile, path, required={"profileId", "taskIds"})
+        migrated_path = f"migrated metadata {path}"
+        _expect_object(
+            profile,
+            migrated_path,
+            required={"profileId", "taskIds", "activationRuleIds"},
+        )
         _expect_string(profile["profileId"], f"{path}.profileId", nonempty=True)
         _expect_string_array(profile["taskIds"], f"{path}.taskIds", minimum=1)
+        _expect_string_array(
+            profile["activationRuleIds"],
+            f"{migrated_path}.activationRuleIds",
+            minimum=1,
+        )
 
     for index, condition in enumerate(source["conditions"]):
         path = f"conditions[{index}]"
@@ -510,14 +718,81 @@ def _validate_structure(source):
         _expect_string(alias["alias"], f"{path}.alias", nonempty=True)
 
     stage01 = source["stage01"]
-    _expect_object(stage01, "stage01", required={"fieldRefs"})
+    migrated_stage01 = "migrated metadata stage01"
+    _expect_object(
+        stage01,
+        migrated_stage01,
+        required={
+            "fieldRefs",
+            "internalWorkflowFields",
+            "officialPluginCompatibility",
+        },
+    )
     _expect_array(stage01["fieldRefs"], "stage01.fieldRefs", minimum=1, unique=True)
     for index, reference in enumerate(stage01["fieldRefs"]):
-        path = f"stage01.fieldRefs[{index}]"
-        _expect_object(reference, path, required={"fieldKey", "propertyId", "sourceRow"})
+        path = f"{migrated_stage01}.fieldRefs[{index}]"
+        _expect_object(reference, path, required=_STAGE01_FIELD_REF_FIELDS)
         _expect_string(reference["fieldKey"], f"{path}.fieldKey", nonempty=True)
         _expect_string(reference["propertyId"], f"{path}.propertyId", nonempty=True)
         _expect_integer(reference["sourceRow"], f"{path}.sourceRow")
+        _expect_string(reference["uiGroup"], f"{path}.uiGroup", nonempty=True)
+        _expect_string(reference["sourceKind"], f"{path}.sourceKind", nonempty=True)
+        _expect_boolean(reference["writeInStage01"], f"{path}.writeInStage01")
+
+    internal_fields = stage01["internalWorkflowFields"]
+    _expect_array(
+        internal_fields,
+        f"{migrated_stage01}.internalWorkflowFields",
+        minimum=1,
+    )
+    for index, field in enumerate(internal_fields):
+        path = f"{migrated_stage01}.internalWorkflowFields[{index}]"
+        _expect_object(field, path, required=_INTERNAL_WORKFLOW_FIELD_FIELDS)
+        for key in ("fieldKey", "label", "type", "uiGroup", "sourceKind"):
+            _expect_string(field[key], f"{path}.{key}", nonempty=True)
+        _expect_string_array(field["allowedValues"], f"{path}.allowedValues")
+        _expect_nullable_string(field["defaultValue"], f"{path}.defaultValue")
+
+    compatibility = stage01["officialPluginCompatibility"]
+    compatibility_path = f"{migrated_stage01}.officialPluginCompatibility"
+    _expect_object(
+        compatibility,
+        compatibility_path,
+        required={"entityPolicies", "exceptions"},
+    )
+    _expect_array(
+        compatibility["entityPolicies"],
+        f"{compatibility_path}.entityPolicies",
+        minimum=1,
+    )
+    for index, policy in enumerate(compatibility["entityPolicies"]):
+        path = f"{compatibility_path}.entityPolicies[{index}]"
+        _expect_object(policy, path, required=_ENTITY_POLICY_FIELDS)
+        for key in ("ifcEntity", "officialObjectMappingEvidence", "writePolicy"):
+            _expect_string(policy[key], f"{path}.{key}", nonempty=True)
+        _expect_string(policy["revitCarrier"], f"{path}.revitCarrier")
+        _expect_boolean(
+            policy["officialExportVerified"],
+            f"{path}.officialExportVerified",
+        )
+    _expect_array(
+        compatibility["exceptions"],
+        f"{compatibility_path}.exceptions",
+        minimum=1,
+    )
+    for index, exception in enumerate(compatibility["exceptions"]):
+        path = f"{compatibility_path}.exceptions[{index}]"
+        _expect_object(
+            exception,
+            path,
+            required=_OFFICIAL_PLUGIN_EXCEPTION_FIELDS,
+        )
+        _expect_string(exception["fieldKey"], f"{path}.fieldKey", nonempty=True)
+        _expect_string(exception["reason"], f"{path}.reason", nonempty=True)
+        _require(
+            bool(exception["reason"].strip()),
+            f"{path}.reason must be non-empty after trimming",
+        )
 
 
 def _parse_uuid5(value, label):
@@ -621,7 +896,12 @@ def validate_semantics(source):
     conditions = source["conditions"]
     task_list = source["tasks"]
     aliases = source["legacyAliases"]
-    stage_refs = source["stage01"]["fieldRefs"]
+    stage01 = source["stage01"]
+    stage_refs = stage01["fieldRefs"]
+    internal_fields = stage01["internalWorkflowFields"]
+    compatibility = stage01["officialPluginCompatibility"]
+    entity_policies = compatibility["entityPolicies"]
+    plugin_exceptions = compatibility["exceptions"]
     evidence_sources = source["evidenceSources"]
 
     _require(len(properties) == 359, "properties must contain exactly 359 rules")
@@ -632,9 +912,43 @@ def validate_semantics(source):
     _require(len(aliases) == 166, "legacyAliases must contain exactly 166 records")
     _require(len(stage_refs) == 102, "stage01.fieldRefs must contain exactly 102 records")
     _require(
+        len(internal_fields) == 12,
+        "migrated metadata internalWorkflowFields must contain exactly 12 records",
+    )
+    _require(
+        len(entity_policies) == 9,
+        "migrated metadata entityPolicies must contain exactly 9 records",
+    )
+    _require(
+        len(plugin_exceptions) == 13,
+        "migrated metadata exceptions must contain exactly 13 records",
+    )
+    _require(
         len(evidence_sources) == 3,
         "evidenceSources must contain exactly 3 records",
     )
+
+    internal_field_keys = [field["fieldKey"] for field in internal_fields]
+    _require_unique(
+        internal_field_keys,
+        "migrated metadata internalWorkflowFields.fieldKey",
+    )
+    for index, field in enumerate(internal_fields):
+        label = f"migrated metadata internalWorkflowFields[{index}]"
+        _require(
+            field["type"] in {"string", "enum", "guid", "number", "boolean"},
+            f"{label}.type has an unsupported value",
+        )
+        if field["type"] == "enum":
+            _require(
+                bool(field["allowedValues"]),
+                f"{label}.allowedValues must be non-empty for enum fields",
+            )
+        if field["defaultValue"] is not None and field["allowedValues"]:
+            _require(
+                field["defaultValue"] in field["allowedValues"],
+                f"{label}.defaultValue must belong to allowedValues",
+            )
 
     mvd_rules = [rule for rule in properties if rule["contractKind"] == "MVD"]
     extension_rules = [
@@ -653,6 +967,24 @@ def validate_semantics(source):
         rule for rule in properties if rule["officialPlugin"]["inExtracted166"]
     ]
     _require(len(official_rules) == 166, "officialPlugin set must contain exactly 166 rules")
+    _require(
+        sum(
+            rule["officialPlugin"]["legacyProjection"]["category"] == ""
+            for rule in official_rules
+        )
+        == 25,
+        "migrated metadata legacyProjection must preserve exactly 25 empty categories",
+    )
+    _require(
+        all(
+            rule["officialPlugin"]["legacyProjection"][
+                "sourceParameterOverride"
+            ]
+            == ""
+            for rule in official_rules
+        ),
+        "migrated metadata legacyProjection must preserve all 166 empty sourceParameterOverride values",
+    )
     _require(
         sum(rule["contractKind"] == "MVD" for rule in official_rules) == 163,
         "officialPlugin set must contain exactly 163 MVD rules",
@@ -752,6 +1084,23 @@ def validate_semantics(source):
         == _EXPECTED_PROFILE_SIZES,
         "modelProfiles must contain the verified 15/7/6 task partitions",
     )
+    known_fixed_activation_ids = {
+        rule_id
+        for rule_ids in _EXPECTED_PROFILE_ACTIVATION_RULE_IDS.values()
+        for rule_id in rule_ids
+    }
+    for index, profile in enumerate(profiles):
+        label = f"migrated metadata modelProfiles[{index}].activationRuleIds"
+        for rule_id in profile["activationRuleIds"]:
+            _require(
+                rule_id in known_fixed_activation_ids,
+                f"{label} contains an unknown activation rule reference {rule_id!r}",
+            )
+        _require(
+            profile["activationRuleIds"]
+            == _EXPECTED_PROFILE_ACTIVATION_RULE_IDS[profile["profileId"]],
+            f"{label} must match the verified fixed activation output",
+        )
 
     for index, role in enumerate(carriers):
         label = f"carrierRoles[{index}]"
@@ -881,6 +1230,7 @@ def validate_semantics(source):
             referenced_carrier_ids.add(role_id)
 
         if official["inExtracted166"]:
+            projection = official["legacyProjection"]
             _require(
                 official["evidenceStatus"] == "OFFICIAL_EXTRACTED",
                 f"{label}.officialPlugin.evidenceStatus must be OFFICIAL_EXTRACTED",
@@ -889,6 +1239,20 @@ def validate_semantics(source):
                 type(official["originalIdentity"]) is str
                 and bool(official["originalIdentity"]),
                 f"{label}.officialPlugin.originalIdentity must be non-empty",
+            )
+            _require(
+                projection["persistenceMode"]
+                in {
+                    "DATASTORE_ONLY",
+                    "HYBRID_AREA_AND_DATASTORE",
+                    "SHARED_PARAMETER_AND_DATASTORE",
+                },
+                f"migrated metadata {label}.officialPlugin.legacyProjection.persistenceMode has an unsupported value",
+            )
+            shared_parameter_type = projection["sharedParameterType"]
+            _require(
+                shared_parameter_type in _SHARED_PARAMETER_TYPES,
+                f"migrated metadata {label}.officialPlugin.legacyProjection.sharedParameterType has an unsupported value",
             )
         else:
             _require(
@@ -1027,7 +1391,7 @@ def validate_semantics(source):
         property_id = reference["propertyId"]
         _require(
             property_id in properties_by_id,
-            f"stage01.fieldRefs[{index}].propertyId references an unknown property",
+            f"migrated metadata stage01.fieldRefs[{index}] has an unknown property reference",
         )
         _require(
             properties_by_id[property_id]["source"]["row"] == reference["sourceRow"],
@@ -1044,6 +1408,50 @@ def validate_semantics(source):
     _require(
         sum(property_id in official_ids for property_id in stage_property_ids) == 89,
         "stage01.fieldRefs must contain exactly 89 official property references",
+    )
+    _require(
+        sum(not reference["writeInStage01"] for reference in stage_refs) == 1,
+        "migrated metadata stage01.fieldRefs must preserve exactly one non-writable field",
+    )
+
+    entity_policy_ids = [policy["ifcEntity"] for policy in entity_policies]
+    _require_unique(
+        entity_policy_ids,
+        "migrated metadata entityPolicies.ifcEntity",
+    )
+    official_entity_ids = {rule["ifc"]["entity"] for rule in official_rules}
+    _require(
+        set(entity_policy_ids) == official_entity_ids,
+        "migrated metadata entityPolicies must reference exactly the official IFC entities",
+    )
+    _require(
+        sum(policy["revitCarrier"] == "" for policy in entity_policies) == 5,
+        "migrated metadata entityPolicies must preserve exactly 5 empty revitCarrier values",
+    )
+    _require(
+        all(not policy["officialExportVerified"] for policy in entity_policies),
+        "migrated metadata entityPolicies must preserve all 9 unverified export states",
+    )
+
+    exception_field_keys = [exception["fieldKey"] for exception in plugin_exceptions]
+    _require_unique(
+        exception_field_keys,
+        "migrated metadata exceptions.fieldKey",
+    )
+    stage_field_key_set = set(stage_field_keys)
+    for index, field_key in enumerate(exception_field_keys):
+        _require(
+            field_key in stage_field_key_set,
+            f"migrated metadata exceptions[{index}] contains an unknown field reference",
+        )
+    nonofficial_stage_field_keys = {
+        reference["fieldKey"]
+        for reference in stage_refs
+        if reference["propertyId"] not in official_ids
+    }
+    _require(
+        set(exception_field_keys) == nonofficial_stage_field_keys,
+        "migrated metadata exceptions must cover exactly the 13 non-official stage01 fields",
     )
 
     workbook_evidence = [item for item in evidence_sources if "sha256" in item]
@@ -1077,17 +1485,32 @@ def validate_compatibility(source, baseline):
     for key in ("schemaVersion", "baselineId", "baselineVersion"):
         _expect_string(baseline[key], f"compatibility baseline.{key}", nonempty=True)
     _require(
-        baseline["schemaVersion"] == "1.0.0",
-        "compatibility baseline.schemaVersion must be 1.0.0",
+        baseline["schemaVersion"] == _COMPATIBILITY_BASELINE_VERSION,
+        "compatibility baseline.schemaVersion must be 1.1.0",
     )
     _require(
         baseline["baselineId"] == _COMPATIBILITY_BASELINE_ID,
         f"compatibility baseline.baselineId must be {_COMPATIBILITY_BASELINE_ID}",
     )
     _require(
-        baseline["baselineVersion"] == "1.0.0",
-        "compatibility baseline.baselineVersion must be 1.0.0",
+        baseline["baselineVersion"] == _COMPATIBILITY_BASELINE_VERSION,
+        "compatibility baseline.baselineVersion must be 1.1.0",
     )
+
+    legacy_metadata_digests = baseline["legacyMetadataDigests"]
+    _expect_object(
+        legacy_metadata_digests,
+        "compatibility baseline.legacyMetadataDigests",
+        required=_LEGACY_METADATA_DIGEST_NAMES,
+    )
+    for name in _LEGACY_METADATA_DIGEST_NAMES:
+        path = f"compatibility baseline.legacyMetadataDigests.{name}"
+        _expect_string(legacy_metadata_digests[name], path, nonempty=True)
+        _require(
+            re.fullmatch(r"[0-9a-f]{64}", legacy_metadata_digests[name])
+            is not None,
+            f"{path} must contain 64 lowercase hex characters",
+        )
 
     workbook = baseline["workbookEvidence"]
     _expect_object(
@@ -1171,6 +1594,14 @@ def validate_compatibility(source, baseline):
                 actual[key] == expected[key],
                 f"source official property {property_id} {key} does not match compatibility baseline",
             )
+
+    actual_legacy_metadata_digests = _legacy_metadata_digests(source)
+    for name in _LEGACY_METADATA_DIGEST_NAMES:
+        _require(
+            actual_legacy_metadata_digests[name]
+            == legacy_metadata_digests[name],
+            f"migrated metadata {name} does not preserve legacy equivalence recorded by compatibility baseline",
+        )
 
 
 def _paths_refer_to_same_file(first_path, second_path):

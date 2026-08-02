@@ -1,7 +1,15 @@
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "baselineId": "HBR-WUHAN-PLANNING-COMPATIBILITY",
-  "baselineVersion": "1.0.0",
+  "baselineVersion": "1.1.0",
+  "legacyMetadataDigests": {
+    "internalWorkflowFields": "7751a87575fc00ae340dfd23e42ccf0db0af63b775e3f9b519c4864e76b6b9ab",
+    "stage01FieldMetadata": "21743b9398255cc694182e5f407dbf8d371a6b630699e0ba524f2e66b122309b",
+    "officialLegacyProjection": "cb6328f77c473b80f5b1d2ddc453b02b9ff3f678e0216a4fc2218a5afdf0110f",
+    "entityPolicies": "76ad736eebddbaf8b1519a14dd5dbdb44d149e8d158c1673d85160bb8f98125e",
+    "exceptions": "054e7b77d8925d4b49c592cf0335dc3ae7c02b67e011fbbca43eea4d3084b964",
+    "profileActivationRuleIds": "228276d9e42ce4fd1f0ee4fff175c15855d3c3efe08493aab7dfc05d31c100c3"
+  },
   "workbookEvidence": {
     "logicalSource": "《MVD》规划报建.xlsx",
     "sha256": "63fac01de41f3bd149e4e857a81256e623382bbe9b3437ed69a2b5ace90628e4"

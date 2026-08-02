@@ -64,7 +64,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_报建信息属性集|手机号码"
+        "originalIdentity": "IfcProject|Pset_报建信息属性集|手机号码",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -133,7 +141,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_报建信息属性集|编号"
+        "originalIdentity": "IfcProject|Pset_报建信息属性集|编号",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -202,7 +218,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_报建信息属性集|姓"
+        "originalIdentity": "IfcProject|Pset_报建信息属性集|姓",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -271,7 +295,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_报建信息属性集|名"
+        "originalIdentity": "IfcProject|Pset_报建信息属性集|名",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -340,7 +372,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_报建信息属性集|邮箱地址"
+        "originalIdentity": "IfcProject|Pset_报建信息属性集|邮箱地址",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -409,7 +449,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_报建信息属性集|公司"
+        "originalIdentity": "IfcProject|Pset_报建信息属性集|公司",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -478,7 +526,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_报建信息属性集|公司性质"
+        "originalIdentity": "IfcProject|Pset_报建信息属性集|公司性质",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -547,7 +603,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_报建信息属性集|部门"
+        "originalIdentity": "IfcProject|Pset_报建信息属性集|部门",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -616,7 +680,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_报建信息属性集|国家"
+        "originalIdentity": "IfcProject|Pset_报建信息属性集|国家",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -685,7 +757,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_报建信息属性集|城镇"
+        "originalIdentity": "IfcProject|Pset_报建信息属性集|城镇",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -754,7 +834,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_报建信息属性集|街道"
+        "originalIdentity": "IfcProject|Pset_报建信息属性集|街道",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -823,7 +911,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_报建信息属性集|通信地址"
+        "originalIdentity": "IfcProject|Pset_报建信息属性集|通信地址",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -892,7 +988,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_报建信息属性集|国家编码"
+        "originalIdentity": "IfcProject|Pset_报建信息属性集|国家编码",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -961,7 +1065,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_报建信息属性集|邮政编码"
+        "originalIdentity": "IfcProject|Pset_报建信息属性集|邮政编码",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -1030,7 +1142,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地数量"
+        "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地数量",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "INTEGER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -1099,7 +1219,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地用途"
+        "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地用途",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -1168,7 +1296,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地编号"
+        "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地编号",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -1237,7 +1373,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地信息"
+        "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地信息",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -1306,7 +1450,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地质量等级"
+        "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地质量等级",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -1375,7 +1527,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地权力"
+        "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地权力",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -1444,7 +1604,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地权利人"
+        "originalIdentity": "IfcProject|Pset_地籍信息属性集|宗地权利人",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -1513,7 +1681,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_地籍信息属性集|建筑物编码"
+        "originalIdentity": "IfcProject|Pset_地籍信息属性集|建筑物编码",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -1582,7 +1758,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_登记信息属性集|建设性质"
+        "originalIdentity": "IfcProject|Pset_登记信息属性集|建设性质",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -1652,7 +1836,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_登记信息属性集|总建筑面积"
+        "originalIdentity": "IfcProject|Pset_登记信息属性集|总建筑面积",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "AREA",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -1721,7 +1913,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_登记信息属性集|建筑物编码"
+        "originalIdentity": "IfcProject|Pset_登记信息属性集|建筑物编码",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "阶段化",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -1790,7 +1990,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_登记信息属性集|现状名称"
+        "originalIdentity": "IfcProject|Pset_登记信息属性集|现状名称",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -1859,7 +2067,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_登记信息属性集|审批名称"
+        "originalIdentity": "IfcProject|Pset_登记信息属性集|审批名称",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -1928,7 +2144,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_登记信息属性集|详细地址"
+        "originalIdentity": "IfcProject|Pset_登记信息属性集|详细地址",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -1997,7 +2221,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_登记信息属性集|不动产地址"
+        "originalIdentity": "IfcProject|Pset_登记信息属性集|不动产地址",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -2066,7 +2298,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_登记信息属性集|建成时间"
+        "originalIdentity": "IfcProject|Pset_登记信息属性集|建成时间",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -2135,7 +2375,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_登记信息属性集|建筑状态"
+        "originalIdentity": "IfcProject|Pset_登记信息属性集|建筑状态",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -2204,7 +2452,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_登记信息属性集|建设性质代码"
+        "originalIdentity": "IfcProject|Pset_登记信息属性集|建设性质代码",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -2273,7 +2529,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_区划信息属性集|所属省级行政区"
+        "originalIdentity": "IfcProject|Pset_区划信息属性集|所属省级行政区",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -2342,7 +2606,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_区划信息属性集|省级行政区代码"
+        "originalIdentity": "IfcProject|Pset_区划信息属性集|省级行政区代码",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -2411,7 +2683,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_区划信息属性集|所属地级行政区"
+        "originalIdentity": "IfcProject|Pset_区划信息属性集|所属地级行政区",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -2480,7 +2760,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_区划信息属性集|地级行政区代码"
+        "originalIdentity": "IfcProject|Pset_区划信息属性集|地级行政区代码",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -2549,7 +2837,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_区划信息属性集|所属县级行政区"
+        "originalIdentity": "IfcProject|Pset_区划信息属性集|所属县级行政区",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -2618,7 +2914,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_区划信息属性集|县级行政区代码"
+        "originalIdentity": "IfcProject|Pset_区划信息属性集|县级行政区代码",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -2687,7 +2991,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_区划信息属性集|所属乡级行政区"
+        "originalIdentity": "IfcProject|Pset_区划信息属性集|所属乡级行政区",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -2756,7 +3068,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_区划信息属性集|乡级行政区代码"
+        "originalIdentity": "IfcProject|Pset_区划信息属性集|乡级行政区代码",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -2825,7 +3145,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_区划信息属性集|所属村（社区）"
+        "originalIdentity": "IfcProject|Pset_区划信息属性集|所属村（社区）",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -2894,7 +3222,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_区划信息属性集|村（社区）代码"
+        "originalIdentity": "IfcProject|Pset_区划信息属性集|村（社区）代码",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -2963,7 +3299,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_区划信息属性集|网格编码"
+        "originalIdentity": "IfcProject|Pset_区划信息属性集|网格编码",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -3032,7 +3376,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_区划信息属性集|所属小区"
+        "originalIdentity": "IfcProject|Pset_区划信息属性集|所属小区",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -3101,7 +3453,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_区划信息属性集|备注"
+        "originalIdentity": "IfcProject|Pset_区划信息属性集|备注",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -3171,7 +3531,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|基点坐标X"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|基点坐标X",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -3241,7 +3609,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|基点坐标Y"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|基点坐标Y",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -3311,7 +3687,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|基点高程"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|基点高程",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -3380,7 +3764,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|备注"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|备注",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "阶段化",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -3449,7 +3841,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|项目编号"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|项目编号",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -3518,7 +3918,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|项目名称"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|项目名称",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -3587,7 +3995,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|建设单位"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|建设单位",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -3656,7 +4072,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|项目地址"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|项目地址",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -3725,7 +4149,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|设计单位"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|设计单位",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -3794,7 +4226,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|设计人"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|设计人",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -3863,7 +4303,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|勘察单位"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|勘察单位",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -3932,7 +4380,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|咨询单位"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|咨询单位",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -4001,7 +4457,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|施工单位"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|施工单位",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -4070,7 +4534,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|监理单位"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|监理单位",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -4139,7 +4611,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|图审单位"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|图审单位",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -4208,7 +4688,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|坐标系名称"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|坐标系名称",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -4277,7 +4765,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|高程系名称"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|高程系名称",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -4347,7 +4843,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|经度"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|经度",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "ANGLE",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -4417,7 +4921,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcProject|Pset_申报信息属性集|纬度"
+        "originalIdentity": "IfcProject|Pset_申报信息属性集|纬度",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "ANGLE",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "PROJECT"
@@ -5176,7 +5688,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|耐火等级"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|耐火等级",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -5314,7 +5834,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|地上建筑层数"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|地上建筑层数",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "INTEGER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -5383,7 +5911,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|地下建筑层数"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|地下建筑层数",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "INTEGER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -5453,7 +5989,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑高度"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑高度",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -5523,7 +6067,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑占地面积"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑占地面积",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "AREA",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -5593,7 +6145,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑面积"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑面积",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "AREA",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -5800,7 +6360,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|抗震性能等级"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|抗震性能等级",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -5870,7 +6438,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑体积"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑体积",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "VOLUME",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -5939,7 +6515,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|人数"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|人数",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "INTEGER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -6009,7 +6593,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|地下建筑高度"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|地下建筑高度",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -6079,7 +6671,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|室内外高差最大值"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|室内外高差最大值",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -6148,7 +6748,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑名称"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑名称",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -6217,7 +6825,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑类型名称"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑类型名称",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -6286,7 +6902,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|登记用途名称"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|登记用途名称",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -6355,7 +6979,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑用途名称"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|建筑用途名称",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -6424,7 +7056,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|抗震设防类别"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|抗震设防类别",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -6493,7 +7133,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|安全等级"
+        "originalIdentity": "IfcBuilding|Pset_建筑技术信息属性集|安全等级",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_INFORMATION",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "BUILDING"
@@ -8089,7 +8737,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|底标高"
+        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|底标高",
+        "legacyProjection": {
+          "category": "OST_Levels",
+          "carrier": "LEVEL",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "STOREY"
@@ -8158,7 +8814,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|主功能类别"
+        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|主功能类别",
+        "legacyProjection": {
+          "category": "OST_Levels",
+          "carrier": "LEVEL",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "STOREY"
@@ -8227,7 +8891,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|子功能类别"
+        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|子功能类别",
+        "legacyProjection": {
+          "category": "OST_Levels",
+          "carrier": "LEVEL",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "STOREY"
@@ -8296,7 +8968,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层类型"
+        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层类型",
+        "legacyProjection": {
+          "category": "OST_Levels",
+          "carrier": "LEVEL",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "STOREY"
@@ -8366,7 +9046,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|建筑层高"
+        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|建筑层高",
+        "legacyProjection": {
+          "category": "OST_Levels",
+          "carrier": "LEVEL",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "STOREY"
@@ -8435,7 +9123,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|人数"
+        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|人数",
+        "legacyProjection": {
+          "category": "OST_Levels",
+          "carrier": "LEVEL",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "INTEGER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "STOREY"
@@ -8505,7 +9201,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|计算标高"
+        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|计算标高",
+        "legacyProjection": {
+          "category": "OST_Levels",
+          "carrier": "LEVEL",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "STOREY"
@@ -8575,7 +9279,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层面积"
+        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层面积",
+        "legacyProjection": {
+          "category": "OST_Levels",
+          "carrier": "LEVEL",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "AREA",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "STOREY"
@@ -8644,7 +9356,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|是否设置避难层"
+        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|是否设置避难层",
+        "legacyProjection": {
+          "category": "OST_Levels",
+          "carrier": "LEVEL",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "YESNO",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "STOREY"
@@ -8713,7 +9433,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|备注"
+        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|备注",
+        "legacyProjection": {
+          "category": "OST_Levels",
+          "carrier": "LEVEL",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "STOREY"
@@ -8782,7 +9510,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层名称"
+        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层名称",
+        "legacyProjection": {
+          "category": "OST_Levels",
+          "carrier": "LEVEL",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "STOREY"
@@ -8851,7 +9587,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层编号"
+        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层编号",
+        "legacyProjection": {
+          "category": "OST_Levels",
+          "carrier": "LEVEL",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "STOREY"
@@ -8920,7 +9664,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层属性信息"
+        "originalIdentity": "IfcBuildingStorey|Pset_建筑楼层信息属性集|楼层属性信息",
+        "legacyProjection": {
+          "category": "OST_Levels",
+          "carrier": "LEVEL",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "STOREY"
@@ -9059,7 +9811,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSite|Pset_场地信息属性集|长度"
+        "originalIdentity": "IfcSite|Pset_场地信息属性集|长度",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_LOCATION_AND_DATASTORE",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SITE"
@@ -9129,7 +9889,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSite|Pset_场地信息属性集|宽度"
+        "originalIdentity": "IfcSite|Pset_场地信息属性集|宽度",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_LOCATION_AND_DATASTORE",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SITE"
@@ -9199,7 +9967,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSite|Pset_场地信息属性集|总用地面积"
+        "originalIdentity": "IfcSite|Pset_场地信息属性集|总用地面积",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_LOCATION_AND_DATASTORE",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "AREA",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SITE"
@@ -9269,7 +10045,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSite|Pset_场地信息属性集|可建设用地面积"
+        "originalIdentity": "IfcSite|Pset_场地信息属性集|可建设用地面积",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_LOCATION_AND_DATASTORE",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "AREA",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SITE"
@@ -9338,7 +10122,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSite|Pset_场地信息属性集|建筑密度"
+        "originalIdentity": "IfcSite|Pset_场地信息属性集|建筑密度",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_LOCATION_AND_DATASTORE",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "NUMBER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SITE"
@@ -9407,7 +10199,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSite|Pset_场地信息属性集|建筑比例"
+        "originalIdentity": "IfcSite|Pset_场地信息属性集|建筑比例",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_LOCATION_AND_DATASTORE",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "NUMBER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SITE"
@@ -9476,7 +10276,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSite|Pset_场地信息属性集|混合用地比例"
+        "originalIdentity": "IfcSite|Pset_场地信息属性集|混合用地比例",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_LOCATION_AND_DATASTORE",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "NUMBER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SITE"
@@ -9545,7 +10353,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSite|Pset_场地信息属性集|容积率"
+        "originalIdentity": "IfcSite|Pset_场地信息属性集|容积率",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_LOCATION_AND_DATASTORE",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "NUMBER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SITE"
@@ -9614,7 +10430,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSite|Pset_场地信息属性集|绿地率"
+        "originalIdentity": "IfcSite|Pset_场地信息属性集|绿地率",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_LOCATION_AND_DATASTORE",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "NUMBER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SITE"
@@ -9683,7 +10507,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSite|Pset_场地信息属性集|地块编号"
+        "originalIdentity": "IfcSite|Pset_场地信息属性集|地块编号",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_LOCATION_AND_DATASTORE",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SITE"
@@ -9752,7 +10584,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSite|Pset_场地信息属性集|城市用地分类和使用"
+        "originalIdentity": "IfcSite|Pset_场地信息属性集|城市用地分类和使用",
+        "legacyProjection": {
+          "category": "OST_ProjectInformation",
+          "carrier": "PROJECT_LOCATION_AND_DATASTORE",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SITE"
@@ -13566,7 +14406,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|高度"
+        "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|高度",
+        "legacyProjection": {
+          "category": "OST_Rooms",
+          "carrier": "ROOM",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPACE"
@@ -13636,7 +14484,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|净面积"
+        "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|净面积",
+        "legacyProjection": {
+          "category": "OST_Rooms",
+          "carrier": "ROOM",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "AREA",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPACE"
@@ -13706,7 +14562,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|总建筑面积"
+        "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|总建筑面积",
+        "legacyProjection": {
+          "category": "OST_Rooms",
+          "carrier": "ROOM",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "AREA",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPACE"
@@ -13775,7 +14639,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|空间使用特征"
+        "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|空间使用特征",
+        "legacyProjection": {
+          "category": "OST_Rooms",
+          "carrier": "ROOM",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPACE"
@@ -13844,7 +14716,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpace|Pset_停车位信息属性集|是否为室外停车场"
+        "originalIdentity": "IfcSpace|Pset_停车位信息属性集|是否为室外停车场",
+        "legacyProjection": {
+          "category": "OST_Rooms",
+          "carrier": "ROOM",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "YESNO",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPACE"
@@ -13913,7 +14793,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpace|Pset_停车位信息属性集|停车位类别"
+        "originalIdentity": "IfcSpace|Pset_停车位信息属性集|停车位类别",
+        "legacyProjection": {
+          "category": "OST_Rooms",
+          "carrier": "ROOM",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPACE"
@@ -13982,7 +14870,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpace|Pset_停车位信息属性集|停车位位置信息"
+        "originalIdentity": "IfcSpace|Pset_停车位信息属性集|停车位位置信息",
+        "legacyProjection": {
+          "category": "OST_Rooms",
+          "carrier": "ROOM",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPACE"
@@ -14120,7 +15016,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpace|Pset_停车位信息属性集|备注"
+        "originalIdentity": "IfcSpace|Pset_停车位信息属性集|备注",
+        "legacyProjection": {
+          "category": "OST_Rooms",
+          "carrier": "ROOM",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPACE"
@@ -14534,7 +15438,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpace|Pset_居住建筑空间信息属性集|人数"
+        "originalIdentity": "IfcSpace|Pset_居住建筑空间信息属性集|人数",
+        "legacyProjection": {
+          "category": "OST_Rooms",
+          "carrier": "ROOM",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "INTEGER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPACE"
@@ -14603,7 +15515,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|主功能类别"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|主功能类别",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -14672,7 +15592,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|子功能类别"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|子功能类别",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -14741,7 +15669,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域类别"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域类别",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -14810,7 +15746,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域标记"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域标记",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -14879,7 +15823,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计容系数"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计容系数",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "NUMBER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -14948,7 +15900,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计算系数"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计算系数",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "NUMBER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -15018,7 +15978,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|结构净高"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|结构净高",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -15088,7 +16056,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|建筑净高"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|建筑净高",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -15158,7 +16134,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|结构层高"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|结构层高",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -15228,7 +16212,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计算标高"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计算标高",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -15298,7 +16290,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计算标高（埋深）"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|计算标高（埋深）",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -15368,7 +16368,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|面积"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|面积",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "AREA",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -15438,7 +16446,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|建筑面积"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|建筑面积",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "AREA",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -15507,7 +16523,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|楼层数量"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|楼层数量",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "INTEGER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -15576,7 +16600,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|是否为疏散分区"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|是否为疏散分区",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "YESNO",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -15645,7 +16677,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域人数"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域人数",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "INTEGER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -15922,7 +16962,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域长度"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域长度",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -15992,7 +17040,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域宽度"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域宽度",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -16130,7 +17186,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|轮廓线"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|轮廓线",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -16199,7 +17263,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|疏散区域"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|疏散区域",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -16268,7 +17340,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域位置"
+        "originalIdentity": "IfcSpatialZone|Pset_建筑区域信息属性集|区域位置",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -20696,7 +21776,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_停车场信息属性集|机动车位数量"
+        "originalIdentity": "IfcSpatialZone|Pset_停车场信息属性集|机动车位数量",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "INTEGER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -20765,7 +21853,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_停车场信息属性集|非机动车位数量"
+        "originalIdentity": "IfcSpatialZone|Pset_停车场信息属性集|非机动车位数量",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "INTEGER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -20834,7 +21930,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpatialZone|Pset_停车场信息属性集|无障碍车位数量"
+        "originalIdentity": "IfcSpatialZone|Pset_停车场信息属性集|无障碍车位数量",
+        "legacyProjection": {
+          "category": "OST_Areas",
+          "carrier": "AREA_OR_CANONICAL_DATASTORE",
+          "persistenceMode": "HYBRID_AREA_AND_DATASTORE",
+          "sharedParameterType": "INTEGER",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPATIAL_ZONE"
@@ -22974,7 +24078,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业名称"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业名称",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -23043,7 +24155,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|单位性质"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|单位性质",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -23112,7 +24232,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|社会统一信用代码"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|社会统一信用代码",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -23181,7 +24309,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|注册地区编码"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|注册地区编码",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -23250,7 +24386,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业营业地址"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业营业地址",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -23319,7 +24463,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|邮政编码"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|邮政编码",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -23388,7 +24540,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|法定代表人姓名"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|法定代表人姓名",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -23457,7 +24617,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|法定代表人证件类型"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|法定代表人证件类型",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -23526,7 +24694,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|法定代表人证件号码"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|法定代表人证件号码",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -23595,7 +24771,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|注册资本"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|注册资本",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -23664,7 +24848,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|注册资本币种"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|注册资本币种",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -23733,7 +24925,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|成立日期"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|成立日期",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -23802,7 +25002,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|办公电话"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|办公电话",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -23871,7 +25079,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|传真号码"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|传真号码",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -23940,7 +25156,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|联系人姓名"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|联系人姓名",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -24009,7 +25233,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|联系人办公电话"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|联系人办公电话",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -24078,7 +25310,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|联系人手机号码"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|联系人手机号码",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -24147,7 +25387,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业联系邮箱"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业联系邮箱",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -24216,7 +25464,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业网址"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业网址",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -24285,7 +25541,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业经营状态"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业经营状态",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -24354,7 +25618,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业备注"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业备注",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -24423,7 +25695,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业编码"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|企业编码",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -24492,7 +25772,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|项目参建类型"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|项目参建类型",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -24561,7 +25849,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|项目进场时间"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|项目进场时间",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -24630,7 +25926,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|项目退场时间"
+        "originalIdentity": "IfcOrganization|Pset_组织通用属性集|项目退场时间",
+        "legacyProjection": {
+          "category": "",
+          "carrier": "CANONICAL_DATASTORE",
+          "persistenceMode": "DATASTORE_ONLY",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "ORGANIZATION"
@@ -24699,7 +26003,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcDoor|Pset_门信息属性集|开启方向"
+        "originalIdentity": "IfcDoor|Pset_门信息属性集|开启方向",
+        "legacyProjection": {
+          "category": "OST_Doors",
+          "carrier": "FAMILY_INSTANCE",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "DOOR"
@@ -24770,7 +26082,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcDuctSegment|Pset_风管段信息属性集|隔热层厚度"
+        "originalIdentity": "IfcDuctSegment|Pset_风管段信息属性集|隔热层厚度",
+        "legacyProjection": {
+          "category": "OST_DuctCurves",
+          "carrier": "MEP_CURVE",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "LENGTH",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "DUCT_SEGMENT"
@@ -24840,7 +26160,15 @@
       "officialPlugin": {
         "inExtracted166": true,
         "evidenceStatus": "OFFICIAL_EXTRACTED",
-        "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|空间形成方式"
+        "originalIdentity": "IfcSpace|Pset_建筑空间信息属性集|空间形成方式",
+        "legacyProjection": {
+          "category": "OST_Rooms",
+          "carrier": "ROOM",
+          "persistenceMode": "SHARED_PARAMETER_AND_DATASTORE",
+          "sharedParameterType": "TEXT",
+          "officialSourceParameterGroup": "材质和装饰",
+          "sourceParameterOverride": ""
+        }
       },
       "carrierRoleIds": [
         "SPACE"
@@ -25267,6 +26595,15 @@
         "SITE.CIVIL_DEFENSE",
         "SITE.STRUCTURES",
         "SITE.TARGET_CHECK"
+      ],
+      "activationRuleIds": [
+        "HBR.SITE.BASE",
+        "HBR.SITE.BUILDING_FOOTPRINT",
+        "HBR.SITE.NET_LAND",
+        "HBR.SITE.TOTAL_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
       ]
     },
     {
@@ -25279,6 +26616,14 @@
         "ABOVE.BALCONY",
         "ABOVE.CANOPY",
         "ABOVE.INHERIT_TARGETS"
+      ],
+      "activationRuleIds": [
+        "HBR.BUILDING.ABOVE.BASE",
+        "HBR.BUILDING.ABOVE.BODY",
+        "HBR.BUILDING.ABOVE.LEVELS",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
       ]
     },
     {
@@ -25290,6 +26635,14 @@
         "UNDERGROUND.PARKING",
         "UNDERGROUND.CIVIL_DEFENSE",
         "UNDERGROUND.INHERIT_TARGETS"
+      ],
+      "activationRuleIds": [
+        "HBR.BUILDING.UNDERGROUND.BASE",
+        "HBR.BUILDING.UNDERGROUND.BODY",
+        "HBR.BUILDING.UNDERGROUND.LEVELS",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
       ]
     }
   ],
@@ -26780,513 +28133,1068 @@
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|手机号码",
         "propertyId": "03081502-9a44-56cf-9ea9-e1f0497dc960",
-        "sourceRow": 2
+        "sourceRow": 2,
+        "uiGroup": "05_报建联系人",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|编号",
         "propertyId": "fab11af2-f8a0-5ecd-ab98-93f4aa107117",
-        "sourceRow": 3
+        "sourceRow": 3,
+        "uiGroup": "05_报建联系人",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|姓",
         "propertyId": "f5fb1085-d152-54b4-bd49-772bfb02b85a",
-        "sourceRow": 4
+        "sourceRow": 4,
+        "uiGroup": "05_报建联系人",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|名",
         "propertyId": "a01463f1-8712-535f-a95d-c80fc3e96a52",
-        "sourceRow": 5
+        "sourceRow": 5,
+        "uiGroup": "05_报建联系人",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|邮箱地址",
         "propertyId": "4accb54c-af84-595c-84f5-53b1f4e52a7b",
-        "sourceRow": 6
+        "sourceRow": 6,
+        "uiGroup": "05_报建联系人",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|公司",
         "propertyId": "9e597bc8-8a38-5092-a29b-f2397d01d636",
-        "sourceRow": 7
+        "sourceRow": 7,
+        "uiGroup": "05_报建联系人",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|公司性质",
         "propertyId": "a19ffb03-1ff5-5a77-a034-ece77683e4f1",
-        "sourceRow": 8
+        "sourceRow": 8,
+        "uiGroup": "05_报建联系人",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|部门",
         "propertyId": "115197c0-f548-53d9-b2d8-9f3bfeb0f344",
-        "sourceRow": 9
+        "sourceRow": 9,
+        "uiGroup": "05_报建联系人",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|国家",
         "propertyId": "9783358f-0e15-53c4-8fc8-d21992910e2e",
-        "sourceRow": 10
+        "sourceRow": 10,
+        "uiGroup": "05_报建联系人",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|城镇",
         "propertyId": "d4c3e40e-787c-581b-9c35-41e952f1546a",
-        "sourceRow": 11
+        "sourceRow": 11,
+        "uiGroup": "05_报建联系人",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|街道",
         "propertyId": "dddaaca4-50ce-5edd-978d-0f25561aeb60",
-        "sourceRow": 12
+        "sourceRow": 12,
+        "uiGroup": "05_报建联系人",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|通信地址",
         "propertyId": "b9da15e4-7834-5f31-bb2c-6b1c04d2c5b2",
-        "sourceRow": 13
+        "sourceRow": 13,
+        "uiGroup": "05_报建联系人",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|国家编码",
         "propertyId": "287fef4d-9bfc-5918-9d15-f0b1aa31a786",
-        "sourceRow": 14
+        "sourceRow": 14,
+        "uiGroup": "05_报建联系人",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_报建信息属性集|邮政编码",
         "propertyId": "a33cbb43-34eb-5ff2-ad8e-889c19378b97",
-        "sourceRow": 15
+        "sourceRow": 15,
+        "uiGroup": "05_报建联系人",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|宗地数量",
         "propertyId": "f93bcef9-1b43-5881-9b4f-8a5029883013",
-        "sourceRow": 16
+        "sourceRow": 16,
+        "uiGroup": "04_地籍信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|宗地用途",
         "propertyId": "a1f96b77-cd72-5231-a164-d43df2bc9eb9",
-        "sourceRow": 17
+        "sourceRow": 17,
+        "uiGroup": "04_地籍信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|宗地编号",
         "propertyId": "3b69cba3-5700-5f07-9854-d6303992bfef",
-        "sourceRow": 18
+        "sourceRow": 18,
+        "uiGroup": "04_地籍信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|宗地信息",
         "propertyId": "40a6afb5-cd11-5e56-916c-6992675988dd",
-        "sourceRow": 19
+        "sourceRow": 19,
+        "uiGroup": "04_地籍信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|宗地质量等级",
         "propertyId": "3ba0a149-717d-585b-bb67-501ccb3654d6",
-        "sourceRow": 20
+        "sourceRow": 20,
+        "uiGroup": "04_地籍信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|宗地权力",
         "propertyId": "e2c13e23-2112-564d-8e17-543ba3896508",
-        "sourceRow": 21
+        "sourceRow": 21,
+        "uiGroup": "04_地籍信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|宗地权利人",
         "propertyId": "42ddddcb-4973-5dc1-b87f-b0908f7f5fa1",
-        "sourceRow": 22
+        "sourceRow": 22,
+        "uiGroup": "04_地籍信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_地籍信息属性集|建筑物编码",
         "propertyId": "e686d8c2-710a-5068-b683-43dec25252b4",
-        "sourceRow": 23
+        "sourceRow": 23,
+        "uiGroup": "04_地籍信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|建设性质",
         "propertyId": "22438777-1419-5970-b97d-2c3c44f7a6e5",
-        "sourceRow": 24
+        "sourceRow": 24,
+        "uiGroup": "07_登记信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|总建筑面积",
         "propertyId": "ca21e324-046b-5bfd-84c8-0d3470082303",
-        "sourceRow": 25
+        "sourceRow": 25,
+        "uiGroup": "07_登记信息",
+        "sourceKind": "later_model_calculation_or_external_value",
+        "writeInStage01": false
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|建筑物编码",
         "propertyId": "3c02cb6f-d4bc-5b3d-b44d-6c0d258b9bb2",
-        "sourceRow": 26
+        "sourceRow": 26,
+        "uiGroup": "07_登记信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|现状名称",
         "propertyId": "b45c2d7d-690c-55c2-a23c-626ad81962fb",
-        "sourceRow": 27
+        "sourceRow": 27,
+        "uiGroup": "07_登记信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|审批名称",
         "propertyId": "960ac606-d0c1-5a1b-9f2e-d70d3a8eb712",
-        "sourceRow": 28
+        "sourceRow": 28,
+        "uiGroup": "07_登记信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|详细地址",
         "propertyId": "21ef1d33-e8c4-51f9-8bb0-23250c872ad3",
-        "sourceRow": 29
+        "sourceRow": 29,
+        "uiGroup": "07_登记信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|不动产地址",
         "propertyId": "422ad455-a88f-5d62-8b5d-562bc1aaf5f1",
-        "sourceRow": 30
+        "sourceRow": 30,
+        "uiGroup": "07_登记信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|建成时间",
         "propertyId": "da99190d-498d-5db7-b542-681c434f3ca9",
-        "sourceRow": 31
+        "sourceRow": 31,
+        "uiGroup": "07_登记信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|建筑状态",
         "propertyId": "e63e116d-b988-56fb-946d-e19937c1cb00",
-        "sourceRow": 32
+        "sourceRow": 32,
+        "uiGroup": "07_登记信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_登记信息属性集|建设性质代码",
         "propertyId": "af44d874-a366-5fb5-a65b-6242ad8f452f",
-        "sourceRow": 33
+        "sourceRow": 33,
+        "uiGroup": "07_登记信息",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|所属省级行政区",
         "propertyId": "90a26e62-372f-5ee6-ab76-5cddcdc6a585",
-        "sourceRow": 34
+        "sourceRow": 34,
+        "uiGroup": "03_行政区划",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|省级行政区代码",
         "propertyId": "ebce5979-d12b-5ef6-aded-b5405d60239a",
-        "sourceRow": 35
+        "sourceRow": 35,
+        "uiGroup": "03_行政区划",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|所属地级行政区",
         "propertyId": "af67c862-ef9f-511d-b130-ae25a71dcd56",
-        "sourceRow": 36
+        "sourceRow": 36,
+        "uiGroup": "03_行政区划",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|地级行政区代码",
         "propertyId": "9f9274e8-2c65-5dc4-96ed-739d01238b5a",
-        "sourceRow": 37
+        "sourceRow": 37,
+        "uiGroup": "03_行政区划",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|所属县级行政区",
         "propertyId": "aeed20b9-9696-5b6e-bdb0-be78184aa624",
-        "sourceRow": 38
+        "sourceRow": 38,
+        "uiGroup": "03_行政区划",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|县级行政区代码",
         "propertyId": "82b8d283-7365-532f-b7d2-4b3dd62944cd",
-        "sourceRow": 39
+        "sourceRow": 39,
+        "uiGroup": "03_行政区划",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|所属乡级行政区",
         "propertyId": "e9793406-5361-5df6-a2d6-4c036b86d411",
-        "sourceRow": 40
+        "sourceRow": 40,
+        "uiGroup": "03_行政区划",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|乡级行政区代码",
         "propertyId": "0e043599-3185-5783-9212-6e128bc2119a",
-        "sourceRow": 41
+        "sourceRow": 41,
+        "uiGroup": "03_行政区划",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|所属村（社区）",
         "propertyId": "3dfc9422-4506-58d0-b375-3630ac8e60e2",
-        "sourceRow": 42
+        "sourceRow": 42,
+        "uiGroup": "03_行政区划",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|村（社区）代码",
         "propertyId": "796ccc78-42d0-51dc-928b-4ec3379de9c5",
-        "sourceRow": 43
+        "sourceRow": 43,
+        "uiGroup": "03_行政区划",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|网格编码",
         "propertyId": "3eb5d633-e567-53fe-a60f-b7982c49a396",
-        "sourceRow": 44
+        "sourceRow": 44,
+        "uiGroup": "03_行政区划",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|所属小区",
         "propertyId": "7a3fe440-fd30-52fa-9633-c9c5a4d211b8",
-        "sourceRow": 45
+        "sourceRow": 45,
+        "uiGroup": "03_行政区划",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_区划信息属性集|备注",
         "propertyId": "73742866-4015-51ac-a863-9020cca3088f",
-        "sourceRow": 46
+        "sourceRow": 46,
+        "uiGroup": "03_行政区划",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 X",
         "propertyId": "6b407894-09d4-529a-9f9f-a031219cdeaa",
-        "sourceRow": 47
+        "sourceRow": 47,
+        "uiGroup": "02_坐标与高程",
+        "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 Y",
         "propertyId": "1a64ef8d-e97c-5fa1-b53f-52b969b6198a",
-        "sourceRow": 48
+        "sourceRow": 48,
+        "uiGroup": "02_坐标与高程",
+        "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|基点高程",
         "propertyId": "50164757-c346-5005-a1b8-7b423c6b8de5",
-        "sourceRow": 49
+        "sourceRow": 49,
+        "uiGroup": "02_坐标与高程",
+        "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|备注",
         "propertyId": "2e11c6d5-e6c2-52ed-8eab-7b47c54092e7",
-        "sourceRow": 50
+        "sourceRow": 50,
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|项目编号",
         "propertyId": "7e970f3c-876f-5873-9f00-dcec9a6f1366",
-        "sourceRow": 51
+        "sourceRow": 51,
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|项目名称",
         "propertyId": "2bc733cd-c7a1-57fa-b206-1baeb71881d4",
-        "sourceRow": 52
+        "sourceRow": 52,
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|建设单位",
         "propertyId": "5e1b3023-55c2-5563-8b62-f23d8749c5f3",
-        "sourceRow": 53
+        "sourceRow": 53,
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|项目地址",
         "propertyId": "26858ad1-f88e-5ad4-aedb-7542eb907dd2",
-        "sourceRow": 54
+        "sourceRow": 54,
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|设计单位",
         "propertyId": "39f99f8a-50e8-5908-ab1d-9dbab0bcf95f",
-        "sourceRow": 55
+        "sourceRow": 55,
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|设计人",
         "propertyId": "dfaccc71-32f5-50a9-9a41-a611158edb29",
-        "sourceRow": 56
+        "sourceRow": 56,
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|勘察单位",
         "propertyId": "59d2c258-bf95-56f0-9431-873712c9e330",
-        "sourceRow": 57
+        "sourceRow": 57,
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|咨询单位",
         "propertyId": "69056d87-4196-541e-9e34-848c1ec15947",
-        "sourceRow": 58
+        "sourceRow": 58,
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|施工单位",
         "propertyId": "620fcfe3-2c21-5fd4-8d6d-f0ed878c5a78",
-        "sourceRow": 59
+        "sourceRow": 59,
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|监理单位",
         "propertyId": "1e44a14b-e063-55c5-9294-fce4eb5f62ca",
-        "sourceRow": 60
+        "sourceRow": 60,
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|图审单位",
         "propertyId": "b7559143-785b-5c93-bcc6-6934c5c20dba",
-        "sourceRow": 61
+        "sourceRow": 61,
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|坐标系名称",
         "propertyId": "38a62192-ecac-5e2d-9fc0-3b8d40afd27b",
-        "sourceRow": 62
+        "sourceRow": 62,
+        "uiGroup": "02_坐标与高程",
+        "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|高程系名称",
         "propertyId": "3a7d90c2-9ccb-5d74-b13c-30c892693048",
-        "sourceRow": 63
+        "sourceRow": 63,
+        "uiGroup": "02_坐标与高程",
+        "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|经度",
         "propertyId": "bc08027b-56bf-5c99-b9e7-9ba2f2a0e2d4",
-        "sourceRow": 64
+        "sourceRow": 64,
+        "uiGroup": "02_坐标与高程",
+        "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_申报信息属性集|纬度",
         "propertyId": "e951b3e2-8e17-5443-9b6b-570d07067856",
-        "sourceRow": 65
+        "sourceRow": 65,
+        "uiGroup": "02_坐标与高程",
+        "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|建筑密度",
         "propertyId": "c94f1ae2-0a02-5479-aae4-c8f59af71fe0",
-        "sourceRow": 66
+        "sourceRow": 66,
+        "uiGroup": "08_规划控制指标",
+        "sourceKind": "GH_planning_condition_input",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|容积率",
         "propertyId": "35675fd2-c3d2-5553-8db6-855980a201a4",
-        "sourceRow": 67
+        "sourceRow": 67,
+        "uiGroup": "08_规划控制指标",
+        "sourceKind": "GH_planning_condition_input",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|绿地率",
         "propertyId": "5d5f3dba-3ae9-59c6-9aee-aa24e88f312c",
-        "sourceRow": 68
+        "sourceRow": 68,
+        "uiGroup": "08_规划控制指标",
+        "sourceKind": "GH_planning_condition_input",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|建筑限高",
         "propertyId": "ddc7523d-e3aa-527e-9689-6ed93b2ba850",
-        "sourceRow": 69
+        "sourceRow": 69,
+        "uiGroup": "08_规划控制指标",
+        "sourceKind": "GH_planning_condition_input",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|海拔限高",
         "propertyId": "504e3237-da89-5de9-a39a-4e5df0008903",
-        "sourceRow": 70
+        "sourceRow": 70,
+        "uiGroup": "08_规划控制指标",
+        "sourceKind": "GH_planning_condition_input",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|机动车位",
         "propertyId": "aef64f95-dc27-5aff-9f13-3121f6c896a0",
-        "sourceRow": 71
+        "sourceRow": 71,
+        "uiGroup": "08_规划控制指标",
+        "sourceKind": "GH_planning_condition_input",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|非机动车车位",
         "propertyId": "11110e9f-aaae-5576-ac0d-447a6f4b8524",
-        "sourceRow": 72
+        "sourceRow": 72,
+        "uiGroup": "08_规划控制指标",
+        "sourceKind": "GH_planning_condition_input",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|配置套值",
         "propertyId": "ce26e8a2-a98b-57b6-8c37-798d17c553cb",
-        "sourceRow": 73
+        "sourceRow": 73,
+        "uiGroup": "08_规划控制指标",
+        "sourceKind": "GH_planning_condition_input",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|非机动车类型",
         "propertyId": "85c3a1fe-4965-53d3-828c-bdf2298f3db8",
-        "sourceRow": 74
+        "sourceRow": 74,
+        "uiGroup": "08_规划控制指标",
+        "sourceKind": "GH_planning_condition_input",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|非机动车折算系数",
         "propertyId": "20c734f0-64ea-52a9-a73b-a335d6a811db",
-        "sourceRow": 75
+        "sourceRow": 75,
+        "uiGroup": "08_规划控制指标",
+        "sourceKind": "GH_planning_condition_input",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_Manifest|阶段",
         "propertyId": "bd3ca893-aa9c-5359-a1cf-a89fa8940bb8",
-        "sourceRow": 297
+        "sourceRow": 297,
+        "uiGroup": "01_文件与阶段",
+        "sourceKind": "GH_manual_and_system",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_Manifest|应用模型精度",
         "propertyId": "b3bf4494-4794-56b7-b2b2-582f189c2558",
-        "sourceRow": 298
+        "sourceRow": 298,
+        "uiGroup": "01_文件与阶段",
+        "sourceKind": "GH_manual_and_system",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcProject|Pset_Manifest|实际模型精度",
         "propertyId": "1cbf1a4e-3815-5723-8eb9-beb4bb749518",
-        "sourceRow": 299
+        "sourceRow": 299,
+        "uiGroup": "01_文件与阶段",
+        "sourceKind": "GH_manual_and_system",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|企业名称",
         "propertyId": "ff217d10-c277-50fb-8e5e-8cc2ac8f4585",
-        "sourceRow": 333
+        "sourceRow": 333,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|单位性质",
         "propertyId": "a4046c1c-f111-5ba8-b660-ba575b91dcb8",
-        "sourceRow": 334
+        "sourceRow": 334,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|社会统一信用代码",
         "propertyId": "016f92ab-ab2c-5dff-a9cc-4d9669d5e768",
-        "sourceRow": 335
+        "sourceRow": 335,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|注册地区编码",
         "propertyId": "15ea15ae-b3b2-5d89-a8db-d71adc52730c",
-        "sourceRow": 336
+        "sourceRow": 336,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|企业营业地址",
         "propertyId": "adf23867-0ab2-55a6-92ba-3cf152211838",
-        "sourceRow": 337
+        "sourceRow": 337,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|邮政编码",
         "propertyId": "5d49bfa4-abf6-5452-b883-224f5dcb1c55",
-        "sourceRow": 338
+        "sourceRow": 338,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|法定代表人姓名",
         "propertyId": "e4660fa7-7ba9-5106-a4fc-26e3d99c6175",
-        "sourceRow": 339
+        "sourceRow": 339,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|法定代表人证件类型",
         "propertyId": "c126e2f9-f901-5ab9-92a6-b35b2149fb26",
-        "sourceRow": 340
+        "sourceRow": 340,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|法定代表人证件号码",
         "propertyId": "ee61922d-8e32-5335-bd57-86051aa8d070",
-        "sourceRow": 341
+        "sourceRow": 341,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|注册资本",
         "propertyId": "552c8321-b375-5435-9a9a-9289151af68b",
-        "sourceRow": 342
+        "sourceRow": 342,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|注册资本币种",
         "propertyId": "4ec72816-e05d-559c-9057-d00c231f0999",
-        "sourceRow": 343
+        "sourceRow": 343,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|成立日期",
         "propertyId": "ce9763ab-6165-5acb-b614-21546eaee300",
-        "sourceRow": 344
+        "sourceRow": 344,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|办公电话",
         "propertyId": "372dc78b-8892-5c29-8f1e-aa81a0abbc23",
-        "sourceRow": 345
+        "sourceRow": 345,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|传真号码",
         "propertyId": "9017d53a-1dbb-546d-85be-c9fcf4a8179b",
-        "sourceRow": 346
+        "sourceRow": 346,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|联系人姓名",
         "propertyId": "e2863620-23a5-5b29-ad0b-47338d2d1915",
-        "sourceRow": 347
+        "sourceRow": 347,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|联系人办公电话",
         "propertyId": "b5e28005-8282-5b0d-a45e-1b3d0d136aa2",
-        "sourceRow": 348
+        "sourceRow": 348,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|联系人手机号码",
         "propertyId": "850cddde-0248-5ef0-b1b6-f32da97b5e9c",
-        "sourceRow": 349
+        "sourceRow": 349,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|企业联系邮箱",
         "propertyId": "0f672079-ebb1-5f9f-9a46-3aae7e6357bf",
-        "sourceRow": 350
+        "sourceRow": 350,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|企业网址",
         "propertyId": "49a38f13-a54f-5358-882a-d6806ca226c1",
-        "sourceRow": 351
+        "sourceRow": 351,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|企业经营状态",
         "propertyId": "13a37612-c9af-5dca-9bde-6fd540b2b114",
-        "sourceRow": 352
+        "sourceRow": 352,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|企业备注",
         "propertyId": "e91c6b3d-556d-526b-a66b-545553f20fc8",
-        "sourceRow": 353
+        "sourceRow": 353,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|企业编码",
         "propertyId": "aea197df-c1c3-57bf-9ff4-87111e73b12d",
-        "sourceRow": 354
+        "sourceRow": 354,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|项目参建类型",
         "propertyId": "64ec6d92-f85d-557c-bade-1ec7c172b60f",
-        "sourceRow": 355
+        "sourceRow": 355,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|项目进场时间",
         "propertyId": "bff42cce-915d-54ec-905b-5f4dfff1ec98",
-        "sourceRow": 356
+        "sourceRow": 356,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       },
       {
         "fieldKey": "IfcOrganization|Pset_组织通用属性集|项目退场时间",
         "propertyId": "c8769206-33f2-5b17-9daf-645394c6c922",
-        "sourceRow": 357
+        "sourceRow": 357,
+        "uiGroup": "06_参建组织",
+        "sourceKind": "GH_manual_or_external",
+        "writeInStage01": true
       }
-    ]
+    ],
+    "internalWorkflowFields": [
+      {
+        "fieldKey": "HBR|FileIdentity|SubitemCode",
+        "label": "子项编号",
+        "type": "string",
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual",
+        "allowedValues": [],
+        "defaultValue": null
+      },
+      {
+        "fieldKey": "HBR|FileIdentity|SubitemName",
+        "label": "子项名称",
+        "type": "string",
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual",
+        "allowedValues": [],
+        "defaultValue": null
+      },
+      {
+        "fieldKey": "HBR|FileIdentity|ModelFileType",
+        "label": "模型文件类型",
+        "type": "enum",
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual",
+        "allowedValues": [
+          "总平模型",
+          "单体建筑—地上",
+          "单体建筑—地下"
+        ],
+        "defaultValue": null
+      },
+      {
+        "fieldKey": "HBR|FileIdentity|ModelScope",
+        "label": "模型范围",
+        "type": "string",
+        "uiGroup": "01_文件与项目身份",
+        "sourceKind": "GH_manual",
+        "allowedValues": [],
+        "defaultValue": null
+      },
+      {
+        "fieldKey": "HBR|FileIdentity|FileGuid",
+        "label": "报规文件唯一ID",
+        "type": "guid",
+        "uiGroup": "01_文件与阶段",
+        "sourceKind": "system_generated",
+        "allowedValues": [],
+        "defaultValue": null
+      },
+      {
+        "fieldKey": "HBR|Workflow|Version",
+        "label": "工作流版本",
+        "type": "string",
+        "uiGroup": "01_文件与阶段",
+        "sourceKind": "system_generated",
+        "allowedValues": [],
+        "defaultValue": "0.1.0"
+      },
+      {
+        "fieldKey": "HBR|Workflow|InitializationStatus",
+        "label": "初始化状态",
+        "type": "enum",
+        "uiGroup": "09_提交与回读",
+        "sourceKind": "system_generated",
+        "allowedValues": [
+          "未初始化",
+          "输入未完成",
+          "待提交",
+          "提交中",
+          "回读失败",
+          "初始化通过",
+          "已修改待重新提交"
+        ],
+        "defaultValue": null
+      },
+      {
+        "fieldKey": "HBR|SpatialReference|TrueNorthAngle",
+        "label": "真北角度",
+        "type": "number",
+        "uiGroup": "02_坐标与高程",
+        "sourceKind": "GH_manual_then_Revit_configuration_and_readback",
+        "allowedValues": [],
+        "defaultValue": null
+      },
+      {
+        "fieldKey": "HBR|ProjectUnits|Length",
+        "label": "长度显示单位",
+        "type": "enum",
+        "uiGroup": "02_坐标与高程",
+        "sourceKind": "system_rule",
+        "allowedValues": [
+          "m"
+        ],
+        "defaultValue": "m"
+      },
+      {
+        "fieldKey": "HBR|ProjectUnits|Area",
+        "label": "面积显示单位",
+        "type": "enum",
+        "uiGroup": "02_坐标与高程",
+        "sourceKind": "system_rule",
+        "allowedValues": [
+          "m²"
+        ],
+        "defaultValue": "m²"
+      },
+      {
+        "fieldKey": "HBR|ProjectUnits|Angle",
+        "label": "角度显示单位",
+        "type": "enum",
+        "uiGroup": "02_坐标与高程",
+        "sourceKind": "system_rule",
+        "allowedValues": [
+          "°"
+        ],
+        "defaultValue": "°"
+      },
+      {
+        "fieldKey": "HBR|Precheck|BlankProject",
+        "label": "空白/刚拆分文件检查",
+        "type": "boolean",
+        "uiGroup": "00_当前Revit文件",
+        "sourceKind": "Revit_scan",
+        "allowedValues": [],
+        "defaultValue": null
+      }
+    ],
+    "officialPluginCompatibility": {
+      "entityPolicies": [
+        {
+          "ifcEntity": "IfcProject",
+          "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+          "revitCarrier": "PROJECT_INFORMATION",
+          "writePolicy": "ALLOW_WITH_EXPORT_VERIFICATION_REQUIRED",
+          "officialExportVerified": false
+        },
+        {
+          "ifcEntity": "IfcBuilding",
+          "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+          "revitCarrier": "PROJECT_INFORMATION",
+          "writePolicy": "ALLOW_WITH_EXPORT_VERIFICATION_REQUIRED",
+          "officialExportVerified": false
+        },
+        {
+          "ifcEntity": "IfcBuildingStorey",
+          "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+          "revitCarrier": "LEVEL",
+          "writePolicy": "REQUIRE_EXPLICIT_LEVEL_TARGET",
+          "officialExportVerified": false
+        },
+        {
+          "ifcEntity": "IfcSpace",
+          "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+          "revitCarrier": "ROOM",
+          "writePolicy": "REQUIRE_EXPLICIT_ROOM_TARGET",
+          "officialExportVerified": false
+        },
+        {
+          "ifcEntity": "IfcOrganization",
+          "officialObjectMappingEvidence": "UNVERIFIED",
+          "revitCarrier": "",
+          "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+          "officialExportVerified": false
+        },
+        {
+          "ifcEntity": "IfcSite",
+          "officialObjectMappingEvidence": "UNVERIFIED",
+          "revitCarrier": "",
+          "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+          "officialExportVerified": false
+        },
+        {
+          "ifcEntity": "IfcSpatialZone",
+          "officialObjectMappingEvidence": "UNVERIFIED",
+          "revitCarrier": "",
+          "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+          "officialExportVerified": false
+        },
+        {
+          "ifcEntity": "IfcDoor",
+          "officialObjectMappingEvidence": "UNVERIFIED",
+          "revitCarrier": "",
+          "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+          "officialExportVerified": false
+        },
+        {
+          "ifcEntity": "IfcDuctSegment",
+          "officialObjectMappingEvidence": "UNVERIFIED",
+          "revitCarrier": "",
+          "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+          "officialExportVerified": false
+        }
+      ],
+      "exceptions": [
+        {
+          "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|建筑密度",
+          "reason": "规划控制目标，不是模型计算实际建筑密度；保存在 HBR PlanningTargets。"
+        },
+        {
+          "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|容积率",
+          "reason": "规划控制目标，不是模型计算实际容积率；保存在 HBR PlanningTargets。"
+        },
+        {
+          "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|绿地率",
+          "reason": "规划控制目标，不是模型计算实际绿地率；保存在 HBR PlanningTargets。"
+        },
+        {
+          "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|建筑限高",
+          "reason": "规划限值，不得写成建筑实际高度。"
+        },
+        {
+          "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|海拔限高",
+          "reason": "规划限值，不得写成模型实际海拔或高程。"
+        },
+        {
+          "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|机动车位",
+          "reason": "规划配置要求，不得写成模型实际车位统计。"
+        },
+        {
+          "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|非机动车车位",
+          "reason": "规划配置要求，不得写成模型实际车位统计。"
+        },
+        {
+          "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|配置套值",
+          "reason": "规划规则元数据，当前官方属性包无同义实际值字段。"
+        },
+        {
+          "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|非机动车类型",
+          "reason": "规划条件元数据，保存在 HBR 上下文。"
+        },
+        {
+          "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|非机动车折算系数",
+          "reason": "规划计算规则，不得写成模型实际指标。"
+        },
+        {
+          "fieldKey": "IfcProject|Pset_Manifest|阶段",
+          "reason": "HBR 文件/工作流 Manifest 元数据，不冒充官方 H-IFC 属性。"
+        },
+        {
+          "fieldKey": "IfcProject|Pset_Manifest|应用模型精度",
+          "reason": "HBR 工作流元数据，当前 166 条官方属性中无对应项。"
+        },
+        {
+          "fieldKey": "IfcProject|Pset_Manifest|实际模型精度",
+          "reason": "HBR 工作流元数据，当前 166 条官方属性中无对应项。"
+        }
+      ]
+    }
   }
 }
