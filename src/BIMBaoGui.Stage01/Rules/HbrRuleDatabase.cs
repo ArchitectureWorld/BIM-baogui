@@ -13,9 +13,7 @@ namespace BIMBaoGui.Stage01.Rules
       "BIMBaoGui.Stage01.Resources.HBR_RulePack.hbrpack";
 
     private static readonly Lazy<HbrRuleDatabase> LazyCurrent =
-      new Lazy<HbrRuleDatabase>(
-        LoadCurrent,
-        LazyThreadSafetyMode.ExecutionAndPublication);
+      CreateLazy(LoadCurrent);
 
     private HbrRuleDatabase(HbrRulePackage package)
     {
@@ -124,6 +122,14 @@ namespace BIMBaoGui.Stage01.Rules
     public static HbrRuleDatabase Load(Stream stream)
     {
       return new HbrRuleDatabase(HbrRulePackageLoader.Load(stream));
+    }
+
+    internal static Lazy<HbrRuleDatabase> CreateLazy(
+      Func<HbrRuleDatabase> factory)
+    {
+      return new Lazy<HbrRuleDatabase>(
+        factory,
+        LazyThreadSafetyMode.ExecutionAndPublication);
     }
 
     private static HbrRuleDatabase LoadCurrent()

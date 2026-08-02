@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using BIMBaoGui.Stage01.Rules;
@@ -15,6 +16,48 @@ namespace BIMBaoGui.Stage01.Core.Tests
 {
   public sealed class HbrRuleDatabaseTests
   {
+    private const string ProductionAssemblyFixtureName =
+      "BIMBaoGui.Stage01.production.dll";
+    private const string ExpectedRulePackResourceName =
+      "BIMBaoGui.Stage01.Resources.HBR_RulePack.hbrpack";
+
+    [Fact]
+    public void Production_assembly_manifest_and_Current_use_its_embedded_pack()
+    {
+      string productionAssemblyPath = Path.Combine(
+        AppDomain.CurrentDomain.BaseDirectory,
+        ProductionAssemblyFixtureName);
+      Assert.True(
+        File.Exists(productionAssemblyPath),
+        "Production assembly fixture is missing: " + productionAssemblyPath);
+
+      Assembly productionAssembly = Assembly.LoadFile(
+        Path.GetFullPath(productionAssemblyPath));
+      Assert.NotSame(typeof(HbrRuleDatabase).Assembly, productionAssembly);
+      Assert.Single(
+        productionAssembly.GetManifestResourceNames(),
+        name => name == ExpectedRulePackResourceName);
+
+      Type databaseType = productionAssembly.GetType(
+        "BIMBaoGui.Stage01.Rules.HbrRuleDatabase",
+        true);
+      PropertyInfo currentProperty = databaseType.GetProperty(
+        "Current",
+        BindingFlags.Public | BindingFlags.Static);
+      Assert.NotNull(currentProperty);
+
+      object current = currentProperty.GetValue(null, null);
+      Assert.NotNull(current);
+      Assert.Same(productionAssembly, current.GetType().Assembly);
+      object package = databaseType.GetProperty("Package").GetValue(
+        current,
+        null);
+      string payloadSha256 = (string)package.GetType()
+        .GetProperty("RulePackageSha256")
+        .GetValue(package, null);
+      Assert.Matches("^[0-9a-f]{64}$", payloadSha256);
+    }
+
     [Fact]
     public void Load_exposes_verified_counts_and_all_six_indexes()
     {
@@ -242,6 +285,70 @@ namespace BIMBaoGui.Stage01.Core.Tests
         BindingFlags.Public | BindingFlags.Static);
       Assert.NotNull(current);
       Assert.Null(current.SetMethod);
+    }
+
+    [Fact]
+    public async Task CreateLazy_is_deferred_and_executes_factory_once_under_contention()
+    {
+      const int workerCount = 8;
+      int factoryCalls = 0;
+      int accessAttempts = 0;
+      using (var accessBarrier = new Barrier(workerCount + 1))
+      using (var factoryEntered = new ManualResetEventSlim(false))
+      using (var releaseFactory = new ManualResetEventSlim(false))
+      {
+        Lazy<HbrRuleDatabase> lazy = HbrRuleDatabase.CreateLazy(() =>
+        {
+          Interlocked.Increment(ref factoryCalls);
+          factoryEntered.Set();
+          releaseFactory.Wait();
+          return LoadEmbeddedDatabase();
+        });
+
+        Assert.False(lazy.IsValueCreated);
+        Assert.Equal(0, Volatile.Read(ref factoryCalls));
+
+        Task<HbrRuleDatabase>[] accesses = Enumerable.Range(0, workerCount)
+          .Select(_ => Task.Factory.StartNew(
+            () =>
+            {
+              accessBarrier.SignalAndWait();
+              Interlocked.Increment(ref accessAttempts);
+              return lazy.Value;
+            },
+            CancellationToken.None,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default))
+          .ToArray();
+
+        try
+        {
+          Assert.True(accessBarrier.SignalAndWait(TimeSpan.FromSeconds(5)));
+          Assert.True(SpinWait.SpinUntil(
+            () => Volatile.Read(ref accessAttempts) == workerCount,
+            TimeSpan.FromSeconds(5)));
+          Assert.True(factoryEntered.Wait(TimeSpan.FromSeconds(5)));
+
+          SpinWait.SpinUntil(
+            () => Volatile.Read(ref factoryCalls) > 1,
+            TimeSpan.FromSeconds(1));
+          releaseFactory.Set();
+
+          Task<HbrRuleDatabase[]> allAccesses = Task.WhenAll(accesses);
+          Task completed = await Task.WhenAny(
+            allAccesses,
+            Task.Delay(TimeSpan.FromSeconds(10)));
+          Assert.Same(allAccesses, completed);
+          HbrRuleDatabase[] results = await allAccesses;
+          Assert.True(lazy.IsValueCreated);
+          Assert.Equal(1, Volatile.Read(ref factoryCalls));
+          Assert.All(results, result => Assert.Same(results[0], result));
+        }
+        finally
+        {
+          releaseFactory.Set();
+        }
+      }
     }
 
     [Fact]

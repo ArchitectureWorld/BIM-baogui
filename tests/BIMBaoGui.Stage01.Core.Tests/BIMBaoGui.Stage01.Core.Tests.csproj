@@ -22,6 +22,10 @@
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\Stage04FailureReportWriter.cs" Link="Diagnostics\Stage04FailureReportWriter.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepDocument.cs" Link="Mvd\IfcStepDocument.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepEntity.cs" Link="Mvd\IfcStepEntity.cs" />
@@ -130,6 +134,21 @@
       <EmbeddedResource Include="$(HbrRulePack)"
                         LogicalName="BIMBaoGui.Stage01.Resources.HBR_RulePack.hbrpack" />
       <FileWrites Include="$(HbrRulePack)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="StageHbrProductionAssemblyForTests" AfterTargets="Build">
+    <PropertyGroup>
+      <HbrProductionAssembly>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'src', 'BIMBaoGui.Stage01', 'bin', '$(Configuration)', 'net48', 'BIMBaoGui.Stage01.dll'))</HbrProductionAssembly>
+      <HbrProductionAssemblyFixture>$([MSBuild]::NormalizePath('$(TargetDir)', 'BIMBaoGui.Stage01.production.dll'))</HbrProductionAssemblyFixture>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(HbrProductionAssembly)')"
+           Text="Production BIMBaoGui.Stage01 assembly was not built: $(HbrProductionAssembly)" />
+    <Copy SourceFiles="$(HbrProductionAssembly)"
+          DestinationFiles="$(HbrProductionAssemblyFixture)"
+          SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <FileWrites Include="$(HbrProductionAssemblyFixture)" />
     </ItemGroup>
   </Target>
 </Project>
