@@ -6,6 +6,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using BIMBaoGui.Stage01.Context;
 using BIMBaoGui.Stage01.Core;
+using BIMBaoGui.Stage01.Diagnostics;
 using BIMBaoGui.Stage01.Infrastructure;
 
 namespace BIMBaoGui.Stage01.Revit
@@ -237,6 +238,7 @@ namespace BIMBaoGui.Stage01.Revit
       if (string.IsNullOrWhiteSpace(document.PathName))
         return Failure("请先保存当前 RVT 文件。");
 
+      string operationStage = "VALIDATION";
       StoredInitialization existing = Stage01Storage.Read(document);
       Stage01StorageDecision storageDecision = EvaluateStorage(existing);
       if (storageDecision.State == Stage01StorageState.CorruptInitialization)
@@ -293,9 +295,13 @@ namespace BIMBaoGui.Stage01.Revit
             if (transaction.Start() != TransactionStatus.Started)
               throw new InvalidOperationException("无法启动 Revit 事务。");
 
+            operationStage = "APPLY_UNITS";
             ApplyUnits(document);
+            operationStage = "PROJECT_POSITION";
             ApplyProjectPosition(document, model);
+            operationStage = "PROJECT_INFORMATION";
             ApplyProjectInformation(document, model);
+            operationStage = "INTERNAL_STORAGE";
             Stage01Storage.Write(document, new StoredInitialization
             {
               PayloadJson = payloadJson,
@@ -304,16 +310,19 @@ namespace BIMBaoGui.Stage01.Revit
               WorkflowVersion = model.GetValue(Stage01Keys.WorkflowVersion),
               InitializedUtc = DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture)
             });
+            operationStage = "OFFICIAL_PROJECTION";
             commitMessages.AddRange(
               Stage01OfficialHifcProjectionService.WriteAndVerify(
                 document,
                 payloadJson));
 
+            operationStage = "TRANSACTION_COMMIT";
             document.Regenerate();
             if (transaction.Commit() != TransactionStatus.Committed)
               throw new InvalidOperationException("Revit 事务未成功提交。");
           }
 
+          operationStage = "READBACK_VERIFICATION";
           IReadOnlyList<string> readbackErrors = VerifyReadback(
             document,
             model,
@@ -360,8 +369,60 @@ namespace BIMBaoGui.Stage01.Revit
         }
         catch (Exception exception)
         {
-          try { group.RollBack(); } catch { }
-          return Failure("初始化失败，事务已回滚：" + exception.Message);
+          bool transactionRolledBack = false;
+          try
+          {
+            transactionRolledBack = group.RollBack() == TransactionStatus.RolledBack;
+          }
+          catch
+          {
+          }
+
+          var pluginAssembly = typeof(Stage01RevitService).Assembly;
+          DateTimeOffset occurredUtc = DateTimeOffset.UtcNow;
+          Stage01FailureReportWriteResult reportResult =
+            Stage01FailureReportWriter.TryWrite(new Stage01FailureReportContext
+            {
+              AssemblyPath = pluginAssembly.Location,
+              PluginName = pluginAssembly.GetName().Name,
+              PluginVersion = pluginAssembly.GetName().Version?.ToString() ?? string.Empty,
+              RevitVersionNumber = uiapp.Application.VersionNumber ?? string.Empty,
+              RevitVersionName = uiapp.Application.VersionName ?? string.Empty,
+              RevitBuild = uiapp.Application.VersionBuild ?? string.Empty,
+              ProcessArchitecture = Environment.Is64BitProcess ? "x64" : "x86",
+              DocumentTitle = document.Title ?? string.Empty,
+              DocumentPath = document.PathName ?? string.Empty,
+              DocumentIsReadOnly = document.IsReadOnly,
+              DocumentIsFamilyDocument = document.IsFamilyDocument,
+              DocumentIsWorkshared = document.IsWorkshared,
+              OperationStage = operationStage,
+              TransactionRolledBack = transactionRolledBack,
+              Exception = exception,
+              OccurredUtc = occurredUtc,
+              OccurredLocal = DateTimeOffset.Now
+            });
+
+          string rollbackSummary = transactionRolledBack
+            ? "事务已回滚"
+            : "事务回滚状态未确认";
+          if (reportResult.Success)
+          {
+            return Failure(
+              "DIAG_STAGE01_COMMIT_FAILED：初始化失败，"
+              + rollbackSummary
+              + "；异常类型="
+              + exception.GetType().FullName
+              + "；错误报告="
+              + reportResult.ReportPath);
+          }
+
+          return Failure(
+            "DIAG_STAGE01_COMMIT_FAILED：REPORT_WRITE_FAILED；初始化失败，"
+            + rollbackSummary
+            + "；原始异常="
+            + reportResult.OriginalExceptionSummary
+            + "；报告写入异常="
+            + reportResult.ReportWriteErrorSummary);
         }
       }
     }

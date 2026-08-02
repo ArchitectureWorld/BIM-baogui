@@ -30,6 +30,24 @@ def test_enqueue_failure_is_recorded_as_a_real_failed_commit():
     assert 'Status = "初始化失败"' in component
 
 
+def test_commit_exception_writes_json_report_and_keeps_ui_concise():
+    service = read("src/BIMBaoGui.Stage01/Revit/Stage01RevitService.cs")
+    assert "Stage01FailureReportWriter.TryWrite" in service
+    assert "DIAG_STAGE01_COMMIT_FAILED" in service
+    assert "exception.GetType().FullName" in service
+    assert 'operationStage = "VALIDATION"' in service
+    assert 'operationStage = "APPLY_UNITS"' in service
+    assert 'operationStage = "PROJECT_POSITION"' in service
+    assert 'operationStage = "PROJECT_INFORMATION"' in service
+    assert 'operationStage = "INTERNAL_STORAGE"' in service
+    assert 'operationStage = "OFFICIAL_PROJECTION"' in service
+    assert 'operationStage = "TRANSACTION_COMMIT"' in service
+    assert 'operationStage = "READBACK_VERIFICATION"' in service
+    assert "错误报告=" in service
+    assert "REPORT_WRITE_FAILED" in service
+    assert "FormatExceptionChain" not in service
+
+
 def test_v090_plugin_and_context_contract_versions_match():
     project = read("src/BIMBaoGui.Stage01/BIMBaoGui.Stage01.csproj")
     assembly = read("src/BIMBaoGui.Stage01/AssemblyInfo.cs")
