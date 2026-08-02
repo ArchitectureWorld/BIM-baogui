@@ -171,6 +171,12 @@ def test_stage02_requires_file_context_and_outputs_task_plan():
     assert "模型任务与骨架分流" in component
     assert "class Stage02ComponentAttributes : GH_ComponentAttributes" in attributes
     assert "HBRDocumentFingerprint.Compute" in service
+    assert "Stage01Storage.Read" in service
+    assert "StoredFileGuid" in service
+    assert "StoredPayloadHash" in service
+    assert "StoredWorkflowVersion" in service
+    assert "HBRLiveContextPolicy.Validate" in component
+    assert "document.IsReadOnly" not in service
     assert "请连接 01 文件初始化" in compiler
 
 

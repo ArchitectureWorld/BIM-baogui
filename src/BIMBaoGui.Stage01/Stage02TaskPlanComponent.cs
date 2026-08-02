@@ -93,16 +93,28 @@ namespace BIMBaoGui.Stage01
       if (_snapshot.Messages != null)
         blockers.AddRange(_snapshot.Messages);
 
-      if (_context != null && _snapshot.HostAvailable
-        && !string.Equals(
+      bool fingerprintMatches = _context != null
+        && _snapshot.HostAvailable
+        && string.Equals(
           _context.RevitDocumentFingerprint,
           _snapshot.DocumentFingerprint,
-          StringComparison.OrdinalIgnoreCase))
+          StringComparison.OrdinalIgnoreCase);
+      if (_context != null && _snapshot.HostAvailable && !fingerprintMatches)
       {
         blockers.Add(
           "文件上下文属于“" + _context.RevitDocumentTitle
           + "”，当前活动文件为“" + _snapshot.DocumentTitle
           + "”。请回到对应 Revit 文件，或重新运行 01 文件初始化。");
+      }
+      if (fingerprintMatches)
+      {
+        blockers.AddRange(HBRLiveContextPolicy.Validate(
+          _context.FileGuid,
+          _context.SourcePayloadHash,
+          _snapshot.IsInitialized,
+          _snapshot.StoredFileGuid,
+          _snapshot.StoredPayloadHash,
+          _snapshot.StoredWorkflowVersion));
       }
 
       if (blockers.Count == 0 && _context != null)

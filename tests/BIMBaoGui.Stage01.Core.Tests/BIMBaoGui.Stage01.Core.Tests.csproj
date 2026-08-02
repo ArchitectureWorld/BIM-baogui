@@ -20,6 +20,7 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRDocumentFingerprint.cs" Link="Context\HBRDocumentFingerprint.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRFileContext.cs" Link="Context\HBRFileContext.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRFileContextCanonicalizer.cs" Link="Context\HBRFileContextCanonicalizer.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRLiveContextPolicy.cs" Link="Context\HBRLiveContextPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRSpatialReference.cs" Link="Context\HBRSpatialReference.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\RuleActivationCatalog.cs" Link="Context\RuleActivationCatalog.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\BlankGatePolicy.cs" Link="Core\BlankGatePolicy.cs" />

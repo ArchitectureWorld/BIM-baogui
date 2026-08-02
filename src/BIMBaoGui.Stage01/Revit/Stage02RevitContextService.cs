@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using BIMBaoGui.Stage01.Context;
+using BIMBaoGui.Stage01.Core;
 
 namespace BIMBaoGui.Stage01.Revit
 {
@@ -13,6 +14,10 @@ namespace BIMBaoGui.Stage01.Revit
     public string DocumentTitle { get; set; } = string.Empty;
     public string DocumentPath { get; set; } = string.Empty;
     public string DocumentFingerprint { get; set; } = string.Empty;
+    public bool IsInitialized { get; set; }
+    public string StoredFileGuid { get; set; } = string.Empty;
+    public string StoredPayloadHash { get; set; } = string.Empty;
+    public string StoredWorkflowVersion { get; set; } = string.Empty;
     public IReadOnlyList<string> Messages { get; set; } = Array.Empty<string>();
   }
 
@@ -47,6 +52,18 @@ namespace BIMBaoGui.Stage01.Revit
         snapshot.DocumentPath,
         snapshot.DocumentTitle,
         snapshot.RevitVersion);
+      StoredInitialization stored = Stage01Storage.Read(document);
+      Stage01StorageDecision storageDecision = Stage01StorageStatePolicy.Evaluate(
+        stored != null,
+        stored?.PayloadJson,
+        stored?.PayloadHash,
+        stored?.FileGuid,
+        stored?.WorkflowVersion,
+        HBRContextVersions.FileContextSchema);
+      snapshot.IsInitialized = storageDecision.IsInitialized;
+      snapshot.StoredFileGuid = stored?.FileGuid ?? string.Empty;
+      snapshot.StoredPayloadHash = stored?.PayloadHash ?? string.Empty;
+      snapshot.StoredWorkflowVersion = stored?.WorkflowVersion ?? string.Empty;
 
       if (!string.Equals(snapshot.RevitVersion, "2020", StringComparison.Ordinal))
         messages.Add("当前 Revit 版本为 " + snapshot.RevitVersion + "，本组件仅支持 Revit 2020。");
@@ -54,8 +71,6 @@ namespace BIMBaoGui.Stage01.Revit
         messages.Add("当前文档是族文件，不能编译报规模型任务。");
       if (string.IsNullOrWhiteSpace(snapshot.DocumentPath))
         messages.Add("请先保存当前 RVT 文件，再编译任务计划。");
-      if (document.IsReadOnly)
-        messages.Add("当前 Revit 文档为只读状态。");
 
       snapshot.Messages = messages;
       return snapshot;
