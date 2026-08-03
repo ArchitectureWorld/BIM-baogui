@@ -89,6 +89,7 @@ namespace BIMBaoGui.Stage01.Stage02
   {
     public const string Legacy = "LEGACY";
     public const string CurrentSelection = "CURRENT_SELECTION";
+    public const string ExplicitIds = "EXPLICIT_IDS";
     public const string ExplicitPick = "EXPLICIT_PICK";
     public const string ProjectInformation = "PROJECT_INFORMATION";
   }

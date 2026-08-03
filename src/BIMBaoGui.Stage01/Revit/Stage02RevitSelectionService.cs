@@ -77,27 +77,60 @@ namespace BIMBaoGui.Stage01.Revit
     internal static Stage02RevitSelectionResult ReadCurrentSelection(
       HBRFileContext context)
     {
+      return ReadCurrentSelection(context, string.Empty);
+    }
+
+    internal static Stage02RevitSelectionResult ReadCurrentSelection(
+      HBRFileContext context,
+      string roleHint)
+    {
       if (RevitHost.RunReadInHostContext(
-        () => ReadCurrentSelectionCore(context),
+        () => ReadCurrentSelectionCore(context, roleHint),
         out Stage02RevitSelectionResult result,
         out string error))
       {
         return result;
       }
-      return Failed(error);
+      return Failed(error, Stage02SelectionModes.CurrentSelection);
     }
 
     internal static Stage02RevitSelectionResult PickElements(
       HBRFileContext context)
     {
+      return PickElements(context, string.Empty);
+    }
+
+    internal static Stage02RevitSelectionResult PickElements(
+      HBRFileContext context,
+      string roleHint)
+    {
       if (RevitHost.RunReadInHostContext(
-        () => PickElementsCore(context),
+        () => PickElementsCore(context, roleHint),
         out Stage02RevitSelectionResult result,
         out string error))
       {
         return result;
       }
-      return Failed(error);
+      return Failed(error, Stage02SelectionModes.ExplicitPick);
+    }
+
+    internal static Stage02RevitSelectionResult ResolveElementIds(
+      HBRFileContext context,
+      IEnumerable<int> elementIds,
+      string roleHint)
+    {
+      int[] frozenIds = (elementIds ?? Array.Empty<int>())
+        .Distinct()
+        .OrderBy(value => value)
+        .ToArray();
+      if (RevitHost.RunReadInHostContext(
+        () => ResolveElementIdsCore(context, frozenIds, roleHint),
+        out Stage02RevitSelectionResult result,
+        out string error))
+      {
+        return result;
+      }
+      return Failed(error, Stage02SelectionModes.ExplicitIds);
     }
 
     internal static Stage02RevitSelectionResult SelectProjectInformation(
@@ -111,11 +144,12 @@ namespace BIMBaoGui.Stage01.Revit
       {
         return result;
       }
-      return Failed(error);
+      return Failed(error, Stage02SelectionModes.ProjectInformation);
     }
 
     private static Stage02RevitSelectionResult ReadCurrentSelectionCore(
-      HBRFileContext context)
+      HBRFileContext context,
+      string roleHint)
     {
       RequireHost(out UIApplication uiApplication, out UIDocument uiDocument,
         out Document document);
@@ -124,20 +158,29 @@ namespace BIMBaoGui.Stage01.Revit
         uiApplication,
         document);
       if (blockers.Count > 0)
-        return new Stage02RevitSelectionResult(false, null, blockers);
+        return new Stage02RevitSelectionResult(
+          Stage02SelectionModes.CurrentSelection,
+          false,
+          null,
+          blockers);
       ICollection<ElementId> ids = uiDocument.Selection.GetElementIds();
       if (ids.Count == 0)
-        return Failed("当前 Revit 选择集中没有元素。");
+      {
+        return Failed(
+          "当前 Revit 选择集中没有元素。",
+          Stage02SelectionModes.CurrentSelection);
+      }
       return FromElements(
         uiApplication,
         document,
         ids.Select(document.GetElement),
-        string.Empty,
+        NormalizeRoleHint(roleHint),
         Stage02SelectionModes.CurrentSelection);
     }
 
     private static Stage02RevitSelectionResult PickElementsCore(
-      HBRFileContext context)
+      HBRFileContext context,
+      string roleHint)
     {
       RequireHost(out UIApplication uiApplication, out UIDocument uiDocument,
         out Document document);
@@ -146,7 +189,11 @@ namespace BIMBaoGui.Stage01.Revit
         uiApplication,
         document);
       if (blockers.Count > 0)
-        return new Stage02RevitSelectionResult(false, null, blockers);
+        return new Stage02RevitSelectionResult(
+          Stage02SelectionModes.ExplicitPick,
+          false,
+          null,
+          blockers);
       try
       {
         IList<Autodesk.Revit.DB.Reference> references =
@@ -155,7 +202,7 @@ namespace BIMBaoGui.Stage01.Revit
           uiApplication,
           document,
           references.Select(reference => document.GetElement(reference)),
-          string.Empty,
+          NormalizeRoleHint(roleHint),
           Stage02SelectionModes.ExplicitPick);
       }
       catch (Autodesk.Revit.Exceptions.OperationCanceledException)
@@ -168,6 +215,57 @@ namespace BIMBaoGui.Stage01.Revit
       }
     }
 
+    private static Stage02RevitSelectionResult ResolveElementIdsCore(
+      HBRFileContext context,
+      IEnumerable<int> elementIds,
+      string roleHint)
+    {
+      RequireHost(out UIApplication uiApplication, out _, out Document document);
+      IReadOnlyList<string> blockers = ValidateDocument(
+        context,
+        uiApplication,
+        document);
+      if (blockers.Count > 0)
+      {
+        return new Stage02RevitSelectionResult(
+          Stage02SelectionModes.ExplicitIds,
+          false,
+          null,
+          blockers);
+      }
+
+      int[] ids = (elementIds ?? Array.Empty<int>())
+        .Distinct()
+        .OrderBy(value => value)
+        .ToArray();
+      if (ids.Length == 0)
+      {
+        return Failed(
+          "元素Id入口没有提供任何 Id。",
+          Stage02SelectionModes.ExplicitIds);
+      }
+      Element[] elements = ids
+        .Select(value => document.GetElement(new ElementId(value)))
+        .ToArray();
+      int[] missing = ids
+        .Where((value, index) => elements[index] == null)
+        .ToArray();
+      if (missing.Length > 0)
+      {
+        return Failed(
+          "以下元素Id无法在当前文档解析："
+          + string.Join(",", missing)
+          + "。",
+          Stage02SelectionModes.ExplicitIds);
+      }
+      return FromElements(
+        uiApplication,
+        document,
+        elements,
+        NormalizeRoleHint(roleHint),
+        Stage02SelectionModes.ExplicitIds);
+    }
+
     private static Stage02RevitSelectionResult SelectProjectInformationCore(
       HBRFileContext context,
       string roleHint)
@@ -178,17 +276,26 @@ namespace BIMBaoGui.Stage01.Revit
         uiApplication,
         document);
       if (blockers.Count > 0)
-        return new Stage02RevitSelectionResult(false, null, blockers);
-      if (!IsProjectInformationRole(roleHint))
+      {
+        return new Stage02RevitSelectionResult(
+          Stage02SelectionModes.ProjectInformation,
+          false,
+          null,
+          blockers);
+      }
+      string normalizedRole = NormalizeRoleHint(roleHint);
+      if (normalizedRole.Length == 0) normalizedRole = "PROJECT";
+      if (!IsProjectInformationRole(normalizedRole))
       {
         return Failed(
-          "ProjectInformation 专用入口只接受 PROJECT、SITE 或 BUILDING 角色提示。");
+          "ProjectInformation 专用入口只接受 PROJECT、SITE 或 BUILDING 角色提示。",
+          Stage02SelectionModes.ProjectInformation);
       }
       return FromElements(
         uiApplication,
         document,
         new[] { document.ProjectInformation },
-        roleHint,
+        normalizedRole,
         Stage02SelectionModes.ProjectInformation);
     }
 
@@ -337,6 +444,11 @@ namespace BIMBaoGui.Stage01.Revit
       return string.Equals(roleHint, "PROJECT", StringComparison.Ordinal)
         || string.Equals(roleHint, "SITE", StringComparison.Ordinal)
         || string.Equals(roleHint, "BUILDING", StringComparison.Ordinal);
+    }
+
+    private static string NormalizeRoleHint(string roleHint)
+    {
+      return (roleHint ?? string.Empty).Trim().ToUpperInvariant();
     }
 
     private static Stage02RevitSelectionResult Failed(string message)

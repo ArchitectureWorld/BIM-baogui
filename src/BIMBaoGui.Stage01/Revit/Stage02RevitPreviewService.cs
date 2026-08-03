@@ -147,6 +147,7 @@ namespace BIMBaoGui.Stage01.Revit
             currentSelectionEvidence,
             true);
 
+        case Stage02SelectionModes.ExplicitIds:
         case Stage02SelectionModes.ExplicitPick:
           return RehydrateSelection(
             uiApplication,
@@ -812,6 +813,10 @@ namespace BIMBaoGui.Stage01.Revit
       return string.Equals(
           selectionMode,
           Stage02SelectionModes.CurrentSelection,
+          StringComparison.Ordinal)
+        || string.Equals(
+          selectionMode,
+          Stage02SelectionModes.ExplicitIds,
           StringComparison.Ordinal)
         || string.Equals(
           selectionMode,

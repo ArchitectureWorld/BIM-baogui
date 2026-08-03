@@ -96,6 +96,8 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02RequirementDecisionPolicy.cs" Link="Stage02\Stage02RequirementDecisionPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02Stage01ProjectionPolicy.cs" Link="Stage02\Stage02Stage01ProjectionPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02SelectionSetPolicy.cs" Link="Stage02\Stage02SelectionSetPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02PreparationInputPolicy.cs" Link="Stage02\Stage02PreparationInputPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02PreparationFieldDetailFormatter.cs" Link="Stage02\Stage02PreparationFieldDetailFormatter.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02TransactionStatePolicy.cs" Link="Revit\Stage02TransactionStatePolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02DeferredTransactionPolicy.cs" Link="Revit\Stage02DeferredTransactionPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02DeferredGroupPolicy.cs" Link="Revit\Stage02DeferredGroupPolicy.cs" />

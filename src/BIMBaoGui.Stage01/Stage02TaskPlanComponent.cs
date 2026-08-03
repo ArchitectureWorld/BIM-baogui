@@ -33,7 +33,7 @@ namespace BIMBaoGui.Stage01
 
     public override Guid ComponentGuid => new Guid("c9374518-d5b0-4f9b-898b-5ecf01c94470");
     protected override Bitmap Icon => IconFactory.CreateComponentIcon();
-    public override GH_Exposure Exposure => GH_Exposure.secondary;
+    public override GH_Exposure Exposure => GH_Exposure.hidden;
 
     internal HBRFileContext CurrentContext => _context;
     internal HBRTaskPlan CurrentPlan => _plan;
