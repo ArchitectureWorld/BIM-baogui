@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1.0",
+  "frozenFromCommit": "91a2db05ed57ae2335e63ff532b4bf5fe6109dfb",
+  "algorithm": "SHA-256",
+  "files": [
+    {
+      "name": "mvd-ifc-normalization.v1.json",
+      "length": 86681,
+      "sha256": "81abb587fbdace2ea593c8f5ec523d2687c52617b379816f679dd6fd5fe15b78"
+    },
+    {
+      "name": "official-hifc-mappings.v1.json",
+      "length": 296739,
+      "sha256": "d7e087ad110a7b2621ef2576a83c4332873a47f39ef0686142353a0d6f99fac7"
+    },
+    {
+      "name": "official-plugin-compatibility.v1.json",
+      "length": 6101,
+      "sha256": "f98acf7bea648be5c18349b237bc7a36ec78700240d55cb61b7d76f425c6e676"
+    },
+    {
+      "name": "rule-activation.v1.json",
+      "length": 43534,
+      "sha256": "97337855657177d8a89b26675673cb73ac8c035473ff49b2954710f9f5b09e34"
+    },
+    {
+      "name": "shared-parameters-canonical.v1.json",
+      "length": 57970,
+      "sha256": "096b27b4880df5518b4f6702ed6216b57b26cdd8ccc7975c977b46f8f7142cc6"
+    },
+    {
+      "name": "stage01-registry.v1.json",
+      "length": 52902,
+      "sha256": "f693908460cd6097d9fda159a552220d50d905b4b9b3ffb0eac7bbfeab5e31bc"
+    },
+    {
+      "name": "task-rules.v1.json",
+      "length": 22755,
+      "sha256": "a5b6b4e6e05d37858f34823a9c8ba1be170df197a0e70e64e13c840cedd06b0f"
+    }
+  ]
+}

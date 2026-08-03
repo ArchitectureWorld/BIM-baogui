@@ -1,0 +1,164 @@
+{
+  "schemaVersion": "1.0",
+  "frozenFromCommit": "91a2db05ed57ae2335e63ff532b4bf5fe6109dfb",
+  "entityPolicies": [
+    {
+      "ifcEntity": "IfcProject",
+      "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+      "revitCarrier": "PROJECT_INFORMATION",
+      "writePolicy": "ALLOW_WITH_EXPORT_VERIFICATION_REQUIRED",
+      "officialExportVerified": false,
+      "isBlocked": false,
+      "allowsProjectInformationDefault": true
+    },
+    {
+      "ifcEntity": "IfcBuilding",
+      "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+      "revitCarrier": "PROJECT_INFORMATION",
+      "writePolicy": "ALLOW_WITH_EXPORT_VERIFICATION_REQUIRED",
+      "officialExportVerified": false,
+      "isBlocked": false,
+      "allowsProjectInformationDefault": true
+    },
+    {
+      "ifcEntity": "IfcBuildingStorey",
+      "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+      "revitCarrier": "LEVEL",
+      "writePolicy": "REQUIRE_EXPLICIT_LEVEL_TARGET",
+      "officialExportVerified": false,
+      "isBlocked": false,
+      "allowsProjectInformationDefault": false
+    },
+    {
+      "ifcEntity": "IfcSpace",
+      "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+      "revitCarrier": "ROOM",
+      "writePolicy": "REQUIRE_EXPLICIT_ROOM_TARGET",
+      "officialExportVerified": false,
+      "isBlocked": false,
+      "allowsProjectInformationDefault": false
+    },
+    {
+      "ifcEntity": "IfcOrganization",
+      "officialObjectMappingEvidence": "UNVERIFIED",
+      "revitCarrier": "",
+      "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+      "officialExportVerified": false,
+      "isBlocked": true,
+      "allowsProjectInformationDefault": false
+    },
+    {
+      "ifcEntity": "IfcSite",
+      "officialObjectMappingEvidence": "UNVERIFIED",
+      "revitCarrier": "",
+      "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+      "officialExportVerified": false,
+      "isBlocked": true,
+      "allowsProjectInformationDefault": false
+    },
+    {
+      "ifcEntity": "IfcSpatialZone",
+      "officialObjectMappingEvidence": "UNVERIFIED",
+      "revitCarrier": "",
+      "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+      "officialExportVerified": false,
+      "isBlocked": true,
+      "allowsProjectInformationDefault": false
+    },
+    {
+      "ifcEntity": "IfcDoor",
+      "officialObjectMappingEvidence": "UNVERIFIED",
+      "revitCarrier": "",
+      "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+      "officialExportVerified": false,
+      "isBlocked": true,
+      "allowsProjectInformationDefault": false
+    },
+    {
+      "ifcEntity": "IfcDuctSegment",
+      "officialObjectMappingEvidence": "UNVERIFIED",
+      "revitCarrier": "",
+      "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+      "officialExportVerified": false,
+      "isBlocked": true,
+      "allowsProjectInformationDefault": false
+    }
+  ],
+  "exceptions": [
+    {
+      "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|建筑密度",
+      "reason": "规划控制目标，不是模型计算实际建筑密度；保存在 HBR PlanningTargets。",
+      "recognized": true
+    },
+    {
+      "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|容积率",
+      "reason": "规划控制目标，不是模型计算实际容积率；保存在 HBR PlanningTargets。",
+      "recognized": true
+    },
+    {
+      "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|绿地率",
+      "reason": "规划控制目标，不是模型计算实际绿地率；保存在 HBR PlanningTargets。",
+      "recognized": true
+    },
+    {
+      "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|建筑限高",
+      "reason": "规划限值，不得写成建筑实际高度。",
+      "recognized": true
+    },
+    {
+      "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|海拔限高",
+      "reason": "规划限值，不得写成模型实际海拔或高程。",
+      "recognized": true
+    },
+    {
+      "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|机动车位",
+      "reason": "规划配置要求，不得写成模型实际车位统计。",
+      "recognized": true
+    },
+    {
+      "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|非机动车车位",
+      "reason": "规划配置要求，不得写成模型实际车位统计。",
+      "recognized": true
+    },
+    {
+      "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|配置套值",
+      "reason": "规划规则元数据，当前官方属性包无同义实际值字段。",
+      "recognized": true
+    },
+    {
+      "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|非机动车类型",
+      "reason": "规划条件元数据，保存在 HBR 上下文。",
+      "recognized": true
+    },
+    {
+      "fieldKey": "IfcProject|Pset_项目控制指标信息属性集|非机动车折算系数",
+      "reason": "规划计算规则，不得写成模型实际指标。",
+      "recognized": true
+    },
+    {
+      "fieldKey": "IfcProject|Pset_Manifest|阶段",
+      "reason": "HBR 文件/工作流 Manifest 元数据，不冒充官方 H-IFC 属性。",
+      "recognized": true
+    },
+    {
+      "fieldKey": "IfcProject|Pset_Manifest|应用模型精度",
+      "reason": "HBR 工作流元数据，当前 166 条官方属性中无对应项。",
+      "recognized": true
+    },
+    {
+      "fieldKey": "IfcProject|Pset_Manifest|实际模型精度",
+      "reason": "HBR 工作流元数据，当前 166 条官方属性中无对应项。",
+      "recognized": true
+    }
+  ],
+  "unknownEntityFallback": {
+    "input": " UnknownIfcEntity ",
+    "ifcEntity": " UnknownIfcEntity ",
+    "officialObjectMappingEvidence": "UNVERIFIED",
+    "revitCarrier": "",
+    "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+    "officialExportVerified": false,
+    "isBlocked": true,
+    "allowsProjectInformationDefault": false
+  }
+}

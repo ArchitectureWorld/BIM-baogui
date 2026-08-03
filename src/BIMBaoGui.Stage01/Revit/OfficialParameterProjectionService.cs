@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using Autodesk.Revit.DB;
 using BIMBaoGui.Stage01.Hifc;
+using BIMBaoGui.Stage01.Rules;
 
 namespace BIMBaoGui.Stage01.Revit
 {
@@ -28,8 +28,6 @@ namespace BIMBaoGui.Stage01.Revit
 
   internal static class OfficialParameterProjectionService
   {
-    private const string SharedParameterResource =
-      "BIMBaoGui.Stage01.Resources.GH_HIFC_SharedParameters.txt";
     private const string CanonicalProjectionKind = "CANONICAL_INTERNAL";
     private const string OfficialProjectionKind = "OFFICIAL_EXACT_SOURCE_NAME";
     private const string DuplicateOfficialSourceParameterCode =
@@ -303,7 +301,7 @@ namespace BIMBaoGui.Stage01.Revit
         + ".txt");
       File.WriteAllText(
         temporary,
-        BuildCombinedSharedParameterFile(definitions),
+        HbrSharedParameterTextProjection.CreateText(HbrRuleDatabase.Current),
         Encoding.Unicode);
       try
       {
@@ -411,107 +409,6 @@ namespace BIMBaoGui.Stage01.Revit
         + "；原始异常=" + exception.GetType().FullName
         + "：" + exception.Message,
         exception);
-    }
-
-    private static string BuildCombinedSharedParameterFile(
-      IEnumerable<ProjectionWrite> definitions)
-    {
-      string canonical = ReadEmbeddedText(SharedParameterResource)
-        .Replace("\r\n", "\n")
-        .Replace('\r', '\n')
-        .TrimEnd('\n');
-      string[] canonicalLines = canonical.Split('\n');
-      int parameterHeaderIndex = FindParameterHeaderIndex(canonicalLines);
-
-      ProjectionWrite[] aliases = definitions
-        .Where(item => item.Kind == OfficialProjectionKind)
-        .OrderBy(item => item.Mapping.PropertySet, StringComparer.Ordinal)
-        .ThenBy(item => item.Name, StringComparer.Ordinal)
-        .ToArray();
-      AliasGroupDefinition[] aliasGroups = aliases
-        .GroupBy(
-          item => item.Mapping.PropertySet ?? string.Empty,
-          StringComparer.Ordinal)
-        .Select((group, index) => new AliasGroupDefinition
-        {
-          Id = 1000 + index,
-          PropertySet = group.Key,
-          Items = group
-            .GroupBy(item => item.Guid)
-            .Select(items => items.First())
-            .ToArray()
-        })
-        .ToArray();
-
-      var builder = new StringBuilder(canonical.Length + 16384);
-      for (int index = 0; index < parameterHeaderIndex; index++)
-        builder.AppendLine(canonicalLines[index]);
-      AppendAliasGroupDefinitions(builder, aliasGroups);
-      for (int index = parameterHeaderIndex;
-        index < canonicalLines.Length;
-        index++)
-        builder.AppendLine(canonicalLines[index]);
-      AppendAliasParameterDefinitions(builder, aliasGroups);
-      return builder.ToString();
-    }
-
-    private static int FindParameterHeaderIndex(string[] lines)
-    {
-      for (int index = 0; index < (lines?.Length ?? 0); index++)
-      {
-        if ((lines[index] ?? string.Empty).StartsWith(
-          "*PARAM\t",
-          StringComparison.Ordinal))
-          return index;
-      }
-      throw new InvalidDataException(
-        "内置共享参数文件缺少 *PARAM 标题行。");
-    }
-
-    private static void AppendAliasGroupDefinitions(
-      StringBuilder builder,
-      IEnumerable<AliasGroupDefinition> groups)
-    {
-      foreach (AliasGroupDefinition group in groups
-        ?? Enumerable.Empty<AliasGroupDefinition>())
-      {
-        builder.Append("GROUP\t")
-          .Append(group.Id.ToString(CultureInfo.InvariantCulture))
-          .Append("\tGH_HIFC_官方源_")
-          .Append(Sanitize(group.PropertySet))
-          .AppendLine();
-      }
-    }
-
-    private static void AppendAliasParameterDefinitions(
-      StringBuilder builder,
-      IEnumerable<AliasGroupDefinition> groups)
-    {
-      foreach (AliasGroupDefinition group in groups
-        ?? Enumerable.Empty<AliasGroupDefinition>())
-      {
-        foreach (ProjectionWrite item in group.Items
-          ?? Array.Empty<ProjectionWrite>())
-        {
-          builder.Append("PARAM\t")
-            .Append(item.Guid.ToString("D"))
-            .Append('\t')
-            .Append(Sanitize(item.Name))
-            .Append('\t')
-            .Append(OfficialParameterTypeContract.Resolve(
-              item.SharedParameterType).SemanticType)
-            .Append("\t\t")
-            .Append(group.Id.ToString(CultureInfo.InvariantCulture))
-            .Append("\t1\tOfficial exact source alias | ")
-            .Append(Sanitize(item.Mapping.IfcEntity))
-            .Append(" | ")
-            .Append(Sanitize(item.Mapping.PropertySet))
-            .Append(" | ")
-            .Append(Sanitize(item.Mapping.IfcProperty))
-            .Append("\t1\t0")
-            .AppendLine();
-        }
-      }
     }
 
     private static Parameter ResolveParameter(ProjectionWrite projection)
@@ -791,27 +688,6 @@ namespace BIMBaoGui.Stage01.Revit
       }
     }
 
-    private static string ReadEmbeddedText(string name)
-    {
-      using (Stream stream = Assembly.GetExecutingAssembly()
-        .GetManifestResourceStream(name))
-      {
-        if (stream == null)
-          throw new InvalidDataException("缺少嵌入资源：" + name);
-        using (var reader = new StreamReader(stream))
-          return reader.ReadToEnd();
-      }
-    }
-
-    private static string Sanitize(string value)
-    {
-      return (value ?? string.Empty)
-        .Replace('\t', ' ')
-        .Replace('\r', ' ')
-        .Replace('\n', ' ')
-        .Trim();
-    }
-
     private sealed class ProjectionWrite
     {
       public OfficialHifcMapping Mapping { get; set; }
@@ -825,11 +701,5 @@ namespace BIMBaoGui.Stage01.Revit
       public Parameter ExistingExactNameParameter { get; set; }
     }
 
-    private sealed class AliasGroupDefinition
-    {
-      public int Id { get; set; }
-      public string PropertySet { get; set; }
-      public ProjectionWrite[] Items { get; set; }
-    }
   }
 }

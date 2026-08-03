@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 import re
 
@@ -6,6 +7,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
+
+
+def load_json(path: str):
+    return json.loads(read(path))
 
 
 def test_compiled_gha_project_exists():
@@ -184,10 +189,36 @@ def test_task_plan_compiler_routes_site_above_and_underground_paths():
     catalog = read("src/BIMBaoGui.Stage01/TaskPlanning/TaskRuleCatalog.cs")
     compiler = read("src/BIMBaoGui.Stage01/TaskPlanning/TaskPlanCompiler.cs")
     plan = read("src/BIMBaoGui.Stage01/TaskPlanning/HBRTaskPlan.cs")
-    assert "SITE.TOTAL_LAND" in catalog
-    assert "ABOVE.BODY" in catalog
-    assert "UNDERGROUND.BODY" in catalog
-    assert "site.green" in catalog
+    snapshot = load_json(
+        "tests/BIMBaoGui.Stage01.Core.Tests/Snapshots/task-rules.v1.json"
+    )
+    partitions = {
+        partition["modelFileType"]: partition["rules"]
+        for partition in snapshot["partitions"]
+    }
+    rules = {
+        rule["taskId"]: rule
+        for partition_rules in partitions.values()
+        for rule in partition_rules
+    }
+
+    assert {model: len(items) for model, items in partitions.items()} == {
+        "总平模型": 15,
+        "单体建筑—地上": 7,
+        "单体建筑—地下": 6,
+    }
+    assert rules["SITE.TOTAL_LAND"]["modelFileType"] == "总平模型"
+    assert rules["ABOVE.BODY"]["modelFileType"] == "单体建筑—地上"
+    assert rules["UNDERGROUND.BODY"]["modelFileType"] == "单体建筑—地下"
+    assert rules["SITE.GREEN"]["conditionKey"] == "site.green"
+
+    assert "HbrRuleDatabase.Current" in catalog
+    assert "database.Package.Tasks" in catalog
+    assert ".Select(MapRule)" in catalog
+    assert 'case "REQUIRED":' in catalog
+    assert 'case "CONDITIONAL":' in catalog
+    assert "GetManifestResourceStream" not in catalog
+    assert all(f'"{task_id}"' not in catalog for task_id in rules)
     assert "ResolveSkeletonPath" in compiler
     assert "RequiresRecompile" in plan
     assert "FileContextHash" in plan

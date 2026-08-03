@@ -1,82 +1,132 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
-using BIMBaoGui.Stage01.Core;
+using BIMBaoGui.Stage01.Rules;
 
 namespace BIMBaoGui.Stage01.Context
 {
   internal sealed class RuleActivationResult
   {
-    public RuleActivationResult(IEnumerable<string> activated, IEnumerable<string> notApplicable)
+    public RuleActivationResult(
+      IEnumerable<string> activated,
+      IEnumerable<string> notApplicable)
     {
-      Activated = (activated ?? Array.Empty<string>()).Distinct(StringComparer.Ordinal).OrderBy(x => x, StringComparer.Ordinal).ToArray();
-      NotApplicable = (notApplicable ?? Array.Empty<string>()).Distinct(StringComparer.Ordinal).OrderBy(x => x, StringComparer.Ordinal).ToArray();
+      Activated = (activated ?? Array.Empty<string>())
+        .Distinct(StringComparer.Ordinal)
+        .OrderBy(value => value, StringComparer.Ordinal)
+        .ToArray();
+      NotApplicable = (notApplicable ?? Array.Empty<string>())
+        .Distinct(StringComparer.Ordinal)
+        .OrderBy(value => value, StringComparer.Ordinal)
+        .ToArray();
     }
 
     public IReadOnlyList<string> Activated { get; }
     public IReadOnlyList<string> NotApplicable { get; }
   }
 
-  internal static class RuleActivationCatalog
+  internal sealed class RuleActivationProjection
   {
-    private static readonly IReadOnlyDictionary<string, string> ConditionRules =
-      new Dictionary<string, string>(StringComparer.Ordinal)
-      {
-        ["site.other_land"] = "HBR.SITE.OTHER_LAND",
-        ["site.road_redline"] = "HBR.SITE.ROAD_REDLINE",
-        ["site.road_centerline"] = "HBR.SITE.ROAD_CENTERLINE",
-        ["site.internal_roads"] = "HBR.SITE.INTERNAL_ROADS",
-        ["site.fire_lane"] = "HBR.SITE.FIRE_LANE",
-        ["site.fire_field"] = "HBR.SITE.FIRE_FIELD",
-        ["site.green"] = "HBR.SITE.GREEN",
-        ["site.outdoor_parking"] = "HBR.SITE.OUTDOOR_PARKING",
-        ["site.civil_defense"] = "HBR.COMMON.CIVIL_DEFENSE",
-        ["site.structures"] = "HBR.SITE.STRUCTURES"
-      };
+    private readonly IReadOnlyDictionary<string, IReadOnlyList<string>>
+      _profileRules;
+    private readonly IReadOnlyList<string> _unknownModelRules;
 
-    public static RuleActivationResult Compile(string modelFileType, IDictionary<string, bool> conditions)
+    internal RuleActivationProjection(
+      IReadOnlyDictionary<string, IReadOnlyList<string>> profileRules,
+      IReadOnlyDictionary<string, string> conditionRules,
+      IReadOnlyList<string> unknownModelRules)
+    {
+      _profileRules = profileRules
+        ?? throw new ArgumentNullException(nameof(profileRules));
+      ConditionRules = conditionRules
+        ?? throw new ArgumentNullException(nameof(conditionRules));
+      _unknownModelRules = unknownModelRules
+        ?? throw new ArgumentNullException(nameof(unknownModelRules));
+    }
+
+    public IReadOnlyDictionary<string, string> ConditionRules { get; }
+
+    public RuleActivationResult Compile(
+      string modelFileType,
+      IDictionary<string, bool> conditions)
     {
       var activated = new List<string>();
       var notApplicable = new List<string>();
-
-      if (string.Equals(modelFileType, PlanningTargetRequirementPolicy.SiteModel, StringComparison.Ordinal))
-      {
-        activated.Add("HBR.SITE.BASE");
-        activated.Add("HBR.SITE.TOTAL_LAND");
-        activated.Add("HBR.SITE.NET_LAND");
-        activated.Add("HBR.SITE.BUILDING_FOOTPRINT");
-      }
-      else if (string.Equals(modelFileType, PlanningTargetRequirementPolicy.AboveGroundModel, StringComparison.Ordinal))
-      {
-        activated.Add("HBR.BUILDING.ABOVE.BASE");
-        activated.Add("HBR.BUILDING.ABOVE.LEVELS");
-        activated.Add("HBR.BUILDING.ABOVE.BODY");
-      }
-      else if (string.Equals(modelFileType, PlanningTargetRequirementPolicy.UndergroundModel, StringComparison.Ordinal))
-      {
-        activated.Add("HBR.BUILDING.UNDERGROUND.BASE");
-        activated.Add("HBR.BUILDING.UNDERGROUND.LEVELS");
-        activated.Add("HBR.BUILDING.UNDERGROUND.BODY");
-      }
+      if (modelFileType != null
+        && _profileRules.TryGetValue(
+          modelFileType,
+          out IReadOnlyList<string> profileRules))
+        activated.AddRange(profileRules);
+      else
+        activated.AddRange(_unknownModelRules);
 
       foreach (KeyValuePair<string, string> rule in ConditionRules)
       {
-        bool applies = conditions != null && conditions.TryGetValue(rule.Key, out bool enabled) && enabled;
+        bool applies = conditions != null
+          && conditions.TryGetValue(rule.Key, out bool enabled)
+          && enabled;
         if (applies) activated.Add(rule.Value);
         else notApplicable.Add(rule.Value);
       }
+      return new RuleActivationResult(activated, notApplicable);
+    }
+  }
 
-      foreach (PlanningTargetDefinition definition in PlanningTargetCatalog.All)
+  internal static class RuleActivationCatalog
+  {
+    private static readonly Lazy<RuleActivationProjection> LazyProjection =
+      new Lazy<RuleActivationProjection>(() =>
+        FromDatabase(HbrRuleDatabase.Current));
+
+    internal static RuleActivationProjection FromDatabase(
+      HbrRuleDatabase database)
+    {
+      if (database == null) throw new ArgumentNullException(nameof(database));
+      var profiles = new Dictionary<string, IReadOnlyList<string>>(
+        StringComparer.Ordinal);
+      foreach (HbrModelProfile profile in database.Package.ModelProfiles)
       {
-        PlanningTargetRequirement requirement = PlanningTargetRequirementPolicy.GetRequirement(modelFileType, definition.MetricCode);
-        string ruleId = "HBR.TARGET." + definition.MetricCode.Substring("planning.".Length).ToUpperInvariant();
-        if (requirement == PlanningTargetRequirement.NotApplicable)
-          notApplicable.Add(ruleId);
-        else
-          activated.Add(ruleId);
+        if (profiles.ContainsKey(profile.ProfileId))
+          throw new InvalidDataException(
+            "HBR activation profile is duplicated: " + profile.ProfileId);
+        profiles.Add(profile.ProfileId, profile.ActivationRuleIds.ToArray());
+      }
+      if (profiles.Count == 0)
+        throw new InvalidDataException("HBR activation profiles are empty.");
+
+      var conditions = new Dictionary<string, string>(StringComparer.Ordinal);
+      foreach (HbrConditionRule condition in database.Package.Conditions)
+      {
+        if (string.IsNullOrWhiteSpace(condition.ActivationRuleId)) continue;
+        if (conditions.ContainsKey(condition.ConditionId))
+          throw new InvalidDataException(
+            "HBR activation condition is duplicated: "
+            + condition.ConditionId);
+        conditions.Add(condition.ConditionId, condition.ActivationRuleId);
       }
 
-      return new RuleActivationResult(activated, notApplicable);
+      var commonRules = new HashSet<string>(
+        profiles.First().Value,
+        StringComparer.Ordinal);
+      foreach (IReadOnlyList<string> profileRules in profiles.Values.Skip(1))
+        commonRules.IntersectWith(profileRules);
+      string[] unknownModelRules = database.Package.ModelProfiles[0]
+        .ActivationRuleIds
+        .Where(commonRules.Contains)
+        .ToArray();
+      return new RuleActivationProjection(
+        new ReadOnlyDictionary<string, IReadOnlyList<string>>(profiles),
+        new ReadOnlyDictionary<string, string>(conditions),
+        unknownModelRules);
+    }
+
+    public static RuleActivationResult Compile(
+      string modelFileType,
+      IDictionary<string, bool> conditions)
+    {
+      return LazyProjection.Value.Compile(modelFileType, conditions);
     }
   }
 }

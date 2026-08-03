@@ -2,42 +2,51 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Web.Script.Serialization;
 using BIMBaoGui.Stage01.Core;
+using BIMBaoGui.Stage01.Rules;
 
 namespace BIMBaoGui.Stage01.Infrastructure
 {
   internal sealed class Stage01RegistryProvider
   {
-    private const string ResourceName = "BIMBaoGui.Stage01.Resources.stage01_file_initialization_registry_v0.1.json";
-    private static readonly Lazy<Stage01RegistryProvider> LazyInstance = new Lazy<Stage01RegistryProvider>(Load);
-    private readonly Dictionary<string, FieldDefinition> _fieldByKey;
-    private readonly Dictionary<string, string> _defaults;
+    private static readonly Lazy<Stage01RegistryProvider> LazyInstance =
+      new Lazy<Stage01RegistryProvider>(() =>
+        FromDatabase(HbrRuleDatabase.Current));
 
-    private Stage01RegistryProvider(IReadOnlyList<FieldDefinition> fields, IDictionary<string, string> defaults)
+    private readonly Dictionary<string, FieldDefinition> _fieldByKey;
+    private readonly IReadOnlyList<FieldDefault> _defaults;
+    private readonly IReadOnlyList<ConditionDefault> _conditionDefaults;
+    private readonly string _defaultActiveGroup;
+
+    private Stage01RegistryProvider(
+      IReadOnlyList<FieldDefinition> fields,
+      IReadOnlyList<ConditionDefinition> conditions,
+      IReadOnlyList<FieldDefault> defaults,
+      IReadOnlyList<ConditionDefault> conditionDefaults,
+      string defaultActiveGroup)
     {
-      Fields = fields;
-      _fieldByKey = fields.ToDictionary(x => x.Key, x => x, StringComparer.Ordinal);
-      _defaults = new Dictionary<string, string>(defaults, StringComparer.Ordinal);
-      Groups = fields.Select(x => x.Group).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.Ordinal).ToList();
-      Conditions = new List<ConditionDefinition>
+      Fields = fields ?? throw new ArgumentNullException(nameof(fields));
+      Conditions = conditions ?? throw new ArgumentNullException(nameof(conditions));
+      _defaults = defaults ?? throw new ArgumentNullException(nameof(defaults));
+      _conditionDefaults = conditionDefaults
+        ?? throw new ArgumentNullException(nameof(conditionDefaults));
+      _defaultActiveGroup = string.IsNullOrWhiteSpace(defaultActiveGroup)
+        ? throw new InvalidDataException("HBR Stage01 defaultActiveGroup is empty.")
+        : defaultActiveGroup;
+      _fieldByKey = new Dictionary<string, FieldDefinition>(StringComparer.Ordinal);
+      foreach (FieldDefinition field in fields)
       {
-        new ConditionDefinition("site.other_land", "其他分类用地", "10_项目条件"),
-        new ConditionDefinition("site.road_redline", "道路红线", "10_项目条件"),
-        new ConditionDefinition("site.road_centerline", "道路中心线", "10_项目条件"),
-        new ConditionDefinition("site.internal_roads", "区内道路", "10_项目条件"),
-        new ConditionDefinition("site.fire_lane", "消防道路", "10_项目条件"),
-        new ConditionDefinition("site.fire_field", "消防登高／操作场地", "10_项目条件"),
-        new ConditionDefinition("site.green", "绿地", "10_项目条件"),
-        new ConditionDefinition("site.outdoor_parking", "室外停车场／车位", "10_项目条件"),
-        new ConditionDefinition("site.civil_defense", "人防区域", "10_项目条件"),
-        new ConditionDefinition("site.structures", "室外构筑物与设施", "10_项目条件"),
-        new ConditionDefinition("building.roof", "屋顶及屋面构件", "10_项目条件"),
-        new ConditionDefinition("building.balcony", "阳台", "10_项目条件"),
-        new ConditionDefinition("building.canopy", "雨篷或挑檐", "10_项目条件"),
-        new ConditionDefinition("underground.parking", "地下停车空间", "10_项目条件")
-      };
+        if (field == null || string.IsNullOrWhiteSpace(field.Key))
+          throw new InvalidDataException("HBR Stage01 field is incomplete.");
+        if (_fieldByKey.ContainsKey(field.Key))
+          throw new InvalidDataException("HBR Stage01 field key is duplicated: " + field.Key);
+        _fieldByKey.Add(field.Key, field);
+      }
+      Groups = fields
+        .Select(field => field.Group)
+        .Where(group => !string.IsNullOrWhiteSpace(group))
+        .Distinct(StringComparer.Ordinal)
+        .ToList();
     }
 
     public static Stage01RegistryProvider Instance => LazyInstance.Value;
@@ -45,110 +54,184 @@ namespace BIMBaoGui.Stage01.Infrastructure
     public IReadOnlyList<string> Groups { get; }
     public IReadOnlyList<ConditionDefinition> Conditions { get; }
 
-    public FieldDefinition GetField(string key)
+    internal static Stage01RegistryProvider FromDatabase(
+      HbrRuleDatabase database)
     {
-      return key != null && _fieldByKey.TryGetValue(key, out FieldDefinition value) ? value : null;
+      if (database == null) throw new ArgumentNullException(nameof(database));
+
+      var fields = new List<FieldDefinition>();
+      var defaults = new List<FieldDefault>();
+      foreach (HbrInternalWorkflowField source in
+        database.Package.Stage01.InternalWorkflowFields)
+      {
+        fields.Add(MapInternal(source));
+        defaults.Add(MapDefault(
+          source.FieldKey,
+          source.DefaultStrategy,
+          source.DefaultValue));
+      }
+      foreach (HbrStage01FieldRef source in database.Package.Stage01.FieldRefs)
+      {
+        if (!database.PropertiesById.TryGetValue(
+          source.PropertyId,
+          out HbrRuleProperty property))
+          throw new InvalidDataException(
+            "HBR Stage01 field references unknown propertyId: "
+            + source.PropertyId);
+        fields.Add(MapProperty(source, property));
+        defaults.Add(MapDefault(
+          source.FieldKey,
+          source.DefaultStrategy,
+          source.DefaultValue));
+      }
+
+      var conditions = database.Package.Conditions
+        .Select(condition => new ConditionDefinition(
+          condition.ConditionId,
+          condition.DisplayName,
+          condition.Group))
+        .ToList();
+      var conditionDefaults = database.Package.Conditions
+        .Select(condition => new ConditionDefault(
+          condition.ConditionId,
+          condition.DefaultActive))
+        .ToList();
+      return new Stage01RegistryProvider(
+        fields,
+        conditions,
+        defaults,
+        conditionDefaults,
+        database.Package.Stage01.DefaultActiveGroup);
     }
 
-    public IReadOnlyList<FieldDefinition> FieldsForGroup(string group, bool showAll)
+    public FieldDefinition GetField(string key)
     {
-      IEnumerable<FieldDefinition> query = Fields.Where(x => string.Equals(x.Group, group, StringComparison.Ordinal));
+      return key != null && _fieldByKey.TryGetValue(
+        key,
+        out FieldDefinition value)
+        ? value
+        : null;
+    }
+
+    public IReadOnlyList<FieldDefinition> FieldsForGroup(
+      string group,
+      bool showAll)
+    {
+      IEnumerable<FieldDefinition> query = Fields.Where(field =>
+        string.Equals(field.Group, group, StringComparison.Ordinal));
       if (!showAll)
-        query = query.Where(x => x.Essential || PlanningTargetCatalog.IsManagedMvdField(x.Key));
+        query = query.Where(field =>
+          field.Essential || PlanningTargetCatalog.IsManagedMvdField(field.Key));
       return query.ToList();
     }
 
     public Stage01Model CreateDefaultModel()
     {
-      var model = new Stage01Model();
-      foreach (KeyValuePair<string, string> pair in _defaults)
-        model.SetValue(pair.Key, pair.Value);
-
-      SetIfEmpty(model, Stage01Keys.FileGuid, Guid.NewGuid().ToString("D"));
-      SetIfEmpty(model, Stage01Keys.WorkflowVersion, "0.5.0");
-      SetIfEmpty(model, Stage01Keys.InitializationStatus, "未初始化");
-      SetIfEmpty(model, Stage01Keys.ModelFileType, PlanningTargetRequirementPolicy.SiteModel);
-      SetIfEmpty(model, Stage01Keys.ModelScope, "项目总平面报规模型");
-      SetIfEmpty(model, Stage01Keys.Stage, "规划报建");
-      SetIfEmpty(model, Stage01Keys.CoordinateSystem, "CGCS2000");
-      SetIfEmpty(model, Stage01Keys.ElevationSystem, "1985国家高程基准");
-      SetIfEmpty(model, Stage01Keys.TrueNorthAngle, "0");
-      SetIfEmpty(model, Stage01Keys.LengthUnit, "m");
-      SetIfEmpty(model, Stage01Keys.AreaUnit, "m²");
-      SetIfEmpty(model, Stage01Keys.AngleUnit, "°");
-      model.ActiveGroup = "01_文件与项目身份";
-      foreach (ConditionDefinition condition in Conditions)
-        model.SetCondition(condition.Key, false);
+      var model = new Stage01Model { ActiveGroup = _defaultActiveGroup };
+      foreach (FieldDefault definition in _defaults)
+      {
+        switch (definition.Strategy)
+        {
+          case "NONE":
+            break;
+          case "STATIC":
+            model.SetValue(definition.FieldKey, definition.Value);
+            break;
+          case "NEW_GUID":
+            if (!string.Equals(
+              definition.FieldKey,
+              Stage01Keys.FileGuid,
+              StringComparison.Ordinal))
+              throw new InvalidDataException(
+                "HBR NEW_GUID is only valid for FileGuid: "
+                + definition.FieldKey);
+            model.SetValue(
+              definition.FieldKey,
+              Guid.NewGuid().ToString("D"));
+            break;
+          default:
+            throw new InvalidDataException(
+              "Unknown HBR Stage01 default strategy: "
+              + definition.Strategy);
+        }
+      }
+      foreach (ConditionDefault condition in _conditionDefaults)
+        model.SetCondition(condition.ConditionId, condition.Value);
       return model;
     }
 
-    private static void SetIfEmpty(Stage01Model model, string key, string value)
-    {
-      if (string.IsNullOrWhiteSpace(model.GetValue(key))) model.SetValue(key, value);
-    }
-
-    private static Stage01RegistryProvider Load()
-    {
-      Assembly assembly = typeof(Stage01RegistryProvider).Assembly;
-      using (Stream stream = assembly.GetManifestResourceStream(ResourceName))
-      {
-        if (stream == null)
-          throw new InvalidOperationException("内置字段注册表不存在。资源：" + ResourceName);
-        using (var reader = new StreamReader(stream))
-        {
-          var serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
-          RegistryDto registry = serializer.Deserialize<RegistryDto>(reader.ReadToEnd());
-          var fields = new List<FieldDefinition>();
-          var defaults = new Dictionary<string, string>(StringComparer.Ordinal);
-          foreach (InternalFieldDto source in registry.internal_workflow_fields ?? new List<InternalFieldDto>())
-          {
-            fields.Add(MapInternal(source));
-            if (!string.IsNullOrWhiteSpace(source.@default)) defaults[source.field_key] = source.@default;
-          }
-          foreach (MvdFieldDto source in registry.mvd_fields ?? new List<MvdFieldDto>())
-            fields.Add(MapMvd(source));
-          return new Stage01RegistryProvider(fields, defaults);
-        }
-      }
-    }
-
-    private static FieldDefinition MapInternal(InternalFieldDto source)
+    private static FieldDefinition MapInternal(HbrInternalWorkflowField source)
     {
       return new FieldDefinition
       {
-        Key = source.field_key,
-        Label = source.property,
-        Group = source.ui_group,
-        Kind = ParseKind(source.type),
-        ReadOnly = source.source_kind == "system_generated" || source.source_kind == "system_rule" || source.source_kind == "Revit_scan",
-        Essential = EssentialKeys.Contains(source.field_key),
+        Key = source.FieldKey,
+        Label = source.Label,
+        Group = source.UiGroup,
+        Kind = ParseKind(source.Type),
+        ReadOnly = source.SourceKind == "system_generated"
+          || source.SourceKind == "system_rule"
+          || source.SourceKind == "Revit_scan",
+        Essential = source.Essential,
         Deferred = false,
-        Source = source.source_kind,
+        Source = source.SourceKind,
         Entity = "Workflow",
         Pset = "HBR",
-        AllowedValues = source.allowed_values ?? Array.Empty<string>()
+        AllowedValues = source.AllowedValues
       };
     }
 
-    private static FieldDefinition MapMvd(MvdFieldDto source)
+    private static FieldDefinition MapProperty(
+      HbrStage01FieldRef source,
+      HbrRuleProperty property)
     {
-      bool structuredPlanningTarget = PlanningTargetCatalog.IsManagedMvdField(source.field_key);
+      bool structuredPlanningTarget =
+        PlanningTargetCatalog.IsManagedMvdField(source.FieldKey);
       return new FieldDefinition
       {
-        Key = source.field_key,
-        Label = source.property,
-        Group = source.ui_group,
-        Kind = structuredPlanningTarget ? FieldKind.Text : ParseIfcKind(source.declared_ifc_type),
+        Key = source.FieldKey,
+        Label = property.Ifc.Property,
+        Group = source.UiGroup,
+        Kind = structuredPlanningTarget
+          ? FieldKind.Text
+          : ParseIfcKind(property.Ifc.DeclaredType),
         ReadOnly = structuredPlanningTarget
           ? false
-          : !source.write_in_stage01 || source.source_kind == "later_model_calculation_or_external_value",
-        Essential = EssentialKeys.Contains(source.field_key),
-        Deferred = structuredPlanningTarget ? false : !source.write_in_stage01,
-        Source = structuredPlanningTarget ? "structured_planning_target" : source.source_kind,
-        Entity = source.entity,
-        Pset = source.pset,
+          : !source.WriteInStage01
+            || source.SourceKind == "later_model_calculation_or_external_value",
+        Essential = source.Essential,
+        Deferred = structuredPlanningTarget ? false : !source.WriteInStage01,
+        Source = structuredPlanningTarget
+          ? "structured_planning_target"
+          : source.SourceKind,
+        Entity = property.Ifc.Entity,
+        Pset = property.Ifc.PropertySet,
         AllowedValues = Array.Empty<string>()
       };
+    }
+
+    private static FieldDefault MapDefault(
+      string fieldKey,
+      string strategy,
+      string value)
+    {
+      switch (strategy)
+      {
+        case "NONE":
+          return new FieldDefault(fieldKey, strategy, value);
+        case "STATIC":
+          if (value == null)
+            throw new InvalidDataException(
+              "HBR STATIC default has null value: " + fieldKey);
+          return new FieldDefault(fieldKey, strategy, value);
+        case "NEW_GUID":
+          if (!string.Equals(fieldKey, Stage01Keys.FileGuid, StringComparison.Ordinal))
+            throw new InvalidDataException(
+              "HBR NEW_GUID is only valid for FileGuid: " + fieldKey);
+          return new FieldDefault(fieldKey, strategy, value);
+        default:
+          throw new InvalidDataException(
+            "Unknown HBR Stage01 default strategy: " + strategy);
+      }
     }
 
     private static FieldKind ParseKind(string value)
@@ -167,71 +250,38 @@ namespace BIMBaoGui.Stage01.Infrastructure
     private static FieldKind ParseIfcKind(string value)
     {
       string normalized = (value ?? string.Empty).ToLowerInvariant();
-      if (normalized.Contains("real") || normalized.Contains("measure")) return FieldKind.Number;
+      if (normalized.Contains("real") || normalized.Contains("measure"))
+        return FieldKind.Number;
       if (normalized.Contains("integer")) return FieldKind.Integer;
       if (normalized.Contains("boolean")) return FieldKind.Boolean;
       if (normalized.Contains("date")) return FieldKind.DateTime;
       return FieldKind.Text;
     }
 
-    private static readonly HashSet<string> EssentialKeys = new HashSet<string>(StringComparer.Ordinal)
+    private sealed class FieldDefault
     {
-      Stage01Keys.SubitemCode,
-      Stage01Keys.SubitemName,
-      Stage01Keys.ModelFileType,
-      Stage01Keys.ModelScope,
-      Stage01Keys.FileGuid,
-      Stage01Keys.WorkflowVersion,
-      Stage01Keys.InitializationStatus,
-      Stage01Keys.TrueNorthAngle,
-      Stage01Keys.LengthUnit,
-      Stage01Keys.AreaUnit,
-      Stage01Keys.AngleUnit,
-      Stage01Keys.ProjectNumber,
-      Stage01Keys.ProjectName,
-      Stage01Keys.ProjectAddress,
-      Stage01Keys.OwnerOrganization,
-      Stage01Keys.DesignOrganization,
-      Stage01Keys.Stage,
-      Stage01Keys.BaseX,
-      Stage01Keys.BaseY,
-      Stage01Keys.BaseElevation,
-      Stage01Keys.CoordinateSystem,
-      Stage01Keys.ElevationSystem,
-      "IfcOrganization|Pset_组织通用属性集|企业名称",
-      "IfcOrganization|Pset_组织通用属性集|社会统一信用代码",
-      "IfcOrganization|Pset_组织通用属性集|项目参建类型",
-      "IfcOrganization|Pset_组织通用属性集|联系人姓名",
-      "IfcOrganization|Pset_组织通用属性集|联系人手机号码"
-    };
+      internal FieldDefault(string fieldKey, string strategy, string value)
+      {
+        FieldKey = fieldKey;
+        Strategy = strategy;
+        Value = value;
+      }
 
-    private sealed class RegistryDto
-    {
-      public List<InternalFieldDto> internal_workflow_fields { get; set; }
-      public List<MvdFieldDto> mvd_fields { get; set; }
+      internal string FieldKey { get; }
+      internal string Strategy { get; }
+      internal string Value { get; }
     }
 
-    private sealed class InternalFieldDto
+    private sealed class ConditionDefault
     {
-      public string field_key { get; set; }
-      public string property { get; set; }
-      public string type { get; set; }
-      public string ui_group { get; set; }
-      public string source_kind { get; set; }
-      public string[] allowed_values { get; set; }
-      public string @default { get; set; }
-    }
+      internal ConditionDefault(string conditionId, bool value)
+      {
+        ConditionId = conditionId;
+        Value = value;
+      }
 
-    private sealed class MvdFieldDto
-    {
-      public string field_key { get; set; }
-      public string property { get; set; }
-      public string ui_group { get; set; }
-      public string declared_ifc_type { get; set; }
-      public string source_kind { get; set; }
-      public bool write_in_stage01 { get; set; }
-      public string entity { get; set; }
-      public string pset { get; set; }
+      internal string ConditionId { get; }
+      internal bool Value { get; }
     }
   }
 }

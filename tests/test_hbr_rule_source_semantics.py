@@ -37,6 +37,10 @@ OFFICIAL_MAPPING_CATALOG_PATH = (
 OFFICIAL_COMPATIBILITY_CATALOG_PATH = (
     ROOT / "src/BIMBaoGui.Stage01/Hifc/OfficialPluginCompatibilityCatalog.cs"
 )
+SNAPSHOT_DIR = ROOT / "tests/BIMBaoGui.Stage01.Core.Tests/Snapshots"
+STAGE01_SNAPSHOT_PATH = SNAPSHOT_DIR / "stage01-registry.v1.json"
+TASK_SNAPSHOT_PATH = SNAPSHOT_DIR / "task-rules.v1.json"
+ACTIVATION_SNAPSHOT_PATH = SNAPSHOT_DIR / "rule-activation.v1.json"
 VERIFIED_INTERNAL_OPTIONAL_FIELD_PRESENCE = {
     "allowed_values": frozenset(
         {
@@ -154,71 +158,64 @@ def _old_identity(rule):
 
 
 def _compact_csharp(path):
-    return " ".join(path.read_text(encoding="utf-8").split())
+    compact = " ".join(path.read_text(encoding="utf-8").split())
+    return re.sub(r"\(\s+", "(", re.sub(r"\s+\)", ")", compact))
 
 
 def _essential_keys_from_legacy_provider():
-    keys_source = STAGE01_KEYS_PATH.read_text(encoding="utf-8")
-    key_constants = dict(
-        re.findall(
-            r'public const string ([A-Za-z0-9_]+) = "([^"]+)";',
-            keys_source,
-        )
-    )
-    provider_source = STAGE01_REGISTRY_PROVIDER_PATH.read_text(
-        encoding="utf-8"
-    )
-    match = re.search(
-        r'HashSet<string> EssentialKeys.*?\{(.*?)\n\s*\};',
-        provider_source,
-        re.DOTALL,
-    )
-    assert match is not None
-    tokens = re.findall(r'Stage01Keys\.([A-Za-z0-9_]+)|"([^"]+)"', match.group(1))
+    snapshot = _load(STAGE01_SNAPSHOT_PATH)
     resolved = {
-        key_constants[constant] if constant else literal
-        for constant, literal in tokens
+        field["key"] for field in snapshot["fields"] if field["essential"]
     }
-    assert len(resolved) == len(tokens) == 27
+    assert len(resolved) == 27
     return frozenset(resolved)
 
 
 def _assert_legacy_runtime_projection_contracts():
     registry = _compact_csharp(STAGE01_REGISTRY_PROVIDER_PATH)
-    assert (
-        "AllowedValues = source.allowed_values ?? Array.Empty<string>()"
-        in registry
-    )
-    assert (
-        "if (!string.IsNullOrWhiteSpace(source.@default)) "
-        "defaults[source.field_key] = source.@default;"
-        in registry
-    )
+    for contract in (
+        "FromDatabase(HbrRuleDatabase database)",
+        "database.Package.Stage01.InternalWorkflowFields",
+        "database.Package.Stage01.FieldRefs",
+        "AllowedValues = source.AllowedValues",
+        "source.DefaultStrategy",
+        'case "NONE":',
+        'case "STATIC":',
+        'case "NEW_GUID":',
+    ):
+        assert contract in registry
+    assert "GetManifestResourceStream" not in registry
+    assert "EssentialKeys" not in registry
 
     mapping = _compact_csharp(OFFICIAL_MAPPING_CATALOG_PATH)
     for contract in (
-        "Category = (item.category ?? string.Empty).Trim(),",
-        "Carrier = item.carrier ?? string.Empty,",
-        "PersistenceMode = item.persistenceMode ?? string.Empty,",
-        "SharedParameterType = rule.canonical.sharedParameterType ?? string.Empty,",
-        "string sourceOverride = rule.official.sourceParameterOverride ?? string.Empty;",
+        "database.Package.LegacyAliases",
+        "property.OfficialPlugin.LegacyProjection",
+        "ParseOriginalIdentity(property.OfficialPlugin.OriginalIdentity",
+        "ParameterName = alias.Alias,",
+        "Category = legacy.Category.Trim(),",
+        "Carrier = legacy.Carrier,",
+        "PersistenceMode = legacy.PersistenceMode,",
+        "SharedParameterType = legacy.SharedParameterType,",
+        "string sourceOverride = legacy.SourceParameterOverride;",
         "SourceParameterOverride = sourceOverride,",
-        "OfficialSourceParameterGroup = "
-        "(item.officialSourceParameterGroup ?? string.Empty).Trim(),",
+        "OfficialSourceParameterGroup = legacy.OfficialSourceParameterGroup.Trim(),",
+        "Unit = legacy.OfficialUnit ?? string.Empty,",
     ):
         assert contract in mapping
+    assert "GetManifestResourceStream" not in mapping
 
     compatibility = _compact_csharp(OFFICIAL_COMPATIBILITY_CATALOG_PATH)
     for contract in (
-        "EntityPolicyRecord source = item.Value ?? new EntityPolicyRecord();",
-        "OfficialObjectMappingEvidence = "
-        'source.officialObjectMappingEvidence ?? "UNVERIFIED",',
-        "RevitCarrier = source.revitCarrier ?? string.Empty,",
-        "WritePolicy = source.writePolicy ?? "
-        '"BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",',
-        "OfficialExportVerified = source.officialExportVerified",
+        "database.Package.Stage01.OfficialPluginCompatibility",
+        "OfficialObjectMappingEvidence = policy.OfficialObjectMappingEvidence,",
+        "RevitCarrier = policy.RevitCarrier,",
+        "WritePolicy = policy.WritePolicy,",
+        "OfficialExportVerified = policy.OfficialExportVerified",
+        "exception.Reason",
     ):
         assert contract in compatibility
+    assert "GetManifestResourceStream" not in compatibility
 
 def _assert_optional_presence_for_stable_key(
     record, stable_key, verified_presence
@@ -550,9 +547,7 @@ def test_stage01_defaults_essential_spatial_and_condition_contracts_equal_runtim
     source = _load(SOURCE_PATH)
     old_stage01 = _load(OLD_STAGE01_PATH)
     provider = _compact_csharp(STAGE01_REGISTRY_PROVIDER_PATH)
-    planning_policy = _compact_csharp(
-        PLANNING_TARGET_REQUIREMENT_POLICY_PATH
-    )
+    snapshot = _load(STAGE01_SNAPSHOT_PATH)
     stage01 = source["stage01"]
 
     assert {"spatialMappings", "defaultActiveGroup"} <= set(stage01)
@@ -622,33 +617,25 @@ def test_stage01_defaults_essential_spatial_and_condition_contracts_equal_runtim
     assert projected_effective == legacy_effective
     assert projected_effective["HBR|Workflow|Version"] == "0.1.0"
     for runtime_contract in (
-        'SetIfEmpty(model, Stage01Keys.FileGuid, Guid.NewGuid().ToString("D"));',
-        'SetIfEmpty(model, Stage01Keys.WorkflowVersion, "0.5.0");',
-        'SetIfEmpty(model, Stage01Keys.InitializationStatus, "未初始化");',
-        "SetIfEmpty(model, Stage01Keys.ModelFileType, PlanningTargetRequirementPolicy.SiteModel);",
-        'SetIfEmpty(model, Stage01Keys.ModelScope, "项目总平面报规模型");',
-        'SetIfEmpty(model, Stage01Keys.Stage, "规划报建");',
-        'SetIfEmpty(model, Stage01Keys.CoordinateSystem, "CGCS2000");',
-        'SetIfEmpty(model, Stage01Keys.ElevationSystem, "1985国家高程基准");',
-        'SetIfEmpty(model, Stage01Keys.TrueNorthAngle, "0");',
-        'SetIfEmpty(model, Stage01Keys.LengthUnit, "m");',
-        'SetIfEmpty(model, Stage01Keys.AreaUnit, "m²");',
-        'SetIfEmpty(model, Stage01Keys.AngleUnit, "°");',
+        'case "NONE":',
+        'case "STATIC":',
+        'case "NEW_GUID":',
+        'Guid.NewGuid().ToString("D")',
+        "condition.DefaultActive",
+        "database.Package.Stage01.DefaultActiveGroup",
     ):
         assert runtime_contract in provider
-    assert 'public const string SiteModel = "总平模型";' in planning_policy
 
-    condition_ids = re.findall(
-        r'new ConditionDefinition\("([^"]+)"', provider
-    )
+    condition_ids = [condition["key"] for condition in snapshot["conditions"]]
     assert len(condition_ids) == 14
     assert [condition["conditionId"] for condition in source["conditions"]] == (
         condition_ids
     )
     assert all(condition["defaultActive"] is False for condition in source["conditions"])
-    assert "model.SetCondition(condition.Key, false);" in provider
+    assert "model.SetCondition(condition.ConditionId, condition.Value);" in provider
     assert stage01["defaultActiveGroup"] == "01_文件与项目身份"
-    assert 'model.ActiveGroup = "01_文件与项目身份";' in provider
+    assert snapshot["defaults"]["activeGroup"] == stage01["defaultActiveGroup"]
+    assert 'model.ActiveGroup = "01_文件与项目身份";' not in provider
 
 
 def test_all_identities_ids_and_parameter_guids_are_unique():
@@ -847,29 +834,141 @@ def test_all_cross_references_resolve_and_carriers_are_migrated_once():
 
 def test_tasks_and_conditions_are_traceable_to_the_existing_catalogs():
     source = _load(SOURCE_PATH)
+    task_snapshot = _load(TASK_SNAPSHOT_PATH)
+    stage01_snapshot = _load(STAGE01_SNAPSHOT_PATH)
+    activation_snapshot = _load(ACTIVATION_SNAPSHOT_PATH)
     task_catalog = (
         ROOT / "src/BIMBaoGui.Stage01/TaskPlanning/TaskRuleCatalog.cs"
     ).read_text(encoding="utf-8")
     activation_catalog = (
         ROOT / "src/BIMBaoGui.Stage01/Context/RuleActivationCatalog.cs"
     ).read_text(encoding="utf-8")
+    registry_provider = STAGE01_REGISTRY_PROVIDER_PATH.read_text(encoding="utf-8")
 
-    catalog_task_ids = set(
-        re.findall(r'rules\.Add\((?:Rule|Conditional)\(model, "([^"]+)"', task_catalog)
-    )
-    registry_provider = (ROOT / "src/BIMBaoGui.Stage01/Infrastructure/Stage01RegistryProvider.cs").read_text(encoding="utf-8")
-    catalog_conditions = set(re.findall(r'new ConditionDefinition\("([^"]+)"', registry_provider))
+    frozen_tasks = {
+        task["taskId"]: task
+        for partition in task_snapshot["partitions"]
+        for task in partition["rules"]
+    }
+    source_tasks = {task["taskId"]: task for task in source["tasks"]}
+    assert len(frozen_tasks) == len(source_tasks) == 28
+    assert [len(partition["rules"]) for partition in task_snapshot["partitions"]] == [
+        15,
+        7,
+        6,
+    ]
+    assert set(source_tasks) == set(frozen_tasks)
+    for task_id, task in source_tasks.items():
+        frozen = frozen_tasks[task_id]
+        assert {
+            "modelFileType": task["modelFileType"],
+            "taskId": task["taskId"],
+            "name": task["name"],
+            "objectCode": task["objectCode"],
+            "requirement": {
+                "REQUIRED": "Required",
+                "CONDITIONAL": "Conditional",
+            }[task["requirement"]],
+            "conditionKey": task["conditionId"] or "",
+            "sequence": task["sequence"],
+            "skeletonTask": task["skeletonTask"],
+        } == {
+            key: frozen[key]
+            for key in (
+                "modelFileType",
+                "taskId",
+                "name",
+                "objectCode",
+                "requirement",
+                "conditionKey",
+                "sequence",
+                "skeletonTask",
+            )
+        }
+        for collection in (
+            "attributeRequirements",
+            "dependencies",
+            "geometryChecks",
+            "propertyChecks",
+            "targetComparisons",
+        ):
+            assert sorted(task[collection]) == sorted(frozen[collection])
 
-    assert {task["taskId"] for task in source["tasks"]} == catalog_task_ids
-    assert {condition["conditionId"] for condition in source["conditions"]} == catalog_conditions
-    assert len(catalog_conditions) == 14
+    frozen_conditions = {
+        condition["key"]: condition for condition in stage01_snapshot["conditions"]
+    }
+    source_conditions = {
+        condition["conditionId"]: condition for condition in source["conditions"]
+    }
+    assert len(frozen_conditions) == len(source_conditions) == 14
+    assert {
+        condition_id: {
+            "key": condition_id,
+            "label": condition["displayName"],
+            "group": condition["group"],
+        }
+        for condition_id, condition in source_conditions.items()
+    } == frozen_conditions
+    assert {
+        condition["key"]: condition["value"]
+        for condition in stage01_snapshot["defaults"]["conditions"]
+    } == {
+        condition_id: condition["defaultActive"]
+        for condition_id, condition in source_conditions.items()
+    }
     assert all(task["source"] == "TaskRuleCatalog.cs" for task in source["tasks"])
     assert {condition["source"] for condition in source["conditions"]} <= {
         "RuleActivationCatalog.cs", "Stage01RegistryProvider.cs"
     }
-    activation_expected = dict(re.findall(r'\["([^"]+)"\]\s*=\s*"([^"]+)"', activation_catalog))
-    activation_actual = {c["conditionId"]: c["activationRuleId"] for c in source["conditions"] if c["activationRuleId"] is not None}
+    activation_expected = {
+        rule["conditionKey"]: rule["activationRuleId"]
+        for rule in activation_snapshot["conditionRules"]
+    }
+    activation_actual = {
+        condition["conditionId"]: condition["activationRuleId"]
+        for condition in source["conditions"]
+        if condition["activationRuleId"] is not None
+    }
     assert activation_actual == activation_expected
+
+    none_cases = {
+        case["modelFileType"]: case
+        for case in activation_snapshot["cases"]
+        if case["state"] == "none"
+    }
+    for profile in source["modelProfiles"]:
+        assert none_cases[profile["profileId"]]["activated"] == sorted(
+            profile["activationRuleIds"]
+        )
+
+    for contract in (
+        "HbrRuleDatabase.Current",
+        "database.Package.Tasks",
+        ".Select(MapRule)",
+        'case "REQUIRED":',
+        'case "CONDITIONAL":',
+    ):
+        assert contract in task_catalog
+    for contract in (
+        "HbrRuleDatabase.Current",
+        "database.Package.Conditions",
+        "database.Package.ModelProfiles",
+    ):
+        assert contract in activation_catalog
+    assert "database.Package.Conditions" in registry_provider
+
+    combined_catalogs = task_catalog + activation_catalog + registry_provider
+    for legacy_resource in (
+        "stage01_file_initialization_registry_v0.1.json",
+        "GetManifestResourceStream",
+        "ReadEmbeddedText",
+    ):
+        assert legacy_resource not in combined_catalogs
+    assert all(f'"{task_id}"' not in task_catalog for task_id in source_tasks)
+    assert all(
+        f'"{condition_id}"' not in activation_catalog + registry_provider
+        for condition_id in source_conditions
+    )
 
 
 def test_mvd_source_evidence_and_canonical_fields_remain_workbook_faithful():

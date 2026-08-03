@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Web.Script.Serialization;
+using System.Linq;
+using BIMBaoGui.Stage01.Rules;
 
 namespace BIMBaoGui.Stage01.Hifc
 {
@@ -11,54 +11,113 @@ namespace BIMBaoGui.Stage01.Hifc
     public string IfcEntity { get; set; } = string.Empty;
     public string OfficialObjectMappingEvidence { get; set; } = string.Empty;
     public string RevitCarrier { get; set; } = string.Empty;
-    public string WritePolicy { get; set; } = "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT";
+    public string WritePolicy { get; set; } =
+      "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT";
     public bool OfficialExportVerified { get; set; }
 
-    public bool IsBlocked => WritePolicy.StartsWith("BLOCK_", StringComparison.OrdinalIgnoreCase);
+    public bool IsBlocked => WritePolicy.StartsWith(
+      "BLOCK_",
+      StringComparison.OrdinalIgnoreCase);
+
     public bool AllowsProjectInformationDefault =>
       string.Equals(IfcEntity, "IfcProject", StringComparison.Ordinal)
       || string.Equals(IfcEntity, "IfcBuilding", StringComparison.Ordinal);
   }
 
+  internal sealed class OfficialPluginException
+  {
+    internal OfficialPluginException(string fieldKey, string reason)
+    {
+      FieldKey = fieldKey;
+      Reason = reason;
+    }
+
+    public string FieldKey { get; }
+    public string Reason { get; }
+  }
+
   internal sealed class OfficialPluginCompatibilityCatalog
   {
-    private const string ResourceName =
-      "BIMBaoGui.Stage01.Resources.official_plugin_compatibility_status.v1.json";
-    private static readonly object InstanceLock = new object();
-    private static OfficialPluginCompatibilityCatalog _instance;
+    private static readonly Lazy<OfficialPluginCompatibilityCatalog> LazyInstance =
+      new Lazy<OfficialPluginCompatibilityCatalog>(() =>
+        FromDatabase(HbrRuleDatabase.Current));
 
-    private readonly Dictionary<string, OfficialPluginEntityPolicy> _entityPolicies;
+    private readonly Dictionary<string, OfficialPluginEntityPolicy>
+      _entityPoliciesByIfcEntity;
     private readonly HashSet<string> _stage01ProjectFieldExceptions;
 
     private OfficialPluginCompatibilityCatalog(
-      IDictionary<string, OfficialPluginEntityPolicy> entityPolicies,
-      IEnumerable<string> stage01ProjectFieldExceptions)
+      IReadOnlyList<OfficialPluginEntityPolicy> entityPolicies,
+      IReadOnlyList<OfficialPluginException> exceptions)
     {
-      _entityPolicies = new Dictionary<string, OfficialPluginEntityPolicy>(
-        entityPolicies ?? new Dictionary<string, OfficialPluginEntityPolicy>(),
-        StringComparer.Ordinal);
-      _stage01ProjectFieldExceptions = new HashSet<string>(
-        stage01ProjectFieldExceptions ?? Array.Empty<string>(),
-        StringComparer.Ordinal);
+      EntityPolicies = entityPolicies
+        ?? throw new ArgumentNullException(nameof(entityPolicies));
+      Exceptions = exceptions ?? throw new ArgumentNullException(nameof(exceptions));
+      _entityPoliciesByIfcEntity =
+        new Dictionary<string, OfficialPluginEntityPolicy>(StringComparer.Ordinal);
+      foreach (OfficialPluginEntityPolicy policy in entityPolicies)
+      {
+        if (policy == null || string.IsNullOrWhiteSpace(policy.IfcEntity))
+          throw new InvalidDataException(
+            "Official plugin entity policy is incomplete.");
+        if (_entityPoliciesByIfcEntity.ContainsKey(policy.IfcEntity))
+          throw new InvalidDataException(
+            "Official plugin entity policy is duplicated: "
+            + policy.IfcEntity);
+        _entityPoliciesByIfcEntity.Add(policy.IfcEntity, policy);
+      }
+
+      _stage01ProjectFieldExceptions = new HashSet<string>(StringComparer.Ordinal);
+      foreach (OfficialPluginException exception in exceptions)
+      {
+        if (exception == null
+          || string.IsNullOrWhiteSpace(exception.FieldKey)
+          || string.IsNullOrWhiteSpace(exception.Reason))
+          throw new InvalidDataException(
+            "Official plugin exception is incomplete.");
+        if (!_stage01ProjectFieldExceptions.Add(exception.FieldKey))
+          throw new InvalidDataException(
+            "Official plugin exception is duplicated: "
+            + exception.FieldKey);
+      }
     }
 
-    public static OfficialPluginCompatibilityCatalog Instance
+    public static OfficialPluginCompatibilityCatalog Instance =>
+      LazyInstance.Value;
+
+    public IReadOnlyList<OfficialPluginEntityPolicy> EntityPolicies { get; }
+    public IReadOnlyList<OfficialPluginException> Exceptions { get; }
+
+    internal static OfficialPluginCompatibilityCatalog FromDatabase(
+      HbrRuleDatabase database)
     {
-      get
-      {
-        if (_instance != null) return _instance;
-        lock (InstanceLock)
+      if (database == null) throw new ArgumentNullException(nameof(database));
+      HbrOfficialPluginCompatibility source =
+        database.Package.Stage01.OfficialPluginCompatibility;
+      OfficialPluginEntityPolicy[] policies = source.EntityPolicies
+        .Select(policy => new OfficialPluginEntityPolicy
         {
-          if (_instance == null) _instance = Load();
-          return _instance;
-        }
-      }
+          IfcEntity = policy.IfcEntity,
+          OfficialObjectMappingEvidence = policy.OfficialObjectMappingEvidence,
+          RevitCarrier = policy.RevitCarrier,
+          WritePolicy = policy.WritePolicy,
+          OfficialExportVerified = policy.OfficialExportVerified
+        })
+        .ToArray();
+      OfficialPluginException[] exceptions = source.Exceptions
+        .Select(exception => new OfficialPluginException(
+          exception.FieldKey,
+          exception.Reason))
+        .ToArray();
+      return new OfficialPluginCompatibilityCatalog(policies, exceptions);
     }
 
     public OfficialPluginEntityPolicy GetEntityPolicy(string ifcEntity)
     {
       if (!string.IsNullOrWhiteSpace(ifcEntity)
-        && _entityPolicies.TryGetValue(ifcEntity.Trim(), out OfficialPluginEntityPolicy policy))
+        && _entityPoliciesByIfcEntity.TryGetValue(
+          ifcEntity.Trim(),
+          out OfficialPluginEntityPolicy policy))
         return policy;
 
       return new OfficialPluginEntityPolicy
@@ -74,68 +133,6 @@ namespace BIMBaoGui.Stage01.Hifc
     {
       return !string.IsNullOrWhiteSpace(fieldKey)
         && _stage01ProjectFieldExceptions.Contains(fieldKey.Trim());
-    }
-
-    private static OfficialPluginCompatibilityCatalog Load()
-    {
-      Assembly assembly = typeof(OfficialPluginCompatibilityCatalog).Assembly;
-      using (Stream stream = assembly.GetManifestResourceStream(ResourceName))
-      {
-        if (stream == null)
-        {
-          string available = string.Join(", ", assembly.GetManifestResourceNames());
-          throw new InvalidDataException(
-            "缺少官方插件兼容状态资源："
-            + ResourceName
-            + "。当前资源："
-            + available);
-        }
-
-        using (var reader = new StreamReader(stream))
-        {
-          var serializer = new JavaScriptSerializer
-          {
-            MaxJsonLength = int.MaxValue,
-            RecursionLimit = 512
-          };
-          CompatibilityEnvelope envelope =
-            serializer.Deserialize<CompatibilityEnvelope>(reader.ReadToEnd());
-          if (envelope?.entities == null || envelope.entities.Count == 0)
-            throw new InvalidDataException("官方插件兼容状态未定义任何 IFC 实体策略。");
-
-          var policies = new Dictionary<string, OfficialPluginEntityPolicy>(StringComparer.Ordinal);
-          foreach (KeyValuePair<string, EntityPolicyRecord> item in envelope.entities)
-          {
-            EntityPolicyRecord source = item.Value ?? new EntityPolicyRecord();
-            policies[item.Key] = new OfficialPluginEntityPolicy
-            {
-              IfcEntity = item.Key,
-              OfficialObjectMappingEvidence = source.officialObjectMappingEvidence ?? "UNVERIFIED",
-              RevitCarrier = source.revitCarrier ?? string.Empty,
-              WritePolicy = source.writePolicy ?? "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
-              OfficialExportVerified = source.officialExportVerified
-            };
-          }
-
-          return new OfficialPluginCompatibilityCatalog(
-            policies,
-            envelope.stage01ProjectFieldExceptions ?? Array.Empty<string>());
-        }
-      }
-    }
-
-    private sealed class CompatibilityEnvelope
-    {
-      public string[] stage01ProjectFieldExceptions { get; set; }
-      public Dictionary<string, EntityPolicyRecord> entities { get; set; }
-    }
-
-    private sealed class EntityPolicyRecord
-    {
-      public string officialObjectMappingEvidence { get; set; }
-      public string revitCarrier { get; set; }
-      public string writePolicy { get; set; }
-      public bool officialExportVerified { get; set; }
     }
   }
 }

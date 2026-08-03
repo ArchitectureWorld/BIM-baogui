@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -5,6 +6,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
+
+
+def load_json(path: str):
+    return json.loads(read(path))
 
 
 def test_stage01_projects_all_nonempty_project_fields_through_catalog():
@@ -75,4 +80,27 @@ def test_parameter_binding_failures_identify_operation_and_projection():
 
 def test_revit_2020_temporary_shared_parameter_file_uses_utf16le_bom():
     projection = read("src/BIMBaoGui.Stage01/Revit/OfficialParameterProjectionService.cs")
-    assert "BuildCombinedSharedParameterFile(definitions),\n        Encoding.Unicode);" in projection
+    helper = read("src/BIMBaoGui.Stage01/Hifc/HbrSharedParameterTextProjection.cs")
+    canonical = load_json(
+        "tests/BIMBaoGui.Stage01.Core.Tests/Snapshots/"
+        "shared-parameters-canonical.v1.json"
+    )
+
+    assert len(canonical["groups"]) == 1
+    assert len(canonical["parameters"]) == 141
+    assert canonical["preamble"][-1] == "*GROUP\tID\tNAME"
+    assert "HbrSharedParameterTextProjection.CreateText(HbrRuleDatabase.Current)" in projection
+    assert "Encoding.Unicode" in projection
+    assert projection.index(
+        "HbrSharedParameterTextProjection.CreateText(HbrRuleDatabase.Current)"
+    ) < projection.index("Encoding.Unicode")
+    assert 'private const string NewLine = "\\r\\n";' in helper
+    assert "new UTF8Encoding(false)" in helper
+    assert "File.Write" not in helper
+    for removed_fallback in (
+        "BuildCombinedSharedParameterFile",
+        "ReadEmbeddedText",
+        "GetManifestResourceStream",
+        "GH_HIFC_SharedParameters.txt",
+    ):
+        assert removed_fallback not in projection

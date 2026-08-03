@@ -1,0 +1,1600 @@
+{
+  "schemaVersion": "1.0",
+  "frozenFromCommit": "91a2db05ed57ae2335e63ff532b4bf5fe6109dfb",
+  "conditionRules": [
+    {
+      "conditionKey": "site.other_land",
+      "activationRuleId": "HBR.SITE.OTHER_LAND"
+    },
+    {
+      "conditionKey": "site.road_redline",
+      "activationRuleId": "HBR.SITE.ROAD_REDLINE"
+    },
+    {
+      "conditionKey": "site.road_centerline",
+      "activationRuleId": "HBR.SITE.ROAD_CENTERLINE"
+    },
+    {
+      "conditionKey": "site.internal_roads",
+      "activationRuleId": "HBR.SITE.INTERNAL_ROADS"
+    },
+    {
+      "conditionKey": "site.fire_lane",
+      "activationRuleId": "HBR.SITE.FIRE_LANE"
+    },
+    {
+      "conditionKey": "site.fire_field",
+      "activationRuleId": "HBR.SITE.FIRE_FIELD"
+    },
+    {
+      "conditionKey": "site.green",
+      "activationRuleId": "HBR.SITE.GREEN"
+    },
+    {
+      "conditionKey": "site.outdoor_parking",
+      "activationRuleId": "HBR.SITE.OUTDOOR_PARKING"
+    },
+    {
+      "conditionKey": "site.civil_defense",
+      "activationRuleId": "HBR.COMMON.CIVIL_DEFENSE"
+    },
+    {
+      "conditionKey": "site.structures",
+      "activationRuleId": "HBR.SITE.STRUCTURES"
+    }
+  ],
+  "cases": [
+    {
+      "modelFileType": "总平模型",
+      "state": "none",
+      "conditions": [
+        
+      ],
+      "activated": [
+        "HBR.SITE.BASE",
+        "HBR.SITE.BUILDING_FOOTPRINT",
+        "HBR.SITE.NET_LAND",
+        "HBR.SITE.TOTAL_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "总平模型",
+      "state": "all",
+      "conditions": [
+        {
+          "key": "site.civil_defense",
+          "value": true
+        },
+        {
+          "key": "site.fire_field",
+          "value": true
+        },
+        {
+          "key": "site.fire_lane",
+          "value": true
+        },
+        {
+          "key": "site.green",
+          "value": true
+        },
+        {
+          "key": "site.internal_roads",
+          "value": true
+        },
+        {
+          "key": "site.other_land",
+          "value": true
+        },
+        {
+          "key": "site.outdoor_parking",
+          "value": true
+        },
+        {
+          "key": "site.road_centerline",
+          "value": true
+        },
+        {
+          "key": "site.road_redline",
+          "value": true
+        },
+        {
+          "key": "site.structures",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.BASE",
+        "HBR.SITE.BUILDING_FOOTPRINT",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.NET_LAND",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES",
+        "HBR.SITE.TOTAL_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        
+      ]
+    },
+    {
+      "modelFileType": "总平模型",
+      "state": "only:site.other_land",
+      "conditions": [
+        {
+          "key": "site.other_land",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.BASE",
+        "HBR.SITE.BUILDING_FOOTPRINT",
+        "HBR.SITE.NET_LAND",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.TOTAL_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "总平模型",
+      "state": "only:site.road_redline",
+      "conditions": [
+        {
+          "key": "site.road_redline",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.BASE",
+        "HBR.SITE.BUILDING_FOOTPRINT",
+        "HBR.SITE.NET_LAND",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.TOTAL_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "总平模型",
+      "state": "only:site.road_centerline",
+      "conditions": [
+        {
+          "key": "site.road_centerline",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.BASE",
+        "HBR.SITE.BUILDING_FOOTPRINT",
+        "HBR.SITE.NET_LAND",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.TOTAL_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "总平模型",
+      "state": "only:site.internal_roads",
+      "conditions": [
+        {
+          "key": "site.internal_roads",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.BASE",
+        "HBR.SITE.BUILDING_FOOTPRINT",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.NET_LAND",
+        "HBR.SITE.TOTAL_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "总平模型",
+      "state": "only:site.fire_lane",
+      "conditions": [
+        {
+          "key": "site.fire_lane",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.BASE",
+        "HBR.SITE.BUILDING_FOOTPRINT",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.NET_LAND",
+        "HBR.SITE.TOTAL_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "总平模型",
+      "state": "only:site.fire_field",
+      "conditions": [
+        {
+          "key": "site.fire_field",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.BASE",
+        "HBR.SITE.BUILDING_FOOTPRINT",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.NET_LAND",
+        "HBR.SITE.TOTAL_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "总平模型",
+      "state": "only:site.green",
+      "conditions": [
+        {
+          "key": "site.green",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.BASE",
+        "HBR.SITE.BUILDING_FOOTPRINT",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.NET_LAND",
+        "HBR.SITE.TOTAL_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "总平模型",
+      "state": "only:site.outdoor_parking",
+      "conditions": [
+        {
+          "key": "site.outdoor_parking",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.BASE",
+        "HBR.SITE.BUILDING_FOOTPRINT",
+        "HBR.SITE.NET_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.TOTAL_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "总平模型",
+      "state": "only:site.civil_defense",
+      "conditions": [
+        {
+          "key": "site.civil_defense",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.BASE",
+        "HBR.SITE.BUILDING_FOOTPRINT",
+        "HBR.SITE.NET_LAND",
+        "HBR.SITE.TOTAL_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "总平模型",
+      "state": "only:site.structures",
+      "conditions": [
+        {
+          "key": "site.structures",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.BASE",
+        "HBR.SITE.BUILDING_FOOTPRINT",
+        "HBR.SITE.NET_LAND",
+        "HBR.SITE.STRUCTURES",
+        "HBR.SITE.TOTAL_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地上",
+      "state": "none",
+      "conditions": [
+        
+      ],
+      "activated": [
+        "HBR.BUILDING.ABOVE.BASE",
+        "HBR.BUILDING.ABOVE.BODY",
+        "HBR.BUILDING.ABOVE.LEVELS",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地上",
+      "state": "all",
+      "conditions": [
+        {
+          "key": "site.civil_defense",
+          "value": true
+        },
+        {
+          "key": "site.fire_field",
+          "value": true
+        },
+        {
+          "key": "site.fire_lane",
+          "value": true
+        },
+        {
+          "key": "site.green",
+          "value": true
+        },
+        {
+          "key": "site.internal_roads",
+          "value": true
+        },
+        {
+          "key": "site.other_land",
+          "value": true
+        },
+        {
+          "key": "site.outdoor_parking",
+          "value": true
+        },
+        {
+          "key": "site.road_centerline",
+          "value": true
+        },
+        {
+          "key": "site.road_redline",
+          "value": true
+        },
+        {
+          "key": "site.structures",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.ABOVE.BASE",
+        "HBR.BUILDING.ABOVE.BODY",
+        "HBR.BUILDING.ABOVE.LEVELS",
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地上",
+      "state": "only:site.other_land",
+      "conditions": [
+        {
+          "key": "site.other_land",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.ABOVE.BASE",
+        "HBR.BUILDING.ABOVE.BODY",
+        "HBR.BUILDING.ABOVE.LEVELS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地上",
+      "state": "only:site.road_redline",
+      "conditions": [
+        {
+          "key": "site.road_redline",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.ABOVE.BASE",
+        "HBR.BUILDING.ABOVE.BODY",
+        "HBR.BUILDING.ABOVE.LEVELS",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地上",
+      "state": "only:site.road_centerline",
+      "conditions": [
+        {
+          "key": "site.road_centerline",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.ABOVE.BASE",
+        "HBR.BUILDING.ABOVE.BODY",
+        "HBR.BUILDING.ABOVE.LEVELS",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地上",
+      "state": "only:site.internal_roads",
+      "conditions": [
+        {
+          "key": "site.internal_roads",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.ABOVE.BASE",
+        "HBR.BUILDING.ABOVE.BODY",
+        "HBR.BUILDING.ABOVE.LEVELS",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地上",
+      "state": "only:site.fire_lane",
+      "conditions": [
+        {
+          "key": "site.fire_lane",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.ABOVE.BASE",
+        "HBR.BUILDING.ABOVE.BODY",
+        "HBR.BUILDING.ABOVE.LEVELS",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地上",
+      "state": "only:site.fire_field",
+      "conditions": [
+        {
+          "key": "site.fire_field",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.ABOVE.BASE",
+        "HBR.BUILDING.ABOVE.BODY",
+        "HBR.BUILDING.ABOVE.LEVELS",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地上",
+      "state": "only:site.green",
+      "conditions": [
+        {
+          "key": "site.green",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.ABOVE.BASE",
+        "HBR.BUILDING.ABOVE.BODY",
+        "HBR.BUILDING.ABOVE.LEVELS",
+        "HBR.SITE.GREEN",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地上",
+      "state": "only:site.outdoor_parking",
+      "conditions": [
+        {
+          "key": "site.outdoor_parking",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.ABOVE.BASE",
+        "HBR.BUILDING.ABOVE.BODY",
+        "HBR.BUILDING.ABOVE.LEVELS",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地上",
+      "state": "only:site.civil_defense",
+      "conditions": [
+        {
+          "key": "site.civil_defense",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.ABOVE.BASE",
+        "HBR.BUILDING.ABOVE.BODY",
+        "HBR.BUILDING.ABOVE.LEVELS",
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地上",
+      "state": "only:site.structures",
+      "conditions": [
+        {
+          "key": "site.structures",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.ABOVE.BASE",
+        "HBR.BUILDING.ABOVE.BODY",
+        "HBR.BUILDING.ABOVE.LEVELS",
+        "HBR.SITE.STRUCTURES",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地下",
+      "state": "none",
+      "conditions": [
+        
+      ],
+      "activated": [
+        "HBR.BUILDING.UNDERGROUND.BASE",
+        "HBR.BUILDING.UNDERGROUND.BODY",
+        "HBR.BUILDING.UNDERGROUND.LEVELS",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地下",
+      "state": "all",
+      "conditions": [
+        {
+          "key": "site.civil_defense",
+          "value": true
+        },
+        {
+          "key": "site.fire_field",
+          "value": true
+        },
+        {
+          "key": "site.fire_lane",
+          "value": true
+        },
+        {
+          "key": "site.green",
+          "value": true
+        },
+        {
+          "key": "site.internal_roads",
+          "value": true
+        },
+        {
+          "key": "site.other_land",
+          "value": true
+        },
+        {
+          "key": "site.outdoor_parking",
+          "value": true
+        },
+        {
+          "key": "site.road_centerline",
+          "value": true
+        },
+        {
+          "key": "site.road_redline",
+          "value": true
+        },
+        {
+          "key": "site.structures",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.UNDERGROUND.BASE",
+        "HBR.BUILDING.UNDERGROUND.BODY",
+        "HBR.BUILDING.UNDERGROUND.LEVELS",
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地下",
+      "state": "only:site.other_land",
+      "conditions": [
+        {
+          "key": "site.other_land",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.UNDERGROUND.BASE",
+        "HBR.BUILDING.UNDERGROUND.BODY",
+        "HBR.BUILDING.UNDERGROUND.LEVELS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地下",
+      "state": "only:site.road_redline",
+      "conditions": [
+        {
+          "key": "site.road_redline",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.UNDERGROUND.BASE",
+        "HBR.BUILDING.UNDERGROUND.BODY",
+        "HBR.BUILDING.UNDERGROUND.LEVELS",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地下",
+      "state": "only:site.road_centerline",
+      "conditions": [
+        {
+          "key": "site.road_centerline",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.UNDERGROUND.BASE",
+        "HBR.BUILDING.UNDERGROUND.BODY",
+        "HBR.BUILDING.UNDERGROUND.LEVELS",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地下",
+      "state": "only:site.internal_roads",
+      "conditions": [
+        {
+          "key": "site.internal_roads",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.UNDERGROUND.BASE",
+        "HBR.BUILDING.UNDERGROUND.BODY",
+        "HBR.BUILDING.UNDERGROUND.LEVELS",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地下",
+      "state": "only:site.fire_lane",
+      "conditions": [
+        {
+          "key": "site.fire_lane",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.UNDERGROUND.BASE",
+        "HBR.BUILDING.UNDERGROUND.BODY",
+        "HBR.BUILDING.UNDERGROUND.LEVELS",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地下",
+      "state": "only:site.fire_field",
+      "conditions": [
+        {
+          "key": "site.fire_field",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.UNDERGROUND.BASE",
+        "HBR.BUILDING.UNDERGROUND.BODY",
+        "HBR.BUILDING.UNDERGROUND.LEVELS",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地下",
+      "state": "only:site.green",
+      "conditions": [
+        {
+          "key": "site.green",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.UNDERGROUND.BASE",
+        "HBR.BUILDING.UNDERGROUND.BODY",
+        "HBR.BUILDING.UNDERGROUND.LEVELS",
+        "HBR.SITE.GREEN",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地下",
+      "state": "only:site.outdoor_parking",
+      "conditions": [
+        {
+          "key": "site.outdoor_parking",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.UNDERGROUND.BASE",
+        "HBR.BUILDING.UNDERGROUND.BODY",
+        "HBR.BUILDING.UNDERGROUND.LEVELS",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地下",
+      "state": "only:site.civil_defense",
+      "conditions": [
+        {
+          "key": "site.civil_defense",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.UNDERGROUND.BASE",
+        "HBR.BUILDING.UNDERGROUND.BODY",
+        "HBR.BUILDING.UNDERGROUND.LEVELS",
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地下",
+      "state": "only:site.structures",
+      "conditions": [
+        {
+          "key": "site.structures",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.BUILDING.UNDERGROUND.BASE",
+        "HBR.BUILDING.UNDERGROUND.BODY",
+        "HBR.BUILDING.UNDERGROUND.LEVELS",
+        "HBR.SITE.STRUCTURES",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE"
+      ]
+    },
+    {
+      "modelFileType": "UNKNOWN_MODEL",
+      "state": "none",
+      "conditions": [
+        
+      ],
+      "activated": [
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "UNKNOWN_MODEL",
+      "state": "all",
+      "conditions": [
+        {
+          "key": "site.civil_defense",
+          "value": true
+        },
+        {
+          "key": "site.fire_field",
+          "value": true
+        },
+        {
+          "key": "site.fire_lane",
+          "value": true
+        },
+        {
+          "key": "site.green",
+          "value": true
+        },
+        {
+          "key": "site.internal_roads",
+          "value": true
+        },
+        {
+          "key": "site.other_land",
+          "value": true
+        },
+        {
+          "key": "site.outdoor_parking",
+          "value": true
+        },
+        {
+          "key": "site.road_centerline",
+          "value": true
+        },
+        {
+          "key": "site.road_redline",
+          "value": true
+        },
+        {
+          "key": "site.structures",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        
+      ]
+    },
+    {
+      "modelFileType": "UNKNOWN_MODEL",
+      "state": "only:site.other_land",
+      "conditions": [
+        {
+          "key": "site.other_land",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.OTHER_LAND",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "UNKNOWN_MODEL",
+      "state": "only:site.road_redline",
+      "conditions": [
+        {
+          "key": "site.road_redline",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "UNKNOWN_MODEL",
+      "state": "only:site.road_centerline",
+      "conditions": [
+        {
+          "key": "site.road_centerline",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "UNKNOWN_MODEL",
+      "state": "only:site.internal_roads",
+      "conditions": [
+        {
+          "key": "site.internal_roads",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "UNKNOWN_MODEL",
+      "state": "only:site.fire_lane",
+      "conditions": [
+        {
+          "key": "site.fire_lane",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.FIRE_LANE",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "UNKNOWN_MODEL",
+      "state": "only:site.fire_field",
+      "conditions": [
+        {
+          "key": "site.fire_field",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "UNKNOWN_MODEL",
+      "state": "only:site.green",
+      "conditions": [
+        {
+          "key": "site.green",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.GREEN",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "UNKNOWN_MODEL",
+      "state": "only:site.outdoor_parking",
+      "conditions": [
+        {
+          "key": "site.outdoor_parking",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "UNKNOWN_MODEL",
+      "state": "only:site.civil_defense",
+      "conditions": [
+        {
+          "key": "site.civil_defense",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE",
+        "HBR.SITE.STRUCTURES"
+      ]
+    },
+    {
+      "modelFileType": "UNKNOWN_MODEL",
+      "state": "only:site.structures",
+      "conditions": [
+        {
+          "key": "site.structures",
+          "value": true
+        }
+      ],
+      "activated": [
+        "HBR.SITE.STRUCTURES",
+        "HBR.TARGET.BUILDING_DENSITY",
+        "HBR.TARGET.FLOOR_AREA_RATIO",
+        "HBR.TARGET.GREEN_RATE"
+      ],
+      "notApplicable": [
+        "HBR.COMMON.CIVIL_DEFENSE",
+        "HBR.SITE.FIRE_FIELD",
+        "HBR.SITE.FIRE_LANE",
+        "HBR.SITE.GREEN",
+        "HBR.SITE.INTERNAL_ROADS",
+        "HBR.SITE.OTHER_LAND",
+        "HBR.SITE.OUTDOOR_PARKING",
+        "HBR.SITE.ROAD_CENTERLINE",
+        "HBR.SITE.ROAD_REDLINE"
+      ]
+    }
+  ]
+}

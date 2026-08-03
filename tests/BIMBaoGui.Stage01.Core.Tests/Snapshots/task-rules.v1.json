@@ -1,0 +1,805 @@
+{
+  "schemaVersion": "1.0",
+  "frozenFromCommit": "91a2db05ed57ae2335e63ff532b4bf5fe6109dfb",
+  "partitions": [
+    {
+      "modelFileType": "总平模型",
+      "rules": [
+        {
+          "modelFileType": "总平模型",
+          "taskId": "SITE.SKELETON",
+          "name": "总平空间基准骨架",
+          "objectCode": "site.skeleton",
+          "requirement": "Required",
+          "conditionKey": "",
+          "sequence": 10,
+          "skeletonTask": true,
+          "attributeRequirements": [
+            "坐标系统",
+            "真北方向",
+            "高程系统"
+          ],
+          "dependencies": [
+            
+          ],
+          "geometryChecks": [
+            "总平计算平面有效",
+            "项目基点与共享坐标有效"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "总平模型",
+          "taskId": "SITE.TOTAL_LAND",
+          "name": "规划总用地",
+          "objectCode": "site.total_land",
+          "requirement": "Required",
+          "conditionKey": "",
+          "sequence": 20,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "名称",
+            "投影面积",
+            "用地类型"
+          ],
+          "dependencies": [
+            "SITE.SKELETON"
+          ],
+          "geometryChecks": [
+            "无自交",
+            "边界闭合",
+            "面积大于零"
+          ],
+          "propertyChecks": [
+            "投影面积与几何一致"
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "总平模型",
+          "taskId": "SITE.NET_LAND",
+          "name": "规划净用地",
+          "objectCode": "site.net_land",
+          "requirement": "Required",
+          "conditionKey": "",
+          "sequence": 30,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "名称",
+            "投影面积",
+            "用地类型"
+          ],
+          "dependencies": [
+            "SITE.TOTAL_LAND"
+          ],
+          "geometryChecks": [
+            "位于规划总用地内",
+            "边界闭合",
+            "面积大于零"
+          ],
+          "propertyChecks": [
+            "投影面积与几何一致"
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "总平模型",
+          "taskId": "SITE.BUILDING_FOOTPRINT",
+          "name": "建筑轮廓或建筑占地表达",
+          "objectCode": "site.building_footprint",
+          "requirement": "Required",
+          "conditionKey": "",
+          "sequence": 40,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "占地面积",
+            "建筑名称",
+            "建筑编号"
+          ],
+          "dependencies": [
+            "SITE.NET_LAND"
+          ],
+          "geometryChecks": [
+            "位于规划净用地内",
+            "建筑轮廓不重复",
+            "轮廓闭合"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            "planning.building_density"
+          ]
+        },
+        {
+          "modelFileType": "总平模型",
+          "taskId": "SITE.OTHER_LAND",
+          "name": "其他分类用地",
+          "objectCode": "site.other_land",
+          "requirement": "Conditional",
+          "conditionKey": "site.other_land",
+          "sequence": 50,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "名称",
+            "投影面积",
+            "用地分类"
+          ],
+          "dependencies": [
+            "SITE.TOTAL_LAND"
+          ],
+          "geometryChecks": [
+            "用地关系有效",
+            "边界闭合"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "总平模型",
+          "taskId": "SITE.ROAD_REDLINE",
+          "name": "道路红线",
+          "objectCode": "site.road_redline",
+          "requirement": "Conditional",
+          "conditionKey": "site.road_redline",
+          "sequence": 60,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "名称",
+            "红线类型"
+          ],
+          "dependencies": [
+            "SITE.SKELETON"
+          ],
+          "geometryChecks": [
+            "无无效短线",
+            "曲线连续"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "总平模型",
+          "taskId": "SITE.ROAD_CENTERLINE",
+          "name": "道路中心线",
+          "objectCode": "site.road_centerline",
+          "requirement": "Conditional",
+          "conditionKey": "site.road_centerline",
+          "sequence": 70,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "名称",
+            "道路等级"
+          ],
+          "dependencies": [
+            "SITE.ROAD_REDLINE"
+          ],
+          "geometryChecks": [
+            "与道路红线关系有效",
+            "中心线连续"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "总平模型",
+          "taskId": "SITE.INTERNAL_ROADS",
+          "name": "区内道路",
+          "objectCode": "site.internal_roads",
+          "requirement": "Conditional",
+          "conditionKey": "site.internal_roads",
+          "sequence": 80,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "道路名称",
+            "道路宽度",
+            "道路类型"
+          ],
+          "dependencies": [
+            "SITE.NET_LAND"
+          ],
+          "geometryChecks": [
+            "位于规划净用地内",
+            "道路范围闭合"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "总平模型",
+          "taskId": "SITE.FIRE_LANE",
+          "name": "消防道路",
+          "objectCode": "site.fire_lane",
+          "requirement": "Conditional",
+          "conditionKey": "site.fire_lane",
+          "sequence": 90,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "名称",
+            "转弯半径",
+            "道路宽度"
+          ],
+          "dependencies": [
+            "SITE.NET_LAND"
+          ],
+          "geometryChecks": [
+            "消防道路范围有效",
+            "消防道路连续"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "总平模型",
+          "taskId": "SITE.FIRE_FIELD",
+          "name": "消防登高或操作场地",
+          "objectCode": "site.fire_field",
+          "requirement": "Conditional",
+          "conditionKey": "site.fire_field",
+          "sequence": 100,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "名称",
+            "场地类型",
+            "投影面积"
+          ],
+          "dependencies": [
+            "SITE.FIRE_LANE"
+          ],
+          "geometryChecks": [
+            "与服务建筑关系有效",
+            "场地边界闭合"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "总平模型",
+          "taskId": "SITE.GREEN",
+          "name": "绿地",
+          "objectCode": "site.green",
+          "requirement": "Conditional",
+          "conditionKey": "site.green",
+          "sequence": 110,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "投影面积",
+            "折算系数",
+            "绿地类型"
+          ],
+          "dependencies": [
+            "SITE.NET_LAND"
+          ],
+          "geometryChecks": [
+            "绿地不越界",
+            "绿地不重复统计",
+            "绿地边界闭合"
+          ],
+          "propertyChecks": [
+            "折算面积计算有效"
+          ],
+          "targetComparisons": [
+            "planning.green_rate"
+          ]
+        },
+        {
+          "modelFileType": "总平模型",
+          "taskId": "SITE.OUTDOOR_PARKING",
+          "name": "室外停车场或车位",
+          "objectCode": "site.outdoor_parking",
+          "requirement": "Conditional",
+          "conditionKey": "site.outdoor_parking",
+          "sequence": 120,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "停车类型",
+            "投影面积",
+            "车位数量"
+          ],
+          "dependencies": [
+            "SITE.NET_LAND"
+          ],
+          "geometryChecks": [
+            "停车范围有效",
+            "车位不重复"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "总平模型",
+          "taskId": "SITE.CIVIL_DEFENSE",
+          "name": "人防区域",
+          "objectCode": "site.civil_defense",
+          "requirement": "Conditional",
+          "conditionKey": "site.civil_defense",
+          "sequence": 130,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "人防类型",
+            "名称",
+            "投影面积"
+          ],
+          "dependencies": [
+            "SITE.NET_LAND"
+          ],
+          "geometryChecks": [
+            "人防范围闭合",
+            "范围关系有效"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "总平模型",
+          "taskId": "SITE.STRUCTURES",
+          "name": "室外构筑物与设施",
+          "objectCode": "site.structures",
+          "requirement": "Conditional",
+          "conditionKey": "site.structures",
+          "sequence": 140,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "名称",
+            "数量",
+            "设施类型"
+          ],
+          "dependencies": [
+            "SITE.NET_LAND"
+          ],
+          "geometryChecks": [
+            "设施位置位于项目范围内"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "总平模型",
+          "taskId": "SITE.TARGET_CHECK",
+          "name": "总平规划控制目标复核",
+          "objectCode": "site.target_check",
+          "requirement": "Required",
+          "conditionKey": "",
+          "sequence": 900,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            
+          ],
+          "dependencies": [
+            "SITE.BUILDING_FOOTPRINT",
+            "SITE.NET_LAND"
+          ],
+          "geometryChecks": [
+            
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            "planning.building_density",
+            "planning.floor_area_ratio",
+            "planning.green_rate"
+          ]
+        }
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地上",
+      "rules": [
+        {
+          "modelFileType": "单体建筑—地上",
+          "taskId": "ABOVE.SKELETON",
+          "name": "地上建筑空间骨架",
+          "objectCode": "building.above.skeleton",
+          "requirement": "Required",
+          "conditionKey": "",
+          "sequence": 10,
+          "skeletonTask": true,
+          "attributeRequirements": [
+            "建筑名称",
+            "建筑编号",
+            "标高基准"
+          ],
+          "dependencies": [
+            
+          ],
+          "geometryChecks": [
+            "建筑定位有效",
+            "标高序列有效"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "单体建筑—地上",
+          "taskId": "ABOVE.LEVELS",
+          "name": "地上楼层骨架",
+          "objectCode": "building.above.levels",
+          "requirement": "Required",
+          "conditionKey": "",
+          "sequence": 20,
+          "skeletonTask": true,
+          "attributeRequirements": [
+            "楼层名称",
+            "楼层序号",
+            "楼层标高"
+          ],
+          "dependencies": [
+            "ABOVE.SKELETON"
+          ],
+          "geometryChecks": [
+            "楼层标高不重复",
+            "楼层顺序有效"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "单体建筑—地上",
+          "taskId": "ABOVE.BODY",
+          "name": "地上建筑主体",
+          "objectCode": "building.above.body",
+          "requirement": "Required",
+          "conditionKey": "",
+          "sequence": 30,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "地上层数",
+            "建筑功能",
+            "建筑面积",
+            "建筑高度"
+          ],
+          "dependencies": [
+            "ABOVE.LEVELS"
+          ],
+          "geometryChecks": [
+            "主体轮廓闭合",
+            "楼层与主体关系有效"
+          ],
+          "propertyChecks": [
+            "层数与楼层一致",
+            "面积与几何一致",
+            "高度与标高一致"
+          ],
+          "targetComparisons": [
+            "planning.floor_area_ratio"
+          ]
+        },
+        {
+          "modelFileType": "单体建筑—地上",
+          "taskId": "ABOVE.ROOF",
+          "name": "屋顶及屋面构件",
+          "objectCode": "building.above.roof",
+          "requirement": "Conditional",
+          "conditionKey": "building.roof",
+          "sequence": 40,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "屋顶类型",
+            "最高点标高"
+          ],
+          "dependencies": [
+            "ABOVE.BODY"
+          ],
+          "geometryChecks": [
+            "屋顶与主体关系有效"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "单体建筑—地上",
+          "taskId": "ABOVE.BALCONY",
+          "name": "阳台",
+          "objectCode": "building.above.balcony",
+          "requirement": "Conditional",
+          "conditionKey": "building.balcony",
+          "sequence": 50,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "投影面积",
+            "计容方式",
+            "阳台类型"
+          ],
+          "dependencies": [
+            "ABOVE.BODY"
+          ],
+          "geometryChecks": [
+            
+          ],
+          "propertyChecks": [
+            "阳台面积统计有效"
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "单体建筑—地上",
+          "taskId": "ABOVE.CANOPY",
+          "name": "雨篷或挑檐",
+          "objectCode": "building.above.canopy",
+          "requirement": "Conditional",
+          "conditionKey": "building.canopy",
+          "sequence": 60,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "投影面积",
+            "构件类型"
+          ],
+          "dependencies": [
+            "ABOVE.BODY"
+          ],
+          "geometryChecks": [
+            
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "单体建筑—地上",
+          "taskId": "ABOVE.INHERIT_TARGETS",
+          "name": "继承项目规划控制目标",
+          "objectCode": "building.above.target_inheritance",
+          "requirement": "Required",
+          "conditionKey": "",
+          "sequence": 900,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            
+          ],
+          "dependencies": [
+            "ABOVE.BODY"
+          ],
+          "geometryChecks": [
+            
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            "planning.building_density",
+            "planning.floor_area_ratio",
+            "planning.green_rate"
+          ]
+        }
+      ]
+    },
+    {
+      "modelFileType": "单体建筑—地下",
+      "rules": [
+        {
+          "modelFileType": "单体建筑—地下",
+          "taskId": "UNDERGROUND.SKELETON",
+          "name": "地下建筑空间骨架",
+          "objectCode": "building.underground.skeleton",
+          "requirement": "Required",
+          "conditionKey": "",
+          "sequence": 10,
+          "skeletonTask": true,
+          "attributeRequirements": [
+            "地下定位基准",
+            "建筑名称",
+            "建筑编号"
+          ],
+          "dependencies": [
+            
+          ],
+          "geometryChecks": [
+            "地下定位有效",
+            "地下标高序列有效"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "单体建筑—地下",
+          "taskId": "UNDERGROUND.LEVELS",
+          "name": "地下楼层骨架",
+          "objectCode": "building.underground.levels",
+          "requirement": "Required",
+          "conditionKey": "",
+          "sequence": 20,
+          "skeletonTask": true,
+          "attributeRequirements": [
+            "楼层名称",
+            "楼层序号",
+            "楼层标高"
+          ],
+          "dependencies": [
+            "UNDERGROUND.SKELETON"
+          ],
+          "geometryChecks": [
+            "地下楼层标高不重复",
+            "地下楼层顺序有效"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "单体建筑—地下",
+          "taskId": "UNDERGROUND.BODY",
+          "name": "地下建筑主体",
+          "objectCode": "building.underground.body",
+          "requirement": "Required",
+          "conditionKey": "",
+          "sequence": 30,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "地下层数",
+            "地下建筑面积",
+            "地下空间类型"
+          ],
+          "dependencies": [
+            "UNDERGROUND.LEVELS"
+          ],
+          "geometryChecks": [
+            "地下主体轮廓闭合",
+            "地下范围关系有效"
+          ],
+          "propertyChecks": [
+            "地下层数与楼层一致",
+            "地下面积与几何一致"
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "单体建筑—地下",
+          "taskId": "UNDERGROUND.PARKING",
+          "name": "地下停车空间",
+          "objectCode": "building.underground.parking",
+          "requirement": "Conditional",
+          "conditionKey": "underground.parking",
+          "sequence": 40,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "停车类型",
+            "机动车位",
+            "非机动车位"
+          ],
+          "dependencies": [
+            "UNDERGROUND.BODY"
+          ],
+          "geometryChecks": [
+            "停车范围有效",
+            "车位不重复"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "单体建筑—地下",
+          "taskId": "UNDERGROUND.CIVIL_DEFENSE",
+          "name": "地下人防空间",
+          "objectCode": "building.underground.civil_defense",
+          "requirement": "Conditional",
+          "conditionKey": "site.civil_defense",
+          "sequence": 50,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            "人防类型",
+            "人防面积",
+            "防护单元"
+          ],
+          "dependencies": [
+            "UNDERGROUND.BODY"
+          ],
+          "geometryChecks": [
+            "人防范围闭合",
+            "防护单元关系有效"
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            
+          ]
+        },
+        {
+          "modelFileType": "单体建筑—地下",
+          "taskId": "UNDERGROUND.INHERIT_TARGETS",
+          "name": "继承项目规划控制目标",
+          "objectCode": "building.underground.target_inheritance",
+          "requirement": "Required",
+          "conditionKey": "",
+          "sequence": 900,
+          "skeletonTask": false,
+          "attributeRequirements": [
+            
+          ],
+          "dependencies": [
+            "UNDERGROUND.BODY"
+          ],
+          "geometryChecks": [
+            
+          ],
+          "propertyChecks": [
+            
+          ],
+          "targetComparisons": [
+            "planning.building_density",
+            "planning.floor_area_ratio",
+            "planning.green_rate"
+          ]
+        }
+      ]
+    }
+  ],
+  "nullModelCount": 0,
+  "unknownModelCount": 0
+}
