@@ -85,7 +85,13 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="CopyAsGha" AfterTargets="Build">
-    <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(TargetDir)BIMBaoGui.Stage01.gha" />
+  <Target Name="CopyAsGha" AfterTargets="CopyFilesToOutputDirectory">
+    <PropertyGroup>
+      <HbrGhaOutputPath>$([MSBuild]::NormalizePath('$(TargetDir)', 'BIMBaoGui.Stage01.gha'))</HbrGhaOutputPath>
+    </PropertyGroup>
+    <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(HbrGhaOutputPath)" />
+    <ItemGroup>
+      <FileWrites Include="$(HbrGhaOutputPath)" />
+    </ItemGroup>
   </Target>
 </Project>

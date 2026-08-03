@@ -13,6 +13,7 @@ TEST_PROJECT = (
     / "tests/BIMBaoGui.Stage01.Core.Tests/BIMBaoGui.Stage01.Core.Tests.csproj"
 )
 FIXTURE_NAME = "BIMBaoGui.Stage01.production.dll"
+GHA_NAME = "BIMBaoGui.Stage01.gha"
 SOURCE_TREE_ROOTS = (ROOT / "src", ROOT / "tests")
 
 
@@ -74,8 +75,10 @@ def _clean_projects(project_properties, output_root, configuration):
             failures.append(result.stdout + result.stderr)
 
     fixtures = sorted(output_root.rglob(FIXTURE_NAME))
+    gha_files = sorted(output_root.rglob(GHA_NAME))
     source_tree_residue = _source_tree_configuration_files(configuration)
     assert not fixtures, f"dotnet clean left staged fixtures: {fixtures}"
+    assert not gha_files, f"dotnet clean left production/staged GHA files: {gha_files}"
     assert not source_tree_residue, (
         "isolated build left configuration files in the source tree: "
         f"{source_tree_residue}"
@@ -187,6 +190,10 @@ def test_staged_fixture_matches_custom_output_target_path(tmp_path):
             "BIMBaoGui.Stage01.dll",
         )
         staged_fixture = _single_file(output_root, FIXTURE_NAME)
+        production_gha = production_assembly.with_suffix(".gha")
+        staged_gha = staged_fixture.with_name(GHA_NAME)
+        assert production_gha.is_file()
+        assert staged_gha.is_file()
         production_identity = _assembly_version(production_assembly)
         staged_identity = _assembly_version(staged_fixture)
 
@@ -202,6 +209,8 @@ def test_staged_fixture_matches_custom_output_target_path(tmp_path):
             f"fixture={staged_fixture} version={staged_identity}, "
             f"production={production_assembly} version={production_identity}"
         )
+        assert _sha256(production_gha) == _sha256(production_assembly)
+        assert _sha256(staged_gha) == _sha256(production_assembly)
     finally:
         _clean_projects(
             (
@@ -244,11 +253,17 @@ def test_base_output_incremental_staging_and_clean(tmp_path):
             "BIMBaoGui.Stage01.dll",
         )
         staged_fixture = _single_file(output_root, FIXTURE_NAME)
+        production_gha = production_assembly.with_suffix(".gha")
+        staged_gha = staged_fixture.with_name(GHA_NAME)
+        assert production_gha.is_file()
+        assert staged_gha.is_file()
         production_hash = _sha256(production_assembly)
         staged_hash = _sha256(staged_fixture)
         staged_timestamp = staged_fixture.stat().st_mtime_ns
 
         assert staged_hash == production_hash
+        assert _sha256(production_gha) == production_hash
+        assert _sha256(staged_gha) == production_hash
         time.sleep(1.1)
         _build(TEST_PROJECT, test_properties)
 
@@ -264,3 +279,128 @@ def test_base_output_incremental_staging_and_clean(tmp_path):
             output_root,
             configuration,
         )
+
+
+def test_staging_rejects_stale_same_identity_gha(tmp_path):
+    configuration = _configuration("HbrStaleGhaContractTest")
+    output_root = tmp_path / "stale-output"
+    production_properties = _isolated_properties(
+        configuration,
+        "OutputPath",
+        output_root,
+        tmp_path / "obj" / "BIMBaoGui.Stage01",
+    )
+    test_properties = _test_project_properties(
+        _isolated_properties(
+            configuration,
+            "OutputPath",
+            output_root,
+            tmp_path / "obj" / "BIMBaoGui.Stage01.Core.Tests",
+        )
+    )
+
+    try:
+        _restore(PRODUCTION_PROJECT, production_properties)
+        _restore(TEST_PROJECT, test_properties)
+        _build(PRODUCTION_PROJECT, production_properties)
+        production_assembly = _single_file(
+            output_root,
+            "BIMBaoGui.Stage01.dll",
+        )
+        production_gha = production_assembly.with_suffix(".gha")
+        assert _assembly_version(production_gha) == _assembly_version(
+            production_assembly
+        )
+        with production_gha.open("ab") as stream:
+            stream.write(b"stale-same-identity")
+
+        result = _run_dotnet(
+            "build",
+            TEST_PROJECT,
+            *_property_arguments(test_properties),
+            "--no-restore",
+            "--verbosity",
+            "minimal",
+            check=False,
+        )
+
+        assert result.returncode != 0, (
+            "test staging accepted a stale GHA with the same assembly identity"
+        )
+        assert "production DLL/GHA content mismatch" in (
+            result.stdout + result.stderr
+        )
+    finally:
+        for project, properties in (
+            (TEST_PROJECT, test_properties),
+            (PRODUCTION_PROJECT, production_properties),
+        ):
+            _run_dotnet(
+                "clean",
+                project,
+                *_property_arguments(properties),
+                "--verbosity",
+                "minimal",
+                check=False,
+            )
+        assert not _source_tree_configuration_files(configuration)
+
+
+def test_production_gha_is_registered_in_filewrites_and_cleaned(tmp_path):
+    configuration = _configuration("HbrGhaCleanContractTest")
+    output_root = tmp_path / "production-output"
+    filewrites_manifest = tmp_path / "gha-filewrites.txt"
+    after_targets = tmp_path / "capture-filewrites.targets"
+    after_targets.write_text(
+        """<Project>
+  <Target Name="CaptureHbrGhaFileWrites" AfterTargets="CopyAsGha">
+    <WriteLinesToFile File="{manifest}" Lines="@(FileWrites->'%(FullPath)')" Overwrite="true" />
+  </Target>
+</Project>
+""".format(manifest=filewrites_manifest.as_posix()),
+        encoding="utf-8",
+    )
+    properties = _isolated_properties(
+        configuration,
+        "OutputPath",
+        output_root,
+        tmp_path / "obj" / "BIMBaoGui.Stage01",
+    )
+    properties["CustomAfterMicrosoftCommonTargets"] = after_targets
+
+    try:
+        _restore(PRODUCTION_PROJECT, properties)
+        _build(PRODUCTION_PROJECT, properties)
+        production_assembly = _single_file(
+            output_root,
+            "BIMBaoGui.Stage01.dll",
+        )
+        production_gha = production_assembly.with_suffix(".gha")
+        assert production_gha.is_file()
+        filewrites = {
+            Path(line).resolve()
+            for line in filewrites_manifest.read_text(
+                encoding="utf-8"
+            ).splitlines()
+            if line.strip()
+        }
+        assert production_gha.resolve() in filewrites
+
+        _run_dotnet(
+            "clean",
+            PRODUCTION_PROJECT,
+            *_property_arguments(properties),
+            "--verbosity",
+            "minimal",
+        )
+        assert not production_gha.exists()
+    finally:
+        _run_dotnet(
+            "clean",
+            PRODUCTION_PROJECT,
+            *_property_arguments(properties),
+            "--verbosity",
+            "minimal",
+            check=False,
+        )
+        assert not _source_tree_configuration_files(configuration)

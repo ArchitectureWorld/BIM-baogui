@@ -29,6 +29,12 @@
                       HbrProductionAssembly="true" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ValidationModels.cs" Link="Stage03\Stage03ValidationModels.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ExportGatePolicy.cs" Link="Stage03\Stage03ExportGatePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03OutputPathPolicy.cs" Link="Stage03\Stage03OutputPathPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\AtomicJsonReportWriter.cs" Link="Diagnostics\AtomicJsonReportWriter.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\Stage03FieldReportWriter.cs" Link="Diagnostics\Stage03FieldReportWriter.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\Stage03FailureReportWriter.cs" Link="Diagnostics\Stage03FailureReportWriter.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\Stage04FailureReportWriter.cs" Link="Diagnostics\Stage04FailureReportWriter.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepDocument.cs" Link="Mvd\IfcStepDocument.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepEntity.cs" Link="Mvd\IfcStepEntity.cs" />
@@ -195,27 +201,45 @@
            Text="Expected exactly one BIMBaoGui.Stage01.dll TargetOutput, but found @(_HbrProductionAssembly->Count()): @(_HbrProductionTargetOutputs)." />
     <PropertyGroup>
       <HbrProductionAssemblyPath>@(_HbrProductionAssembly->'%(FullPath)')</HbrProductionAssemblyPath>
+      <HbrProductionGhaPath>$([System.IO.Path]::ChangeExtension('$(HbrProductionAssemblyPath)', '.gha'))</HbrProductionGhaPath>
       <HbrProductionAssemblyFixture>$([MSBuild]::NormalizePath('$(TargetDir)', 'BIMBaoGui.Stage01.production.dll'))</HbrProductionAssemblyFixture>
+      <HbrProductionGhaFixture>$([MSBuild]::NormalizePath('$(TargetDir)', 'BIMBaoGui.Stage01.gha'))</HbrProductionGhaFixture>
     </PropertyGroup>
     <Error Condition="!Exists('$(HbrProductionAssemblyPath)')"
            Text="Production BIMBaoGui.Stage01 TargetOutput does not exist: $(HbrProductionAssemblyPath)" />
-    <Copy SourceFiles="$(HbrProductionAssemblyPath)"
-          DestinationFiles="$(HbrProductionAssemblyFixture)"
-          SkipUnchangedFiles="true" />
+    <Error Condition="!Exists('$(HbrProductionGhaPath)')"
+           Text="Production BIMBaoGui.Stage01.gha does not exist: $(HbrProductionGhaPath)" />
     <GetFileHash Files="$(HbrProductionAssemblyPath)" Algorithm="SHA256">
       <Output TaskParameter="Items" ItemName="_HbrProductionAssemblyHash" />
     </GetFileHash>
+    <GetFileHash Files="$(HbrProductionGhaPath)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_HbrProductionGhaHash" />
+    </GetFileHash>
+    <Error Condition="'@(_HbrProductionAssemblyHash->'%(FileHash)')' != '@(_HbrProductionGhaHash->'%(FileHash)')'"
+           Text="HBR production DLL/GHA content mismatch: $(HbrProductionAssemblyPath) -> $(HbrProductionGhaPath)." />
+    <Copy SourceFiles="$(HbrProductionAssemblyPath)"
+          DestinationFiles="$(HbrProductionAssemblyFixture)"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(HbrProductionGhaPath)"
+          DestinationFiles="$(HbrProductionGhaFixture)"
+          SkipUnchangedFiles="true" />
     <GetFileHash Files="$(HbrProductionAssemblyFixture)" Algorithm="SHA256">
       <Output TaskParameter="Items" ItemName="_HbrProductionAssemblyFixtureHash" />
     </GetFileHash>
     <Error Condition="'@(_HbrProductionAssemblyHash->'%(FileHash)')' != '@(_HbrProductionAssemblyFixtureHash->'%(FileHash)')'"
            Text="Staged HBR production assembly hash does not match TargetOutput: $(HbrProductionAssemblyPath) -> $(HbrProductionAssemblyFixture)." />
+    <GetFileHash Files="$(HbrProductionGhaFixture)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_HbrProductionGhaFixtureHash" />
+    </GetFileHash>
+    <Error Condition="'@(_HbrProductionGhaHash->'%(FileHash)')' != '@(_HbrProductionGhaFixtureHash->'%(FileHash)')'"
+           Text="Staged HBR production GHA hash does not match: $(HbrProductionGhaPath) -> $(HbrProductionGhaFixture)." />
   </Target>
 
   <Target Name="CleanHbrProductionAssemblyFixture" AfterTargets="Clean">
     <PropertyGroup>
       <HbrProductionAssemblyFixture>$([MSBuild]::NormalizePath('$(TargetDir)', 'BIMBaoGui.Stage01.production.dll'))</HbrProductionAssemblyFixture>
+      <HbrProductionGhaFixture>$([MSBuild]::NormalizePath('$(TargetDir)', 'BIMBaoGui.Stage01.gha'))</HbrProductionGhaFixture>
     </PropertyGroup>
-    <Delete Files="$(HbrProductionAssemblyFixture)" />
+    <Delete Files="$(HbrProductionAssemblyFixture);$(HbrProductionGhaFixture)" />
   </Target>
 </Project>
