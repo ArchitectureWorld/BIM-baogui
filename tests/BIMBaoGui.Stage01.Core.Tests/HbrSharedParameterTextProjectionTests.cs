@@ -11,6 +11,7 @@ using Xunit;
 
 namespace BIMBaoGui.Stage01.Core.Tests
 {
+  [Collection(ProcessCurrentDirectoryCollection.Name)]
   public sealed class HbrSharedParameterTextProjectionTests
   {
     [Fact]
@@ -46,6 +47,42 @@ namespace BIMBaoGui.Stage01.Core.Tests
         Directory.SetCurrentDirectory(previous);
         Directory.Delete(temporary, true);
       }
+    }
+
+    [Fact]
+    public void Projection_tests_isolate_process_current_directory_mutation()
+    {
+      const string expectedCollection = "ProcessCurrentDirectory";
+      CustomAttributeData collection = typeof(
+        HbrSharedParameterTextProjectionTests)
+        .CustomAttributes
+        .SingleOrDefault(attribute =>
+          attribute.AttributeType == typeof(CollectionAttribute));
+      Assert.NotNull(collection);
+      Assert.Equal(
+        expectedCollection,
+        (string)collection.ConstructorArguments.Single().Value);
+
+      CustomAttributeData definition = typeof(
+        HbrSharedParameterTextProjectionTests)
+        .Assembly
+        .GetTypes()
+        .SelectMany(type => type.CustomAttributes)
+        .SingleOrDefault(attribute =>
+          attribute.AttributeType == typeof(CollectionDefinitionAttribute)
+          && string.Equals(
+            (string)attribute.ConstructorArguments.Single().Value,
+            expectedCollection,
+            StringComparison.Ordinal));
+      Assert.NotNull(definition);
+      CustomAttributeNamedArgument disableParallelization = definition
+        .NamedArguments
+        .Single(argument =>
+          string.Equals(
+            argument.MemberName,
+            "DisableParallelization",
+            StringComparison.Ordinal));
+      Assert.True((bool)disableParallelization.TypedValue.Value);
     }
 
     [Fact]
@@ -111,6 +148,81 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void Alias_identity_duplicates_keep_the_first_mapping_deterministically()
+    {
+      Guid duplicateGuid = Guid.Parse(
+        "11111111-1111-5111-8111-111111111111");
+      OfficialHifcMapping first = CreateAlias(
+        duplicateGuid,
+        "建筑属性集",
+        "建筑名称",
+        "TEXT");
+      OfficialHifcMapping duplicate = CreateAlias(
+        duplicateGuid,
+        "建筑属性集",
+        "建筑名称",
+        "TEXT");
+      OfficialHifcMapping other = CreateAlias(
+        Guid.Parse("22222222-2222-5222-8222-222222222222"),
+        "场地属性集",
+        "场地名称",
+        "TEXT");
+
+      OfficialHifcMapping[] actual =
+        HbrSharedParameterTextProjection.DistinctOfficialAliases(
+          new[] { first, duplicate, other });
+
+      Assert.Equal(2, actual.Length);
+      Assert.Same(first, actual[0]);
+      Assert.Same(other, actual[1]);
+    }
+
+    [Theory]
+    [InlineData("PropertySet", "建筑属性集", "冲突属性集")]
+    [InlineData("OfficialSourceParameterName", "建筑名称", "冲突名称")]
+    [InlineData("OfficialSourceParameterType", "TEXT", "INTEGER")]
+    public void Alias_guid_identity_conflicts_report_guid_field_and_values(
+      string field,
+      string originalValue,
+      string conflictingValue)
+    {
+      Guid guid = Guid.Parse("33333333-3333-5333-8333-333333333333");
+      OfficialHifcMapping first = CreateAlias(
+        guid,
+        "建筑属性集",
+        "建筑名称",
+        "TEXT");
+      OfficialHifcMapping conflict = CreateAlias(
+        guid,
+        "建筑属性集",
+        "建筑名称",
+        "TEXT");
+      switch (field)
+      {
+        case "PropertySet":
+          conflict.PropertySet = conflictingValue;
+          break;
+        case "OfficialSourceParameterName":
+          conflict.OfficialSourceParameterName = conflictingValue;
+          break;
+        case "OfficialSourceParameterType":
+          conflict.OfficialSourceParameterType = conflictingValue;
+          break;
+        default:
+          throw new InvalidOperationException("Unknown alias field: " + field);
+      }
+
+      InvalidDataException error = Assert.Throws<InvalidDataException>(() =>
+        HbrSharedParameterTextProjection.DistinctOfficialAliases(
+          new[] { first, conflict }));
+
+      Assert.Contains(guid.ToString("D"), error.Message);
+      Assert.Contains(field, error.Message);
+      Assert.Contains(originalValue, error.Message);
+      Assert.Contains(conflictingValue, error.Message);
+    }
+
+    [Fact]
     public void Revit_service_uses_pure_text_but_keeps_unicode_file_boundary()
     {
       string projectDirectory = Path.GetFullPath(Path.Combine(
@@ -130,6 +242,21 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Assert.Contains("Encoding.Unicode", source);
       Assert.Contains("application.SharedParametersFilename = previous", source);
       Assert.Contains("File.Delete(temporary)", source);
+    }
+
+    private static OfficialHifcMapping CreateAlias(
+      Guid guid,
+      string propertySet,
+      string name,
+      string parameterType)
+    {
+      return new OfficialHifcMapping
+      {
+        OfficialSourceParameterGuid = guid,
+        PropertySet = propertySet,
+        OfficialSourceParameterName = name,
+        OfficialSourceParameterType = parameterType
+      };
     }
 
     private static T ReadSnapshot<T>(string fileName)

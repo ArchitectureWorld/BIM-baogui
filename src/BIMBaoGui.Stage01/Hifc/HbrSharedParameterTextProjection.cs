@@ -17,9 +17,7 @@ namespace BIMBaoGui.Stage01.Hifc
       if (database == null) throw new ArgumentNullException(nameof(database));
       OfficialHifcMapping[] mappings =
         OfficialHifcMappingCatalog.FromDatabase(database).Mappings.ToArray();
-      OfficialHifcMapping[] aliases = mappings
-        .GroupBy(mapping => mapping.OfficialSourceParameterGuid)
-        .Select(group => group.First())
+      OfficialHifcMapping[] aliases = DistinctOfficialAliases(mappings)
         .OrderBy(mapping => mapping.PropertySet, StringComparer.Ordinal)
         .ThenBy(
           mapping => mapping.OfficialSourceParameterName,
@@ -118,6 +116,67 @@ namespace BIMBaoGui.Stage01.Hifc
     internal static byte[] CreateUtf8Bytes(HbrRuleDatabase database)
     {
       return new UTF8Encoding(false).GetBytes(CreateText(database));
+    }
+
+    internal static OfficialHifcMapping[] DistinctOfficialAliases(
+      IEnumerable<OfficialHifcMapping> mappings)
+    {
+      if (mappings == null) throw new ArgumentNullException(nameof(mappings));
+      var byGuid = new Dictionary<Guid, OfficialHifcMapping>();
+      var distinct = new List<OfficialHifcMapping>();
+      foreach (OfficialHifcMapping mapping in mappings)
+      {
+        if (mapping == null)
+          throw new InvalidDataException(
+            "Official source parameter alias is null.");
+        Guid guid = mapping.OfficialSourceParameterGuid;
+        if (!byGuid.TryGetValue(guid, out OfficialHifcMapping existing))
+        {
+          byGuid.Add(guid, mapping);
+          distinct.Add(mapping);
+          continue;
+        }
+
+        var conflicts = new List<string>();
+        AddIdentityConflict(
+          conflicts,
+          "PropertySet",
+          existing.PropertySet,
+          mapping.PropertySet);
+        AddIdentityConflict(
+          conflicts,
+          "OfficialSourceParameterName",
+          existing.OfficialSourceParameterName,
+          mapping.OfficialSourceParameterName);
+        AddIdentityConflict(
+          conflicts,
+          "OfficialSourceParameterType",
+          existing.OfficialSourceParameterType,
+          mapping.OfficialSourceParameterType);
+        if (conflicts.Count != 0)
+          throw new InvalidDataException(
+            "Official source parameter alias identity conflict for GUID "
+            + guid.ToString("D")
+            + ": "
+            + string.Join("; ", conflicts));
+      }
+      return distinct.ToArray();
+    }
+
+    private static void AddIdentityConflict(
+      ICollection<string> conflicts,
+      string field,
+      string first,
+      string second)
+    {
+      if (string.Equals(first, second, StringComparison.Ordinal)) return;
+      conflicts.Add(
+        field
+        + "='"
+        + (first ?? "<null>")
+        + "' vs '"
+        + (second ?? "<null>")
+        + "'");
     }
 
     private static void AppendLine(StringBuilder builder, string value)
