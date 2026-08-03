@@ -1676,26 +1676,6 @@ def test_stage01_project_builds_exactly_one_generated_hbr_pack_resource():
     }
     assert actual_resources == {
         (
-            "Resources\\stage01_file_initialization_registry_v0.1.json",
-            "BIMBaoGui.Stage01.Resources.stage01_file_initialization_registry_v0.1.json",
-        ),
-        (
-            "..\\..\\specs\\hifc-mapping\\v1\\generated\\GH_HIFC_ParameterBindings.json",
-            "BIMBaoGui.Stage01.Resources.GH_HIFC_ParameterBindings.json",
-        ),
-        (
-            "..\\..\\specs\\hifc-mapping\\v1\\generated\\GH_HIFC_SharedParameters.txt",
-            "BIMBaoGui.Stage01.Resources.GH_HIFC_SharedParameters.txt",
-        ),
-        (
-            "..\\..\\specs\\hifc-mapping\\v1\\data\\wuhan_planning_rules.v1.json",
-            "BIMBaoGui.Stage01.Resources.wuhan_planning_rules.v1.json",
-        ),
-        (
-            "..\\..\\specs\\hifc-mapping\\v1\\data\\official_plugin_compatibility_status.v1.json",
-            "BIMBaoGui.Stage01.Resources.official_plugin_compatibility_status.v1.json",
-        ),
-        (
             "$(HbrRulePack)",
             "BIMBaoGui.Stage01.Resources.HBR_RulePack.hbrpack",
         ),
@@ -1820,11 +1800,6 @@ def test_stage01_real_build_is_incremental_and_embeds_only_the_generated_pack(
         line.strip() for line in manifest_result.stdout.splitlines() if line.strip()
     }
     assert manifest_names == {
-        "BIMBaoGui.Stage01.Resources.stage01_file_initialization_registry_v0.1.json",
-        "BIMBaoGui.Stage01.Resources.GH_HIFC_ParameterBindings.json",
-        "BIMBaoGui.Stage01.Resources.GH_HIFC_SharedParameters.txt",
-        "BIMBaoGui.Stage01.Resources.wuhan_planning_rules.v1.json",
-        "BIMBaoGui.Stage01.Resources.official_plugin_compatibility_status.v1.json",
         "BIMBaoGui.Stage01.Resources.HBR_RulePack.hbrpack",
     }
     assert sum(name.endswith(".hbrpack") for name in manifest_names) == 1

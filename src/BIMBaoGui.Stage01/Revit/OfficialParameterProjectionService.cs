@@ -33,6 +33,11 @@ namespace BIMBaoGui.Stage01.Revit
     private const string DuplicateOfficialSourceParameterCode =
       "OFFICIAL_SOURCE_PARAMETER_DUPLICATE";
 
+    internal static string CreateSharedParameterTextFromCurrentDatabase()
+    {
+      return HbrSharedParameterTextProjection.CreateText(HbrRuleDatabase.Current);
+    }
+
     public static OfficialParameterProjectionResult WriteAndVerify(
       Document document,
       IEnumerable<OfficialParameterWriteItem> sourceItems)
@@ -301,7 +306,7 @@ namespace BIMBaoGui.Stage01.Revit
         + ".txt");
       File.WriteAllText(
         temporary,
-        HbrSharedParameterTextProjection.CreateText(HbrRuleDatabase.Current),
+        CreateSharedParameterTextFromCurrentDatabase(),
         Encoding.Unicode);
       try
       {

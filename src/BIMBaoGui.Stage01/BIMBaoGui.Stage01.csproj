@@ -29,20 +29,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\stage01_file_initialization_registry_v0.1.json"
-                      LogicalName="BIMBaoGui.Stage01.Resources.stage01_file_initialization_registry_v0.1.json" />
-    <EmbeddedResource Include="..\..\specs\hifc-mapping\v1\generated\GH_HIFC_ParameterBindings.json"
-                      Link="Resources\GH_HIFC_ParameterBindings.json"
-                      LogicalName="BIMBaoGui.Stage01.Resources.GH_HIFC_ParameterBindings.json" />
-    <EmbeddedResource Include="..\..\specs\hifc-mapping\v1\generated\GH_HIFC_SharedParameters.txt"
-                      Link="Resources\GH_HIFC_SharedParameters.txt"
-                      LogicalName="BIMBaoGui.Stage01.Resources.GH_HIFC_SharedParameters.txt" />
-    <EmbeddedResource Include="..\..\specs\hifc-mapping\v1\data\wuhan_planning_rules.v1.json"
-                      Link="Resources\wuhan_planning_rules.v1.json"
-                      LogicalName="BIMBaoGui.Stage01.Resources.wuhan_planning_rules.v1.json" />
-    <EmbeddedResource Include="..\..\specs\hifc-mapping\v1\data\official_plugin_compatibility_status.v1.json"
-                      Link="Resources\official_plugin_compatibility_status.v1.json"
-                      LogicalName="BIMBaoGui.Stage01.Resources.official_plugin_compatibility_status.v1.json" />
+    <None Update="Resources\stage01_file_initialization_registry_v0.1.json" />
+    <None Include="..\..\specs\hifc-mapping\v1\generated\GH_HIFC_ParameterBindings.json"
+          Link="Resources\GH_HIFC_ParameterBindings.json" />
+    <None Include="..\..\specs\hifc-mapping\v1\generated\GH_HIFC_SharedParameters.txt"
+          Link="Resources\GH_HIFC_SharedParameters.txt" />
+    <None Include="..\..\specs\hifc-mapping\v1\data\wuhan_planning_rules.v1.json"
+          Link="Resources\wuhan_planning_rules.v1.json" />
+    <None Include="..\..\specs\hifc-mapping\v1\data\official_plugin_compatibility_status.v1.json"
+          Link="Resources\official_plugin_compatibility_status.v1.json" />
   </ItemGroup>
 
   <Target Name="InitializeHbrRulePackPath">
