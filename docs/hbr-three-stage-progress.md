@@ -1,22 +1,23 @@
 # HBR 三阶段开发总进度
 
-> 最后更新：2026-08-04 02:35（UTC+08:00；Task 7 完成，Task 8 启动）
+> 最后更新：2026-08-04 04:00（UTC+08:00；Task 8 首轮实现完成，进入风险修复与独立验收）
 > 计划基线：[`2026-08-02-hbr-three-stage-implementation.md`](superpowers/plans/2026-08-02-hbr-three-stage-implementation.md)
 > 当前分支：`fix/official-hifc-hardening-v090`
+> 更新规则：任务启动、测试结果变化、审查结论、Git 提交、部署或实机验收后，必须同步更新本页。
 
 ## 一屏看懂
 
 | 你最关心的项目 | 当前结果 |
 |---|---|
 | 整体正式完成度 | **58%：7/12 个 Task 已通过实现、验证、双审查和提交** |
-| 含当前开发中的执行进度 | **约 58%：Task 7 已验收，Task 8 正进入首个 RED 测试** |
+| 当前开发进度 | **Task 8 已形成首轮实现候选；7 个验收闸门完成 2 个，尚未计入正式完成度** |
 | 当前正在做 | **Task 8：IFC4 STEP 实体插入与缺失 Pset/属性转译** |
-| 当前运行环节 | **TDD 准备**：锁定 `AddEntity`、IFC GUID、Pset/关系创建与回读合同 |
-| 当前阻塞 | **无**；Task 8 可直接继续，不需要外部插件或用户点击 |
+| 当前运行环节 | **内部风险修复**：先用 RED 测试锁定“不同 owner 不得共用同名 Pset”，再进入双审查 |
+| 当前阻塞 | **无外部阻塞**；但 Task 8 存在一个内部验收阻断风险，修复前不能标记完成 |
 | 现在是否需要你操作 | **不需要**；Task 11 部署时如相关程序未关闭，可能需要配合关闭；Task 12 明确需要实机点击验收 |
-| 下一节点 | `IfcStepDocument.AddEntity` RED → 最小可变 STEP 文档实现 → enrichment RED/GREEN |
+| 下一节点 | 跨 owner Pset 外溢 RED/GREEN → 规格审查 → 质量审查 → 主代理全量复验 → 提交 Task 8 |
 
-状态图例：✅ 已完整验收；🟡 开发中；🔵 自动化验证中；🟣 待审查；⏳ 等待前置任务/实机；⬜ 未开始；❌ 未通过/阻塞。
+状态图例：✅ 已完整验收；🟡 开发中；🟠 有待修复风险；🔵 自动化验证中；🟣 待审查；⏳ 等待前置任务/实机；⬜ 未开始；❌ 未通过/外部阻塞。
 
 ## 总览
 
@@ -24,15 +25,15 @@
 
 `███████████▋░░░░░░░░ 58%`
 
-**当前执行进度：约 58%**（Task 7 已正式完成；Task 8 刚进入 TDD 准备）
+**当前执行位置：Task 8 的 2/7 验收闸门已完成**（首轮实现和定向测试已完成，风险修复与正式验收尚未完成）
 
-`███████████▌░░░░░░░░ 约 58%`
+`██░░░░░ 2/7 闸门`
 
 | 工作包 | 包含任务 | 状态 | 完成度 |
 |---|---:|---|---:|
 | 统一规则与运行时基础 | Task 1–3 | ✅ 完成 | 100% |
 | Stage02 属性准备 | Task 4–6 | ✅ 完成 | 100% |
-| Stage03 检测、导出与转译 | Task 7–10 | 🟡 Task 7 完成，Task 8 启动 | 25% |
+| Stage03 检测、导出与转译 | Task 7–10 | 🟡 Task 7 完成，Task 8 开发中 | 正式完成 1/4 |
 | CI、文档与单 GHA 部署 | Task 11 | ⬜ 未开始 | 0% |
 | Revit 2020 实机闭环 | Task 12 | ⏳ 待实机 | 0% |
 
@@ -47,7 +48,7 @@
 | 5 | Revit 选择、可见共享参数、原子写入与失败报告 | ✅ 完成 | 100% | 已提交 `69dd48c`；独立全量验证和双审查均通过 | 否 |
 | 6 | 新公开 Stage02 Grasshopper 组件与 UI | ✅ 完成 | 100% | 已提交 `cd7d03e`；Core 531/531、Python 373/373、Release 0/0，规格与质量双审均 0/0/0 | 否 |
 | 7 | Stage03 字段状态、Strict/Force 门禁、路径与报告 | ✅ 完成 | 100% | 已提交 `437092d`；主代理全量验证与双审查均通过 | 否 |
-| 8 | IFC4 STEP 实体插入与缺失 Pset/属性转译 | 🟡 TDD 准备 | 1% | 下一步先证明 `AddEntity` 与缺失 Pset 创建合同为 RED | 否 |
+| 8 | IFC4 STEP 实体插入与缺失 Pset/属性转译 | 🟠 风险修复中 | 2/7 闸门 | 首轮候选已通过 fresh 96/96 定向测试；须先修复跨 owner 同名 Pset 外溢，再做双审与全量复验 | 否 |
 | 9 | Revit 2020 全模型扫描与 Autodesk 标准 IFC4 导出 | ⬜ 未开始 | 0% | 待 Stage03 领域合同完成 | 否 |
 | 10 | Stage03 协调器、新公开组件和 legacy 隐藏 | ⬜ 未开始 | 0% | 完成 RAW IFC、HIFC-MVD IFC、字段 JSON 三件套工作流 | 否 |
 | 11 | 文档、CI、全量自动化与单 GHA 无备份部署 | ⬜ 未开始 | 0% | 插件目录须恰有 1 个 GHA、0 个 `.bak/.backup`，源与部署 SHA-256 一致 | 否 |
@@ -57,7 +58,13 @@
 
 | 项目 | 实时状态 | 当前证据 / 剩余动作 |
 |---|---|---|
-| 当前任务 | 🟡 Task 8 TDD 准备 | IFC4 STEP 新实体、缺失 Pset/属性/关系创建及精确回读 |
+| 当前任务 | 🟠 Task 8 风险修复 | IFC4 STEP 新实体、缺失 Pset/属性/关系创建及精确回读 |
+| Task 8 首轮实现 | ✅ 候选已形成 | 9 个预期文件；尚未暂存、尚未提交，因此不计为正式完成 |
+| Task 8 fresh 定向测试 | ✅ 96/96 | 2026-08-04 主代理独立复跑 `IfcStepDocumentMutationTests`、`IfcGuidCodecTests`、`HbrIfcEnricherTests` |
+| Task 8 当前验收风险 | 🟠 待修复 | 不同 owner 的同名 Pset 即使目标值相同也不得复用，否则其他 owner 专属属性可能被错误暴露 |
+| Task 8 规格审查 | ⏳ 未开始 | 风险修复完成并锁定候选 diff 后执行 |
+| Task 8 代码质量审查 | ⏳ 未开始 | 规格审查 0/0/0 后执行 |
+| Task 8 主代理全量复验 | ⏳ 未开始 | 定向、旧 STEP/MVD、Core、Python、Release 与静态审计全部通过后才可提交 |
 | Task 7 Git 提交 | ✅ 完成 | `437092d feat: add Stage03 validation gate and reports`；12 个功能/测试文件 |
 | Task 7 领域与报告实现 | ✅ 完成 | 字段状态、Strict/Force 门禁、三件套路径、原子字段/失败报告均已实现 |
 | 首轮质量返修 | ✅ 9/9 | Important 5/5；Minor 4/4；均有真实 RED 与 GREEN 证据 |
@@ -71,8 +78,20 @@
 | 仓库静态审计 | ✅ 通过 | 12 文件范围、BOM、EOF、备份、绝对路径、busy-wait、残留进程均通过；DLL/GHA SHA-256 相同 |
 | 规格审查 | ✅ Ready | Critical / Important / Minor = **0 / 0 / 0**；终态指纹不变 |
 | 代码质量审查 | ✅ Ready | Critical / Important / Minor = **0 / 0 / 0**；终态指纹不变 |
-| 下一执行 | 🟡 Task 8 | 先写 `IfcStepDocument.AddEntity` 和缺失 Pset 创建的真实 RED 测试 |
+| 下一执行 | 🟠 Task 8 | 为跨 owner 属性集外溢补真实 RED，最小修复后重新跑 96 项定向测试 |
 | 用户操作 | ✅ 当前不需要 | Task 11 如程序未关闭可能需配合；Task 12 再按明确提示完成实机点击 |
+
+### Task 8 七道验收闸门
+
+| 闸门 | 状态 | 完成标准 |
+|---:|---|---|
+| 1. 合同与边界梳理 | ✅ 完成 | 明确事务性、幂等、精确 owner/Pset/property 图与七类 typed value |
+| 2. 首轮实现与定向测试 | ✅ 完成 | 候选代码形成；主代理 fresh 定向测试 96/96 |
+| 3. 已知风险修复 | 🟠 进行中 | foreign Pset 不跨 owner 复用；新增 RED/GREEN 回归并保持原关系不变 |
+| 4. 规格审查 | ⏳ 等待 | Critical / Important / Minor = 0 / 0 / 0 |
+| 5. 代码质量审查 | ⏳ 等待 | Critical / Important / Minor = 0 / 0 / 0 |
+| 6. 独立全量复验 | ⏳ 等待 | Task 8 定向、旧回归、Core、Python、Release 和仓库静态审计全部通过 |
+| 7. Git 提交与看板更新 | ⏳ 等待 | 提交 `feat: create missing HBR properties in IFC4`，正式完成度更新为 8/12 |
 
 ## Task 5 完成证据
 
@@ -111,7 +130,7 @@ Task 5 的完成门槛：修复上述问题 → 定向测试 → .NET 全量测�
 
 Task 7 已完成并提交：未知字段状态全部 fail-closed；Strict/Force、阻断身份、活动生产 GHA 身份、统一 runId、敏感值拒绝、异常图边界、短临时文件名、全模型报告峰值内存和 CreateNew 碰撞并发竞态均已通过真实 RED→GREEN。Force 仍只放行业务缺陷，不能绕过文档身份、Revit 版本、输出冲突、IFC 导出/解析或报告写入失败。
 
-当前焦点切换到 Task 8：扩展 IFC4 STEP 文档为可安全插入新实体，并按确定性 IFC GUID 创建或更新 `IfcPropertySingleValue`、`IfcPropertySet` 与 `IfcRelDefinesByProperties`，最后对精确 owner/Pset/property/type/value 做回读验证；任何 owner 冲突或缺失都必须显式失败，不能错误转挂到 `IfcProject`。
+当前焦点为 Task 8：首轮实现候选已完成并通过 fresh 定向测试 96/96。验收前仍须修复跨 owner 同名 Pset 复用风险：目标 owner 必须拥有独立 Pset/relationship，不能因为目标属性 token 相同而加入其他 owner 的关系；否则该 Pset 中其余 owner 专属属性也会一起泄漏。修复后依次执行规格审查、代码质量审查、主代理全量复验和提交。
 
 ## 进度口径
 
