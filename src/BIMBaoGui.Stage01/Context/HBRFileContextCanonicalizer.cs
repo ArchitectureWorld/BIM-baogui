@@ -101,7 +101,7 @@ namespace BIMBaoGui.Stage01.Context
       }
 
       HBRFileContext legacy = Parse(root);
-      string expected = ComputeLegacyHash(legacy);
+      string expected = HBRFileContextLegacyCanonicalizer.ComputeHash(legacy);
       if (!string.Equals(
         legacy.FileContextHash,
         expected,
@@ -183,47 +183,6 @@ namespace BIMBaoGui.Stage01.Context
       AppendProperty(builder, "rulePackageSha256", context.RulePackageSha256, false);
       AppendProperty(builder, "sourcePayloadHash", context.SourcePayloadHash, false);
       if (includeHash) AppendProperty(builder, "fileContextHash", context.FileContextHash, false);
-      builder.Append('}');
-      return builder.ToString();
-    }
-
-    private static string ComputeLegacyHash(HBRFileContext context)
-    {
-      return CanonicalPayload.Sha256(BuildLegacy(context));
-    }
-
-    private static string BuildLegacy(HBRFileContext context)
-    {
-      if (context == null) return string.Empty;
-      var builder = new StringBuilder(12288);
-      builder.Append('{');
-      AppendProperty(builder, "schemaVersion", context.SchemaVersion, true);
-      AppendProperty(builder, "workflowVersion", context.WorkflowVersion, false);
-      AppendProperty(builder, "fileGuid", context.FileGuid, false);
-      AppendProperty(builder, "revitDocumentFingerprint", context.RevitDocumentFingerprint, false);
-      AppendProperty(builder, "revitDocumentTitle", context.RevitDocumentTitle, false);
-      AppendProperty(builder, "projectNumber", context.ProjectNumber, false);
-      AppendProperty(builder, "projectName", context.ProjectName, false);
-      AppendProperty(builder, "subitemCode", context.SubitemCode, false);
-      AppendProperty(builder, "subitemName", context.SubitemName, false);
-      AppendProperty(builder, "modelFileType", context.ModelFileType, false);
-      AppendProperty(builder, "modelScope", context.ModelScope, false);
-      builder.Append(",\"spatialReference\":");
-      AppendSpatial(builder, context.SpatialReference);
-      builder.Append(",\"planningTargets\":");
-      AppendTargets(builder, context.PlanningTargets);
-      builder.Append(",\"projectConditions\":");
-      AppendConditions(builder, context.ProjectConditions);
-      builder.Append(",\"activatedRuleIds\":");
-      AppendStrings(builder, context.ActivatedRuleIds);
-      builder.Append(",\"notApplicableRuleIds\":");
-      AppendStrings(builder, context.NotApplicableRuleIds);
-      builder.Append(",\"initializationPassed\":")
-        .Append(context.InitializationPassed ? "true" : "false");
-      builder.Append(",\"officialProtocolCompatible\":")
-        .Append(context.OfficialProtocolCompatible ? "true" : "false");
-      AppendProperty(builder, "rulePackVersion", context.RulePackVersion, false);
-      AppendProperty(builder, "sourcePayloadHash", context.SourcePayloadHash, false);
       builder.Append('}');
       return builder.ToString();
     }
@@ -400,6 +359,191 @@ namespace BIMBaoGui.Stage01.Context
     {
       decimal.TryParse(ReadNestedString(dictionary, key), NumberStyles.Number, CultureInfo.InvariantCulture, out decimal value);
       return value;
+    }
+  }
+
+  internal static class HBRFileContextLegacyCanonicalizer
+  {
+    internal static string ComputeHash(HBRFileContext context)
+    {
+      return CanonicalPayload.Sha256(Build(context));
+    }
+
+    private static string Build(HBRFileContext context)
+    {
+      if (context == null) return string.Empty;
+      var builder = new StringBuilder(12288);
+      builder.Append('{');
+      AppendProperty(builder, "schemaVersion", context.SchemaVersion, true);
+      AppendProperty(builder, "workflowVersion", context.WorkflowVersion, false);
+      AppendProperty(builder, "fileGuid", context.FileGuid, false);
+      AppendProperty(builder, "revitDocumentFingerprint", context.RevitDocumentFingerprint, false);
+      AppendProperty(builder, "revitDocumentTitle", context.RevitDocumentTitle, false);
+      AppendProperty(builder, "projectNumber", context.ProjectNumber, false);
+      AppendProperty(builder, "projectName", context.ProjectName, false);
+      AppendProperty(builder, "subitemCode", context.SubitemCode, false);
+      AppendProperty(builder, "subitemName", context.SubitemName, false);
+      AppendProperty(builder, "modelFileType", context.ModelFileType, false);
+      AppendProperty(builder, "modelScope", context.ModelScope, false);
+      builder.Append(",\"spatialReference\":");
+      AppendSpatial(builder, context.SpatialReference);
+      builder.Append(",\"planningTargets\":");
+      AppendTargets(builder, context.PlanningTargets);
+      builder.Append(",\"projectConditions\":");
+      AppendConditions(builder, context.ProjectConditions);
+      builder.Append(",\"activatedRuleIds\":");
+      AppendStrings(builder, context.ActivatedRuleIds);
+      builder.Append(",\"notApplicableRuleIds\":");
+      AppendStrings(builder, context.NotApplicableRuleIds);
+      builder.Append(",\"initializationPassed\":")
+        .Append(context.InitializationPassed ? "true" : "false");
+      builder.Append(",\"officialProtocolCompatible\":")
+        .Append(context.OfficialProtocolCompatible ? "true" : "false");
+      AppendProperty(builder, "rulePackVersion", context.RulePackVersion, false);
+      AppendProperty(builder, "sourcePayloadHash", context.SourcePayloadHash, false);
+      builder.Append('}');
+      return builder.ToString();
+    }
+
+    private static void AppendSpatial(
+      StringBuilder builder,
+      HBRSpatialReference spatial)
+    {
+      builder.Append('{');
+      AppendProperty(builder, "coordinateSystem", spatial?.CoordinateSystem ?? string.Empty, true);
+      AppendProperty(builder, "elevationSystem", spatial?.ElevationSystem ?? string.Empty, false);
+      AppendProperty(builder, "baseX", (spatial?.BaseX ?? 0m).ToString(CultureInfo.InvariantCulture), false);
+      AppendProperty(builder, "baseY", (spatial?.BaseY ?? 0m).ToString(CultureInfo.InvariantCulture), false);
+      AppendProperty(builder, "baseElevation", (spatial?.BaseElevation ?? 0m).ToString(CultureInfo.InvariantCulture), false);
+      AppendProperty(builder, "trueNorthAngleDegrees", (spatial?.TrueNorthAngleDegrees ?? 0m).ToString(CultureInfo.InvariantCulture), false);
+      AppendProperty(builder, "lengthUnit", spatial?.LengthUnit ?? string.Empty, false);
+      AppendProperty(builder, "areaUnit", spatial?.AreaUnit ?? string.Empty, false);
+      AppendProperty(builder, "angleUnit", spatial?.AngleUnit ?? string.Empty, false);
+      builder.Append('}');
+    }
+
+    private static void AppendTargets(
+      StringBuilder builder,
+      IReadOnlyDictionary<string, PlanningTargetValue> targets)
+    {
+      builder.Append('{');
+      bool first = true;
+      foreach (KeyValuePair<string, PlanningTargetValue> pair in
+        (targets ?? new Dictionary<string, PlanningTargetValue>())
+          .OrderBy(value => value.Key, StringComparer.Ordinal))
+      {
+        if (pair.Value == null) continue;
+        if (!first) builder.Append(',');
+        CanonicalPayload.AppendEscaped(builder, pair.Key);
+        builder.Append(':').Append('{');
+        AppendProperty(builder, "operator", pair.Value.Operator.ToString(), true);
+        AppendProperty(builder, "value1", pair.Value.Value1.ToString(CultureInfo.InvariantCulture), false);
+        AppendProperty(
+          builder,
+          "value2",
+          pair.Value.Value2.HasValue
+            ? pair.Value.Value2.Value.ToString(CultureInfo.InvariantCulture)
+            : string.Empty,
+          false);
+        AppendProperty(builder, "unit", pair.Value.Unit.ToString(), false);
+        AppendProperty(builder, "source", pair.Value.Source, false);
+        AppendProperty(builder, "mvdText", FormatMvdText(pair.Value), false);
+        builder.Append('}');
+        first = false;
+      }
+      builder.Append('}');
+    }
+
+    private static string FormatMvdText(PlanningTargetValue target)
+    {
+      if (target.Operator == PlanningTargetOperator.Range)
+      {
+        string lower = FormatTargetValue(target.Value1, target.Unit);
+        string upper = FormatTargetValue(target.Value2 ?? target.Value1, target.Unit);
+        string suffix = target.Unit == PlanningTargetUnit.Percent
+          ? "%"
+          : string.Empty;
+        return lower + "–" + upper + suffix;
+      }
+
+      string symbol;
+      switch (target.Operator)
+      {
+        case PlanningTargetOperator.LessOrEqual:
+          symbol = "≤";
+          break;
+        case PlanningTargetOperator.GreaterOrEqual:
+          symbol = "≥";
+          break;
+        default:
+          symbol = "=";
+          break;
+      }
+
+      return symbol
+        + FormatTargetValue(target.Value1, target.Unit)
+        + (target.Unit == PlanningTargetUnit.Percent ? "%" : string.Empty);
+    }
+
+    private static string FormatTargetValue(
+      decimal value,
+      PlanningTargetUnit unit)
+    {
+      switch (unit)
+      {
+        case PlanningTargetUnit.Ratio:
+          return value.ToString("0.00", CultureInfo.InvariantCulture);
+        case PlanningTargetUnit.Count:
+          return value.ToString("0", CultureInfo.InvariantCulture);
+        default:
+          return value.ToString("0.##", CultureInfo.InvariantCulture);
+      }
+    }
+
+    private static void AppendConditions(
+      StringBuilder builder,
+      IReadOnlyDictionary<string, bool> conditions)
+    {
+      builder.Append('{');
+      bool first = true;
+      foreach (KeyValuePair<string, bool> pair in
+        (conditions ?? new Dictionary<string, bool>())
+          .OrderBy(value => value.Key, StringComparer.Ordinal))
+      {
+        if (!first) builder.Append(',');
+        CanonicalPayload.AppendEscaped(builder, pair.Key);
+        builder.Append(':').Append(pair.Value ? "true" : "false");
+        first = false;
+      }
+      builder.Append('}');
+    }
+
+    private static void AppendStrings(
+      StringBuilder builder,
+      IEnumerable<string> values)
+    {
+      builder.Append('[');
+      bool first = true;
+      foreach (string value in
+        (values ?? Array.Empty<string>()).OrderBy(item => item, StringComparer.Ordinal))
+      {
+        if (!first) builder.Append(',');
+        CanonicalPayload.AppendEscaped(builder, value ?? string.Empty);
+        first = false;
+      }
+      builder.Append(']');
+    }
+
+    private static void AppendProperty(
+      StringBuilder builder,
+      string key,
+      string value,
+      bool first)
+    {
+      if (!first) builder.Append(',');
+      CanonicalPayload.AppendEscaped(builder, key);
+      builder.Append(':');
+      CanonicalPayload.AppendEscaped(builder, value ?? string.Empty);
     }
   }
 }

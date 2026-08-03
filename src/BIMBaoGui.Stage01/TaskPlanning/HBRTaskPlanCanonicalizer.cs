@@ -95,7 +95,7 @@ namespace BIMBaoGui.Stage01.TaskPlanning
       }
 
       HBRTaskPlan legacy = Parse(root);
-      string expected = ComputeLegacyHash(legacy);
+      string expected = HBRTaskPlanLegacyCanonicalizer.ComputeHash(legacy);
       if (!string.Equals(
         legacy.TaskPlanHash,
         expected,
@@ -141,28 +141,6 @@ namespace BIMBaoGui.Stage01.TaskPlanning
       builder.Append(",\"notApplicableTasks\":");
       AppendItems(builder, plan.NotApplicableTasks);
       if (includeHash) AppendProperty(builder, "taskPlanHash", plan.TaskPlanHash, false);
-      builder.Append('}');
-      return builder.ToString();
-    }
-
-    private static string ComputeLegacyHash(HBRTaskPlan plan)
-    {
-      return CanonicalPayload.Sha256(BuildLegacy(plan));
-    }
-
-    private static string BuildLegacy(HBRTaskPlan plan)
-    {
-      if (plan == null) return string.Empty;
-      var builder = new StringBuilder(16384);
-      builder.Append('{');
-      AppendProperty(builder, "schemaVersion", plan.SchemaVersion, true);
-      AppendProperty(builder, "fileContextHash", plan.FileContextHash, false);
-      AppendProperty(builder, "modelFileType", plan.ModelFileType, false);
-      AppendProperty(builder, "skeletonPath", plan.SkeletonPath, false);
-      builder.Append(",\"activeTasks\":");
-      AppendItems(builder, plan.ActiveTasks);
-      builder.Append(",\"notApplicableTasks\":");
-      AppendItems(builder, plan.NotApplicableTasks);
       builder.Append('}');
       return builder.ToString();
     }
@@ -284,6 +262,101 @@ namespace BIMBaoGui.Stage01.TaskPlanning
       var result = new List<string>();
       foreach (object value in values) result.Add(Convert.ToString(value) ?? string.Empty);
       return result;
+    }
+  }
+
+  internal static class HBRTaskPlanLegacyCanonicalizer
+  {
+    internal static string ComputeHash(HBRTaskPlan plan)
+    {
+      return CanonicalPayload.Sha256(Build(plan));
+    }
+
+    private static string Build(HBRTaskPlan plan)
+    {
+      if (plan == null) return string.Empty;
+      var builder = new StringBuilder(16384);
+      builder.Append('{');
+      AppendProperty(builder, "schemaVersion", plan.SchemaVersion, true);
+      AppendProperty(builder, "fileContextHash", plan.FileContextHash, false);
+      AppendProperty(builder, "modelFileType", plan.ModelFileType, false);
+      AppendProperty(builder, "skeletonPath", plan.SkeletonPath, false);
+      builder.Append(",\"activeTasks\":");
+      AppendItems(builder, plan.ActiveTasks);
+      builder.Append(",\"notApplicableTasks\":");
+      AppendItems(builder, plan.NotApplicableTasks);
+      builder.Append('}');
+      return builder.ToString();
+    }
+
+    private static void AppendItems(
+      StringBuilder builder,
+      IEnumerable<HBRTaskPlanItem> items)
+    {
+      builder.Append('[');
+      bool first = true;
+      foreach (HBRTaskPlanItem item in
+        (items ?? Array.Empty<HBRTaskPlanItem>())
+          .Where(value => value != null)
+          .OrderBy(value => value.Sequence)
+          .ThenBy(value => value.TaskId, StringComparer.Ordinal))
+      {
+        if (!first) builder.Append(',');
+        builder.Append('{');
+        AppendProperty(builder, "taskId", item.TaskId, true);
+        AppendProperty(builder, "name", item.Name, false);
+        AppendProperty(builder, "objectCode", item.ObjectCode, false);
+        AppendProperty(builder, "requirement", item.Requirement.ToString(), false);
+        AppendProperty(builder, "conditionKey", item.ConditionKey, false);
+        AppendProperty(
+          builder,
+          "sequence",
+          item.Sequence.ToString(CultureInfo.InvariantCulture),
+          false);
+        builder.Append(",\"skeletonTask\":")
+          .Append(item.SkeletonTask ? "true" : "false");
+        builder.Append(",\"attributeRequirements\":");
+        AppendStrings(builder, item.AttributeRequirements);
+        builder.Append(",\"dependencies\":");
+        AppendStrings(builder, item.Dependencies);
+        builder.Append(",\"geometryChecks\":");
+        AppendStrings(builder, item.GeometryChecks);
+        builder.Append(",\"propertyChecks\":");
+        AppendStrings(builder, item.PropertyChecks);
+        builder.Append(",\"targetComparisons\":");
+        AppendStrings(builder, item.TargetComparisons);
+        builder.Append('}');
+        first = false;
+      }
+      builder.Append(']');
+    }
+
+    private static void AppendStrings(
+      StringBuilder builder,
+      IEnumerable<string> values)
+    {
+      builder.Append('[');
+      bool first = true;
+      foreach (string value in
+        (values ?? Array.Empty<string>()).OrderBy(item => item, StringComparer.Ordinal))
+      {
+        if (!first) builder.Append(',');
+        CanonicalPayload.AppendEscaped(builder, value ?? string.Empty);
+        first = false;
+      }
+      builder.Append(']');
+    }
+
+    private static void AppendProperty(
+      StringBuilder builder,
+      string key,
+      string value,
+      bool first)
+    {
+      if (!first) builder.Append(',');
+      CanonicalPayload.AppendEscaped(builder, key);
+      builder.Append(':');
+      CanonicalPayload.AppendEscaped(builder, value ?? string.Empty);
     }
   }
 }

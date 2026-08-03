@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Web.Script.Serialization;
 using BIMBaoGui.Stage01.Context;
 using BIMBaoGui.Stage01.Core;
@@ -130,6 +131,8 @@ namespace BIMBaoGui.Stage01.Core.Tests
         baselinePlan.WithHash("invalid-task-plan-hash"));
       Assert.False(invalidHashTaskGoo.IsValid);
       Assert.Contains("哈希无效", invalidHashTaskGoo.IsValidWhyNot);
+
+      HbrProductionAssemblyIdentityHarness.AssertHashesIncludePackageIdentity();
     }
 
     [Fact]
@@ -159,6 +162,8 @@ namespace BIMBaoGui.Stage01.Core.Tests
           "different-version",
           package.RulePackageSha256));
       Assert.Contains(versionBlockers, message => message.Contains("规则包版本不匹配"));
+
+      HbrProductionAssemblyIdentityHarness.AssertValidateContextRejectsAllIdentityMismatches();
     }
 
     [Fact]
@@ -252,6 +257,10 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Assert.True(taskGoo.Read(currentTaskChunk));
       Assert.True(taskGoo.IsValid);
       Assert.Equal(string.Empty, taskGoo.IsValidWhyNot);
+
+      HbrProductionAssemblyIdentityHarness.AssertValidLegacyGooRequiresRerun(
+        BuildLegacyFileContextJson(validHash: true),
+        BuildLegacyTaskPlanJson(validHash: true));
     }
 
     [Fact]
@@ -302,6 +311,55 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Assert.False(taskGoo.Read(taskChunk));
       Assert.False(taskGoo.IsValid);
       Assert.Contains("数据损坏", taskGoo.IsValidWhyNot);
+
+      HbrProductionAssemblyIdentityHarness.AssertInvalidLegacyGooIsRejected(
+        BuildLegacyFileContextJson(validHash: false),
+        BuildLegacyTaskPlanJson(validHash: false));
+    }
+
+    [Fact]
+    public void Legacy_canonicalizers_are_dedicated_frozen_types()
+    {
+      HbrProductionAssemblyIdentityHarness.AssertDedicatedLegacyCanonicalizerTypes();
+
+      Assembly linkedAssembly = typeof(HBRFileContextCanonicalizer).Assembly;
+      Assert.NotNull(linkedAssembly.GetType(
+        "BIMBaoGui.Stage01.Context.HBRFileContextLegacyCanonicalizer",
+        false));
+      Assert.NotNull(linkedAssembly.GetType(
+        "BIMBaoGui.Stage01.TaskPlanning.HBRTaskPlanLegacyCanonicalizer",
+        false));
+    }
+
+    [Fact]
+    public void Legacy_complex_golden_vectors_are_stable()
+    {
+      string fileJson = BuildComplexLegacyFileContextJson(validHash: true);
+      Assert.False(HBRFileContextCanonicalizer.TryParse(
+        fileJson, out _, out string fileError));
+      Assert.Contains("规则数据库已升级，请重新运行 Stage01", fileError);
+
+      string taskJson = BuildComplexLegacyTaskPlanJson(validHash: true);
+      Assert.False(HBRTaskPlanCanonicalizer.TryParse(
+        taskJson, out _, out string taskError));
+      Assert.Contains("规则数据库已升级，请重新运行任务规划", taskError);
+
+      string tamperedFile = fileJson.Replace("复杂项目", "篡改项目");
+      Assert.False(HBRFileContextCanonicalizer.TryParse(
+        tamperedFile, out _, out string tamperedFileError));
+      Assert.Contains("数据损坏", tamperedFileError);
+
+      string tamperedTask = taskJson.Replace("任务\\\"A", "篡改任务A");
+      Assert.False(HBRTaskPlanCanonicalizer.TryParse(
+        tamperedTask, out _, out string tamperedTaskError));
+      Assert.Contains("数据损坏", tamperedTaskError);
+
+      HbrProductionAssemblyIdentityHarness.AssertValidLegacyGooRequiresRerun(
+        fileJson,
+        taskJson);
+      HbrProductionAssemblyIdentityHarness.AssertInvalidLegacyGooIsRejected(
+        tamperedFile,
+        tamperedTask);
     }
 
     private static HBRFileContext BuildCurrentContext(
@@ -527,6 +585,63 @@ namespace BIMBaoGui.Stage01.Core.Tests
         + "\"skeletonPath\": \"总平\", \"modelFileType\": \"总平\", "
         + "\"fileContextHash\": \"legacy-context-hash\", "
         + "\"schemaVersion\": \"0.5.0\" }";
+    }
+
+    private static string BuildComplexLegacyFileContextJson(bool validHash)
+    {
+      string hash = validHash
+        ? "29dd8aeacbd20589d38ac910f313be4bb9b80cefb4c914eed9a53d916e57a324"
+        : new string('0', 64);
+      return "{\n"
+        + "  \"fileContextHash\":" + Json(hash) + ",\n"
+        + "  \"sourcePayloadHash\":" + Json("legacy\"source\\hash") + ",\n"
+        + "  \"rulePackVersion\":\"0.1.0\",\n"
+        + "  \"officialProtocolCompatible\":true,\n"
+        + "  \"initializationPassed\":true,\n"
+        + "  \"notApplicableRuleIds\":[\"HBR.Y\",\"HBR.X\"],\n"
+        + "  \"activatedRuleIds\":[\"HBR.C\\\\D\",\"HBR.B\\\"Q\",\"HBR.A\",\"HBR.A\"],\n"
+        + "  \"projectConditions\":{\"site.quote\\\"key\":true,\"site.green\":true,\"site.alpha\":false},\n"
+        + "  \"planningTargets\":{\n"
+        + "    \"planning.green_rate\":{\"mvdText\":\"ignored\",\"source\":" + Json("审查\n意见") + ",\"unit\":\"Percent\",\"value2\":\"\",\"value1\":\"35.0\",\"operator\":\"GreaterOrEqual\"},\n"
+        + "    \"planning.floor_area_ratio\":{\"mvdText\":\"ignored\",\"source\":" + Json("规则\"来源") + ",\"unit\":\"Ratio\",\"value2\":\"\",\"value1\":\"2.00\",\"operator\":\"LessOrEqual\"}\n"
+        + "  },\n"
+        + "  \"spatialReference\":{\"angleUnit\":\"°\",\"areaUnit\":\"m²\",\"lengthUnit\":\"m\",\"trueNorthAngleDegrees\":\"5.500\",\"baseElevation\":\"12.30\",\"baseY\":\"-67.890\",\"baseX\":\"123.450\",\"elevationSystem\":\"1985国家高程基准\",\"coordinateSystem\":\"CGCS2000\"},\n"
+        + "  \"modelScope\":" + Json("报规\\模型") + ",\n"
+        + "  \"modelFileType\":\"总平\",\n"
+        + "  \"subitemName\":\"复杂子项\",\n"
+        + "  \"subitemCode\":\"S-02\",\n"
+        + "  \"projectName\":\"复杂项目\",\n"
+        + "  \"projectNumber\":" + Json("P-\n001") + ",\n"
+        + "  \"revitDocumentTitle\":" + Json("复杂\"模型.rvt") + ",\n"
+        + "  \"revitDocumentFingerprint\":\"legacy-complex-fingerprint\",\n"
+        + "  \"fileGuid\":\"legacy-complex-file\",\n"
+        + "  \"workflowVersion\":\"0.9.0\",\n"
+        + "  \"schemaVersion\":\"0.9.0\"\n"
+        + "}";
+    }
+
+    private static string BuildComplexLegacyTaskPlanJson(bool validHash)
+    {
+      string hash = validHash
+        ? "c1999411ef6f8891dcf72c85110ab171912d7396eb412fe0e9c6918e7f15517c"
+        : new string('0', 64);
+      return "{\n"
+        + "  \"taskPlanHash\":" + Json(hash) + ",\n"
+        + "  \"notApplicableTasks\":[{\"targetComparisons\":[],\"propertyChecks\":[],\"geometryChecks\":[],\"dependencies\":[],\"attributeRequirements\":[\"attr.x\"],\"skeletonTask\":false,\"sequence\":\"30\",\"conditionKey\":\"site.alpha\",\"requirement\":\"Conditional\",\"objectCode\":\"OBJ.X\",\"name\":\"不适用任务\",\"taskId\":\"SITE.X\"}],\n"
+        + "  \"activeTasks\":[\n"
+        + "    {\"targetComparisons\":[\"target.c\"],\"propertyChecks\":[\"prop.c\"],\"geometryChecks\":[\"geo.c\"],\"dependencies\":[\"SITE.A\"],\"attributeRequirements\":[\"attr.c\"],\"skeletonTask\":true,\"sequence\":\"20\",\"conditionKey\":\"site.green\",\"requirement\":\"Conditional\",\"objectCode\":\"OBJ.B\",\"name\":" + Json("任务\nB") + ",\"taskId\":\"SITE.B\"},\n"
+        + "    {\"targetComparisons\":[\"target.b\",\"target.a\"],\"propertyChecks\":[\"prop.b\",\"prop.a\"],\"geometryChecks\":[\"geo.b\",\"geo.a\"],\"dependencies\":[\"dep.b\",\"dep.a\"],\"attributeRequirements\":[\"attr.z\",\"attr.a\",\"attr.a\"],\"skeletonTask\":false,\"sequence\":\"10\",\"conditionKey\":\"\",\"requirement\":\"Required\",\"objectCode\":\"OBJ.A\",\"name\":" + Json("任务\"A") + ",\"taskId\":\"SITE.A\"}\n"
+        + "  ],\n"
+        + "  \"skeletonPath\":" + Json("总平\\复杂") + ",\n"
+        + "  \"modelFileType\":\"总平\",\n"
+        + "  \"fileContextHash\":\"legacy-complex-context-hash\",\n"
+        + "  \"schemaVersion\":\"0.5.0\"\n"
+        + "}";
+    }
+
+    private static string Json(string value)
+    {
+      return new JavaScriptSerializer().Serialize(value);
     }
   }
 }
