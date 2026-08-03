@@ -484,7 +484,9 @@ git commit -m "feat: write visible HBR parameters from Stage02"
 - Create: `src/BIMBaoGui.Stage01/GrasshopperTypes/HBRStage02PreviewGoo.cs`
 - Create: `src/BIMBaoGui.Stage01/GrasshopperTypes/HBRStage02PreviewParam.cs`
 - Create: `src/BIMBaoGui.Stage01/Stage02/Stage02PreparationInputPolicy.cs`
+- Modify: `src/BIMBaoGui.Stage01/Stage02/Stage02Models.cs`
 - Modify: `src/BIMBaoGui.Stage01/Revit/Stage02RevitSelectionService.cs`
+- Modify: `src/BIMBaoGui.Stage01/Revit/Stage02RevitPreviewService.cs`
 - Modify: `src/BIMBaoGui.Stage01/Stage02TaskPlanComponent.cs`
 - Modify: `src/BIMBaoGui.Stage01/UI/Stage02ComponentAttributes.cs`
 - Create: `tests/BIMBaoGui.Stage01.Core.Tests/Stage02PreparationInputPolicyTests.cs`
@@ -497,6 +499,7 @@ git commit -m "feat: write visible HBR parameters from Stage02"
 - `项目信息` 与 ElementId/交互点选冲突时阻断；
 - ElementId 与交互点选冲突时阻断；
 - 四种合法入口分别解析为 `ProjectInformation/ExplicitIds/ExplicitPick/CurrentSelection`；
+- `Stage02SelectionModes.ExplicitIds` 与 `ExplicitPick` 保持独立身份，并在确认时按冻结的 UniqueId 证据重建；
 - ElementId 顺序和重复不影响确定性输入签名；
 - context hash、选择模式、ElementId、角色提示任一变化都会改变签名，使旧预览失效。
 
@@ -521,7 +524,7 @@ Expected: FAIL。
 Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter Stage02PreparationInputPolicyTests`
 Expected: FAIL。
 
-`Stage02PreparationInputPolicy` 只做确定性选择模式、冲突和输入签名，不引用 Revit/GH。`Stage02RevitSelectionService` 增加按当前文档 ElementId 解析入口，并让当前选择、显式点选和 ElementId 入口都能携带一个可选角色提示；所有请求在预览时立即固化 `DocumentFingerprint + Element.UniqueId`。空 `ProjectInformation` 角色默认 `PROJECT`。
+`Stage02PreparationInputPolicy` 只做确定性选择模式、冲突和输入签名，不引用 Revit/GH。领域 `Stage02SelectionModes` 新增独立的 `ExplicitIds`，不能把 ElementId 来源伪装成 `ExplicitPick`；`Stage02RevitPreviewService` 的确认白名单把它作为使用冻结 UniqueId 独立证据重建的模式。`Stage02RevitSelectionService` 增加按当前文档 ElementId 解析入口，并让当前选择、显式点选和 ElementId 入口都能携带一个可选角色提示；所有请求在预览时立即固化 `DocumentFingerprint + Element.UniqueId`。空 `ProjectInformation` 角色默认 `PROJECT`。
 
 - [ ] **Step 3: 实现可消费一次的 GH 状态机与完整输出**
 
@@ -549,7 +552,7 @@ Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --n
 Expected: 0 warnings, 0 errors。
 
 ```powershell
-git add src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs src/BIMBaoGui.Stage01/UI src/BIMBaoGui.Stage01/GrasshopperTypes src/BIMBaoGui.Stage01/Stage02 src/BIMBaoGui.Stage01/Revit/Stage02RevitSelectionService.cs src/BIMBaoGui.Stage01/Stage02TaskPlanComponent.cs tests/BIMBaoGui.Stage01.Core.Tests tests/test_stage02_component_contract.py
+git add src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs src/BIMBaoGui.Stage01/UI src/BIMBaoGui.Stage01/GrasshopperTypes src/BIMBaoGui.Stage01/Stage02 src/BIMBaoGui.Stage01/Revit/Stage02RevitSelectionService.cs src/BIMBaoGui.Stage01/Revit/Stage02RevitPreviewService.cs src/BIMBaoGui.Stage01/Stage02TaskPlanComponent.cs tests/BIMBaoGui.Stage01.Core.Tests tests/test_stage02_component_contract.py
 git commit -m "feat: expose Stage02 element preparation workflow"
 ```
 
