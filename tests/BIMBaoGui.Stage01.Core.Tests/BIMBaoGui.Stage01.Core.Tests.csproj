@@ -86,6 +86,10 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Rules\HbrRulePackage.cs" Link="Rules\HbrRulePackage.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Rules\HbrRulePackageLoader.cs" Link="Rules\HbrRulePackageLoader.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Rules\HbrRuleDatabase.cs" Link="Rules\HbrRuleDatabase.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02Models.cs" Link="Stage02\Stage02Models.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02MatchEngine.cs" Link="Stage02\Stage02MatchEngine.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02PreviewCompiler.cs" Link="Stage02\Stage02PreviewCompiler.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02ConfirmationPolicy.cs" Link="Stage02\Stage02ConfirmationPolicy.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Snapshots\*.v1.json" />
