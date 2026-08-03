@@ -10,6 +10,8 @@
 
 **Authoritative design:** `docs/superpowers/specs/2026-08-02-hbr-three-stage-rule-database-design.md`
 
+> 本文件的复选框保留为原始执行蓝图，不作为实时完成状态。正式完成度、当前返修项、验证结果和用户操作需求统一以 [`docs/hbr-three-stage-progress.md`](../../hbr-three-stage-progress.md) 为准。
+
 ---
 
 ## 文件结构
