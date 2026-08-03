@@ -67,6 +67,13 @@ namespace BIMBaoGui.Stage01.Stage02
       "INVALID_CONFIRMATION_SNAPSHOT";
     public const string InvalidFileContext = "INVALID_FILE_CONTEXT";
     public const string PreviewHasBlockers = "PREVIEW_HAS_BLOCKERS";
+    public const string AmbiguousStage01Organization =
+      "AMBIGUOUS_STAGE01_ORGANIZATION";
+    public const string InvalidStage01OrganizationIdentity =
+      "INVALID_STAGE01_ORGANIZATION_IDENTITY";
+    public const string DocumentReadOnly = "DOCUMENT_READ_ONLY";
+    public const string InvalidSelectionEvidence =
+      "INVALID_SELECTION_EVIDENCE";
   }
 
   public static class Stage02MatchSources
@@ -76,6 +83,14 @@ namespace BIMBaoGui.Stage01.Stage02
     public const string Category = "CATEGORY";
     public const string NameAlias = "NAME_ALIAS";
     public const string UniqueCandidate = "UNIQUE_CANDIDATE";
+  }
+
+  public static class Stage02SelectionModes
+  {
+    public const string Legacy = "LEGACY";
+    public const string CurrentSelection = "CURRENT_SELECTION";
+    public const string ExplicitPick = "EXPLICIT_PICK";
+    public const string ProjectInformation = "PROJECT_INFORMATION";
   }
 
   public static class Stage02HandoffStates
@@ -541,7 +556,13 @@ namespace BIMBaoGui.Stage01.Stage02
       Stage02ElementReference element,
       string roleId,
       IEnumerable<Stage02WriteOperation> operations)
-      : this(element, roleId, string.Empty, null, operations)
+      : this(
+        element,
+        roleId,
+        string.Empty,
+        null,
+        string.Empty,
+        operations)
     {
     }
 
@@ -550,13 +571,28 @@ namespace BIMBaoGui.Stage01.Stage02
       string roleId,
       string matchSource,
       IEnumerable<Stage02WriteOperation> operations)
-      : this(element, roleId, matchSource, null, operations)
+      : this(
+        element,
+        roleId,
+        matchSource,
+        null,
+        string.Empty,
+        operations)
     {
     }
 
     public Stage02MatchedElement(
       Stage02ElementReference element,
       Stage02MatchResult matchResult,
+      IEnumerable<Stage02WriteOperation> operations)
+      : this(element, matchResult, string.Empty, operations)
+    {
+    }
+
+    public Stage02MatchedElement(
+      Stage02ElementReference element,
+      Stage02MatchResult matchResult,
+      string stage01RecordIdentity,
       IEnumerable<Stage02WriteOperation> operations)
     {
       if (matchResult == null
@@ -571,6 +607,7 @@ namespace BIMBaoGui.Stage01.Stage02
       RoleId = matchResult.RoleId;
       MatchSource = matchResult.MatchSource;
       MatchProof = matchResult.MatchProof;
+      Stage01RecordIdentity = stage01RecordIdentity ?? string.Empty;
       Operations = Stage02Collections.Freeze(operations);
     }
 
@@ -579,18 +616,21 @@ namespace BIMBaoGui.Stage01.Stage02
       string roleId,
       string matchSource,
       object matchProof,
+      string stage01RecordIdentity,
       IEnumerable<Stage02WriteOperation> operations)
     {
       Element = element;
       RoleId = roleId ?? string.Empty;
       MatchSource = matchSource ?? string.Empty;
       MatchProof = matchProof;
+      Stage01RecordIdentity = stage01RecordIdentity ?? string.Empty;
       Operations = Stage02Collections.Freeze(operations);
     }
 
     public Stage02ElementReference Element { get; }
     public string RoleId { get; }
     public string MatchSource { get; }
+    public string Stage01RecordIdentity { get; }
     public IReadOnlyList<Stage02WriteOperation> Operations { get; }
     internal object MatchProof { get; }
 
@@ -602,6 +642,7 @@ namespace BIMBaoGui.Stage01.Stage02
         RoleId,
         MatchSource,
         MatchProof,
+        Stage01RecordIdentity,
         operations);
     }
   }
@@ -728,9 +769,39 @@ namespace BIMBaoGui.Stage01.Stage02
       RulePackageVersion = rulePackageVersion ?? string.Empty;
       RulePackageSha256 = rulePackageSha256 ?? string.Empty;
       Nonce = nonce ?? string.Empty;
+      SelectionMode = Stage02SelectionModes.Legacy;
       ProjectConditions = Stage02Collections.FreezeDictionary(
         projectConditions);
       Elements = Stage02Collections.Freeze(elements);
+    }
+
+    internal Stage02PreviewRequest(
+      string fileGuid,
+      string documentFingerprint,
+      string documentTitle,
+      string fileContextHash,
+      string activeProfileId,
+      string rulePackageId,
+      string rulePackageVersion,
+      string rulePackageSha256,
+      string nonce,
+      IEnumerable<KeyValuePair<string, bool>> projectConditions,
+      string selectionMode,
+      IEnumerable<Stage02MatchedElement> elements)
+      : this(
+        fileGuid,
+        documentFingerprint,
+        documentTitle,
+        fileContextHash,
+        activeProfileId,
+        rulePackageId,
+        rulePackageVersion,
+        rulePackageSha256,
+        nonce,
+        projectConditions,
+        elements)
+    {
+      SelectionMode = NormalizeSelectionMode(selectionMode);
     }
 
     public Stage02PreviewRequest(
@@ -752,6 +823,16 @@ namespace BIMBaoGui.Stage01.Stage02
     {
     }
 
+    public Stage02PreviewRequest(
+      HBRFileContext context,
+      string nonce,
+      string selectionMode,
+      IEnumerable<Stage02MatchedElement> elements)
+      : this(context, nonce, elements)
+    {
+      SelectionMode = NormalizeSelectionMode(selectionMode);
+    }
+
     public string FileGuid { get; }
     public string DocumentFingerprint { get; }
     public string DocumentTitle { get; }
@@ -761,6 +842,7 @@ namespace BIMBaoGui.Stage01.Stage02
     public string RulePackageVersion { get; }
     public string RulePackageSha256 { get; }
     public string Nonce { get; }
+    public string SelectionMode { get; }
     public IReadOnlyDictionary<string, bool> ProjectConditions { get; }
     public IReadOnlyList<Stage02MatchedElement> Elements { get; }
 
@@ -773,6 +855,12 @@ namespace BIMBaoGui.Stage01.Stage02
           "HBRFileContext 无效、哈希被篡改、schema 不兼容或尚未通过 Stage01 初始化校验。");
       }
       return context;
+    }
+
+    private static string NormalizeSelectionMode(string selectionMode)
+    {
+      string value = (selectionMode ?? string.Empty).Trim();
+      return value.Length == 0 ? Stage02SelectionModes.Legacy : value;
     }
   }
 
@@ -793,6 +881,7 @@ namespace BIMBaoGui.Stage01.Stage02
       RulePackageVersion = request.RulePackageVersion;
       RulePackageSha256 = request.RulePackageSha256;
       Nonce = request.Nonce;
+      SelectionMode = request.SelectionMode;
       ProjectConditions = Stage02Collections.FreezeDictionary(
         request.ProjectConditions);
       Elements = Stage02Collections.Freeze(elements);
@@ -809,6 +898,7 @@ namespace BIMBaoGui.Stage01.Stage02
     public string RulePackageVersion { get; }
     public string RulePackageSha256 { get; }
     public string Nonce { get; }
+    public string SelectionMode { get; }
     public IReadOnlyDictionary<string, bool> ProjectConditions { get; }
     public IReadOnlyList<Stage02MatchedElement> Elements { get; }
     public string CanonicalPayload { get; }
@@ -875,7 +965,7 @@ namespace BIMBaoGui.Stage01.Stage02
       Stage02ElementReference element,
       string roleId,
       IEnumerable<Stage02CurrentPropertySnapshot> properties)
-      : this(element, roleId, string.Empty, properties)
+      : this(element, roleId, string.Empty, string.Empty, properties)
     {
     }
 
@@ -884,16 +974,33 @@ namespace BIMBaoGui.Stage01.Stage02
       string roleId,
       string matchSource,
       IEnumerable<Stage02CurrentPropertySnapshot> properties)
+      : this(
+        element,
+        roleId,
+        matchSource,
+        string.Empty,
+        properties)
+    {
+    }
+
+    public Stage02CurrentElementSnapshot(
+      Stage02ElementReference element,
+      string roleId,
+      string matchSource,
+      string stage01RecordIdentity,
+      IEnumerable<Stage02CurrentPropertySnapshot> properties)
     {
       Element = element;
       RoleId = roleId ?? string.Empty;
       MatchSource = matchSource ?? string.Empty;
+      Stage01RecordIdentity = stage01RecordIdentity ?? string.Empty;
       Properties = Stage02Collections.Freeze(properties);
     }
 
     public Stage02ElementReference Element { get; }
     public string RoleId { get; }
     public string MatchSource { get; }
+    public string Stage01RecordIdentity { get; }
     public IReadOnlyList<Stage02CurrentPropertySnapshot> Properties { get; }
   }
 

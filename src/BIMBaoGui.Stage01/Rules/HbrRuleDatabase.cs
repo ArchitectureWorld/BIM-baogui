@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 
 namespace BIMBaoGui.Stage01.Rules
@@ -71,6 +73,9 @@ namespace BIMBaoGui.Stage01.Rules
       foreach (HbrTaskRule task in package.Tasks)
         AddUnique(tasksById, task.TaskId, task, "TasksById");
 
+      _suggestionPropertyIdsByRoleAlias =
+        BuildSuggestionAliasIndex(package.Properties);
+
       PropertiesById = new ReadOnlyDictionary<string, HbrRuleProperty>(
         propertiesById);
       PropertiesByIfcIdentity =
@@ -119,6 +124,18 @@ namespace BIMBaoGui.Stage01.Rules
 
     public IReadOnlyDictionary<string, HbrTaskRule> TasksById { get; }
 
+    public IReadOnlyList<string> GetSuggestionAliasPropertyIds(
+      string roleId,
+      string alias)
+    {
+      IReadOnlyList<string> propertyIds;
+      return _suggestionPropertyIdsByRoleAlias.TryGetValue(
+        SuggestionAliasKey(roleId, alias),
+        out propertyIds)
+          ? propertyIds
+          : Array.Empty<string>();
+    }
+
     public static HbrRuleDatabase Load(Stream stream)
     {
       return new HbrRuleDatabase(HbrRulePackageLoader.Load(stream));
@@ -154,6 +171,52 @@ namespace BIMBaoGui.Stage01.Rules
         throw new InvalidDataException(
           "HBRP duplicate key in " + indexName + ": " + key + ".");
       dictionary.Add(key, value);
+    }
+
+    private readonly IReadOnlyDictionary<string, IReadOnlyList<string>>
+      _suggestionPropertyIdsByRoleAlias;
+
+    private static IReadOnlyDictionary<string, IReadOnlyList<string>>
+      BuildSuggestionAliasIndex(IEnumerable<HbrRuleProperty> properties)
+    {
+      var mutable = new Dictionary<string, List<string>>(
+        StringComparer.Ordinal);
+      foreach (HbrRuleProperty property in properties
+        ?? Array.Empty<HbrRuleProperty>())
+      {
+        foreach (string roleId in property.CarrierRoleIds)
+        {
+          foreach (string alias in property.Suggestion.Aliases)
+          {
+            string key = SuggestionAliasKey(roleId, alias);
+            List<string> propertyIds;
+            if (!mutable.TryGetValue(key, out propertyIds))
+            {
+              propertyIds = new List<string>();
+              mutable.Add(key, propertyIds);
+            }
+            if (!propertyIds.Contains(property.PropertyId))
+              propertyIds.Add(property.PropertyId);
+          }
+        }
+      }
+      var frozen = mutable.ToDictionary(
+        pair => pair.Key,
+        pair => (IReadOnlyList<string>)new ReadOnlyCollection<string>(
+          pair.Value.OrderBy(value => value, StringComparer.Ordinal).ToArray()),
+        StringComparer.Ordinal);
+      return new ReadOnlyDictionary<string, IReadOnlyList<string>>(frozen);
+    }
+
+    private static string SuggestionAliasKey(string roleId, string alias)
+    {
+      string normalizedRole = (roleId ?? string.Empty).Trim();
+      string normalizedAlias = string.IsNullOrWhiteSpace(alias)
+        ? string.Empty
+        : alias.Trim()
+          .Normalize(NormalizationForm.FormKC)
+          .ToUpperInvariant();
+      return normalizedRole + "\u001f" + normalizedAlias;
     }
   }
 

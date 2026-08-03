@@ -215,6 +215,14 @@ namespace BIMBaoGui.Stage01.Stage02
             Stage02Codes.RoleSnapshotChanged,
             "元素 " + pair.Key + " 的角色匹配来源已变化。"));
         }
+        if (!Equal(
+          pair.Value.Stage01RecordIdentity,
+          currentElement.Stage01RecordIdentity))
+        {
+          blockers.Add(new Stage02Blocker(
+            Stage02Codes.RoleSnapshotChanged,
+            "元素 " + pair.Key + " 的 Stage01 业务记录身份已变化。"));
+        }
         if (!ElementSnapshotsEqual(
           pair.Value.Element,
           currentElement.Element))

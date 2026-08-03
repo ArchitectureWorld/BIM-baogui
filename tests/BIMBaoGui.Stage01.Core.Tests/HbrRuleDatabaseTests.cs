@@ -108,6 +108,25 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void Suggestion_alias_index_exposes_real_ambiguity_per_role()
+    {
+      HbrRuleDatabase database = LoadEmbeddedDatabase();
+
+      Assert.Equal(
+        7,
+        database.GetSuggestionAliasPropertyIds("SLAB", " 投影面积 ").Count);
+      Assert.Equal(
+        16,
+        database.GetSuggestionAliasPropertyIds("SITE", "名称").Count);
+      Assert.Single(database.GetSuggestionAliasPropertyIds(
+        "PROJECT",
+        "HIFC.报建信息属性集.手机号码"));
+      Assert.Empty(database.GetSuggestionAliasPropertyIds(
+        "SLAB",
+        "不存在的别名"));
+    }
+
+    [Fact]
     public void Load_rejects_duplicate_property_id()
     {
       AssertDuplicateRejected(root =>

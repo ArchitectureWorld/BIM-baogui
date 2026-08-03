@@ -63,6 +63,7 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Model.cs" Link="Core\Stage01Model.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01PayloadCodec.cs" Link="Core\Stage01PayloadCodec.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01StorageStatePolicy.cs" Link="Core\Stage01StorageStatePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01StoredPayloadIntegrityPolicy.cs" Link="Core\Stage01StoredPayloadIntegrityPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01UiPolicy.cs" Link="Core\Stage01UiPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Validation.cs" Link="Core\Stage01Validation.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\DeterministicGuidV5.cs" Link="Hifc\DeterministicGuidV5.cs" />
@@ -90,6 +91,27 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02MatchEngine.cs" Link="Stage02\Stage02MatchEngine.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02PreviewCompiler.cs" Link="Stage02\Stage02PreviewCompiler.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02ConfirmationPolicy.cs" Link="Stage02\Stage02ConfirmationPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02ConfirmationUiPolicy.cs" Link="Stage02\Stage02ConfirmationUiPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02PreConsumptionUiPolicy.cs" Link="Stage02\Stage02PreConsumptionUiPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02RequirementDecisionPolicy.cs" Link="Stage02\Stage02RequirementDecisionPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02Stage01ProjectionPolicy.cs" Link="Stage02\Stage02Stage01ProjectionPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02SelectionSetPolicy.cs" Link="Stage02\Stage02SelectionSetPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02TransactionStatePolicy.cs" Link="Revit\Stage02TransactionStatePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02DeferredTransactionPolicy.cs" Link="Revit\Stage02DeferredTransactionPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02DeferredGroupPolicy.cs" Link="Revit\Stage02DeferredGroupPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02DeferredFailureBudget.cs" Link="Revit\Stage02DeferredFailureBudget.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02TransactionHandoff.cs" Link="Revit\Stage02TransactionHandoff.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02GroupCompletionGate.cs" Link="Revit\Stage02GroupCompletionGate.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02ExecutionCleanupGate.cs" Link="Revit\Stage02ExecutionCleanupGate.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02LateCleanupCoordinator.cs" Link="Revit\Stage02LateCleanupCoordinator.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrBindingPlanPolicy.cs" Link="Revit\Parameters\HbrBindingPlanPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrBindingScopePolicy.cs" Link="Revit\Parameters\HbrBindingScopePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrNamedParameterCompatibilityPolicy.cs" Link="Revit\Parameters\HbrNamedParameterCompatibilityPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrParameterSuggestionPolicy.cs" Link="Revit\Parameters\HbrParameterSuggestionPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrInvariantValueParser.cs" Link="Revit\Parameters\HbrInvariantValueParser.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrSharedParameterDefinitionText.cs" Link="Revit\Parameters\HbrSharedParameterDefinitionText.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrTemporaryFileCleanup.cs" Link="Revit\Parameters\HbrTemporaryFileCleanup.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\Stage02FailureReportWriter.cs" Link="Diagnostics\Stage02FailureReportWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Snapshots\*.v1.json" />

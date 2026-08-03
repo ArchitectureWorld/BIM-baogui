@@ -293,141 +293,54 @@ namespace BIMBaoGui.Stage01.Stage02
       HbrRuleProperty property,
       Stage02WriteOperation operation)
     {
-      string requirementLevel = property.Requirement.Level ?? string.Empty;
-      string conditionId = property.Requirement.ConditionId ?? string.Empty;
-      bool conditional = string.Equals(
-        requirementLevel,
-        "CONDITIONAL",
-        StringComparison.Ordinal);
+      Stage02RequirementDecision decision =
+        Stage02RequirementDecisionPolicy.Resolve(
+          property.PropertyId,
+          property.Requirement.Level,
+          property.Requirement.ConditionId,
+          _database.Package.Conditions.Select(condition =>
+            condition.ConditionId),
+          request.ProjectConditions);
+      if (!decision.Success)
+        Throw(decision.ErrorCode, decision.Message);
 
-      if (!conditional)
-      {
-        if (!string.IsNullOrEmpty(conditionId))
-        {
-          Throw(
-            Stage02Codes.InvalidRequirementContract,
-            "属性 " + property.PropertyId
-            + " 不是 CONDITIONAL，却声明了 conditionId "
-            + conditionId + "。");
-        }
-        if (string.Equals(
-          requirementLevel,
-          "NOT_APPLICABLE",
-          StringComparison.Ordinal))
-        {
-          RequireOperationState(
-            operation,
-            "NOT_APPLICABLE",
-            "NO_WRITE",
-            property.PropertyId);
-          return operation.WithObservedState(
-            operation.ObservedState,
-            valueAction: "NO_WRITE",
-            applicability: "NOT_APPLICABLE");
-        }
-        if (string.Equals(
-            requirementLevel,
-            "REQUIRED",
-            StringComparison.Ordinal)
-          || string.Equals(
-            requirementLevel,
-            "OPTIONAL",
-            StringComparison.Ordinal)
-          || string.Equals(
-            requirementLevel,
-            "UNCLASSIFIED",
-            StringComparison.Ordinal))
-        {
-          RequireOperationState(
-            operation,
-            "APPLICABLE",
-            null,
-            property.PropertyId);
-          return operation;
-        }
-        Throw(
-          Stage02Codes.InvalidRequirementContract,
-          "属性 " + property.PropertyId + " 的 requirement.level 无效："
-          + requirementLevel + "。");
-      }
-
-      if (string.IsNullOrWhiteSpace(conditionId))
-      {
-        Throw(
-          Stage02Codes.InvalidRequirementContract,
-          "CONDITIONAL 属性 " + property.PropertyId
-          + " 缺少 conditionId。");
-      }
-      if (!_database.Package.Conditions.Any(condition => string.Equals(
-        condition.ConditionId,
-        conditionId,
-        StringComparison.Ordinal)))
-      {
-        Throw(
-          Stage02Codes.UnknownCondition,
-          "属性 " + property.PropertyId + " 引用了未知条件 "
-          + conditionId + "。");
-      }
-
-      bool conditionValue;
-      if (!request.ProjectConditions.TryGetValue(
-        conditionId,
-        out conditionValue))
-      {
-        RequireOperationState(
-          operation,
-          "UNKNOWN",
-          "NO_WRITE",
-          property.PropertyId);
-        var blockers = operation.Blockers
-          .Where(blocker => !string.Equals(
-            blocker.Code,
-            Stage02Codes.ConditionStateMissing,
-            StringComparison.Ordinal))
-          .Concat(new[]
-          {
-            new Stage02Blocker(
-              Stage02Codes.ConditionStateMissing,
-              "项目条件 " + conditionId
-              + " 缺少明确 true/false 状态，禁止写入属性 "
-              + property.PropertyId + "。")
-          });
-        return operation.WithObservedState(
-          operation.ObservedState,
-          valueAction: "NO_WRITE",
-          applicability: "UNKNOWN",
-          blockers: blockers);
-      }
-
-      if (operation.Blockers.Any(blocker => string.Equals(
-        blocker.Code,
-        Stage02Codes.ConditionStateMissing,
-        StringComparison.Ordinal)))
+      RequireOperationState(
+        operation,
+        decision.Applicability,
+        string.IsNullOrWhiteSpace(decision.ValueActionOverride)
+          ? null
+          : decision.ValueActionOverride,
+        property.PropertyId);
+      bool expectsMissingBlocker = decision.Blockers.Any(blocker =>
+        string.Equals(
+          blocker.Code,
+          Stage02Codes.ConditionStateMissing,
+          StringComparison.Ordinal));
+      bool hasMissingBlocker = operation.Blockers.Any(blocker =>
+        string.Equals(
+          blocker.Code,
+          Stage02Codes.ConditionStateMissing,
+          StringComparison.Ordinal));
+      if (hasMissingBlocker && !expectsMissingBlocker)
       {
         Throw(
           Stage02Codes.ConditionStateMismatch,
           "属性 " + property.PropertyId
           + " 的项目条件已有明确状态，却仍携带 CONDITION_STATE_MISSING blocker。");
       }
-      if (!conditionValue)
-      {
-        RequireOperationState(
-          operation,
-          "NOT_APPLICABLE",
-          "NO_WRITE",
-          property.PropertyId);
-        return operation.WithObservedState(
-          operation.ObservedState,
-          valueAction: "NO_WRITE",
-          applicability: "NOT_APPLICABLE");
-      }
-
-      RequireOperationState(
-        operation,
-        "APPLICABLE",
-        null,
-        property.PropertyId);
-      return operation;
+      IEnumerable<Stage02Blocker> blockers = operation.Blockers
+        .Where(blocker => !string.Equals(
+          blocker.Code,
+          Stage02Codes.ConditionStateMissing,
+          StringComparison.Ordinal))
+        .Concat(decision.Blockers);
+      return operation.WithObservedState(
+        operation.ObservedState,
+        valueAction: string.IsNullOrWhiteSpace(decision.ValueActionOverride)
+          ? operation.ValueAction
+          : decision.ValueActionOverride,
+        applicability: decision.Applicability,
+        blockers: blockers);
     }
 
     private static void RequireOperationState(
@@ -582,6 +495,7 @@ namespace BIMBaoGui.Stage01.Stage02
         request.RulePackageSha256,
         false);
       AppendProperty(builder, "nonce", request.Nonce, false);
+      AppendProperty(builder, "selectionMode", request.SelectionMode, false);
       builder.Append(",\"elements\":[");
       bool firstElement = true;
       foreach (Stage02MatchedElement matched in
@@ -613,6 +527,11 @@ namespace BIMBaoGui.Stage01.Stage02
         AppendProperty(builder, "elementName", matched.Element.ElementName, false);
         AppendProperty(builder, "roleId", matched.RoleId, false);
         AppendProperty(builder, "matchSource", matched.MatchSource, false);
+        AppendProperty(
+          builder,
+          "stage01RecordIdentity",
+          matched.Stage01RecordIdentity,
+          false);
         builder.Append(",\"operations\":[");
         bool firstOperation = true;
         foreach (Stage02WriteOperation operation in matched.Operations)
@@ -642,6 +561,7 @@ namespace BIMBaoGui.Stage01.Stage02
         preview.RulePackageSha256,
         preview.Nonce,
         preview.ProjectConditions,
+        preview.SelectionMode,
         preview.Elements);
       return BuildPreview(request, preview.Elements);
     }
