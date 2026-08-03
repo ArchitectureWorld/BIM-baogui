@@ -777,14 +777,15 @@ def test_public_menu_is_exactly_three_stage_components():
     new = read("src/BIMBaoGui.Stage01/Stage03ValidationExportComponent.cs")
     legacy3 = read("src/BIMBaoGui.Stage01/Stage03OfficialHifcWriteComponent.cs")
     legacy4 = read("src/BIMBaoGui.Stage01/Stage04MvdIfcNormalizeComponent.cs")
-    for label in ("文件上下文", "执行", "输出目录", "严格模式", "强制原因"):
+    for label in ("文件上下文", "执行", "输出目录", "全部通过才导出", "强制原因"):
         assert label in new
+    assert "DefaultStrictMode = true" in new
     assert "GH_Exposure.primary" in new
     assert "GH_Exposure.hidden" in legacy3
     assert "GH_Exposure.hidden" in legacy4
 ```
 
-新组件输出：允许导出、字段通过、阻断、RAW IFC、HIFC-MVD IFC、fields JSON、规则哈希和状态。卡片 UI 显示 Strict/Force、字段计数和三个路径。
+新组件定义 `private const bool DefaultStrictMode = true;`，并把 `全部通过才导出` 实现为使用该常量作为默认值的布尔开关。`true` 映射 `Strict`，`false` 映射 `Force`；`Force` 必须有非空 `强制原因`。模式开关与独立的 `执行` 上升沿分离，模式或原因变化会使旧结果失效。输出：允许导出、字段通过、全部阻断、RAW IFC、HIFC-MVD IFC、fields JSON、规则哈希和状态。卡片 UI 同时用文字和计数显示 Strict/Force、字段计数、运行状态和三个路径；完整字段通过稳定 Data Tree 输出，不把卡片摘要作为唯一结果。
 
 - [ ] **Step 4: 运行 GREEN 并提交**
 
