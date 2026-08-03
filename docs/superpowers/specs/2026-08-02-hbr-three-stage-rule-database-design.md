@@ -290,8 +290,23 @@ Stage01 的 `HBR_FileContext`、Stage02 预览/写入结果、Stage03 检测/导
 - Stage01 文件上下文；
 - 可选 ElementId 列表；为空时读取当前 Revit 选择；
 - 可选角色提示；
+- `交互点选` 布尔模式，默认 `false`；为 `true` 时只在“生成预览”的 `false -> true` 边沿调用 Revit `PickObjects`；
+- `项目信息` 布尔模式，默认 `false`；为 `true` 时使用当前文档 `ProjectInformation` 专用入口；
 - “生成预览”边沿；
 - “确认写入”边沿。
+
+选择入口必须显式且无静默优先级：
+
+```text
+项目信息=true + 任意 ElementId/交互点选=true -> 阻断冲突
+ElementId 非空 + 交互点选=true                -> 阻断冲突
+项目信息=true                                -> ProjectInformation
+ElementId 非空                               -> 当前文档内按 Id 解析并立即固化 UniqueId
+交互点选=true                                -> 显式 PickObjects
+其余                                         -> 当前 Revit 选择集
+```
+
+`ProjectInformation` 的空角色提示默认解释为 `PROJECT`；显式值只接受 `PROJECT/SITE/BUILDING`。任何选择模式、ElementId 集合、角色提示或文件上下文变化都会清除旧预览和确认资格。组件卡片必须显示实际选择模式，不能只显示元素数量。
 
 Revit 模态选择只能由明确 UI 动作通过 Revit host context 调用，不能在 `SolveInstance()` 或 dynamic update 中直接 `PickObjects`。
 

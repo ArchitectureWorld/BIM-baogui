@@ -483,42 +483,73 @@ git commit -m "feat: write visible HBR parameters from Stage02"
 - Create: `src/BIMBaoGui.Stage01/UI/Stage02PreparationAttributes.cs`
 - Create: `src/BIMBaoGui.Stage01/GrasshopperTypes/HBRStage02PreviewGoo.cs`
 - Create: `src/BIMBaoGui.Stage01/GrasshopperTypes/HBRStage02PreviewParam.cs`
+- Create: `src/BIMBaoGui.Stage01/Stage02/Stage02PreparationInputPolicy.cs`
+- Modify: `src/BIMBaoGui.Stage01/Revit/Stage02RevitSelectionService.cs`
 - Modify: `src/BIMBaoGui.Stage01/Stage02TaskPlanComponent.cs`
 - Modify: `src/BIMBaoGui.Stage01/UI/Stage02ComponentAttributes.cs`
+- Create: `tests/BIMBaoGui.Stage01.Core.Tests/Stage02PreparationInputPolicyTests.cs`
 - Create: `tests/test_stage02_component_contract.py`
 
-- [ ] **Step 1: 写端口和 exposure RED 测试**
+- [ ] **Step 1: 写选择模式、输入签名和端口 RED 测试**
+
+`Stage02PreparationInputPolicyTests` 必须先验证：
+
+- `项目信息` 与 ElementId/交互点选冲突时阻断；
+- ElementId 与交互点选冲突时阻断；
+- 四种合法入口分别解析为 `ProjectInformation/ExplicitIds/ExplicitPick/CurrentSelection`；
+- ElementId 顺序和重复不影响确定性输入签名；
+- context hash、选择模式、ElementId、角色提示任一变化都会改变签名，使旧预览失效。
 
 ```python
 def test_new_stage02_has_real_ports_and_legacy_is_hidden():
     new = read("src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs")
     old = read("src/BIMBaoGui.Stage01/Stage02TaskPlanComponent.cs")
-    for label in ("文件上下文", "元素Id", "角色提示", "生成预览", "确认写入"):
+    for label in (
+        "文件上下文", "元素Id", "角色提示", "交互点选", "项目信息",
+        "生成预览", "确认写入", "预览", "匹配载体", "字段明细",
+        "阻断信息", "写入状态", "规则哈希", "报告路径"
+    ):
         assert label in new
     assert "GH_Exposure.primary" in new
     assert "GH_Exposure.hidden" in old
 ```
 
-- [ ] **Step 2: 运行 RED，随后实现状态机**
+- [ ] **Step 2: 运行 RED，随后实现选择适配与纯输入策略**
 
 Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage02_component_contract.py -q`  
 Expected: FAIL。
+Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter Stage02PreparationInputPolicyTests`
+Expected: FAIL。
 
-新组件内部使用两个 `ExplicitExecutionGate`。预览回调和写入回调均通过 `ScheduleSolution` 回到 GH；`_pending/_result` 由锁保护。输出：强类型预览、匹配载体、字段明细、阻断、写入状态和规则哈希。
+`Stage02PreparationInputPolicy` 只做确定性选择模式、冲突和输入签名，不引用 Revit/GH。`Stage02RevitSelectionService` 增加按当前文档 ElementId 解析入口，并让当前选择、显式点选和 ElementId 入口都能携带一个可选角色提示；所有请求在预览时立即固化 `DocumentFingerprint + Element.UniqueId`。空 `ProjectInformation` 角色默认 `PROJECT`。
 
-- [ ] **Step 3: 实现不遮挡端口的卡片 UI**
+- [ ] **Step 3: 实现可消费一次的 GH 状态机与完整输出**
+
+新组件内部使用两个 `ExplicitExecutionGate`，只允许“生成预览”和“确认写入”的 `false -> true` 边沿执行。选择入口不允许静默优先级：冲突直接输出阻断；否则按 `ProjectInformation -> ExplicitIds -> ExplicitPick -> CurrentSelection` 的互斥决策执行。`PickObjects` 只能由生成预览边沿触发并通过 Revit host context 调用，不能在普通 `SolveInstance()` 中调用。
+
+预览和写入回调均通过 `ScheduleSolution` 回到 GH；共享状态由锁保护。回调完成时必须再次比较输入签名，过期结果不得发布。context、选择模式、ElementId、角色提示变化，以及写入成功或 `RequiresNewPreview`，都会清空旧预览/nonce/确认资格。确认写入使用预览时保存的独立选择证据构造 `Stage02RevitWriteRequest`，不能从输出 Goo 或 ElementId 重新猜测。
+
+输出至少包括：强类型预览、匹配载体、按稳定元素顺序分支的完整字段 Data Tree、全部阻断、写入状态、待安装/已安装数、待写入/已写入数、规则哈希、失败报告路径和总状态。字段行同时包含 ElementId/UniqueId、角色、作用域、propertyId、参数 GUID/名称、旧值、建议值、来源、必填性、适用性、binding/value action 与阻断；卡片摘要不能代替这些输出。
+
+- [ ] **Step 4: 实现不遮挡端口的卡片 UI**
 
 `LayoutInputParams`、`LayoutOutputParams` 必须在扩展后的 component box 上调用；卡片只在端口之间绘制。UI 明确显示当前 RVT、已选元素、匹配角色、预览 hash、安装/写入数和第一条阻断。
 
-- [ ] **Step 4: 运行 GREEN 并提交**
+状态文字至少区分：等待上下文、等待预览、选择取消、预览阻断、预览就绪、确认中、写入成功、写入失败、结果过期。正常/等待/阻断/失败不能只靠颜色区别。
+
+- [ ] **Step 5: 运行 GREEN、全量回归并提交**
 
 Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage02_component_contract.py -q`  
 Expected: PASS。  
+Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter Stage02PreparationInputPolicyTests`
+Expected: PASS。
+Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --no-restore --nologo`
+Expected: PASS。
 Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo`  
 Expected: 0 warnings, 0 errors。
 
 ```powershell
-git add src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs src/BIMBaoGui.Stage01/UI src/BIMBaoGui.Stage01/GrasshopperTypes src/BIMBaoGui.Stage01/Stage02TaskPlanComponent.cs tests/test_stage02_component_contract.py
+git add src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs src/BIMBaoGui.Stage01/UI src/BIMBaoGui.Stage01/GrasshopperTypes src/BIMBaoGui.Stage01/Stage02 src/BIMBaoGui.Stage01/Revit/Stage02RevitSelectionService.cs src/BIMBaoGui.Stage01/Stage02TaskPlanComponent.cs tests/BIMBaoGui.Stage01.Core.Tests tests/test_stage02_component_contract.py
 git commit -m "feat: expose Stage02 element preparation workflow"
 ```
 
