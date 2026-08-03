@@ -4,6 +4,7 @@ using System.Linq;
 using BIMBaoGui.Stage01.Core;
 using BIMBaoGui.Stage01.Hifc;
 using BIMBaoGui.Stage01.Revit;
+using BIMBaoGui.Stage01.Rules;
 
 namespace BIMBaoGui.Stage01.Context
 {
@@ -28,6 +29,7 @@ namespace BIMBaoGui.Stage01.Context
         model.GetValue(Stage01Keys.AreaUnit),
         model.GetValue(Stage01Keys.AngleUnit));
       string payload = CanonicalPayload.Build(model);
+      HbrRulePackage rulePackage = HbrRuleDatabase.Current.Package;
       var provisional = new HBRFileContext(
         HBRContextVersions.FileContextSchema,
         model.GetValue(Stage01Keys.WorkflowVersion),
@@ -47,7 +49,10 @@ namespace BIMBaoGui.Stage01.Context
         activation.NotApplicable,
         initializationPassed,
         compatibility.IsCompatible,
-        HBRContextVersions.RulePack,
+        string.Empty,
+        rulePackage.PackageId,
+        rulePackage.PackageVersion,
+        rulePackage.RulePackageSha256,
         CanonicalPayload.Sha256(payload),
         string.Empty);
       return provisional.WithHash(HBRFileContextCanonicalizer.ComputeHash(provisional));

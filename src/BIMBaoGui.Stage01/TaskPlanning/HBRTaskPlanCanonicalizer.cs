@@ -11,6 +11,9 @@ namespace BIMBaoGui.Stage01.TaskPlanning
 {
   public static class HBRTaskPlanCanonicalizer
   {
+    internal const string LegacyUpgradeMessage =
+      "规则数据库已升级，请重新运行任务规划。";
+
     public static string ToJson(HBRTaskPlan plan)
     {
       return Build(plan, true);
@@ -35,24 +38,34 @@ namespace BIMBaoGui.Stage01.TaskPlanning
       {
         var serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
         Dictionary<string, object> root = serializer.Deserialize<Dictionary<string, object>>(json);
-        var parsed = new HBRTaskPlan(
-          ReadRootString(root, "schemaVersion"),
-          ReadRootString(root, "fileContextHash"),
-          ReadRootString(root, "modelFileType"),
-          ReadRootString(root, "skeletonPath"),
-          ParseItems(root, "activeTasks"),
-          ParseItems(root, "notApplicableTasks"),
-          ReadRootString(root, "taskPlanHash"));
-
-        string expected = ComputeHash(parsed);
-        if (!string.IsNullOrWhiteSpace(parsed.TaskPlanHash)
-          && !string.Equals(parsed.TaskPlanHash, expected, StringComparison.OrdinalIgnoreCase))
+        int identityFieldCount = CountIdentityFields(root);
+        if (identityFieldCount == 0)
+          return TryParseLegacy(root, out plan, out error);
+        if (identityFieldCount != 3
+          || string.IsNullOrWhiteSpace(ReadRootString(root, "rulePackageId"))
+          || string.IsNullOrWhiteSpace(ReadRootString(root, "rulePackageVersion"))
+          || string.IsNullOrWhiteSpace(ReadRootString(root, "rulePackageSha256")))
         {
-          error = "任务计划哈希校验失败。";
+          error = "任务计划缺少完整规则数据库身份，数据损坏。";
+          return false;
+        }
+        if (!HasProperty(root, "taskPlanHash")
+          || string.IsNullOrWhiteSpace(ReadRootString(root, "taskPlanHash")))
+        {
+          error = "任务计划缺少哈希值，数据损坏。";
           return false;
         }
 
-        plan = string.IsNullOrWhiteSpace(parsed.TaskPlanHash) ? parsed.WithHash(expected) : parsed;
+        HBRTaskPlan parsed = Parse(root);
+
+        string expected = ComputeHash(parsed);
+        if (!string.Equals(parsed.TaskPlanHash, expected, StringComparison.OrdinalIgnoreCase))
+        {
+          error = "任务计划哈希校验失败，数据损坏。";
+          return false;
+        }
+
+        plan = parsed;
         return true;
       }
       catch (Exception exception)
@@ -62,7 +75,82 @@ namespace BIMBaoGui.Stage01.TaskPlanning
       }
     }
 
+    internal static bool IsLegacyUpgradeError(string error)
+    {
+      return string.Equals(error, LegacyUpgradeMessage, StringComparison.Ordinal);
+    }
+
+    private static bool TryParseLegacy(
+      IDictionary<string, object> root,
+      out HBRTaskPlan plan,
+      out string error)
+    {
+      plan = null;
+      error = string.Empty;
+      if (!HasProperty(root, "taskPlanHash")
+        || string.IsNullOrWhiteSpace(ReadRootString(root, "taskPlanHash")))
+      {
+        error = "旧版任务计划缺少哈希值，数据损坏。";
+        return false;
+      }
+
+      HBRTaskPlan legacy = Parse(root);
+      string expected = ComputeLegacyHash(legacy);
+      if (!string.Equals(
+        legacy.TaskPlanHash,
+        expected,
+        StringComparison.OrdinalIgnoreCase))
+      {
+        error = "旧版任务计划哈希无效，数据损坏。";
+        return false;
+      }
+
+      error = LegacyUpgradeMessage;
+      return false;
+    }
+
+    private static HBRTaskPlan Parse(IDictionary<string, object> root)
+    {
+      return new HBRTaskPlan(
+        ReadRootString(root, "schemaVersion"),
+        ReadRootString(root, "fileContextHash"),
+        ReadRootString(root, "rulePackageId"),
+        ReadRootString(root, "rulePackageVersion"),
+        ReadRootString(root, "rulePackageSha256"),
+        ReadRootString(root, "modelFileType"),
+        ReadRootString(root, "skeletonPath"),
+        ParseItems(root, "activeTasks"),
+        ParseItems(root, "notApplicableTasks"),
+        ReadRootString(root, "taskPlanHash"));
+    }
+
     private static string Build(HBRTaskPlan plan, bool includeHash)
+    {
+      if (plan == null) return string.Empty;
+      var builder = new StringBuilder(16384);
+      builder.Append('{');
+      AppendProperty(builder, "schemaVersion", plan.SchemaVersion, true);
+      AppendProperty(builder, "fileContextHash", plan.FileContextHash, false);
+      AppendProperty(builder, "rulePackageId", plan.RulePackageId, false);
+      AppendProperty(builder, "rulePackageVersion", plan.RulePackageVersion, false);
+      AppendProperty(builder, "rulePackageSha256", plan.RulePackageSha256, false);
+      AppendProperty(builder, "modelFileType", plan.ModelFileType, false);
+      AppendProperty(builder, "skeletonPath", plan.SkeletonPath, false);
+      builder.Append(",\"activeTasks\":");
+      AppendItems(builder, plan.ActiveTasks);
+      builder.Append(",\"notApplicableTasks\":");
+      AppendItems(builder, plan.NotApplicableTasks);
+      if (includeHash) AppendProperty(builder, "taskPlanHash", plan.TaskPlanHash, false);
+      builder.Append('}');
+      return builder.ToString();
+    }
+
+    private static string ComputeLegacyHash(HBRTaskPlan plan)
+    {
+      return CanonicalPayload.Sha256(BuildLegacy(plan));
+    }
+
+    private static string BuildLegacy(HBRTaskPlan plan)
     {
       if (plan == null) return string.Empty;
       var builder = new StringBuilder(16384);
@@ -75,9 +163,24 @@ namespace BIMBaoGui.Stage01.TaskPlanning
       AppendItems(builder, plan.ActiveTasks);
       builder.Append(",\"notApplicableTasks\":");
       AppendItems(builder, plan.NotApplicableTasks);
-      if (includeHash) AppendProperty(builder, "taskPlanHash", plan.TaskPlanHash, false);
       builder.Append('}');
       return builder.ToString();
+    }
+
+    private static int CountIdentityFields(IDictionary<string, object> root)
+    {
+      int count = 0;
+      if (HasProperty(root, "rulePackageId")) count++;
+      if (HasProperty(root, "rulePackageVersion")) count++;
+      if (HasProperty(root, "rulePackageSha256")) count++;
+      return count;
+    }
+
+    private static bool HasProperty(
+      IDictionary<string, object> root,
+      string key)
+    {
+      return root != null && root.ContainsKey(key);
     }
 
     private static void AppendItems(StringBuilder builder, IEnumerable<HBRTaskPlanItem> items)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using BIMBaoGui.Stage01.Context;
 using BIMBaoGui.Stage01.Core;
+using BIMBaoGui.Stage01.Rules;
 using Xunit;
 
 namespace BIMBaoGui.Stage01.Core.Tests
@@ -50,7 +51,10 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Assert.True(restored.OfficialProtocolCompatible);
       Assert.True(
         json.IndexOf("\"officialProtocolCompatible\"", StringComparison.Ordinal)
-          < json.IndexOf("\"rulePackVersion\"", StringComparison.Ordinal));
+          < json.IndexOf("\"rulePackageId\"", StringComparison.Ordinal));
+      Assert.Equal(
+        HbrRuleDatabase.Current.Package.RulePackageSha256,
+        restored.RulePackageSha256);
       Assert.Equal("≤2.00", restored.PlanningTargets[PlanningTargetCatalog.FloorAreaRatioCode].ToMvdText());
     }
 
@@ -81,6 +85,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
         conditions["site.green"] = green;
         conditions["site.civil_defense"] = false;
       }
+      HbrRulePackage package = HbrRuleDatabase.Current.Package;
       var provisional = new HBRFileContext(
         "0.5.0",
         "0.5.0",
@@ -100,7 +105,10 @@ namespace BIMBaoGui.Stage01.Core.Tests
         new[] { "HBR.SITE.OUTDOOR_PARKING" },
         true,
         officialCompatible,
-        "0.1.0",
+        string.Empty,
+        package.PackageId,
+        package.PackageVersion,
+        package.RulePackageSha256,
         "payload-hash",
         string.Empty);
       return provisional.WithHash(HBRFileContextCanonicalizer.ComputeHash(provisional));

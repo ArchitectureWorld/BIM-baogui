@@ -29,6 +29,59 @@ namespace BIMBaoGui.Stage01.Context
       string rulePackVersion,
       string sourcePayloadHash,
       string fileContextHash)
+      : this(
+        schemaVersion,
+        workflowVersion,
+        fileGuid,
+        revitDocumentFingerprint,
+        revitDocumentTitle,
+        projectNumber,
+        projectName,
+        subitemCode,
+        subitemName,
+        modelFileType,
+        modelScope,
+        spatialReference,
+        planningTargets,
+        projectConditions,
+        activatedRuleIds,
+        notApplicableRuleIds,
+        initializationPassed,
+        officialProtocolCompatible,
+        rulePackVersion,
+        string.Empty,
+        string.Empty,
+        string.Empty,
+        sourcePayloadHash,
+        fileContextHash)
+    {
+    }
+
+    public HBRFileContext(
+      string schemaVersion,
+      string workflowVersion,
+      string fileGuid,
+      string revitDocumentFingerprint,
+      string revitDocumentTitle,
+      string projectNumber,
+      string projectName,
+      string subitemCode,
+      string subitemName,
+      string modelFileType,
+      string modelScope,
+      HBRSpatialReference spatialReference,
+      IDictionary<string, PlanningTargetValue> planningTargets,
+      IDictionary<string, bool> projectConditions,
+      IEnumerable<string> activatedRuleIds,
+      IEnumerable<string> notApplicableRuleIds,
+      bool initializationPassed,
+      bool officialProtocolCompatible,
+      string rulePackVersion,
+      string rulePackageId,
+      string rulePackageVersion,
+      string rulePackageSha256,
+      string sourcePayloadHash,
+      string fileContextHash)
     {
       SchemaVersion = schemaVersion ?? string.Empty;
       WorkflowVersion = workflowVersion ?? string.Empty;
@@ -49,6 +102,9 @@ namespace BIMBaoGui.Stage01.Context
       InitializationPassed = initializationPassed;
       OfficialProtocolCompatible = officialProtocolCompatible;
       RulePackVersion = rulePackVersion ?? string.Empty;
+      RulePackageId = rulePackageId ?? string.Empty;
+      RulePackageVersion = rulePackageVersion ?? string.Empty;
+      RulePackageSha256 = rulePackageSha256 ?? string.Empty;
       SourcePayloadHash = sourcePayloadHash ?? string.Empty;
       FileContextHash = fileContextHash ?? string.Empty;
     }
@@ -72,11 +128,17 @@ namespace BIMBaoGui.Stage01.Context
     public bool InitializationPassed { get; }
     public bool OfficialProtocolCompatible { get; }
     public string RulePackVersion { get; }
+    public string RulePackageId { get; }
+    public string RulePackageVersion { get; }
+    public string RulePackageSha256 { get; }
     public string SourcePayloadHash { get; }
     public string FileContextHash { get; }
 
     public bool IsValid => !string.IsNullOrWhiteSpace(FileGuid)
       && !string.IsNullOrWhiteSpace(RevitDocumentFingerprint)
+      && !string.IsNullOrWhiteSpace(RulePackageId)
+      && !string.IsNullOrWhiteSpace(RulePackageVersion)
+      && !string.IsNullOrWhiteSpace(RulePackageSha256)
       && !string.IsNullOrWhiteSpace(FileContextHash);
 
     public bool IsReady => IsValid
@@ -105,6 +167,9 @@ namespace BIMBaoGui.Stage01.Context
         InitializationPassed,
         OfficialProtocolCompatible,
         RulePackVersion,
+        RulePackageId,
+        RulePackageVersion,
+        RulePackageSha256,
         SourcePayloadHash,
         hash);
     }

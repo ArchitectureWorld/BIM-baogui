@@ -14,9 +14,37 @@ namespace BIMBaoGui.Stage01.TaskPlanning
       IEnumerable<HBRTaskPlanItem> activeTasks,
       IEnumerable<HBRTaskPlanItem> notApplicableTasks,
       string taskPlanHash)
+      : this(
+        schemaVersion,
+        fileContextHash,
+        string.Empty,
+        string.Empty,
+        string.Empty,
+        modelFileType,
+        skeletonPath,
+        activeTasks,
+        notApplicableTasks,
+        taskPlanHash)
+    {
+    }
+
+    public HBRTaskPlan(
+      string schemaVersion,
+      string fileContextHash,
+      string rulePackageId,
+      string rulePackageVersion,
+      string rulePackageSha256,
+      string modelFileType,
+      string skeletonPath,
+      IEnumerable<HBRTaskPlanItem> activeTasks,
+      IEnumerable<HBRTaskPlanItem> notApplicableTasks,
+      string taskPlanHash)
     {
       SchemaVersion = schemaVersion ?? string.Empty;
       FileContextHash = fileContextHash ?? string.Empty;
+      RulePackageId = rulePackageId ?? string.Empty;
+      RulePackageVersion = rulePackageVersion ?? string.Empty;
+      RulePackageSha256 = rulePackageSha256 ?? string.Empty;
       ModelFileType = modelFileType ?? string.Empty;
       SkeletonPath = skeletonPath ?? string.Empty;
       ActiveTasks = Normalize(activeTasks);
@@ -49,6 +77,9 @@ namespace BIMBaoGui.Stage01.TaskPlanning
 
     public string SchemaVersion { get; }
     public string FileContextHash { get; }
+    public string RulePackageId { get; }
+    public string RulePackageVersion { get; }
+    public string RulePackageSha256 { get; }
     public string ModelFileType { get; }
     public string SkeletonPath { get; }
     public IReadOnlyList<HBRTaskPlanItem> ActiveTasks { get; }
@@ -65,6 +96,9 @@ namespace BIMBaoGui.Stage01.TaskPlanning
     public string TaskPlanHash { get; }
 
     public bool IsValid => !string.IsNullOrWhiteSpace(FileContextHash)
+      && !string.IsNullOrWhiteSpace(RulePackageId)
+      && !string.IsNullOrWhiteSpace(RulePackageVersion)
+      && !string.IsNullOrWhiteSpace(RulePackageSha256)
       && !string.IsNullOrWhiteSpace(ModelFileType)
       && !string.IsNullOrWhiteSpace(TaskPlanHash)
       && ActiveTasks.Count > 0;
@@ -79,6 +113,9 @@ namespace BIMBaoGui.Stage01.TaskPlanning
       return new HBRTaskPlan(
         SchemaVersion,
         FileContextHash,
+        RulePackageId,
+        RulePackageVersion,
+        RulePackageSha256,
         ModelFileType,
         SkeletonPath,
         ActiveTasks,

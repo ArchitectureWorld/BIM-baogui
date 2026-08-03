@@ -11,6 +11,9 @@ namespace BIMBaoGui.Stage01.Context
 {
   public static class HBRFileContextCanonicalizer
   {
+    internal const string LegacyUpgradeMessage =
+      "规则数据库已升级，请重新运行 Stage01。";
+
     public static string ToJson(HBRFileContext context)
     {
       return Build(context, true);
@@ -35,41 +38,34 @@ namespace BIMBaoGui.Stage01.Context
       {
         var serializer = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
         Dictionary<string, object> root = serializer.Deserialize<Dictionary<string, object>>(json);
-        HBRSpatialReference spatial = ParseSpatial(ReadDictionary(root, "spatialReference"));
-        IDictionary<string, PlanningTargetValue> targets = ParseTargets(ReadDictionary(root, "planningTargets"));
-        IDictionary<string, bool> conditions = ParseConditions(ReadDictionary(root, "projectConditions"));
-        var parsed = new HBRFileContext(
-          ReadRootString(root, "schemaVersion"),
-          ReadRootString(root, "workflowVersion"),
-          ReadRootString(root, "fileGuid"),
-          ReadRootString(root, "revitDocumentFingerprint"),
-          ReadRootString(root, "revitDocumentTitle"),
-          ReadRootString(root, "projectNumber"),
-          ReadRootString(root, "projectName"),
-          ReadRootString(root, "subitemCode"),
-          ReadRootString(root, "subitemName"),
-          ReadRootString(root, "modelFileType"),
-          ReadRootString(root, "modelScope"),
-          spatial,
-          targets,
-          conditions,
-          ReadStrings(root, "activatedRuleIds"),
-          ReadStrings(root, "notApplicableRuleIds"),
-          ReadBoolean(root, "initializationPassed"),
-          ReadBoolean(root, "officialProtocolCompatible"),
-          ReadRootString(root, "rulePackVersion"),
-          ReadRootString(root, "sourcePayloadHash"),
-          ReadRootString(root, "fileContextHash"));
-
-        string expected = ComputeHash(parsed);
-        if (!string.IsNullOrWhiteSpace(parsed.FileContextHash)
-          && !string.Equals(parsed.FileContextHash, expected, StringComparison.OrdinalIgnoreCase))
+        int identityFieldCount = CountIdentityFields(root);
+        if (identityFieldCount == 0)
+          return TryParseLegacy(root, out context, out error);
+        if (identityFieldCount != 3
+          || string.IsNullOrWhiteSpace(ReadRootString(root, "rulePackageId"))
+          || string.IsNullOrWhiteSpace(ReadRootString(root, "rulePackageVersion"))
+          || string.IsNullOrWhiteSpace(ReadRootString(root, "rulePackageSha256")))
         {
-          error = "文件上下文哈希校验失败。";
+          error = "文件上下文缺少完整规则数据库身份，数据损坏。";
+          return false;
+        }
+        if (!HasProperty(root, "fileContextHash")
+          || string.IsNullOrWhiteSpace(ReadRootString(root, "fileContextHash")))
+        {
+          error = "文件上下文缺少哈希值，数据损坏。";
           return false;
         }
 
-        context = string.IsNullOrWhiteSpace(parsed.FileContextHash) ? parsed.WithHash(expected) : parsed;
+        HBRFileContext parsed = Parse(root);
+
+        string expected = ComputeHash(parsed);
+        if (!string.Equals(parsed.FileContextHash, expected, StringComparison.OrdinalIgnoreCase))
+        {
+          error = "文件上下文哈希校验失败，数据损坏。";
+          return false;
+        }
+
+        context = parsed;
         return true;
       }
       catch (Exception exception)
@@ -77,6 +73,81 @@ namespace BIMBaoGui.Stage01.Context
         error = "文件上下文解析失败：" + exception.Message;
         return false;
       }
+    }
+
+    internal static bool IsLegacyUpgradeError(string error)
+    {
+      return string.Equals(error, LegacyUpgradeMessage, StringComparison.Ordinal);
+    }
+
+    private static bool TryParseLegacy(
+      IDictionary<string, object> root,
+      out HBRFileContext context,
+      out string error)
+    {
+      context = null;
+      error = string.Empty;
+      if (!HasProperty(root, "rulePackVersion")
+        || string.IsNullOrWhiteSpace(ReadRootString(root, "rulePackVersion")))
+      {
+        error = "文件上下文缺少完整规则数据库身份，数据损坏。";
+        return false;
+      }
+      if (!HasProperty(root, "fileContextHash")
+        || string.IsNullOrWhiteSpace(ReadRootString(root, "fileContextHash")))
+      {
+        error = "旧版文件上下文缺少哈希值，数据损坏。";
+        return false;
+      }
+
+      HBRFileContext legacy = Parse(root);
+      string expected = ComputeLegacyHash(legacy);
+      if (!string.Equals(
+        legacy.FileContextHash,
+        expected,
+        StringComparison.OrdinalIgnoreCase))
+      {
+        error = "旧版文件上下文哈希无效，数据损坏。";
+        return false;
+      }
+
+      error = LegacyUpgradeMessage;
+      return false;
+    }
+
+    private static HBRFileContext Parse(IDictionary<string, object> root)
+    {
+      HBRSpatialReference spatial = ParseSpatial(
+        ReadDictionary(root, "spatialReference"));
+      IDictionary<string, PlanningTargetValue> targets = ParseTargets(
+        ReadDictionary(root, "planningTargets"));
+      IDictionary<string, bool> conditions = ParseConditions(
+        ReadDictionary(root, "projectConditions"));
+      return new HBRFileContext(
+        ReadRootString(root, "schemaVersion"),
+        ReadRootString(root, "workflowVersion"),
+        ReadRootString(root, "fileGuid"),
+        ReadRootString(root, "revitDocumentFingerprint"),
+        ReadRootString(root, "revitDocumentTitle"),
+        ReadRootString(root, "projectNumber"),
+        ReadRootString(root, "projectName"),
+        ReadRootString(root, "subitemCode"),
+        ReadRootString(root, "subitemName"),
+        ReadRootString(root, "modelFileType"),
+        ReadRootString(root, "modelScope"),
+        spatial,
+        targets,
+        conditions,
+        ReadStrings(root, "activatedRuleIds"),
+        ReadStrings(root, "notApplicableRuleIds"),
+        ReadBoolean(root, "initializationPassed"),
+        ReadBoolean(root, "officialProtocolCompatible"),
+        ReadRootString(root, "rulePackVersion"),
+        ReadRootString(root, "rulePackageId"),
+        ReadRootString(root, "rulePackageVersion"),
+        ReadRootString(root, "rulePackageSha256"),
+        ReadRootString(root, "sourcePayloadHash"),
+        ReadRootString(root, "fileContextHash"));
     }
 
     private static string Build(HBRFileContext context, bool includeHash)
@@ -107,11 +178,70 @@ namespace BIMBaoGui.Stage01.Context
       AppendStrings(builder, context.NotApplicableRuleIds);
       builder.Append(",\"initializationPassed\":").Append(context.InitializationPassed ? "true" : "false");
       builder.Append(",\"officialProtocolCompatible\":").Append(context.OfficialProtocolCompatible ? "true" : "false");
-      AppendProperty(builder, "rulePackVersion", context.RulePackVersion, false);
+      AppendProperty(builder, "rulePackageId", context.RulePackageId, false);
+      AppendProperty(builder, "rulePackageVersion", context.RulePackageVersion, false);
+      AppendProperty(builder, "rulePackageSha256", context.RulePackageSha256, false);
       AppendProperty(builder, "sourcePayloadHash", context.SourcePayloadHash, false);
       if (includeHash) AppendProperty(builder, "fileContextHash", context.FileContextHash, false);
       builder.Append('}');
       return builder.ToString();
+    }
+
+    private static string ComputeLegacyHash(HBRFileContext context)
+    {
+      return CanonicalPayload.Sha256(BuildLegacy(context));
+    }
+
+    private static string BuildLegacy(HBRFileContext context)
+    {
+      if (context == null) return string.Empty;
+      var builder = new StringBuilder(12288);
+      builder.Append('{');
+      AppendProperty(builder, "schemaVersion", context.SchemaVersion, true);
+      AppendProperty(builder, "workflowVersion", context.WorkflowVersion, false);
+      AppendProperty(builder, "fileGuid", context.FileGuid, false);
+      AppendProperty(builder, "revitDocumentFingerprint", context.RevitDocumentFingerprint, false);
+      AppendProperty(builder, "revitDocumentTitle", context.RevitDocumentTitle, false);
+      AppendProperty(builder, "projectNumber", context.ProjectNumber, false);
+      AppendProperty(builder, "projectName", context.ProjectName, false);
+      AppendProperty(builder, "subitemCode", context.SubitemCode, false);
+      AppendProperty(builder, "subitemName", context.SubitemName, false);
+      AppendProperty(builder, "modelFileType", context.ModelFileType, false);
+      AppendProperty(builder, "modelScope", context.ModelScope, false);
+      builder.Append(",\"spatialReference\":");
+      AppendSpatial(builder, context.SpatialReference);
+      builder.Append(",\"planningTargets\":");
+      AppendTargets(builder, context.PlanningTargets);
+      builder.Append(",\"projectConditions\":");
+      AppendConditions(builder, context.ProjectConditions);
+      builder.Append(",\"activatedRuleIds\":");
+      AppendStrings(builder, context.ActivatedRuleIds);
+      builder.Append(",\"notApplicableRuleIds\":");
+      AppendStrings(builder, context.NotApplicableRuleIds);
+      builder.Append(",\"initializationPassed\":")
+        .Append(context.InitializationPassed ? "true" : "false");
+      builder.Append(",\"officialProtocolCompatible\":")
+        .Append(context.OfficialProtocolCompatible ? "true" : "false");
+      AppendProperty(builder, "rulePackVersion", context.RulePackVersion, false);
+      AppendProperty(builder, "sourcePayloadHash", context.SourcePayloadHash, false);
+      builder.Append('}');
+      return builder.ToString();
+    }
+
+    private static int CountIdentityFields(IDictionary<string, object> root)
+    {
+      int count = 0;
+      if (HasProperty(root, "rulePackageId")) count++;
+      if (HasProperty(root, "rulePackageVersion")) count++;
+      if (HasProperty(root, "rulePackageSha256")) count++;
+      return count;
+    }
+
+    private static bool HasProperty(
+      IDictionary<string, object> root,
+      string key)
+    {
+      return root != null && root.ContainsKey(key);
     }
 
     private static void AppendSpatial(StringBuilder builder, HBRSpatialReference spatial)

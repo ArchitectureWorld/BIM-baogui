@@ -14,6 +14,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageReference Include="Grasshopper" Version="8.0.23304.9001" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="RhinoCommon" Version="8.0.23304.9001" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
@@ -41,10 +43,13 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRContextVersions.cs" Link="Context\HBRContextVersions.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRDocumentFingerprint.cs" Link="Context\HBRDocumentFingerprint.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRFileContext.cs" Link="Context\HBRFileContext.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRFileContextFactory.cs" Link="Context\HBRFileContextFactory.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRFileContextCanonicalizer.cs" Link="Context\HBRFileContextCanonicalizer.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRLiveContextPolicy.cs" Link="Context\HBRLiveContextPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRSpatialReference.cs" Link="Context\HBRSpatialReference.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\RuleActivationCatalog.cs" Link="Context\RuleActivationCatalog.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\GrasshopperTypes\HBRFileContextGoo.cs" Link="GrasshopperTypes\HBRFileContextGoo.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\GrasshopperTypes\HBRTaskPlanGoo.cs" Link="GrasshopperTypes\HBRTaskPlanGoo.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\BlankGatePolicy.cs" Link="Core\BlankGatePolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\CanonicalPayload.cs" Link="Core\CanonicalPayload.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\ExplicitExecutionGate.cs" Link="Core\ExplicitExecutionGate.cs" />
@@ -72,6 +77,7 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\Stage01OfficialCompatibilityPolicy.cs" Link="Hifc\Stage01OfficialCompatibilityPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialPluginCompatibilityCatalog.cs" Link="Hifc\OfficialPluginCompatibilityCatalog.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Infrastructure\Stage01RegistryProvider.cs" Link="Infrastructure\Stage01RegistryProvider.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\RevitModels.cs" Link="Revit\RevitModels.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\HBRTaskPlan.cs" Link="TaskPlanning\HBRTaskPlan.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\HBRTaskPlanCanonicalizer.cs" Link="TaskPlanning\HBRTaskPlanCanonicalizer.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\TaskPlanCompiler.cs" Link="TaskPlanning\TaskPlanCompiler.cs" />
@@ -83,6 +89,14 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Snapshots\*.v1.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(PkgGrasshopper)\lib\net48\Grasshopper.dll" Link="TestRuntime\Grasshopper.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(PkgGrasshopper)\lib\net48\GH_IO.dll" Link="TestRuntime\GH_IO.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(PkgRhinoCommon)\lib\net48\RhinoCommon.dll" Link="TestRuntime\RhinoCommon.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(PkgRhinoCommon)\lib\net48\Rhino.UI.dll" Link="TestRuntime\Rhino.UI.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(PkgRhinoCommon)\lib\net48\Eto.dll" Link="TestRuntime\Eto.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(PkgRhinoCommon)\lib\net48\Ed.Eto.dll" Link="TestRuntime\Ed.Eto.dll" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <Target Name="InitializeHbrRulePackPath">
     <PropertyGroup>

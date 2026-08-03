@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BIMBaoGui.Stage01.Context;
 using BIMBaoGui.Stage01.Core;
+using BIMBaoGui.Stage01.Rules;
 using BIMBaoGui.Stage01.TaskPlanning;
 using Xunit;
 
@@ -82,6 +83,9 @@ namespace BIMBaoGui.Stage01.Core.Tests
         false,
         ready.OfficialProtocolCompatible,
         ready.RulePackVersion,
+        ready.RulePackageId,
+        ready.RulePackageVersion,
+        ready.RulePackageSha256,
         ready.SourcePayloadHash,
         string.Empty);
       HBRFileContext uninitialized = provisional.WithHash(HBRFileContextCanonicalizer.ComputeHash(provisional));
@@ -118,6 +122,9 @@ namespace BIMBaoGui.Stage01.Core.Tests
         true,
         false,
         ready.RulePackVersion,
+        ready.RulePackageId,
+        ready.RulePackageVersion,
+        ready.RulePackageSha256,
         ready.SourcePayloadHash,
         string.Empty);
       HBRFileContext incompatible = provisional.WithHash(
@@ -140,6 +147,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
         targets[PlanningTargetCatalog.GreenRateCode] = Target(PlanningTargetCatalog.GreenRateCode, PlanningTargetOperator.GreaterOrEqual, "35");
       }
       RuleActivationResult activation = RuleActivationCatalog.Compile(modelFileType, conditions);
+      HbrRulePackage package = HbrRuleDatabase.Current.Package;
       var provisional = new HBRFileContext(
         HBRContextVersions.FileContextSchema,
         "0.5.0",
@@ -159,7 +167,10 @@ namespace BIMBaoGui.Stage01.Core.Tests
         activation.NotApplicable,
         true,
         true,
-        HBRContextVersions.RulePack,
+        string.Empty,
+        package.PackageId,
+        package.PackageVersion,
+        package.RulePackageSha256,
         "payload-hash",
         string.Empty);
       return provisional.WithHash(HBRFileContextCanonicalizer.ComputeHash(provisional));

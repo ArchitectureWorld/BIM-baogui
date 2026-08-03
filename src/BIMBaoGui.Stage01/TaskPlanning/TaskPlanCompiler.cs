@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BIMBaoGui.Stage01.Context;
 using BIMBaoGui.Stage01.Core;
+using BIMBaoGui.Stage01.Rules;
 
 namespace BIMBaoGui.Stage01.TaskPlanning
 {
@@ -56,6 +57,9 @@ namespace BIMBaoGui.Stage01.TaskPlanning
       var provisional = new HBRTaskPlan(
         HBRContextVersions.TaskPlanSchema,
         context.FileContextHash,
+        context.RulePackageId,
+        context.RulePackageVersion,
+        context.RulePackageSha256,
         context.ModelFileType,
         skeletonPath,
         active,
@@ -92,8 +96,43 @@ namespace BIMBaoGui.Stage01.TaskPlanning
       }
       if (!string.Equals(context.SchemaVersion, HBRContextVersions.FileContextSchema, StringComparison.Ordinal))
         blockers.Add("文件上下文版本不兼容：" + context.SchemaVersion + "，当前需要 " + HBRContextVersions.FileContextSchema + "。");
-      if (!string.Equals(context.RulePackVersion, HBRContextVersions.RulePack, StringComparison.Ordinal))
-        blockers.Add("规则包版本不兼容：" + context.RulePackVersion + "，当前需要 " + HBRContextVersions.RulePack + "。");
+      HbrRulePackage currentPackage = HbrRuleDatabase.Current.Package;
+      if (!string.Equals(
+        context.RulePackageId,
+        currentPackage.PackageId,
+        StringComparison.Ordinal))
+      {
+        blockers.Add(
+          "规则包 ID 不匹配："
+          + context.RulePackageId
+          + "，当前需要 "
+          + currentPackage.PackageId
+          + "。");
+      }
+      if (!string.Equals(
+        context.RulePackageVersion,
+        currentPackage.PackageVersion,
+        StringComparison.Ordinal))
+      {
+        blockers.Add(
+          "规则包版本不匹配："
+          + context.RulePackageVersion
+          + "，当前需要 "
+          + currentPackage.PackageVersion
+          + "。");
+      }
+      if (!string.Equals(
+        context.RulePackageSha256,
+        currentPackage.RulePackageSha256,
+        StringComparison.OrdinalIgnoreCase))
+      {
+        blockers.Add(
+          "规则包 SHA-256 不匹配："
+          + context.RulePackageSha256
+          + "，当前需要 "
+          + currentPackage.RulePackageSha256
+          + "。");
+      }
       if (TaskRuleCatalog.ForModelType(context.ModelFileType).Count == 0)
         blockers.Add("不支持的模型文件类型：" + context.ModelFileType);
       return blockers;
