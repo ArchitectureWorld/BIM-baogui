@@ -30,6 +30,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ValidationModels.cs" Link="Stage03\Stage03ValidationModels.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ContextIdentityPolicy.cs" Link="Stage03\Stage03ContextIdentityPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03CarrierMatchPolicy.cs" Link="Stage03\Stage03CarrierMatchPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\AutodeskIfcExportPolicy.cs" Link="Stage03\AutodeskIfcExportPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03RevitRequestPolicy.cs" Link="Stage03\Stage03RevitRequestPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ActivationStatePolicy.cs" Link="Stage03\Stage03ActivationStatePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03HostCallbackStartGate.cs" Link="Stage03\Stage03HostCallbackStartGate.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\RevitHostCallbackInvoker.cs" Link="Revit\RevitHostCallbackInvoker.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ScannerFieldPolicy.cs" Link="Stage03\Stage03ScannerFieldPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03SavedRoleAuditPolicy.cs" Link="Stage03\Stage03SavedRoleAuditPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrCanonicalUnitConverter.cs" Link="Revit\Parameters\HbrCanonicalUnitConverter.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ExportGatePolicy.cs" Link="Stage03\Stage03ExportGatePolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03OutputPathPolicy.cs" Link="Stage03\Stage03OutputPathPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\AtomicJsonReportWriter.cs" Link="Diagnostics\AtomicJsonReportWriter.cs" />
@@ -40,6 +50,7 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepEntity.cs" Link="Mvd\IfcStepEntity.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepSyntax.cs" Link="Mvd\IfcStepSyntax.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcGuidCodec.cs" Link="Mvd\IfcGuidCodec.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\HbrIfcCanonicalValuePolicy.cs" Link="Mvd\HbrIfcCanonicalValuePolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\HbrIfcEnrichmentModels.cs" Link="Mvd\HbrIfcEnrichmentModels.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\HbrIfcEnricher.cs" Link="Mvd\HbrIfcEnricher.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\HbrIfcFieldInspector.cs" Link="Mvd\HbrIfcFieldInspector.cs" />
@@ -121,6 +132,7 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrNamedParameterCompatibilityPolicy.cs" Link="Revit\Parameters\HbrNamedParameterCompatibilityPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrParameterSuggestionPolicy.cs" Link="Revit\Parameters\HbrParameterSuggestionPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrInvariantValueParser.cs" Link="Revit\Parameters\HbrInvariantValueParser.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrParameterTextValuePolicy.cs" Link="Revit\Parameters\HbrParameterTextValuePolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrSharedParameterDefinitionText.cs" Link="Revit\Parameters\HbrSharedParameterDefinitionText.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrTemporaryFileCleanup.cs" Link="Revit\Parameters\HbrTemporaryFileCleanup.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\Stage02FailureReportWriter.cs" Link="Diagnostics\Stage02FailureReportWriter.cs" />

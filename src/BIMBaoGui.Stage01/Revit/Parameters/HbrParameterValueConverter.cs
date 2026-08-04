@@ -14,8 +14,113 @@ namespace BIMBaoGui.Stage01.Revit.Parameters
     internal string Message { get; set; } = string.Empty;
   }
 
+  internal sealed class HbrParameterReadDecision
+  {
+    internal bool Success { get; set; }
+    internal bool HasValue { get; set; }
+    internal string RawValue { get; set; } = string.Empty;
+    internal string CanonicalValue { get; set; } = string.Empty;
+    internal string ErrorCode { get; set; } = string.Empty;
+    internal string Message { get; set; } = string.Empty;
+  }
+
   internal sealed class HbrParameterValueConverter
   {
+    internal static HbrParameterReadDecision TryReadCanonicalValue(
+      Parameter parameter,
+      HbrRuleProperty property)
+    {
+      if (property == null) throw new ArgumentNullException(nameof(property));
+      if (parameter == null)
+      {
+        return new HbrParameterReadDecision
+        {
+          Success = false,
+          ErrorCode = "MISSING_PARAMETER",
+          Message = "固定 GUID HBR 参数不存在。"
+        };
+      }
+
+      try
+      {
+        if (!parameter.IsShared
+          || parameter.GUID != property.Revit.ParameterGuid)
+        {
+          return InvalidRead("读取到的参数不是规则指定的固定 GUID 共享参数。");
+        }
+        EnsureStorage(parameter, property.Revit.StorageType);
+        if (!parameter.HasValue)
+        {
+          return new HbrParameterReadDecision
+          {
+            Success = true,
+            HasValue = false
+          };
+        }
+
+        switch (parameter.StorageType)
+        {
+          case StorageType.String:
+            HbrParameterTextValueDecision textDecision =
+              HbrParameterTextValuePolicy.Evaluate(parameter.AsString());
+            return SuccessfulRead(
+              textDecision.RawValue,
+              textDecision.CanonicalValue,
+              textDecision.HasBusinessValue);
+          case StorageType.Integer:
+            string integer = parameter.AsInteger().ToString(
+              CultureInfo.InvariantCulture);
+            HbrCanonicalUnitConversionDecision integerConversion =
+              HbrCanonicalUnitConverter.TryFromInternalInteger(
+                property.Revit.ParameterType,
+                parameter.AsInteger());
+            if (!integerConversion.Success)
+            {
+              return new HbrParameterReadDecision
+              {
+                Success = false,
+                HasValue = true,
+                RawValue = integer,
+                ErrorCode = integerConversion.ErrorCode,
+                Message = integerConversion.Message
+              };
+            }
+            return SuccessfulRead(
+              integer,
+              integerConversion.Value,
+              true);
+          case StorageType.Double:
+            double internalValue = parameter.AsDouble();
+            string raw = internalValue.ToString(
+              "R",
+              CultureInfo.InvariantCulture);
+            HbrCanonicalUnitConversionDecision conversion =
+              HbrCanonicalUnitConverter.TryFromInternalDouble(
+                property.Revit.ParameterType,
+                property.Ifc.CanonicalUnit,
+                internalValue);
+            if (!conversion.Success)
+            {
+              return new HbrParameterReadDecision
+              {
+                Success = false,
+                HasValue = true,
+                RawValue = raw,
+                ErrorCode = conversion.ErrorCode,
+                Message = conversion.Message
+              };
+            }
+            return SuccessfulRead(raw, conversion.Value, true);
+          default:
+            return InvalidRead("固定 GUID HBR 参数使用了不支持的 StorageType。");
+        }
+      }
+      catch (Exception exception)
+      {
+        return InvalidRead(exception.Message);
+      }
+    }
+
     internal static HbrParameterConversionDecision TryToInternalRawString(
       HbrRuleProperty property,
       string value,
@@ -211,6 +316,30 @@ namespace BIMBaoGui.Stage01.Revit.Parameters
         throw new InvalidOperationException(
           "固定 GUID HBR 参数的 StorageType 与规则不一致。");
       }
+    }
+
+    private static HbrParameterReadDecision SuccessfulRead(
+      string rawValue,
+      string canonicalValue,
+      bool hasValue)
+    {
+      return new HbrParameterReadDecision
+      {
+        Success = true,
+        HasValue = hasValue,
+        RawValue = rawValue ?? string.Empty,
+        CanonicalValue = canonicalValue ?? string.Empty
+      };
+    }
+
+    private static HbrParameterReadDecision InvalidRead(string message)
+    {
+      return new HbrParameterReadDecision
+      {
+        Success = false,
+        ErrorCode = "INVALID_VALUE",
+        Message = message ?? string.Empty
+      };
     }
   }
 }

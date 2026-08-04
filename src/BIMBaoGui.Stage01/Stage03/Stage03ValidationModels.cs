@@ -79,6 +79,7 @@ namespace BIMBaoGui.Stage01.Stage03
 
   public enum Stage03FieldStatus
   {
+    NotEvaluated,
     Pass,
     NotApplicable,
     MissingCarrier,
@@ -118,6 +119,8 @@ namespace BIMBaoGui.Stage01.Stage03
     {
       switch (status)
       {
+        case Stage03FieldStatus.NotEvaluated:
+          return "NOT_EVALUATED";
         case Stage03FieldStatus.Pass:
           return "PASS";
         case Stage03FieldStatus.NotApplicable:
@@ -180,14 +183,14 @@ namespace BIMBaoGui.Stage01.Stage03
     public string RawIfcType { get; set; } = string.Empty;
     public string RawIfcValue { get; set; } = string.Empty;
     public Stage03FieldStatus RawIfcStatus { get; set; } =
-      Stage03FieldStatus.Pass;
+      Stage03FieldStatus.NotEvaluated;
     public string FinalIfcOwner { get; set; } = string.Empty;
     public string FinalIfcPropertySet { get; set; } = string.Empty;
     public string FinalIfcProperty { get; set; } = string.Empty;
     public string FinalIfcType { get; set; } = string.Empty;
     public string FinalIfcValue { get; set; } = string.Empty;
     public Stage03FieldStatus FinalIfcStatus { get; set; } =
-      Stage03FieldStatus.Pass;
+      Stage03FieldStatus.NotEvaluated;
     public Stage03FieldStatus Status { get; set; } =
       Stage03FieldStatus.Pass;
     public bool Active { get; set; }

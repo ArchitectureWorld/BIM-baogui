@@ -5,6 +5,7 @@ using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.ExtensibleStorage;
 using BIMBaoGui.Stage01.Stage02;
+using BIMBaoGui.Stage01.Stage03;
 
 namespace BIMBaoGui.Stage01.Revit
 {
@@ -26,6 +27,54 @@ namespace BIMBaoGui.Stage01.Revit
         .OrderByDescending(item => item.AuditUtc, StringComparer.Ordinal)
         .Select(item => item.RoleId)
         .FirstOrDefault() ?? string.Empty;
+    }
+
+    internal static IReadOnlyDictionary<string, string> ReadSavedRoles(
+      Document document,
+      IEnumerable<string> uniqueIds,
+      string rulePackageId,
+      string rulePackageVersion,
+      string rulePackageSha256)
+    {
+      var requested = new HashSet<string>(
+        (uniqueIds ?? Array.Empty<string>())
+          .Where(value => !string.IsNullOrWhiteSpace(value)),
+        StringComparer.Ordinal);
+      var result = new Dictionary<string, string>(StringComparer.Ordinal);
+      if (document == null || requested.Count == 0) return result;
+      Schema schema = Schema.Lookup(SchemaGuid);
+      if (schema == null) return result;
+
+      Stage03SavedRoleAuditSnapshot[] audits =
+        new FilteredElementCollector(document)
+          .OfClass(typeof(DataStorage))
+          .Cast<DataStorage>()
+          .Where(storage => string.Equals(
+            storage.Name,
+            StorageName,
+            StringComparison.Ordinal))
+          .Select(storage =>
+          {
+            Entity entity = storage.GetEntity(schema);
+            if (!entity.IsValid()) return null;
+            return new Stage03SavedRoleAuditSnapshot
+            {
+              StorageElementId = storage.Id.IntegerValue,
+              UniqueId = Get(entity, schema, "UniqueId"),
+              RoleId = Get(entity, schema, "RoleId"),
+              RulePackageId = Get(entity, schema, "RulePackageId"),
+              RulePackageVersion = Get(entity, schema, "RulePackageVersion"),
+              RulePackageSha256 = Get(entity, schema, "RulePackageSha256"),
+              AuditUtc = Get(entity, schema, "AuditUtc")
+            };
+          })
+          .Where(item => item != null && requested.Contains(item.UniqueId))
+          .ToArray();
+      return Stage03SavedRoleAuditPolicy.Select(
+        audits,
+        rulePackageId,
+        rulePackageVersion,
+        rulePackageSha256);
     }
 
     internal static void WriteAuditOnly(
@@ -147,6 +196,7 @@ namespace BIMBaoGui.Stage01.Revit
     private sealed class AuditRecord
     {
       internal DataStorage Storage { get; set; }
+      internal string UniqueId { get; set; }
       internal string RoleId { get; set; }
       internal string AuditUtc { get; set; }
     }

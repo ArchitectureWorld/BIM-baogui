@@ -98,6 +98,14 @@ namespace BIMBaoGui.Stage01.Revit
     /// </summary>
     public static bool EnqueueAction(Action<UIApplication> uiAction, out string error)
     {
+      return EnqueueAction(uiAction, null, out error);
+    }
+
+    public static bool EnqueueAction(
+      Action<UIApplication> uiAction,
+      Action<Exception> callbackFailure,
+      out string error)
+    {
       error = string.Empty;
       if (uiAction == null)
       {
@@ -114,16 +122,21 @@ namespace BIMBaoGui.Stage01.Revit
 
       Action hostAction = () =>
       {
-        UIApplication current = ReadStaticProperty<UIApplication>(hostType, "ActiveUIApplication");
-        if (current == null)
-          throw new InvalidOperationException("Rhino.Inside.Revit 当前没有活动 UIApplication。");
-        uiAction(current);
+        InvokeUiAction(
+          hostType,
+          null,
+          uiAction,
+          callbackFailure);
       };
 
       if (TryInvokeCurrentHostContext(hostAction, out string currentError))
         return true;
 
-      if (TryInvokeLegacyQueue(hostType, uiAction, out string legacyError))
+      if (TryInvokeLegacyQueue(
+        hostType,
+        uiAction,
+        callbackFailure,
+        out string legacyError))
         return true;
 
       error = "无法进入有效的 Revit API 上下文。";
@@ -170,7 +183,11 @@ namespace BIMBaoGui.Stage01.Revit
       }
     }
 
-    private static bool TryInvokeLegacyQueue(Type hostType, Action<UIApplication> uiAction, out string error)
+    private static bool TryInvokeLegacyQueue(
+      Type hostType,
+      Action<UIApplication> uiAction,
+      Action<Exception> callbackFailure,
+      out string error)
     {
       error = string.Empty;
       MethodInfo[] candidates = hostType
@@ -186,29 +203,30 @@ namespace BIMBaoGui.Stage01.Revit
 
         if (parameterType == typeof(Action<Document>))
         {
-          callback = new Action<Document>(document =>
-          {
-            UIApplication current = ReadStaticProperty<UIApplication>(hostType, "ActiveUIApplication");
-            if (current == null)
-              throw new InvalidOperationException("Rhino.Inside.Revit 当前没有活动 UIApplication。");
-            if (document == null)
-              throw new InvalidOperationException("Rhino.Inside.Revit 当前没有活动 Document。");
-            uiAction(current);
-          });
+          callback = new Action<Document>(_ =>
+            InvokeUiAction(
+              hostType,
+              null,
+              uiAction,
+              callbackFailure));
         }
         else if (parameterType == typeof(Action<UIApplication>))
         {
-          callback = uiAction;
+          callback = new Action<UIApplication>(uiApplication =>
+            InvokeUiAction(
+              hostType,
+              uiApplication,
+              uiAction,
+              callbackFailure));
         }
         else if (parameterType == typeof(Action))
         {
           callback = new Action(() =>
-          {
-            UIApplication current = ReadStaticProperty<UIApplication>(hostType, "ActiveUIApplication");
-            if (current == null)
-              throw new InvalidOperationException("Rhino.Inside.Revit 当前没有活动 UIApplication。");
-            uiAction(current);
-          });
+            InvokeUiAction(
+              hostType,
+              null,
+              uiAction,
+              callbackFailure));
         }
 
         if (callback == null) continue;
@@ -226,6 +244,27 @@ namespace BIMBaoGui.Stage01.Revit
 
       if (string.IsNullOrWhiteSpace(error)) error = "未找到兼容的 EnqueueAction 委托签名。";
       return false;
+    }
+
+    private static void InvokeUiAction(
+      Type hostType,
+      UIApplication uiApplication,
+      Action<UIApplication> uiAction,
+      Action<Exception> callbackFailure)
+    {
+      Action<Exception> forwardedFailure = callbackFailure == null
+        ? null
+        : new Action<Exception>(exception =>
+          callbackFailure(Unwrap(exception)));
+      RevitHostCallbackInvoker.Invoke(
+        () => uiApplication
+          ?? ReadStaticProperty<UIApplication>(
+            hostType,
+            "ActiveUIApplication"),
+        new InvalidOperationException(
+          "Rhino.Inside.Revit 当前没有活动 UIApplication。"),
+        uiAction,
+        forwardedFailure);
     }
 
     private static Type ResolveRhinoInsideType(string fullName)

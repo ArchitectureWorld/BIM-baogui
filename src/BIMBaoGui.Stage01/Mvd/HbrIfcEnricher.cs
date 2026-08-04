@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace BIMBaoGui.Stage01.Mvd
 {
@@ -11,12 +10,6 @@ namespace BIMBaoGui.Stage01.Mvd
   {
     private static readonly Guid GlobalIdNamespace = Guid.Parse(
       "b3f9dc18-f6b4-5bd8-9d65-2ebed89f63c8");
-    private static readonly Regex IfcDateTimePattern = new Regex(
-      @"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$",
-      RegexOptions.CultureInvariant);
-    private static readonly Regex IfcRealLiteralPattern = new Regex(
-      @"^[+-]?[0-9]+\.[0-9]*(?:E[+-]?[0-9]+)?$",
-      RegexOptions.CultureInvariant);
 
     public HbrIfcEnrichmentResult Apply(
       IfcStepDocument document,
@@ -918,77 +911,13 @@ namespace BIMBaoGui.Stage01.Mvd
       int valueIndex)
     {
       string type = value.DeclaredIfcType?.Trim().ToUpperInvariant();
-      string canonical = value.CanonicalValue;
-      if (canonical == null)
-        throw InvalidTypedValue(valueIndex, "IFC canonical value 不能为空。");
-
-      string inner;
-      switch (type)
-      {
-        case "IFCBOOLEAN":
-          if (canonical != ".T." && canonical != ".F.")
-            throw InvalidTypedValue(
-              valueIndex,
-              "IfcBoolean 仅接受 .T. 或 .F.。");
-          inner = canonical;
-          break;
-        case "IFCDATE":
-          if (!DateTime.TryParseExact(
-            canonical,
-            "yyyy-MM-dd",
-            CultureInfo.InvariantCulture,
-            DateTimeStyles.None,
-            out _))
-            throw InvalidTypedValue(
-              valueIndex,
-              "IfcDate 必须是有效 yyyy-MM-dd 日期。");
-          inner = EncodeTypedString(canonical, valueIndex);
-          break;
-        case "IFCDATETIME":
-          if (!IfcDateTimePattern.IsMatch(canonical)
-            || !DateTimeOffset.TryParse(
-              canonical,
-              CultureInfo.InvariantCulture,
-              DateTimeStyles.None,
-              out _))
-            throw InvalidTypedValue(
-              valueIndex,
-              "IfcDateTime 必须包含 T、秒和有效时区。");
-          inner = EncodeTypedString(canonical, valueIndex);
-          break;
-        case "IFCINTEGER":
-          if (!int.TryParse(
-            canonical,
-            NumberStyles.AllowLeadingSign,
-            CultureInfo.InvariantCulture,
-            out _))
-            throw InvalidTypedValue(
-              valueIndex,
-              "IfcInteger 必须是 Int32 invariant 整数。");
-          inner = canonical;
-          break;
-        case "IFCLABEL":
-          if (canonical.Length == 0 || canonical.Length > 255)
-            throw InvalidTypedValue(
-              valueIndex,
-              "IfcLabel 必须包含 1 到 255 个字符。");
-          inner = EncodeTypedString(canonical, valueIndex);
-          break;
-        case "IFCREAL":
-          inner = NormalizeIfcReal(canonical, valueIndex);
-          break;
-        case "IFCTEXT":
-          if (canonical.Length == 0)
-            throw InvalidTypedValue(
-              valueIndex,
-              "IfcText 不能为空。");
-          inner = EncodeTypedString(canonical, valueIndex);
-          break;
-        default:
-          throw InvalidTypedValue(
-            valueIndex,
-            "当前 declared IFC type 不在 enrichment allowlist：" + type);
-      }
+      HbrIfcCanonicalValueDecision decision =
+        HbrIfcCanonicalValuePolicy.Validate(type, value.CanonicalValue);
+      if (!decision.Success)
+        throw InvalidTypedValue(valueIndex, decision.Message);
+      string inner = decision.RequiresStringEncoding
+        ? EncodeTypedString(decision.NormalizedValue, valueIndex)
+        : decision.NormalizedValue;
       return IfcStepSyntax.FormatTypedValue(type, inner);
     }
 
@@ -1006,31 +935,6 @@ namespace BIMBaoGui.Stage01.Mvd
           "IFC typed string 无效：" + exception.Message,
           exception);
       }
-    }
-
-    private static string NormalizeIfcReal(string value, int valueIndex)
-    {
-      if (!string.Equals(value, value.Trim(), StringComparison.Ordinal)
-        || !double.TryParse(
-          value,
-          NumberStyles.Float,
-          CultureInfo.InvariantCulture,
-          out double number)
-        || double.IsNaN(number)
-        || double.IsInfinity(number))
-        throw InvalidTypedValue(
-          valueIndex,
-          "IfcReal 必须是有限 invariant 数字。");
-      if (IfcRealLiteralPattern.IsMatch(value)) return value;
-
-      string normalized = number.ToString("R", CultureInfo.InvariantCulture)
-        .ToUpperInvariant();
-      int exponentIndex = normalized.IndexOf('E');
-      if (exponentIndex < 0)
-        return normalized.IndexOf('.') >= 0 ? normalized : normalized + ".0";
-      string mantissa = normalized.Substring(0, exponentIndex);
-      if (mantissa.IndexOf('.') < 0) mantissa += ".0";
-      return mantissa + normalized.Substring(exponentIndex);
     }
 
     private static EnrichmentFailure InvalidTypedValue(
