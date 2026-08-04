@@ -39,6 +39,10 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepDocument.cs" Link="Mvd\IfcStepDocument.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepEntity.cs" Link="Mvd\IfcStepEntity.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepSyntax.cs" Link="Mvd\IfcStepSyntax.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcGuidCodec.cs" Link="Mvd\IfcGuidCodec.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\HbrIfcEnrichmentModels.cs" Link="Mvd\HbrIfcEnrichmentModels.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\HbrIfcEnricher.cs" Link="Mvd\HbrIfcEnricher.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\HbrIfcFieldInspector.cs" Link="Mvd\HbrIfcFieldInspector.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\MvdIfcNormalizationCatalog.cs" Link="Mvd\MvdIfcNormalizationCatalog.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\MvdIfcNormalizationRule.cs" Link="Mvd\MvdIfcNormalizationRule.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\MvdIfcNormalizationModels.cs" Link="Mvd\MvdIfcNormalizationModels.cs" />
