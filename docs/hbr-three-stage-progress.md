@@ -1,6 +1,6 @@
 # HBR 三阶段开发总进度
 
-> 最后更新：2026-08-04 13:34（UTC+08:00；Task 8 已通过全部七道闸门并提交，正式启动 Task 9）
+> 最后更新：2026-08-04 18:26（UTC+08:00；Task 9 已完成并提交 `b56100a`，下一步启动 Task 10）
 > 计划基线：[`2026-08-02-hbr-three-stage-implementation.md`](superpowers/plans/2026-08-02-hbr-three-stage-implementation.md)
 > 当前分支：`fix/official-hifc-hardening-v090`
 > 更新规则：任务启动、测试结果变化、审查结论、Git 提交、部署或实机验收后，必须同步更新本页。
@@ -9,31 +9,31 @@
 
 | 你最关心的项目 | 当前结果 |
 |---|---|
-| 整体正式完成度 | **67%：8/12 个 Task 已通过实现、验证、双审查和提交** |
-| 当前开发进度 | **Task 8 已完成 7/7 闸门并提交 `d1792ee`；Task 9 已启动，尚未计入完成度** |
-| 当前正在做 | **Task 9：Revit 2020 全模型扫描与 Autodesk 标准 IFC4 导出** |
-| 当前运行环节 | **Task 9 合同与 RED 测试准备**：锁定 Revit API 线程、可见参数读取、IFC4 导出事务与输出验证 |
-| 当前阻塞 | **无外部阻塞**；Task 9 自动化实现阶段不需要启动 Revit，实机验证后移至 Task 12 |
+| 整体正式完成度 | **75%：9/12 个 Task 已通过实现、验证、双审查和提交** |
+| 当前开发进度 | **Task 9 已完成 7/7 闸门并提交 `b56100a`；Task 10 尚未启动** |
+| 当前正在做 | **准备启动 Task 10：Stage03 协调器、公开组件与 legacy 隐藏** |
+| 当前运行环节 | **Task 9 收口完成**：34 个功能/测试文件精确提交；进度看板独立提交 |
+| 当前阻塞 | **无外部阻塞**；Task 10 自动化实现阶段不需要启动 Revit，实机验证后移至 Task 12 |
 | 现在是否需要你操作 | **不需要**；Task 11 部署时如相关程序未关闭，可能需要配合关闭；Task 12 明确需要实机点击验收 |
-| 下一节点 | Task 9 合同 RED → Revit scanner/export 最小 GREEN → 全量验证 → 规格与质量双审查 → 提交 Task 9 |
+| 下一节点 | 启动 Task 10 → 实现 Stage03 协调器与新公开组件 → 规格审查 → 代码质量审查 → 主代理复验与提交 |
 
 状态图例：✅ 已完整验收；🟡 开发中；🟠 有待修复风险；🔵 自动化验证中；🟣 待审查；⏳ 等待前置任务/实机；⬜ 未开始；❌ 未通过/外部阻塞。
 
 ## 总览
 
-**已验收完成度：67%**（8/12 个 Task 已完成“实现、验证、审查、提交”全部闸门）
+**已验收完成度：75%**（9/12 个 Task 已完成“实现、验证、审查、提交”全部闸门）
 
-`█████████████▍░░░░░░ 67%`
+`███████████████░░░░░ 75%`
 
-**当前执行位置：Task 8 已完成 7/7 闸门；Task 9 已启动**（当前处于合同与 RED 测试准备阶段）
+**当前执行位置：Task 9 已完成 7/7 闸门；Task 10 尚未启动**
 
-`Task 8：███████ 7/7　　Task 9：░░░░░ 0%`
+`Task 9：███████ 7/7　　Task 10：░░░░░░░ 0/7`
 
 | 工作包 | 包含任务 | 状态 | 完成度 |
 |---|---:|---|---:|
 | 统一规则与运行时基础 | Task 1–3 | ✅ 完成 | 100% |
 | Stage02 属性准备 | Task 4–6 | ✅ 完成 | 100% |
-| Stage03 检测、导出与转译 | Task 7–10 | 🟡 Task 7–8 完成，Task 9 开发中 | 正式完成 2/4 |
+| Stage03 检测、导出与转译 | Task 7–10 | 🟡 Task 7–9 完成，Task 10 待启动 | 正式完成 3/4 |
 | CI、文档与单 GHA 部署 | Task 11 | ⬜ 未开始 | 0% |
 | Revit 2020 实机闭环 | Task 12 | ⏳ 待实机 | 0% |
 
@@ -49,16 +49,75 @@
 | 6 | 新公开 Stage02 Grasshopper 组件与 UI | ✅ 完成 | 100% | 已提交 `cd7d03e`；Core 531/531、Python 373/373、Release 0/0，规格与质量双审均 0/0/0 | 否 |
 | 7 | Stage03 字段状态、Strict/Force 门禁、路径与报告 | ✅ 完成 | 100% | 已提交 `437092d`；主代理全量验证与双审查均通过 | 否 |
 | 8 | IFC4 STEP 实体插入与缺失 Pset/属性转译 | ✅ 完成 | 100% | 已提交 `d1792ee`；终局双审 0/0/0，主代理 fresh Core 963/963、Python 375/375、Release 0/0 | 否 |
-| 9 | Revit 2020 全模型扫描与 Autodesk 标准 IFC4 导出 | 🟡 已启动 | 0% | 正在准备合同 RED；读取 Revit 可见参数并生成/验证 RAW IFC4 | 否 |
-| 10 | Stage03 协调器、新公开组件和 legacy 隐藏 | ⏳ 等待 Task 9 | 0% | 串联 RAW IFC、HIFC-MVD IFC、字段 JSON 三件套工作流 | 否 |
-| 11 | 文档、CI、全量自动化与单 GHA 无备份部署 | ⏳ 等待 Task 9–10 | 0% | 插件目录须恰有 1 个 GHA、0 个 `.bak/.backup`，源与部署 SHA-256 一致 | 否 |
+| 9 | Revit 2020 全模型扫描与 Autodesk 标准 IFC4 导出 | ✅ 完成 | 100% | 已提交 `b56100a`；双审 0/0/0，主代理定向/全量/Release/静态/指纹全部通过 | 否 |
+| 10 | Stage03 协调器、新公开组件和 legacy 隐藏 | ⬜ 待启动 | 0% | 串联 RAW IFC、HIFC-MVD IFC、字段 JSON 三件套工作流 | 否 |
+| 11 | 文档、CI、全量自动化与单 GHA 无备份部署 | ⏳ 等待 Task 10 | 0% | 插件目录须恰有 1 个 GHA、0 个 `.bak/.backup`，源与部署 SHA-256 一致 | 否 |
 | 12 | Revit 2020 真实项目全流程验收 | ⏳ 等待 Task 11 | 0% | 使用指定 RVT 完成 Stage01→Stage02→Stage03，并核验两份 IFC 与字段报告 | **是，届时按提示点击** |
+
+### Task 9 七道验收闸门
+
+| 闸门 | 状态 | 最新证据 |
+|---:|---|---|
+| 1. 功能实现与 TDD 返修 | ✅ 完成 | 34 个功能/测试文件冻结；全部历史 finding 已按 RED→GREEN 关闭 |
+| 2. 规格审查 | ✅ Ready | Critical / Important / Minor = 0 / 0 / 0 |
+| 3. 代码质量审查 | ✅ Ready | Critical / Important / Minor = 0 / 0 / 0；起止 manifest 无漂移 |
+| 4. 主代理定向复验 | ✅ 通过 | Task9 xUnit 126/126；Task9 Python 17/17 |
+| 5. 主代理全量复验 | ✅ 通过 | Core 1089/1089；Python 392/392；Release 0 warning / 0 error |
+| 6. 静态、产物与候选指纹 | ✅ 通过 | 34 文件、staged=0、diff-check clean；无 backup/绝对路径/敏感信息；DLL/GHA 与 manifest 精确命中 |
+| 7. Git 提交与看板更新 | ✅ 完成 | `b56100a feat: scan Revit and export Autodesk IFC4`；恰好 34 个文件，看板保持独立提交 |
 
 ## 当前执行看板
 
 | 项目 | 实时状态 | 当前证据 / 剩余动作 |
 |---|---|---|
-| 当前任务 | 🟡 Task 9 合同与 RED 测试准备 | Revit 2020 全模型扫描、可见参数读取、Autodesk 标准 IFC4 导出与输出验证 |
+| 当前任务 | ✅ Task 9 已完成，Task 10 待启动 | Task 9 提交 `b56100a`；正式完成度已提升至 9/12（75%） |
+| Task 9 冻结候选 | ✅ 已冻结 | manifest SHA-256 `a7b21715…e8eb22`；实现、规格、质量均 0/0/0；真实 Revit 2020 运行仍留待 Task 12 |
+| Important 1：条件激活身份 | ✅ RED→GREEN | 纯策略 3/3、scanner 集成合同 1/1 |
+| Important 2：accepted + ambiguous 并存 | ✅ RED→GREEN | carrier suite 10/10、scanner 集成合同 1/1 |
+| Important 3：未支持 owner strategy | ✅ RED→GREEN | field policy 8/8、scanner 集成合同 1/1；仅 `BY_EXPORT_GUID` 调用 ExportUtils |
+| Important 4：UNKNOWN applicability | ✅ RED→GREEN | field policy 8/8、scanner 集成合同 1/1；UNKNOWN 不得成为 PASS |
+| Important 5：saved-role 规则包身份 | ✅ RED→GREEN | 两条定向合同 2/2；完整 audit snapshot 只接受当前 package 三元组 |
+| Task 9 首轮定向验证（历史） | ✅ 当时通过 | Task9 xUnit 102/102；Task9 Python 10/10；Important 5 定向 2/2 |
+| Task 8 关键回归 | ✅ fresh 通过 | Enricher / Inspector / Mutation 281/281 |
+| 首轮 Core 全量（历史） | ✅ 当时通过 | 1065/1065 |
+| 首轮 Python 全量（历史） | ✅ 当时通过 | 385/385，73.97s，exit 0 |
+| 首轮 Release 构建（历史） | ✅ 当时通过 | 0 warning / 0 error |
+| 首轮静态检查（历史） | ✅ 当时通过 | `git diff --check` clean；Task9 无 `Task.Run`、`File.Delete`、新增 backup、硬编码绝对路径；纯 DTO/策略无 Revit 类型 |
+| Task 9 首轮正式规格审查 | ❌ Not Ready：0/1/0 | Important：`projectConditions` 缺失全部/部分已知 key 或注入未知 key 时，可能随重算结果一起被接受 |
+| Task 9 规格返修 | ✅ 两项 RED→GREEN | 缺少已知 condition 1/1；未知 `forged.condition` 1/1；合法键全集使用规则包全部 14 个 `ConditionId` |
+| Task 9 返修后定向 | ✅ fresh 通过 | 两个新增各 1/1；activation 5/5；Task9 xUnit 104/104；Task9 Python 10/10 |
+| Task 9 返修后全量 | ✅ fresh 通过 | Core 1067/1067；Python 385/385，102.92s，外部插件自动加载已禁用 |
+| Task 9 返修后构建/冻结 | ✅ fresh 通过 | Release 0 warning / 0 error；diff/static clean；27 文件新候选已冻结 |
+| Task 9 正式规格复审 | ✅ Ready：0/0/0 | 原 Important 完全关闭；Task9 xUnit 104/104、Python 10/10、Release 0/0；起止 manifest 一致 |
+| Task 9 首轮代码质量审查 | ❌ With fixes：0/2/1 | Important：空白 String 误 PASS；host 排队后 callback 外层失败可永久悬挂。Minor：export+rollback 双异常丢诊断 |
+| 质量返修 A：空白 String | ✅ RED→GREEN | canonical/text/field 32/32；converter 使用纯策略；required whitespace 落 EmptyRequired 且不生成 enrichment |
+| 质量返修 B：host callback | ✅ RED→GREEN | pure gate 3/3；集成合同 2/2；callback-start timeout/error/enqueue failure 单次 fault，迟到 callback no-op；Release 0/0 |
+| 质量返修 C：双异常 | ✅ RED→GREEN | pure policy 缺符号 CS0103 RED→15/15 GREEN；service 集成合同 1 RED→1/1 GREEN；双异常按 export、rollback wrapper 顺序聚合 |
+| 三项返修后定向 | ✅ fresh 通过 | Task9 xUnit 114/114；Task9 Python 14/14；Task8 IFC 回归 281/281 |
+| 三项返修后 Core | ✅ fresh 通过 | 1077/1077 |
+| 三项返修后 Python | ✅ fresh 通过 | 389/389，74.16s，exit 0，未重复启动 |
+| 三项返修后 Release | ✅ fresh 通过 | 0 warning / 0 error；DLL/GHA SHA-256 均为 `80cb5950…023beb` |
+| 三项返修后静态审计 | ✅ 当前通过 | 32 文件、staged=0；Task.Run/File.Delete/backup/绝对路径与纯 DTO Revit 类型逃逸均 0 命中 |
+| 新候选冻结 | ✅ 完成 | 32 files / +4809 -126；manifest `9ebdd6b2…aebd7d9`；patch-id `563dbd64…3db6ae7`；staged=0 |
+| 返修后规格 delta 复审 | ✅ Ready：0/0/0 | Task9 114/114、Python 14/14、Release 0/0；三项修复均不破坏原规格，起止指纹一致 |
+| 首轮返修后代码质量复审 | ❌ With fixes：0/1/1 | Important：Document precheck 令旧 overload callback 无法自行失败完成；Minor：Dispose 可覆盖 export/rollback 异常 |
+| 质量返修 D：旧 overload | ✅ RED→GREEN | RevitHost 集成 2/2；pure invoker + gate 8/8；仅统一 UIApplication，Document 交回业务 callback |
+| 质量返修 E：Dispose 异常 | ✅ RED→GREEN | pure policy 18/18；service 集成 2/2；显式 Transaction Dispose 后三参数 Combine，全部因果保留 |
+| D/E 返修后定向 | ✅ fresh 通过 | 新增 xUnit 26/26；D/E Python 5/5；Task9 xUnit 122/122；Task9 Python 16/16；Task8 IFC 281/281 |
+| D/E 返修后全量 | ✅ fresh 通过 | Core 1085/1085；Python 391/391，73.39s，exit 0 |
+| D/E 最终冻结 | ✅ 完成 | Release 0/0；34 files / +5069 -127；manifest `ab993889…a051a7`；DLL/GHA `25098fbf…f0a1cb`；staged=0 |
+| 第二次规格 delta 复审 | ❌ Not Ready：0/1/0 | `ReadStaticProperty<UIApplication>` 在 invoker seam 外；getter异常不能即时送 callbackFailure |
+| 质量返修 F：resolver seam | ✅ RED→GREEN | pure resolver+gate 12/12；RevitHost Python 3/3；resolver getter异常纳入 exactly-once failure seam |
+| F 返修后实现线程 fresh | ✅ 当时通过 | Task9 xUnit 126/126；Task9 Python 17/17；Task8 IFC 281/281；Core 1089/1089（实现线程环境） |
+| F 返修后 Python | ✅ fresh 通过 | 392/392，72.86s，exit 0 |
+| F 返修后 Release/冻结 | ✅ fresh 通过 | Release 0/0；34 files / +5184 -127；manifest `a7b21715d3fe0168998f1fea945372482291ce5ed0d4233168c47337e7e8eb22`；DLL/GHA `ace48a98a7a24cd1f7a0743ffd9703978f458a660c9c00ea9ad984d087c38f5d` |
+| resolver 规格复审 | ✅ Ready：0/0/0 | resolver/gate 12/12、Python 3/3、Release0/0；原Important关闭，起止manifest一致 |
+| 终局代码质量复审 | ✅ Ready：0/0/0 | Task9 126/126、Python 17/17、Release 0/0、diff-check clean；起止 manifest 与 DLL/GHA SHA 均一致 |
+| 范围外测试透明说明 | 🟠 不计入 Task 9 finding | 审查员误跑全套 `--no-build` 1089 项时有 1 个既有环境路径测试失败；Task9 精确验收集随后 126/126 通过，主代理仍将独立复验 |
+| 主代理 Task 9 定向复验 | ✅ fresh 通过 | xUnit 126/126；Python 合同 17/17；均由主代理独立执行 |
+| 主代理全量回归 | ✅ fresh 通过 | Core 1089/1089；Python 392/392（73.29s）；范围外路径用例在本工作树中通过 |
+| 主代理构建/静态/指纹 | ✅ fresh 通过 | Release 0/0；34 文件、staged=0、diff-check clean；所有禁止项 0；DLL/GHA `ace48a98…38f5d`；manifest `a7b21715…e8eb22` |
+| Task 9 Git 提交 | ✅ 完成 | `b56100a`；34 files changed，+5184/-127；提交后仅进度看板处于未暂存状态 |
 | Task 8 首轮候选（历史） | ✅ 当时形成 | 10 个获批文件；当时尚未提交，因此未计入正式完成度 |
 | 上一冻结候选自动化基线 | ✅ 当时通过 | Task 8 165/165、STEP/MVD 47/47、Core 847/847、Python 375/375、Release 0/0；本轮代码变化后必须全部 fresh 重跑 |
 | Task 8 跨 owner 风险 | ✅ 已修复 | token 相同或不同均创建独立 property/Pset/relation；foreign 图保持不变；两组真实 RED→GREEN |
@@ -115,7 +174,7 @@
 | 仓库静态审计 | ✅ 通过 | 12 文件范围、BOM、EOF、备份、绝对路径、busy-wait、残留进程均通过；DLL/GHA SHA-256 相同 |
 | Task 7 规格审查 | ✅ Ready | Critical / Important / Minor = **0 / 0 / 0**；终态指纹不变 |
 | Task 7 代码质量审查 | ✅ Ready | Critical / Important / Minor = **0 / 0 / 0**；终态指纹不变 |
-| 下一执行 | 🟡 Task 9 | 先写 Revit API 线程、参数 GUID、IFC4 事务与输出验证合同 RED，再实现 scanner/export 最小 GREEN |
+| 下一执行 | 🟡 Task 10 | 启动协调器、新公开组件和 legacy 隐藏的 TDD 实现与双审查循环 |
 | 用户操作 | ✅ 当前不需要 | Task 11 如程序未关闭可能需配合；Task 12 再按明确提示完成实机点击 |
 
 ### Task 8 七道验收闸门
@@ -169,7 +228,7 @@ Task 7 已完成并提交：未知字段状态全部 fail-closed；Strict/Force�
 
 Task 8 已完成并提交：终局规格与质量复审均为 0/0/0；主代理 fresh 复跑 Task8 281/281、Mutation + Enricher 264/264、STEP/MVD 111/111、Core 963/963、Python 375/375、Release 0 warning / 0 error，静态审计与 DLL/GHA 哈希一致性全部通过。代码提交为 `d1792ee feat: create missing HBR properties in IFC4`。
 
-当前焦点转为 Task 9：在 Revit host context 中扫描 ProjectInformation、Level、Room、Area 及规则类别元素，按固定共享参数 GUID 读取可见值并转换为 canonical 外部单位；随后使用 Autodesk Revit 2020 标准 `IFCExportOptions` 明确导出 IFC4，验证事务状态、目标不存在、输出文件存在且非空。当前先写合同 RED，不部署 GHA、不启动 Revit，实机点击与真实 RVT 验收仍保留到 Task 12。
+Task 9 已完成并提交 `b56100a`：34 文件候选通过规格与质量终局复审 0/0/0；主代理 fresh 通过 Task9 xUnit 126/126、Task9 Python 17/17、Core 1089/1089、Python 392/392、Release 0/0，以及静态与候选指纹复核。审查员误跑全 Core 时出现的 1 个范围外既有环境路径失败，在主代理工作树复跑中已通过。下一焦点为 Task 10 的 Stage03 协调器和公开组件；当前不部署 GHA、不启动 Revit，实机点击与真实 RVT 验收仍保留到 Task 12。
 
 ## 进度口径
 
