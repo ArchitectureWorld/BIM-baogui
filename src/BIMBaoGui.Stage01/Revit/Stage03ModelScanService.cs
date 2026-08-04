@@ -30,6 +30,7 @@ namespace BIMBaoGui.Stage01.Revit
     internal string FileGuid { get; set; } = string.Empty;
     internal string DocumentFingerprint { get; set; } = string.Empty;
     internal string DocumentTitle { get; set; } = string.Empty;
+    internal string DocumentPath { get; set; } = string.Empty;
     internal string RevitVersion { get; set; } = string.Empty;
     internal string ActiveProfileId { get; set; } = string.Empty;
     internal string RulePackageId { get; set; } = string.Empty;
@@ -75,6 +76,7 @@ namespace BIMBaoGui.Stage01.Revit
       {
         FileGuid = context == null ? string.Empty : context.FileGuid,
         DocumentTitle = document.Title ?? string.Empty,
+        DocumentPath = document.PathName ?? string.Empty,
         RevitVersion = uiApplication.Application.VersionNumber ?? string.Empty,
         ActiveProfileId = context == null
           ? string.Empty

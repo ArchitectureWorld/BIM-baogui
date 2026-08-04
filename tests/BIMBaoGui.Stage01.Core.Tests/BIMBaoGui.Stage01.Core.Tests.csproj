@@ -30,6 +30,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ValidationModels.cs" Link="Stage03\Stage03ValidationModels.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03WorkflowCoordinator.cs"
+             Link="Stage03\Stage03WorkflowCoordinator.cs"
+             Condition="Exists('..\..\src\BIMBaoGui.Stage01\Stage03\Stage03WorkflowCoordinator.cs')" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03IfcTranslationService.cs"
+             Link="Stage03\Stage03IfcTranslationService.cs"
+             Condition="Exists('..\..\src\BIMBaoGui.Stage01\Stage03\Stage03IfcTranslationService.cs')" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ComponentStatePolicy.cs"
+             Link="Stage03\Stage03ComponentStatePolicy.cs"
+             Condition="Exists('..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ComponentStatePolicy.cs')" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03FieldDetailFormatter.cs"
+             Link="Stage03\Stage03FieldDetailFormatter.cs"
+             Condition="Exists('..\..\src\BIMBaoGui.Stage01\Stage03\Stage03FieldDetailFormatter.cs')" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ContextIdentityPolicy.cs" Link="Stage03\Stage03ContextIdentityPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03CarrierMatchPolicy.cs" Link="Stage03\Stage03CarrierMatchPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\AutodeskIfcExportPolicy.cs" Link="Stage03\AutodeskIfcExportPolicy.cs" />

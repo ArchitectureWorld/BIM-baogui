@@ -37,7 +37,7 @@ namespace BIMBaoGui.Stage01
     public override Guid ComponentGuid =>
       new Guid("b43c4b26-80dc-4bb5-9171-5e2387bc7da2");
     protected override Bitmap Icon => IconFactory.CreateComponentIcon();
-    public override GH_Exposure Exposure => GH_Exposure.secondary;
+    public override GH_Exposure Exposure => GH_Exposure.hidden;
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
