@@ -1,6 +1,6 @@
 # HBR 三阶段开发总进度
 
-> 最后更新：2026-08-04 18:26（UTC+08:00；Task 9 已完成并提交 `b56100a`，下一步启动 Task 10）
+> 最后更新：2026-08-04 23:50（UTC+08:00；Task 10 已完成7/7闸门并提交 `4890e07`，正式进度升至10/12）
 > 计划基线：[`2026-08-02-hbr-three-stage-implementation.md`](superpowers/plans/2026-08-02-hbr-three-stage-implementation.md)
 > 当前分支：`fix/official-hifc-hardening-v090`
 > 更新规则：任务启动、测试结果变化、审查结论、Git 提交、部署或实机验收后，必须同步更新本页。
@@ -9,32 +9,32 @@
 
 | 你最关心的项目 | 当前结果 |
 |---|---|
-| 整体正式完成度 | **75%：9/12 个 Task 已通过实现、验证、双审查和提交** |
-| 当前开发进度 | **Task 9 已完成 7/7 闸门并提交 `b56100a`；Task 10 尚未启动** |
-| 当前正在做 | **准备启动 Task 10：Stage03 协调器、公开组件与 legacy 隐藏** |
-| 当前运行环节 | **Task 9 收口完成**：34 个功能/测试文件精确提交；进度看板独立提交 |
-| 当前阻塞 | **无外部阻塞**；Task 10 自动化实现阶段不需要启动 Revit，实机验证后移至 Task 12 |
+| 整体正式完成度 | **83%：10/12 个 Task 已通过实现、验证、双审查和提交** |
+| 当前开发进度 | **Task 10 已完成 7/7 闸门并提交 `4890e07`；Stage03 自动化开发闭环完成** |
+| 当前正在做 | **Task 11：文档、CI、完整自动化与单 GHA 无备份部署** |
+| 当前运行环节 | **Task 11 启动准备**：先更新三阶段产品文档/CI合同，再全量验证并部署唯一 GHA |
+| 当前阻塞 | **无外部阻塞**；部署前将检查 Revit、Rhino、Grasshopper 相关进程是否关闭 |
 | 现在是否需要你操作 | **不需要**；Task 11 部署时如相关程序未关闭，可能需要配合关闭；Task 12 明确需要实机点击验收 |
-| 下一节点 | 启动 Task 10 → 实现 Stage03 协调器与新公开组件 → 规格审查 → 代码质量审查 → 主代理复验与提交 |
+| 下一节点 | Task 11 文档/CI RED→GREEN → 完整自动化 → 单 GHA 无备份部署 → Task 12 实机闭环 |
 
 状态图例：✅ 已完整验收；🟡 开发中；🟠 有待修复风险；🔵 自动化验证中；🟣 待审查；⏳ 等待前置任务/实机；⬜ 未开始；❌ 未通过/外部阻塞。
 
 ## 总览
 
-**已验收完成度：75%**（9/12 个 Task 已完成“实现、验证、审查、提交”全部闸门）
+**已验收完成度：83%**（10/12 个 Task 已完成“实现、验证、审查、提交”全部闸门）
 
-`███████████████░░░░░ 75%`
+`█████████████████░░░ 83%`
 
-**当前执行位置：Task 9 已完成 7/7 闸门；Task 10 尚未启动**
+**当前执行位置：Task 10 已完成 7/7 闸门；Task 11 即将开始**
 
-`Task 9：███████ 7/7　　Task 10：░░░░░░░ 0/7`
+`Task 10：███████ 7/7　　Task 11：░░░░░ 0/5（启动准备）`
 
 | 工作包 | 包含任务 | 状态 | 完成度 |
 |---|---:|---|---:|
 | 统一规则与运行时基础 | Task 1–3 | ✅ 完成 | 100% |
 | Stage02 属性准备 | Task 4–6 | ✅ 完成 | 100% |
-| Stage03 检测、导出与转译 | Task 7–10 | 🟡 Task 7–9 完成，Task 10 待启动 | 正式完成 3/4 |
-| CI、文档与单 GHA 部署 | Task 11 | ⬜ 未开始 | 0% |
+| Stage03 检测、导出与转译 | Task 7–10 | ✅ 完成 | 100% |
+| CI、文档与单 GHA 部署 | Task 11 | 🟡 启动准备 | 0% |
 | Revit 2020 实机闭环 | Task 12 | ⏳ 待实机 | 0% |
 
 ## 12 项总计划与实时状态
@@ -50,8 +50,8 @@
 | 7 | Stage03 字段状态、Strict/Force 门禁、路径与报告 | ✅ 完成 | 100% | 已提交 `437092d`；主代理全量验证与双审查均通过 | 否 |
 | 8 | IFC4 STEP 实体插入与缺失 Pset/属性转译 | ✅ 完成 | 100% | 已提交 `d1792ee`；终局双审 0/0/0，主代理 fresh Core 963/963、Python 375/375、Release 0/0 | 否 |
 | 9 | Revit 2020 全模型扫描与 Autodesk 标准 IFC4 导出 | ✅ 完成 | 100% | 已提交 `b56100a`；双审 0/0/0，主代理定向/全量/Release/静态/指纹全部通过 | 否 |
-| 10 | Stage03 协调器、新公开组件和 legacy 隐藏 | ⬜ 待启动 | 0% | 串联 RAW IFC、HIFC-MVD IFC、字段 JSON 三件套工作流 | 否 |
-| 11 | 文档、CI、全量自动化与单 GHA 无备份部署 | ⏳ 等待 Task 10 | 0% | 插件目录须恰有 1 个 GHA、0 个 `.bak/.backup`，源与部署 SHA-256 一致 | 否 |
+| 10 | Stage03 协调器、新公开组件和 legacy 隐藏 | ✅ 完成 | 100% | 已提交 `4890e07`；16文件manifest `243858f4…77e04`，规格/质量0/0/0，主代理全量通过 | 否 |
+| 11 | 文档、CI、全量自动化与单 GHA 无备份部署 | 🟡 启动准备 | 0% | 插件目录须恰有1个GHA、0个`.bak/.backup`，源与部署SHA-256一致 | 否 |
 | 12 | Revit 2020 真实项目全流程验收 | ⏳ 等待 Task 11 | 0% | 使用指定 RVT 完成 Stage01→Stage02→Stage03，并核验两份 IFC 与字段报告 | **是，届时按提示点击** |
 
 ### Task 9 七道验收闸门
@@ -66,11 +66,59 @@
 | 6. 静态、产物与候选指纹 | ✅ 通过 | 34 文件、staged=0、diff-check clean；无 backup/绝对路径/敏感信息；DLL/GHA 与 manifest 精确命中 |
 | 7. Git 提交与看板更新 | ✅ 完成 | `b56100a feat: scan Revit and export Autodesk IFC4`；恰好 34 个文件，看板保持独立提交 |
 
+### Task 10 七道验收闸门
+
+| 闸门 | 状态 | 完成标准 |
+|---:|---|---|
+| 1. 协调器与公开组件 TDD 实现 | ✅ 完成 | backend、真实 translator、生产 adapter、新组件/UI 与 legacy hidden 均已 GREEN |
+| 2. 定向与回归测试 | ✅ fresh 全通过 | 最终定向78/78、Stage03/MVD348/348、Core1167/1167、Python401/401、component9/9、Release0/0 |
+| 3. 候选冻结与静态审计 | ✅ 完成 | 16文件、2046-byte最终manifest `243858f4…77e04`；BOM0、禁止项0、DLL/GHA哈希一致 |
+| 4. 规格审查 | ✅ Ready：0/0/0 | 首轮0/1/0；Force finding 真实 RED→GREEN 后独立复审确认精确关闭，冻结指纹无漂移 |
+| 5. 代码质量审查 | ✅ Ready：0/0/0 | 首轮0/2/0；后台化与失败根因传播分别RED→GREEN后，独立复审确认全部关闭且冻结无漂移 |
+| 6. 主代理独立全量复验 | ✅ 完成 | 定向78/78、Stage03/MVD348/348、Core1167/1167、Python401/401、component9/9、Release0/0、静态/manifest通过 |
+| 7. Git 提交与看板更新 | ✅ 完成 | `4890e07 feat: complete Stage03 validation export workflow`；恰好16文件，提交manifest不变，看板独立提交 |
+
 ## 当前执行看板
 
 | 项目 | 实时状态 | 当前证据 / 剩余动作 |
 |---|---|---|
-| 当前任务 | ✅ Task 9 已完成，Task 10 待启动 | Task 9 提交 `b56100a`；正式完成度已提升至 9/12（75%） |
+| 当前任务 | 🟡 Task 11 启动准备 | 正式完成度10/12（83%）；Task10已7/7完成并提交，开始文档/CI/部署工作包 |
+| Task 10 backend TDD | ✅ 实现线程 GREEN | RED：缺 9 个生产类型；GREEN：协调器 18/18、相关回归 379/379、Release 0/0、diff-check clean |
+| Task 10 backend 首轮规格审查 | ❌ Not Ready：0/5/2 | TEMP 5 个探针全部复现；协调器官方 18/18 和 Stage03 244/244 仍通过，但不足以证明对抗 seam 变异 |
+| Task 10 backend 首轮返修 | ✅ 定向 GREEN | Coordinator 41/41、Stage03/MVD 311/311、Core 1130/1130、Release 0/0；manifest `29c204b4…122c84` |
+| Task 10 backend 返修自审 | ❌ 当时 Not Ready：0/2/0 | writer 可改权威对象、RAW inspection/fatal diagnostics 不完整；随后均按真实 0/4 RED→4/4 GREEN 返修 |
+| Task 10 backend 二次返修 | ✅ fresh 验证通过 | Coordinator45、Stage03/MVD315、Core1134、Release0/0；禁止项0；组件预期0/3 RED |
+| Task 10 backend 当前冻结 | ✅ 稳定 | 3 文件 manifest `1ecc0e8eb54ff29360191ad64b5b6c49c593595efd7e686e04cae805b9365a5a`；起止重算一致、staged=0 |
+| Task 10 backend 正式规格复审 | ❌ Not Ready：0/2/1 | 空洞Pass/final evidence、Strict writer 越权生成IFC、失败结果旧hash；起止manifest均为 `1ecc0e8e…9365a5a` |
+| Task 10 backend 第三轮返修 | ✅ RED→GREEN 完成 | I1 8/8、I2 1/1、M1 2/2；聚合/全量/Release/静态均通过 |
+| Task 10 backend 第三轮冻结 | ✅ 稳定 | 3文件manifest `52d1095937657cfbffba2927c60364b890d2575ee806517f691f3faccc2acf2e`；实现线程与主代理复算一致 |
+| Task 10 backend 第三轮规格复审 | ❌ Not Ready：0/0/1 | 两项 Important 全部关闭；唯一 Minor 为 RAW/final 同时失效时第二个旧 hash 未被清空；起止 manifest 均为 `52d10959…acf2e` |
+| Task 10 backend 第四轮返修 | ✅ RED→GREEN 完成 | 双文件同时失效测试0/1 RED→1/1 GREEN；两份产物分别验证并分别清空失效 hash，仍保留损坏产物 |
+| Task 10 backend 第四轮验证 | ✅ fresh 通过 | Coordinator55/55、Stage03/MVD325/325、Core1144/1144、Release0/0；禁止项0；组件预期0/3 RED |
+| Task 10 backend 第四轮冻结 | ✅ 稳定 | Coordinator `81b74554…d849`、Tests `97e14138…9144`、csproj `dba7663c…8363`；manifest `d16a5aad…7ce9` |
+| Task 10 backend 第四轮 delta 复审 | ✅ Ready：0/0/0 | 正式审查与独立测试/hash审查一致；起止 manifest 均为 `d16a5aad…7ce9`，允许进入组件 GREEN |
+| Task 10 GH component/生产接线合同 | 🔴 预期 0/9 RED | 9 个失败均指向缺失组件、adapter、translator、UI 或 legacy 未 hidden；测试本身无语法错误 |
+| Task 10 translator xUnit | ✅ 5/5 GREEN | 缺失属性enrich、RAW不变、复读/原子发布、预占用、畸形UTF-8、失败temp证据与空批均通过 |
+| Task 10 component state policy | ✅ 10/10 GREEN | Strict/Force、空原因、签名变化、原始原因变化与A→B→A迟到结果均已覆盖 |
+| Task 10 field formatter/order | ✅ 3/3 GREEN | 乱序输入输出一致、失败字段不丢失；每行含总状态及RAW/final完整证据，阻断稳定分组 |
+| Task 10 live DocumentPath/adapter | ✅ 2/2 GREEN | scanner回传document.PathName，adapter只经Revit phase scan/export seam并接通translator/report writers；Release0/0 |
+| Task 10 GH component/UI | ✅ 合同9/9 GREEN | 精确5入8出、上升沿/失效token、稳定Data Tree、Strict/Force三路径卡片、legacy hidden；Release0/0 |
+| Task 10 component全量验证 | ✅ fresh全通过 | 新增19/19、Coordinator55/55、Stage03/MVD344/344、Core1163/1163、Python401/401、Release0/0、component9/9、static0命中 |
+| Task 10 component候选冻结 | ✅ 完成 | 排除看板后共16个功能/测试文件（4 tracked + 12 untracked）；manifest 2046 bytes，SHA-256 `d2d740849e7a54abff6f7e329f92c1c7d99d5b80bce838c5a91c94f58da76e30` |
+| Task 10 整体规格审查 | ❌ Not Ready：0/1/0 | 冻结候选未漂移；其余 A–I 均符合，唯一 Important 为 Force 无法完成真实业务阻断场景 |
+| Task 10 Force 业务阻断返修 | ✅ RED→GREEN 完成 | 真实0/1 RED→1/1 GREEN；五类定向5/5、Coordinator56/56、Stage03/MVD345/345、Core1164/1164、Python401/401、Release0/0 |
+| Task 10 返修后冻结 | ✅ 完成 | 16 files、+6380/-2、2046-byte manifest `b6f42fe0016db1aaba8d3067fed3186411f2fe54bd6d32d16b4b04e5b52cb80f`；staged=0、静态禁止项0 |
+| Task 10 整体规格复审 | ✅ Ready：0/0/0 | 独立探针确认 Force 成功且三件套存在；active Pass、技术 fatal、伪造 owner/状态/evidence 仍 fail-closed；manifest 无漂移 |
+| Task 10 代码质量审查 | ❌ Not Ready：0/2/0 | 候选无漂移；Important 1为纯IFC转译同步占用UI，Important 2为失败根因/translator diagnostics不可逆丢失 |
+| 质量返修 A：纯转译后台化 | ✅ RED→GREEN 完成 | 阻塞hook用例0/1→1/1；translator7/7、Revit host/thread23/23、component9/9；Task.Run仅纯translator 1处，Revit相关0 |
+| 质量返修 B：失败根因传播 | ✅ RED→GREEN 完成 | Coordinator sentinel与真实UTF-8均0/1→1/1；diagnostic/类型/HResult/inner贯穿；逆向4/4、null DTO1/1 |
+| Task 10 质量返修全量 | ✅ fresh 全通过 | 新增4/4、translator7/7、Coordinator58/58、Stage03/MVD348/348、Core1167/1167、Python401/401、Release0/0 |
+| Task 10 质量返修冻结 | ✅ 完成 | 16 files、2046-byte manifest `243858f46d69ce33998b1504a398a777dbb3b05d7344d90842ed5b265f777e04`；staged=0、静态检查通过 |
+| Task 10 代码质量复审 | ✅ Ready：0/0/0 | 核心4/4、Translator/Coordinator/host68/68、Python边界26/26；Task.Run与ConfigureAwait边界、异常链均确认 |
+| Task 10 主代理复验 | ✅ fresh 全通过 | xUnit78/78、Stage03/MVD348/348、Core1167/1167、Python401/401、component9/9、Release0/0；manifest`243858f4…77e04` |
+| Task 10 产物/静态审计 | ✅ 通过 | DLL/GHA 1,528,320 bytes且SHA均`62696a2c…6559c`；12/12 untracked clean、BOM0、删除/备份/旧MVD/绝对路径0 |
+| Task 10 Git提交 | ✅ 完成 | `4890e07`；恰好16 files、+6600/-2；提交后manifest仍`243858f4…77e04`，仅看板保持未暂存 |
+| Task 10 translator identity自审 | ✅ RED→GREEN | inactive重复identity：首轮5 pass/1 fail，最小修复后translator6/6；修复后全量正在顺序重跑 |
 | Task 9 冻结候选 | ✅ 已冻结 | manifest SHA-256 `a7b21715…e8eb22`；实现、规格、质量均 0/0/0；真实 Revit 2020 运行仍留待 Task 12 |
 | Important 1：条件激活身份 | ✅ RED→GREEN | 纯策略 3/3、scanner 集成合同 1/1 |
 | Important 2：accepted + ambiguous 并存 | ✅ RED→GREEN | carrier suite 10/10、scanner 集成合同 1/1 |
@@ -174,7 +222,7 @@
 | 仓库静态审计 | ✅ 通过 | 12 文件范围、BOM、EOF、备份、绝对路径、busy-wait、残留进程均通过；DLL/GHA SHA-256 相同 |
 | Task 7 规格审查 | ✅ Ready | Critical / Important / Minor = **0 / 0 / 0**；终态指纹不变 |
 | Task 7 代码质量审查 | ✅ Ready | Critical / Important / Minor = **0 / 0 / 0**；终态指纹不变 |
-| 下一执行 | 🟡 Task 10 | 启动协调器、新公开组件和 legacy 隐藏的 TDD 实现与双审查循环 |
+| 下一执行 | 🟡 Task 11 | 更新三阶段产品文档与CI合同，完成整体验收审查后执行单GHA无备份部署 |
 | 用户操作 | ✅ 当前不需要 | Task 11 如程序未关闭可能需配合；Task 12 再按明确提示完成实机点击 |
 
 ### Task 8 七道验收闸门
@@ -228,7 +276,9 @@ Task 7 已完成并提交：未知字段状态全部 fail-closed；Strict/Force�
 
 Task 8 已完成并提交：终局规格与质量复审均为 0/0/0；主代理 fresh 复跑 Task8 281/281、Mutation + Enricher 264/264、STEP/MVD 111/111、Core 963/963、Python 375/375、Release 0 warning / 0 error，静态审计与 DLL/GHA 哈希一致性全部通过。代码提交为 `d1792ee feat: create missing HBR properties in IFC4`。
 
-Task 9 已完成并提交 `b56100a`：34 文件候选通过规格与质量终局复审 0/0/0；主代理 fresh 通过 Task9 xUnit 126/126、Task9 Python 17/17、Core 1089/1089、Python 392/392、Release 0/0，以及静态与候选指纹复核。审查员误跑全 Core 时出现的 1 个范围外既有环境路径失败，在主代理工作树复跑中已通过。下一焦点为 Task 10 的 Stage03 协调器和公开组件；当前不部署 GHA、不启动 Revit，实机点击与真实 RVT 验收仍保留到 Task 12。
+Task 9 已完成并提交 `b56100a`：34 文件候选通过规格与质量终局复审 0/0/0；主代理 fresh 通过 Task9 xUnit 126/126、Task9 Python 17/17、Core 1089/1089、Python 392/392、Release 0/0，以及静态与候选指纹复核。审查员误跑全 Core 时出现的 1 个范围外既有环境路径失败，在主代理工作树复跑中已通过。
+
+Task 10 已完成并提交 `4890e07 feat: complete Stage03 validation export workflow`：恰好16个功能/测试文件，提交manifest为`243858f46d69ce33998b1504a398a777dbb3b05d7344d90842ed5b265f777e04`；规格与质量终局复审均0/0/0，主代理独立fresh通过定向78/78、Stage03/MVD348/348、Core1167/1167、Python401/401、component9/9、Release0/0、静态与产物审计。正式进度已升至10/12（83%）。下一焦点为Task11文档、CI、完整自动化和单GHA无备份部署；实机点击与指定RVT验收仍保留到Task12。
 
 ## 进度口径
 
