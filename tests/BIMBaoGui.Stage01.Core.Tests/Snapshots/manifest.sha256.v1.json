@@ -10,13 +10,13 @@
     },
     {
       "name": "official-hifc-mappings.v1.json",
-      "length": 296739,
-      "sha256": "d7e087ad110a7b2621ef2576a83c4332873a47f39ef0686142353a0d6f99fac7"
+      "length": 289010,
+      "sha256": "70304a4a1e5ef2b035fdb46d86c67e279d4c5359a7f503097a7e80a0dcc510e1"
     },
     {
       "name": "official-plugin-compatibility.v1.json",
-      "length": 6101,
-      "sha256": "f98acf7bea648be5c18349b237bc7a36ec78700240d55cb61b7d76f425c6e676"
+      "length": 5937,
+      "sha256": "536dee27a60b71c7ed363bac0c9c258fe4c90272a07a02fefd3de503778da780"
     },
     {
       "name": "rule-activation.v1.json",
@@ -25,8 +25,8 @@
     },
     {
       "name": "shared-parameters-canonical.v1.json",
-      "length": 57970,
-      "sha256": "096b27b4880df5518b4f6702ed6216b57b26cdd8ccc7975c977b46f8f7142cc6"
+      "length": 56257,
+      "sha256": "b0e8b1ce50f7544387cfade165e8727db2081186fd23d4d0c0fb1aea12a5db50"
     },
     {
       "name": "stage01-registry.v1.json",
