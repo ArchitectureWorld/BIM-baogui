@@ -62,7 +62,7 @@ def test_rule_source_preserves_verified_set_relationships(source):
 
 - [ ] **Step 2: 运行并确认 RED**
 
-Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_hbr_rule_source_contract.py -q`  
+Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_hbr_rule_source_contract.py -q`
 Expected: FAIL，原因是 `specs/hbr-rules/v1/source/hbr_rule_source.v1.json` 尚不存在。
 
 - [ ] **Step 3: 写 schema 与唯一源**
@@ -121,7 +121,7 @@ def test_all_ids_guids_and_references_are_unique(source):
     assert {r["propertyId"] for r in source["stage01"]["fieldRefs"]} <= set(ids)
 ```
 
-Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_hbr_rule_source_contract.py tests/test_hbr_rule_source_semantics.py -q`  
+Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_hbr_rule_source_contract.py tests/test_hbr_rule_source_semantics.py -q`
 Expected: PASS。
 
 - [ ] **Step 5: 提交**
@@ -157,7 +157,7 @@ def test_compile_is_byte_for_byte_deterministic(tmp_path, source_path):
 
 - [ ] **Step 2: 运行并确认 RED**
 
-Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_hbr_rulepack_compiler.py -q`  
+Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_hbr_rulepack_compiler.py -q`
 Expected: FAIL，`tools.build_hbr_rulepack` 不存在。
 
 - [ ] **Step 3: 实现最小编译器**
@@ -201,9 +201,9 @@ def compile_rulepack(source_path: Path, output_path: Path) -> None:
 
 - [ ] **Step 5: 运行 GREEN**
 
-Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_hbr_rulepack_compiler.py -q`  
-Expected: PASS。  
-Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo`  
+Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_hbr_rulepack_compiler.py -q`
+Expected: PASS。
+Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo`
 Expected: 0 warnings, 0 errors，GHA 内含 `BIMBaoGui.Stage01.Resources.HBR_RulePack.hbrpack`。
 
 - [ ] **Step 6: 提交**
@@ -254,7 +254,7 @@ public void Database_exposes_verified_counts_and_hash()
 
 - [ ] **Step 2: 运行并确认 RED**
 
-Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter HbrRulePackageLoaderTests`  
+Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter HbrRulePackageLoaderTests`
 Expected: FAIL，类型尚不存在。
 
 - [ ] **Step 3: 实现 loader 和索引**
@@ -292,11 +292,11 @@ public string RulePackageSha256 { get; }
 
 - [ ] **Step 6: 运行 GREEN**
 
-Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release`  
-Expected: 所有测试通过。  
-Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests -q`  
-Expected: 所有契约测试通过，且断言单一规则资源。  
-Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo`  
+Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release`
+Expected: 所有测试通过。
+Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests -q`
+Expected: 所有契约测试通过，且断言单一规则资源。
+Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo`
 Expected: 0 warnings, 0 errors。
 
 - [ ] **Step 7: 提交**
@@ -341,7 +341,7 @@ public void Confirmation_rejects_document_or_old_value_change()
 
 - [ ] **Step 2: 运行并确认 RED**
 
-Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter "Stage02*Tests"`  
+Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter "Stage02*Tests"`
 Expected: FAIL，Stage02 领域类型尚不存在。
 
 - [ ] **Step 3: 实现确定性匹配与预览**
@@ -386,7 +386,7 @@ public bool TryConsume(string previewHash, string nonce)
 
 - [ ] **Step 5: 运行 GREEN 并提交**
 
-Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter "Stage02*Tests"`  
+Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter "Stage02*Tests"`
 Expected: PASS。
 
 ```powershell
@@ -426,7 +426,7 @@ def test_stage02_metadata_excludes_business_values():
 
 - [ ] **Step 2: 运行并确认 RED**
 
-Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage02_revit_contract.py -q`  
+Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage02_revit_contract.py -q`
 Expected: FAIL，文件尚不存在。
 
 - [ ] **Step 3: 实现只读选择与预览服务**
@@ -468,9 +468,9 @@ using (var group = new TransactionGroup(document, "湖北BIM报规｜HBR属性�
 
 - [ ] **Step 6: 运行 GREEN 并提交**
 
-Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage02_revit_contract.py -q`  
-Expected: PASS。  
-Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo`  
+Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage02_revit_contract.py -q`
+Expected: PASS。
+Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo`
 Expected: 0 warnings, 0 errors。
 
 ```powershell
@@ -521,7 +521,7 @@ def test_new_stage02_has_real_ports_and_legacy_is_hidden():
 
 - [ ] **Step 2: 运行 RED，随后实现选择适配与纯输入策略**
 
-Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage02_component_contract.py -q`  
+Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage02_component_contract.py -q`
 Expected: FAIL。
 Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter Stage02PreparationInputPolicyTests`
 Expected: FAIL。
@@ -544,13 +544,13 @@ Expected: FAIL。
 
 - [ ] **Step 5: 运行 GREEN、全量回归并提交**
 
-Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage02_component_contract.py -q`  
-Expected: PASS。  
+Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage02_component_contract.py -q`
+Expected: PASS。
 Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter Stage02PreparationInputPolicyTests`
 Expected: PASS。
 Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --no-restore --nologo`
 Expected: PASS。
-Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo`  
+Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo`
 Expected: 0 warnings, 0 errors。
 
 ```powershell
@@ -607,14 +607,14 @@ public void Paths_share_run_id_and_reject_existing_target()
 
 - [ ] **Step 3: 运行 RED 并实现最小纯 Core**
 
-Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter "Stage03*"`  
+Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter "Stage03*"`
 Expected: FAIL。
 
 字段结果使用设计规格中的状态枚举；门禁把 `WRONG_DOCUMENT/UNSUPPORTED_REVIT/OUTPUT_EXISTS/EXPORT_FAILED/INVALID_IFC/REPORT_FAILED` 视为技术致命错误。字段报告按 `entity + ownerUniqueId + propertyId` 稳定排序，通过 `AtomicJsonReportWriter` 写临时文件再 `File.Move`。
 
 - [ ] **Step 4: 运行 GREEN 并提交**
 
-Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter "Stage03*"`  
+Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter "Stage03*"`
 Expected: PASS。
 
 ```powershell
@@ -667,7 +667,7 @@ public void Enricher_creates_property_pset_and_relationship_for_existing_owner()
 
 - [ ] **Step 3: 运行 RED 并实现可变 Statement 列表**
 
-Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter "IfcStepDocumentMutationTests|HbrIfcEnricherTests"`  
+Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter "IfcStepDocumentMutationTests|HbrIfcEnricherTests"`
 Expected: FAIL。
 
 `IfcStepDocument` 保存可变 `List<Statement>`，`AddEntity` 使用当前最大 ID + 1，并在 DATA 的终止 `ENDSEC;` statement 前插入。新 `IfcStepEntity` 直接按 canonical STEP 格式序列化。
@@ -689,9 +689,9 @@ resolve owner by GlobalId or single spatial entity
 
 - [ ] **Step 5: 运行 GREEN、真实 fixture 回归并提交**
 
-Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter "IfcStepDocumentMutationTests|HbrIfcEnricherTests"`  
-Expected: PASS。  
-Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter "MvdIfc"`  
+Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter "IfcStepDocumentMutationTests|HbrIfcEnricherTests"`
+Expected: PASS。
+Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter "MvdIfc"`
 Expected: 旧 normalizer 测试仍全部 PASS。
 
 ```powershell
@@ -728,7 +728,7 @@ def test_scanner_uses_export_id_and_visible_parameter_guid():
 
 - [ ] **Step 2: 运行 RED 并实现 scanner**
 
-Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage03_revit_export_contract.py -q`  
+Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage03_revit_export_contract.py -q`
 Expected: FAIL。
 
 Scanner 在 Revit host context 中按活动 profile 枚举 ProjectInformation、Level、Room、Area 及规则类别元素。每条值读取固定 GUID 参数，转换为 canonical 外部单位；元素 IFC owner id 使用 `ExportUtils.GetExportId(document, element.Id)` 后交给 `IfcGuidCodec`。Project/Building/Site 允许使用唯一实体类型 owner strategy。
@@ -752,9 +752,9 @@ using (var tx = new Transaction(document, "湖北BIM报规｜导出标准IFC4"))
 
 - [ ] **Step 4: 运行 GREEN、构建并提交**
 
-Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage03_revit_export_contract.py -q`  
-Expected: PASS。  
-Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo`  
+Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage03_revit_export_contract.py -q`
+Expected: PASS。
+Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo`
 Expected: 0 warnings, 0 errors。
 
 ```powershell
@@ -790,7 +790,7 @@ public async Task Translation_failure_keeps_raw_and_writes_failure_report()
 
 - [ ] **Step 2: 运行 RED 并实现两阶段协调**
 
-Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter Stage03WorkflowCoordinatorTests`  
+Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter Stage03WorkflowCoordinatorTests`
 Expected: FAIL。
 
 协调器顺序固定：
@@ -825,11 +825,11 @@ def test_public_menu_is_exactly_three_stage_components():
 
 - [ ] **Step 4: 运行 GREEN 并提交**
 
-Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter Stage03WorkflowCoordinatorTests`  
-Expected: PASS。  
-Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage03_component_contract.py -q`  
-Expected: PASS。  
-Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo`  
+Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release --filter Stage03WorkflowCoordinatorTests`
+Expected: PASS。
+Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_stage03_component_contract.py -q`
+Expected: PASS。
+Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo`
 Expected: 0 warnings, 0 errors。
 
 ```powershell
@@ -856,7 +856,7 @@ def test_readme_declares_three_stage_standard_export_workflow():
     assert "官方 H-IFC 插件重新导出" not in readme
 ```
 
-Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_official_export_contract_review.py tests/test_v090_release_contract.py -q`  
+Run: `C:\ProgramData\Anaconda3\python.exe -m pytest tests/test_official_export_contract_review.py tests/test_v090_release_contract.py -q`
 Expected: FAIL，README 和旧测试仍描述旧路线。
 
 - [ ] **Step 2: 更新产品文档和 CI**
@@ -865,15 +865,15 @@ README 只展示三个公开组件、单一规则源、Stage02 预览确认、St
 
 - [ ] **Step 3: 运行完整自动化验证**
 
-Run: `$env:PYTEST_DISABLE_PLUGIN_AUTOLOAD='1'; C:\ProgramData\Anaconda3\python.exe -m pytest -q`  
-Expected: 0 failed。  
-Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release`  
-Expected: 0 failed。  
-Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo`  
-Expected: 0 warnings, 0 errors。  
-Run: `git diff --check`  
-Expected: no output。  
-Run: `dotnet list src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj package --vulnerable --include-transitive`  
+Run: `$env:PYTEST_DISABLE_PLUGIN_AUTOLOAD='1'; C:\ProgramData\Anaconda3\python.exe -m pytest -q`
+Expected: 0 failed。
+Run: `dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release`
+Expected: 0 failed。
+Run: `dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo`
+Expected: 0 warnings, 0 errors。
+Run: `git diff --check`
+Expected: no output。
+Run: `dotnet list src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj package --vulnerable --include-transitive`
 Expected: no known vulnerable packages。
 
 - [ ] **Step 4: 请求整体验收代码审查，修复 Critical/Important 后提交**

@@ -20,17 +20,17 @@
             "高程系统"
           ],
           "dependencies": [
-            
+
           ],
           "geometryChecks": [
             "总平计算平面有效",
             "项目基点与共享坐标有效"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -59,7 +59,7 @@
             "投影面积与几何一致"
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -88,7 +88,7 @@
             "投影面积与几何一致"
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -114,7 +114,7 @@
             "轮廓闭合"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
             "planning.building_density"
@@ -142,10 +142,10 @@
             "边界闭合"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -169,10 +169,10 @@
             "曲线连续"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -196,10 +196,10 @@
             "中心线连续"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -224,10 +224,10 @@
             "道路范围闭合"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -252,10 +252,10 @@
             "消防道路连续"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -280,10 +280,10 @@
             "场地边界闭合"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -337,10 +337,10 @@
             "车位不重复"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -365,10 +365,10 @@
             "范围关系有效"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -392,10 +392,10 @@
             "设施位置位于项目范围内"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -408,17 +408,17 @@
           "sequence": 900,
           "skeletonTask": false,
           "attributeRequirements": [
-            
+
           ],
           "dependencies": [
             "SITE.BUILDING_FOOTPRINT",
             "SITE.NET_LAND"
           ],
           "geometryChecks": [
-            
+
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
             "planning.building_density",
@@ -446,17 +446,17 @@
             "标高基准"
           ],
           "dependencies": [
-            
+
           ],
           "geometryChecks": [
             "建筑定位有效",
             "标高序列有效"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -481,10 +481,10 @@
             "楼层顺序有效"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -538,10 +538,10 @@
             "屋顶与主体关系有效"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -562,13 +562,13 @@
             "ABOVE.BODY"
           ],
           "geometryChecks": [
-            
+
           ],
           "propertyChecks": [
             "阳台面积统计有效"
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -588,13 +588,13 @@
             "ABOVE.BODY"
           ],
           "geometryChecks": [
-            
+
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -607,16 +607,16 @@
           "sequence": 900,
           "skeletonTask": false,
           "attributeRequirements": [
-            
+
           ],
           "dependencies": [
             "ABOVE.BODY"
           ],
           "geometryChecks": [
-            
+
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
             "planning.building_density",
@@ -644,17 +644,17 @@
             "建筑编号"
           ],
           "dependencies": [
-            
+
           ],
           "geometryChecks": [
             "地下定位有效",
             "地下标高序列有效"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -679,10 +679,10 @@
             "地下楼层顺序有效"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -711,7 +711,7 @@
             "地下面积与几何一致"
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -736,10 +736,10 @@
             "车位不重复"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -764,10 +764,10 @@
             "防护单元关系有效"
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
-            
+
           ]
         },
         {
@@ -780,16 +780,16 @@
           "sequence": 900,
           "skeletonTask": false,
           "attributeRequirements": [
-            
+
           ],
           "dependencies": [
             "UNDERGROUND.BODY"
           ],
           "geometryChecks": [
-            
+
           ],
           "propertyChecks": [
-            
+
           ],
           "targetComparisons": [
             "planning.building_density",

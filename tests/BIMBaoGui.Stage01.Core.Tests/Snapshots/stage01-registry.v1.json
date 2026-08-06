@@ -14,7 +14,7 @@
       "entity": "Workflow",
       "pset": "HBR",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -29,7 +29,7 @@
       "entity": "Workflow",
       "pset": "HBR",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -61,7 +61,7 @@
       "entity": "Workflow",
       "pset": "HBR",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -76,7 +76,7 @@
       "entity": "Workflow",
       "pset": "HBR",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -91,7 +91,7 @@
       "entity": "Workflow",
       "pset": "HBR",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -127,7 +127,7 @@
       "entity": "Workflow",
       "pset": "HBR",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -187,7 +187,7 @@
       "entity": "Workflow",
       "pset": "HBR",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -202,7 +202,7 @@
       "entity": "IfcProject",
       "pset": "Pset_报建信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -217,7 +217,7 @@
       "entity": "IfcProject",
       "pset": "Pset_报建信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -232,7 +232,7 @@
       "entity": "IfcProject",
       "pset": "Pset_报建信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -247,7 +247,7 @@
       "entity": "IfcProject",
       "pset": "Pset_报建信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -262,7 +262,7 @@
       "entity": "IfcProject",
       "pset": "Pset_报建信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -277,7 +277,7 @@
       "entity": "IfcProject",
       "pset": "Pset_报建信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -292,7 +292,7 @@
       "entity": "IfcProject",
       "pset": "Pset_报建信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -307,7 +307,7 @@
       "entity": "IfcProject",
       "pset": "Pset_报建信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -322,7 +322,7 @@
       "entity": "IfcProject",
       "pset": "Pset_报建信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -337,7 +337,7 @@
       "entity": "IfcProject",
       "pset": "Pset_报建信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -352,7 +352,7 @@
       "entity": "IfcProject",
       "pset": "Pset_报建信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -367,7 +367,7 @@
       "entity": "IfcProject",
       "pset": "Pset_报建信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -382,7 +382,7 @@
       "entity": "IfcProject",
       "pset": "Pset_报建信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -397,7 +397,7 @@
       "entity": "IfcProject",
       "pset": "Pset_报建信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -412,7 +412,7 @@
       "entity": "IfcProject",
       "pset": "Pset_地籍信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -427,7 +427,7 @@
       "entity": "IfcProject",
       "pset": "Pset_地籍信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -442,7 +442,7 @@
       "entity": "IfcProject",
       "pset": "Pset_地籍信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -457,7 +457,7 @@
       "entity": "IfcProject",
       "pset": "Pset_地籍信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -472,7 +472,7 @@
       "entity": "IfcProject",
       "pset": "Pset_地籍信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -487,7 +487,7 @@
       "entity": "IfcProject",
       "pset": "Pset_地籍信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -502,7 +502,7 @@
       "entity": "IfcProject",
       "pset": "Pset_地籍信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -517,7 +517,7 @@
       "entity": "IfcProject",
       "pset": "Pset_地籍信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -532,7 +532,7 @@
       "entity": "IfcProject",
       "pset": "Pset_登记信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -547,7 +547,7 @@
       "entity": "IfcProject",
       "pset": "Pset_登记信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -562,7 +562,7 @@
       "entity": "IfcProject",
       "pset": "Pset_登记信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -577,7 +577,7 @@
       "entity": "IfcProject",
       "pset": "Pset_登记信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -592,7 +592,7 @@
       "entity": "IfcProject",
       "pset": "Pset_登记信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -607,7 +607,7 @@
       "entity": "IfcProject",
       "pset": "Pset_登记信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -622,7 +622,7 @@
       "entity": "IfcProject",
       "pset": "Pset_登记信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -637,7 +637,7 @@
       "entity": "IfcProject",
       "pset": "Pset_登记信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -652,7 +652,7 @@
       "entity": "IfcProject",
       "pset": "Pset_登记信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -667,7 +667,7 @@
       "entity": "IfcProject",
       "pset": "Pset_登记信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -682,7 +682,7 @@
       "entity": "IfcProject",
       "pset": "Pset_区划信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -697,7 +697,7 @@
       "entity": "IfcProject",
       "pset": "Pset_区划信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -712,7 +712,7 @@
       "entity": "IfcProject",
       "pset": "Pset_区划信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -727,7 +727,7 @@
       "entity": "IfcProject",
       "pset": "Pset_区划信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -742,7 +742,7 @@
       "entity": "IfcProject",
       "pset": "Pset_区划信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -757,7 +757,7 @@
       "entity": "IfcProject",
       "pset": "Pset_区划信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -772,7 +772,7 @@
       "entity": "IfcProject",
       "pset": "Pset_区划信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -787,7 +787,7 @@
       "entity": "IfcProject",
       "pset": "Pset_区划信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -802,7 +802,7 @@
       "entity": "IfcProject",
       "pset": "Pset_区划信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -817,7 +817,7 @@
       "entity": "IfcProject",
       "pset": "Pset_区划信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -832,7 +832,7 @@
       "entity": "IfcProject",
       "pset": "Pset_区划信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -847,7 +847,7 @@
       "entity": "IfcProject",
       "pset": "Pset_区划信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -862,7 +862,7 @@
       "entity": "IfcProject",
       "pset": "Pset_区划信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -877,7 +877,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -892,7 +892,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -907,7 +907,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -922,7 +922,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -937,7 +937,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -952,7 +952,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -967,7 +967,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -982,7 +982,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -997,7 +997,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1012,7 +1012,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1027,7 +1027,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1042,7 +1042,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1057,7 +1057,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1072,7 +1072,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1087,7 +1087,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1102,7 +1102,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1117,7 +1117,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1132,7 +1132,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1147,7 +1147,7 @@
       "entity": "IfcProject",
       "pset": "Pset_申报信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1162,7 +1162,7 @@
       "entity": "IfcProject",
       "pset": "Pset_项目控制指标信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1177,7 +1177,7 @@
       "entity": "IfcProject",
       "pset": "Pset_项目控制指标信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1192,7 +1192,7 @@
       "entity": "IfcProject",
       "pset": "Pset_项目控制指标信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1207,7 +1207,7 @@
       "entity": "IfcProject",
       "pset": "Pset_项目控制指标信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1222,7 +1222,7 @@
       "entity": "IfcProject",
       "pset": "Pset_项目控制指标信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1237,7 +1237,7 @@
       "entity": "IfcProject",
       "pset": "Pset_项目控制指标信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1252,7 +1252,7 @@
       "entity": "IfcProject",
       "pset": "Pset_项目控制指标信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1267,7 +1267,7 @@
       "entity": "IfcProject",
       "pset": "Pset_项目控制指标信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1282,7 +1282,7 @@
       "entity": "IfcProject",
       "pset": "Pset_项目控制指标信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1297,7 +1297,7 @@
       "entity": "IfcProject",
       "pset": "Pset_项目控制指标信息属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1312,7 +1312,7 @@
       "entity": "IfcProject",
       "pset": "Pset_Manifest",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1327,7 +1327,7 @@
       "entity": "IfcProject",
       "pset": "Pset_Manifest",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1342,7 +1342,7 @@
       "entity": "IfcProject",
       "pset": "Pset_Manifest",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1357,7 +1357,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1372,7 +1372,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1387,7 +1387,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1402,7 +1402,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1417,7 +1417,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1432,7 +1432,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1447,7 +1447,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1462,7 +1462,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1477,7 +1477,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1492,7 +1492,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1507,7 +1507,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1522,7 +1522,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1537,7 +1537,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1552,7 +1552,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1567,7 +1567,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1582,7 +1582,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1597,7 +1597,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1612,7 +1612,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1627,7 +1627,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1642,7 +1642,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1657,7 +1657,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1672,7 +1672,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1687,7 +1687,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1702,7 +1702,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     },
     {
@@ -1717,7 +1717,7 @@
       "entity": "IfcOrganization",
       "pset": "Pset_组织通用属性集",
       "allowedValues": [
-        
+
       ]
     }
   ],

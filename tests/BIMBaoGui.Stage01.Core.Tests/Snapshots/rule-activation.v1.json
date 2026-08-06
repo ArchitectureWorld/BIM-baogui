@@ -48,7 +48,7 @@
       "modelFileType": "总平模型",
       "state": "none",
       "conditions": [
-        
+
       ],
       "activated": [
         "HBR.SITE.BASE",
@@ -137,7 +137,7 @@
         "HBR.TARGET.GREEN_RATE"
       ],
       "notApplicable": [
-        
+
       ]
     },
     {
@@ -454,7 +454,7 @@
       "modelFileType": "单体建筑—地上",
       "state": "none",
       "conditions": [
-        
+
       ],
       "activated": [
         "HBR.BUILDING.ABOVE.BASE",
@@ -541,7 +541,7 @@
         "HBR.TARGET.GREEN_RATE"
       ],
       "notApplicable": [
-        
+
       ]
     },
     {
@@ -848,7 +848,7 @@
       "modelFileType": "单体建筑—地下",
       "state": "none",
       "conditions": [
-        
+
       ],
       "activated": [
         "HBR.BUILDING.UNDERGROUND.BASE",
@@ -935,7 +935,7 @@
         "HBR.TARGET.GREEN_RATE"
       ],
       "notApplicable": [
-        
+
       ]
     },
     {
@@ -1242,7 +1242,7 @@
       "modelFileType": "UNKNOWN_MODEL",
       "state": "none",
       "conditions": [
-        
+
       ],
       "activated": [
         "HBR.TARGET.BUILDING_DENSITY",
@@ -1323,7 +1323,7 @@
         "HBR.TARGET.GREEN_RATE"
       ],
       "notApplicable": [
-        
+
       ]
     },
     {

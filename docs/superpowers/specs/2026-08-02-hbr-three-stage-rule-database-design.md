@@ -1,8 +1,8 @@
 # HBR 统一规则数据库与三阶段工作流设计
 
-**状态：** 已批准，进入实施  
-**批准日期：** 2026-08-02  
-**目标运行环境：** Revit 2020 + Rhino 8 + Rhino.Inside.Revit + Grasshopper  
+**状态：** 已批准，进入实施
+**批准日期：** 2026-08-02
+**目标运行环境：** Revit 2020 + Rhino 8 + Rhino.Inside.Revit + Grasshopper
 **交付形态：** 单一 `BIMBaoGui.Stage01.gha`
 
 ## 1. 本设计替代的旧路线
