@@ -1378,6 +1378,24 @@ def test_ci_checks_the_committed_event_range_for_whitespace():
     )
 
 
+def test_ci_normalizes_windows_checkout_before_lf_contract_tests():
+    workflow = read(".github/workflows/build-stage01-gha.yml")
+    checkout = workflow_step(workflow, "Check out repository")
+    normalize = workflow_step(workflow, "Normalize checkout line endings")
+    gate = workflow_step(workflow, "Check committed diff whitespace")
+
+    assert "fetch-depth: 0" in checkout
+    assert "git config core.autocrlf false" in normalize
+    assert "git checkout -- ." in normalize
+    assert workflow.index("Normalize checkout line endings") < workflow.index(
+        "Check committed diff whitespace"
+    )
+    assert workflow.index("Check out repository") < workflow.index(
+        "Normalize checkout line endings"
+    )
+    assert "git checkout -- ." not in gate
+
+
 def test_ci_new_branch_push_uses_default_branch_merge_base():
     workflow = read(".github/workflows/build-stage01-gha.yml")
     gate = workflow_step(workflow, "Check committed diff whitespace")

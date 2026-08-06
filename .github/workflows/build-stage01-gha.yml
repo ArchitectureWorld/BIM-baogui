@@ -65,6 +65,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Normalize checkout line endings
+        shell: pwsh
+        run: |
+          git config core.autocrlf false
+          git checkout -- .
+
       - name: Check committed diff whitespace
         shell: pwsh
         env:
