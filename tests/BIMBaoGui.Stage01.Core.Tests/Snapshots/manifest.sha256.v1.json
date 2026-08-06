@@ -5,8 +5,8 @@
   "files": [
     {
       "name": "mvd-ifc-normalization.v1.json",
-      "length": 86681,
-      "sha256": "81abb587fbdace2ea593c8f5ec523d2687c52617b379816f679dd6fd5fe15b78"
+      "length": 83630,
+      "sha256": "474c5dc34825e5561a4823a4953c56af2d71b3effd549aff2199a7f641c8eb2e"
     },
     {
       "name": "official-hifc-mappings.v1.json",
