@@ -80,8 +80,6 @@ namespace BIMBaoGui.Stage01.TaskPlanning
       }
       if (!context.InitializationPassed)
         blockers.Add("文件初始化尚未通过，请先完成 01 文件初始化的写入与回读。");
-      if (!context.OfficialProtocolCompatible)
-        blockers.Add("官方 H-IFC 参数协议兼容性尚未通过，请先处理 01 文件初始化中的协议阻断。");
       if (string.IsNullOrWhiteSpace(context.FileGuid))
         blockers.Add("文件上下文缺少报规文件唯一 ID。");
       if (string.IsNullOrWhiteSpace(context.RevitDocumentFingerprint))

@@ -29,14 +29,15 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
-    public void Hash_ChangesWhenOfficialCompatibilityChanges()
+    public void LegacyOfficialCompatibilityFlag_RemainsHashedButDoesNotControlReadiness()
     {
       HBRFileContext compatible = BuildContext(reverse: false, green: true, officialCompatible: true);
       HBRFileContext incompatible = BuildContext(reverse: false, green: true, officialCompatible: false);
 
       Assert.NotEqual(compatible.FileContextHash, incompatible.FileContextHash);
       Assert.True(compatible.IsReady);
-      Assert.False(incompatible.IsReady);
+      Assert.True(incompatible.IsReady);
+      Assert.False(incompatible.OfficialProtocolCompatible);
     }
 
     [Fact]

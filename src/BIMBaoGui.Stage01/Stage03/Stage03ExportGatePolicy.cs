@@ -11,6 +11,8 @@ namespace BIMBaoGui.Stage01.Stage03
   {
     private const string InvalidFieldResultCode = "INVALID_FIELD_RESULT";
     private const string InvalidGateModeCode = "INVALID_GATE_MODE";
+    private const string ForceReasonRequiredMessage =
+      "Force 模式必须提供非空强制原因。";
 
     public static Stage03GateDecision Decide(
       Stage03GateMode mode,
@@ -22,6 +24,11 @@ namespace BIMBaoGui.Stage01.Stage03
         NormalizeTechnicalCodes(technicalFatalCodes),
         StringComparer.Ordinal);
       var candidates = new List<Stage03BusinessBlocker>();
+      string reason = mode == Stage03GateMode.Force
+        ? Normalize(forceReason)
+        : string.Empty;
+      bool forceReasonMissing = mode == Stage03GateMode.Force
+        && reason.Length == 0;
       foreach (Stage03FieldResult field in
         fields ?? Array.Empty<Stage03FieldResult>())
       {
@@ -50,6 +57,19 @@ namespace BIMBaoGui.Stage01.Stage03
 
       if (mode != Stage03GateMode.Strict && mode != Stage03GateMode.Force)
         normalizedTechnicalCodes.Add(InvalidGateModeCode);
+      if (forceReasonMissing)
+      {
+        candidates.Add(new Stage03BusinessBlocker(
+          string.Empty,
+          string.Empty,
+          string.Empty,
+          0,
+          string.Empty,
+          Stage03FieldStatus.NotEvaluated,
+          Stage03BusinessBlockerCodes.ForceReasonRequired,
+          string.Empty,
+          ForceReasonRequiredMessage));
+      }
 
       Stage03BusinessBlocker[] blockers = candidates
         .GroupBy(BlockerIdentity, StringComparer.Ordinal)
@@ -64,11 +84,6 @@ namespace BIMBaoGui.Stage01.Stage03
         .ThenBy(blocker => blocker.Message, StringComparer.Ordinal)
         .ToArray();
       string[] technical = normalizedTechnicalCodes.ToArray();
-      string reason = mode == Stage03GateMode.Force
-        ? Normalize(forceReason)
-        : string.Empty;
-      bool forceReasonMissing = mode == Stage03GateMode.Force
-        && reason.Length == 0;
       bool hasTechnicalFatal = technical.Length > 0;
       bool allow = !hasTechnicalFatal
         && !forceReasonMissing
@@ -78,9 +93,16 @@ namespace BIMBaoGui.Stage01.Stage03
 
       var messages = new SortedSet<string>(StringComparer.Ordinal);
       if (forceReasonMissing)
-        messages.Add("Force 模式必须提供非空强制原因。");
+        messages.Add(ForceReasonRequiredMessage);
       foreach (Stage03BusinessBlocker blocker in blockers)
       {
+        if (string.Equals(
+          blocker.StatusCode,
+          Stage03BusinessBlockerCodes.ForceReasonRequired,
+          StringComparison.Ordinal))
+        {
+          continue;
+        }
         messages.Add(
           "业务阻断 [" + blocker.StatusCode + "] "
           + DisplayProperty(blocker.PropertyId) + "：" + blocker.Message);

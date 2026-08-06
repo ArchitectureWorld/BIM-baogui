@@ -113,6 +113,11 @@ namespace BIMBaoGui.Stage01.Stage03
     public const string InvalidFieldStatus = "INVALID_FIELD_STATUS";
   }
 
+  public static class Stage03BusinessBlockerCodes
+  {
+    public const string ForceReasonRequired = "FORCE_REASON_REQUIRED";
+  }
+
   public static class Stage03FieldStatusCodes
   {
     public static string ToCode(Stage03FieldStatus status)
@@ -234,6 +239,29 @@ namespace BIMBaoGui.Stage01.Stage03
       Stage03FieldStatus status,
       string requirement,
       string message)
+      : this(
+        entity,
+        ownerUniqueId,
+        role,
+        elementId,
+        propertyId,
+        status,
+        Stage03FieldStatusCodes.ToCode(status),
+        requirement,
+        message)
+    {
+    }
+
+    internal Stage03BusinessBlocker(
+      string entity,
+      string ownerUniqueId,
+      string role,
+      int elementId,
+      string propertyId,
+      Stage03FieldStatus status,
+      string statusCode,
+      string requirement,
+      string message)
     {
       Entity = entity ?? string.Empty;
       OwnerUniqueId = ownerUniqueId ?? string.Empty;
@@ -241,7 +269,7 @@ namespace BIMBaoGui.Stage01.Stage03
       ElementId = elementId;
       PropertyId = propertyId ?? string.Empty;
       Status = status;
-      StatusCode = Stage03FieldStatusCodes.ToCode(status);
+      StatusCode = statusCode ?? string.Empty;
       Requirement = requirement ?? string.Empty;
       Message = message ?? string.Empty;
     }

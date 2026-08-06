@@ -23,6 +23,16 @@ namespace BIMBaoGui.Stage01.Stage02
       var builder = new StringBuilder(512);
       bool firstProperty = true;
       builder.Append('{');
+      AppendStringProperty(
+        builder,
+        ref firstProperty,
+        "documentFingerprint",
+        matchedElement.Element.DocumentFingerprint);
+      AppendStringProperty(
+        builder,
+        ref firstProperty,
+        "documentTitle",
+        matchedElement.Element.DocumentTitle);
       AppendNumberProperty(
         builder,
         ref firstProperty,

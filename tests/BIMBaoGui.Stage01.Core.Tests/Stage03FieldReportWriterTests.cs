@@ -32,11 +32,43 @@ namespace BIMBaoGui.Stage01.Core.Tests
         string target = Path.Combine(directory, "fields.json");
         File.WriteAllText(target, "original", new UTF8Encoding(false));
 
-        Assert.Throws<IOException>(() => AtomicJsonReportWriter.Write(
-          target,
-          Encoding.UTF8.GetBytes("{\"new\":true}")));
+        IOException collision = Assert.Throws<IOException>(() =>
+          AtomicJsonReportWriter.Write(
+            target,
+            Encoding.UTF8.GetBytes("{\"new\":true}")));
 
+        Assert.True(
+          AtomicJsonReportWriter.IsCreateNewCollision(collision),
+          "Unexpected target collision HResult: 0x"
+            + collision.HResult.ToString("X8"));
         Assert.Equal("original", File.ReadAllText(target, Encoding.UTF8));
+        Assert.Empty(Directory.GetFiles(directory, "*.tmp"));
+      }
+      finally
+      {
+        Directory.Delete(directory, true);
+      }
+    }
+
+    [Fact]
+    public void Atomic_writer_classifies_existing_directory_as_name_collision()
+    {
+      string directory = NewDirectory();
+      try
+      {
+        string target = Path.Combine(directory, "fields.json");
+        Directory.CreateDirectory(target);
+
+        IOException collision = Assert.Throws<IOException>(() =>
+          AtomicJsonReportWriter.Write(
+            target,
+            Encoding.UTF8.GetBytes("{\"new\":true}")));
+
+        Assert.True(
+          AtomicJsonReportWriter.IsCreateNewCollision(collision),
+          "Unexpected directory collision HResult: 0x"
+            + collision.HResult.ToString("X8"));
+        Assert.True(Directory.Exists(target));
         Assert.Empty(Directory.GetFiles(directory, "*.tmp"));
       }
       finally
@@ -453,6 +485,51 @@ namespace BIMBaoGui.Stage01.Core.Tests
         Assert.Contains("document-fingerprint", json);
         Assert.Contains("file-context-hash", json);
         Assert.Contains("rule-package-sha", json);
+      }
+      finally
+      {
+        Directory.Delete(directory, true);
+      }
+    }
+
+    [Fact]
+    public void Field_writer_preserves_force_reason_business_blocker_code()
+    {
+      string directory = NewDirectory();
+      try
+      {
+        Stage03OutputPaths paths = Stage03OutputPathPolicy.Create(
+          directory,
+          "model",
+          "run-force-reason");
+        Stage03FieldReportContext context = MinimalContext(paths);
+        context.GateDecision = Stage03ExportGatePolicy.Decide(
+          Stage03GateMode.Force,
+          " \t\r\n ",
+          new[]
+          {
+            new Stage03FieldResult
+            {
+              PropertyId = "HBR.PASS",
+              Active = true,
+              Status = Stage03FieldStatus.Pass
+            }
+          },
+          Array.Empty<string>());
+
+        Stage03FieldReportWriter.Write(context);
+
+        var serializer = new JavaScriptSerializer();
+        var root = Assert.IsType<Dictionary<string, object>>(
+          serializer.DeserializeObject(
+            File.ReadAllText(paths.FieldReport, Encoding.UTF8)));
+        var gate = Assert.IsType<Dictionary<string, object>>(root["gate"]);
+        var blocker = Assert.IsType<Dictionary<string, object>>(
+          Assert.Single(Assert.IsType<object[]>(gate["businessBlockers"])));
+        Assert.Equal("FORCE_REASON_REQUIRED", blocker["status"]);
+        Assert.Equal(
+          "Force 模式必须提供非空强制原因。",
+          blocker["message"]);
       }
       finally
       {
@@ -1270,6 +1347,58 @@ namespace BIMBaoGui.Stage01.Core.Tests
       finally
       {
         if (isolatedDomain != null) AppDomain.Unload(isolatedDomain);
+        Directory.Delete(directory, true);
+      }
+    }
+
+    [Fact]
+    public void Failure_writer_skips_file_and_directory_candidate_collisions_and_writes_third_candidate()
+    {
+      string directory = NewDirectory();
+      try
+      {
+        var occurredLocal = new DateTimeOffset(
+          2026, 8, 5, 9, 10, 11, 123, TimeSpan.FromHours(8));
+        var firstGuid = new Guid("11111111-1111-1111-1111-111111111111");
+        var secondGuid = new Guid("22222222-2222-2222-2222-222222222222");
+        var thirdGuid = new Guid("33333333-3333-3333-3333-333333333333");
+        const string prefix = "BIMBaoGui.Stage03.failure-20260805-091011-123-";
+        string firstPath = Path.Combine(
+          directory,
+          prefix + firstGuid.ToString("N") + ".json");
+        string secondPath = Path.Combine(
+          directory,
+          prefix + secondGuid.ToString("N") + ".json");
+        string thirdPath = Path.Combine(
+          directory,
+          prefix + thirdGuid.ToString("N") + ".json");
+        File.WriteAllText(firstPath, "occupied-file", new UTF8Encoding(false));
+        Directory.CreateDirectory(secondPath);
+        byte[] payload = Encoding.UTF8.GetBytes("{\"attempt\":3}\n");
+        var candidates = new Queue<Guid>(new[]
+        {
+          firstGuid,
+          secondGuid,
+          thirdGuid
+        });
+
+        string reportPath = Stage03FailureReportWriter.AllocateAndWrite(
+          directory,
+          occurredLocal,
+          payload,
+          () => candidates.Dequeue());
+
+        Assert.Equal(thirdPath, reportPath);
+        Assert.Equal(payload, File.ReadAllBytes(thirdPath));
+        Assert.Equal(
+          "occupied-file",
+          File.ReadAllText(firstPath, Encoding.UTF8));
+        Assert.True(Directory.Exists(secondPath));
+        Assert.Empty(candidates);
+        Assert.Empty(Directory.GetFiles(directory, "*.tmp"));
+      }
+      finally
+      {
         Directory.Delete(directory, true);
       }
     }

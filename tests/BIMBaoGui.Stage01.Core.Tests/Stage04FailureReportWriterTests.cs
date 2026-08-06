@@ -53,5 +53,64 @@ namespace BIMBaoGui.Stage01.Core.Tests
         Directory.Delete(directory, true);
       }
     }
+
+    [Fact]
+    public void TryWrite_skips_directory_occupying_first_report_name()
+    {
+      string directory = Path.Combine(
+        Path.GetTempPath(),
+        "BIMBaoGui-Stage04FailureReportTests-" + Guid.NewGuid().ToString("N"));
+      Directory.CreateDirectory(directory);
+      try
+      {
+        string assemblyPath = Path.Combine(directory, "BIMBaoGui.Stage01.gha");
+        File.WriteAllText(assemblyPath, "plugin");
+        DateTimeOffset occurredLocal = new DateTimeOffset(
+          2026,
+          8,
+          2,
+          17,
+          10,
+          11,
+          TimeSpan.FromHours(8));
+        string occupiedPath = Path.Combine(
+          directory,
+          "BIMBaoGui.Stage04.failure-"
+            + occurredLocal.ToString(
+              "yyyyMMdd-HHmmss-fff",
+              System.Globalization.CultureInfo.InvariantCulture)
+            + ".json");
+        Directory.CreateDirectory(occupiedPath);
+
+        Stage04FailureReportWriteResult result =
+          Stage04FailureReportWriter.TryWrite(
+            new Stage04FailureReportContext
+            {
+              AssemblyPath = assemblyPath,
+              SourcePath = @"D:\model.ifc",
+              DestinationPath = @"D:\model-MVD.ifc",
+              OperationStage = "validate-output",
+              Exception = new InvalidDataException("normalization failed"),
+              OccurredUtc = new DateTimeOffset(
+                2026,
+                8,
+                2,
+                9,
+                10,
+                11,
+                TimeSpan.Zero),
+              OccurredLocal = occurredLocal
+            });
+
+        Assert.True(result.Success, result.ReportWriteErrorSummary);
+        Assert.True(Directory.Exists(occupiedPath));
+        Assert.NotEqual(occupiedPath, result.ReportPath);
+        Assert.True(File.Exists(result.ReportPath));
+      }
+      finally
+      {
+        Directory.Delete(directory, true);
+      }
+    }
   }
 }

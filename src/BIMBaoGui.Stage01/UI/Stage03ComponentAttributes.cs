@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using BIMBaoGui.Stage01.Stage03;
 using Grasshopper.GUI;
 using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel.Attributes;
@@ -9,7 +10,9 @@ namespace BIMBaoGui.Stage01.UI
 {
   internal sealed class Stage03ComponentAttributes : GH_ComponentAttributes
   {
+    private const float InputChannelWidth = 152f;
     private const float CardWidth = 620f;
+    private const float OutputChannelWidth = 162f;
     private const float CardHeight = 338f;
     private static readonly Color Primary = Color.FromArgb(32, 108, 125);
     private static readonly Color PrimaryDark = Color.FromArgb(20, 68, 82);
@@ -24,6 +27,7 @@ namespace BIMBaoGui.Stage01.UI
 
     private readonly Stage03ValidationExportComponent _owner;
     private RectangleF _cardBounds;
+    private RectangleF _contentBounds;
 
     internal Stage03ComponentAttributes(
       Stage03ValidationExportComponent owner)
@@ -35,9 +39,14 @@ namespace BIMBaoGui.Stage01.UI
     protected override void Layout()
     {
       RectangleF componentBox = LayoutComponentBox(Owner);
-      componentBox.Width = CardWidth;
+      componentBox.Width = InputChannelWidth + CardWidth + OutputChannelWidth;
       componentBox.Height = CardHeight;
-      _cardBounds = componentBox;
+      _contentBounds = new RectangleF(
+        componentBox.Left + InputChannelWidth,
+        componentBox.Top,
+        CardWidth,
+        CardHeight);
+      _cardBounds = _contentBounds;
       Bounds = LayoutBounds(Owner, componentBox);
       LayoutInputParams(Owner, componentBox);
       LayoutOutputParams(Owner, componentBox);
@@ -127,7 +136,7 @@ namespace BIMBaoGui.Stage01.UI
           _cardBounds.X + 18,
           _cardBounds.Y + 13);
         graphics.DrawString(
-          "Strict / Force 门禁 · RAW → HIFC-MVD → fields JSON",
+          "严格门禁 / 测试放行 · RAW → HIFC-MVD → fields JSON",
           subFont,
           muted,
           _cardBounds.X + 18,
@@ -135,8 +144,8 @@ namespace BIMBaoGui.Stage01.UI
       }
 
       string mode = view.Mode == Stage03.Stage03GateMode.Strict
-        ? "Strict"
-        : "Force";
+        ? "严格门禁"
+        : "测试放行";
       Color modeColor = view.Mode == Stage03.Stage03GateMode.Strict
         ? Success
         : Warning;
@@ -176,9 +185,8 @@ namespace BIMBaoGui.Stage01.UI
       FillRounded(graphics, body, Surface, 8);
       DrawBorder(graphics, body, Border, 8);
 
-      string mode = view.Mode == Stage03.Stage03GateMode.Strict
-        ? "Strict｜全部通过才导出"
-        : "Force｜允许业务阻断强制导出";
+      string mode = Stage03ComponentPresentationPolicy.ModeDescription(
+        view.Mode);
       string[,] rows =
       {
         { "模式", mode },
@@ -186,6 +194,7 @@ namespace BIMBaoGui.Stage01.UI
           "字段计数",
           "总计 " + view.TotalFields + "｜通过/不适用 "
             + view.PassedFields + "｜阻断 " + view.BlockedFields
+            + "｜业务缺陷 " + view.BusinessBlockerCount
         },
         { "运行状态", view.Status },
         { "RAW IFC", PathText(view.RawIfcPath) },
@@ -234,11 +243,13 @@ namespace BIMBaoGui.Stage01.UI
         _cardBounds.Y + 300,
         _cardBounds.Width - 32,
         25f);
-      Color color = view.Pending
-        ? Warning
-        : view.Blockers.Count > 0 && !view.AllowExport
-          ? Error
-          : view.AllowExport ? Success : Muted;
+      Color color = ResolveToneColor(
+        Stage03ComponentPresentationPolicy.ResolveTone(
+          view.Mode,
+          view.Pending,
+          view.AllowExport,
+          view.Blockers.Count > 0,
+          view.ForcedWithBusinessDefects));
       string text = view.Pending
         ? "执行中｜等待 Revit host phase 与 IFC 复读验收。"
         : view.Blockers.Count > 0
@@ -257,6 +268,23 @@ namespace BIMBaoGui.Stage01.UI
           font,
           brush,
           footer);
+      }
+    }
+
+    private static Color ResolveToneColor(Stage03ComponentStatusTone tone)
+    {
+      switch (tone)
+      {
+        case Stage03ComponentStatusTone.Muted:
+          return Muted;
+        case Stage03ComponentStatusTone.Success:
+          return Success;
+        case Stage03ComponentStatusTone.Warning:
+          return Warning;
+        case Stage03ComponentStatusTone.Error:
+          return Error;
+        default:
+          throw new ArgumentOutOfRangeException(nameof(tone));
       }
     }
 

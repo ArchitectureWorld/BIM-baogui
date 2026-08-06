@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using BIMBaoGui.Stage01.Revit.Parameters;
 
 namespace BIMBaoGui.Stage01.Stage02
@@ -240,6 +241,177 @@ namespace BIMBaoGui.Stage01.Stage02
       return publish
         ? Stage02PreparationWriteCompletionDisposition.Publish
         : Stage02PreparationWriteCompletionDisposition.Discarded;
+    }
+  }
+
+  internal sealed class Stage02PreparationCompletionGate<T>
+  {
+    private readonly Action<T> _completed;
+    private readonly Action<Exception> _consumerFailureTerminal;
+    private readonly Action<Exception> _consumerFailureRecorder;
+    private readonly Action _consumerFailureRefresh;
+    private int _completionIssued;
+    private int _consumerFailureIssued;
+
+    internal Stage02PreparationCompletionGate(Action<T> completed)
+    {
+      _completed = completed
+        ?? throw new ArgumentNullException(nameof(completed));
+    }
+
+    internal Stage02PreparationCompletionGate(
+      Action<T> completed,
+      Action<Exception> consumerFailureTerminal,
+      Action<Exception> consumerFailureRecorder,
+      Action consumerFailureRefresh)
+      : this(completed)
+    {
+      _consumerFailureTerminal = consumerFailureTerminal
+        ?? throw new ArgumentNullException(nameof(consumerFailureTerminal));
+      _consumerFailureRecorder = consumerFailureRecorder
+        ?? throw new ArgumentNullException(nameof(consumerFailureRecorder));
+      _consumerFailureRefresh = consumerFailureRefresh
+        ?? throw new ArgumentNullException(nameof(consumerFailureRefresh));
+    }
+
+    internal bool TryComplete(T result)
+    {
+      if (Interlocked.CompareExchange(ref _completionIssued, 1, 0) != 0)
+        return false;
+      try
+      {
+        _completed(result);
+      }
+      catch (Exception exception)
+      {
+        if (_consumerFailureTerminal == null) throw;
+        CompleteConsumerFailure(exception);
+      }
+      return true;
+    }
+
+    private void CompleteConsumerFailure(Exception exception)
+    {
+      if (Interlocked.CompareExchange(
+        ref _consumerFailureIssued,
+        1,
+        0) != 0)
+      {
+        return;
+      }
+
+      Exception failureToRecord = exception;
+      try
+      {
+        _consumerFailureTerminal(exception);
+      }
+      catch (Exception terminalException)
+      {
+        failureToRecord = new AggregateException(
+          exception,
+          terminalException);
+      }
+
+      try
+      {
+        _consumerFailureRecorder(failureToRecord);
+      }
+      catch (Exception recorderException)
+      {
+        TraceTechnicalCallbackFailure(
+          "completion-consumer-failure-recorder",
+          recorderException);
+      }
+
+      try
+      {
+        _consumerFailureRefresh();
+      }
+      catch (Exception refreshException)
+      {
+        TraceTechnicalCallbackFailure(
+          "completion-consumer-failure-refresh",
+          refreshException);
+      }
+    }
+
+    private static void TraceTechnicalCallbackFailure(
+      string stage,
+      Exception exception)
+    {
+      try
+      {
+        System.Diagnostics.Trace.TraceError(
+          "Stage02 {0} failed: {1}",
+          stage ?? string.Empty,
+          exception?.ToString() ?? string.Empty);
+      }
+      catch (Exception traceException)
+      {
+        GC.KeepAlive(traceException);
+      }
+    }
+  }
+
+  public sealed class Stage02PreparationFailureReportState
+  {
+    private string _currentInputSignature = string.Empty;
+    private string _currentHostFingerprint = string.Empty;
+    private string _reportPath = string.Empty;
+
+    public string ReportPath => _reportPath;
+
+    public void ObserveCurrent(
+      string inputSignature,
+      string hostFingerprint)
+    {
+      string currentInputSignature = inputSignature ?? string.Empty;
+      string currentHostFingerprint = hostFingerprint ?? string.Empty;
+      if (string.Equals(
+          _currentInputSignature,
+          currentInputSignature,
+          StringComparison.Ordinal)
+        && string.Equals(
+          _currentHostFingerprint,
+          currentHostFingerprint,
+          StringComparison.OrdinalIgnoreCase))
+      {
+        return;
+      }
+
+      _currentInputSignature = currentInputSignature;
+      _currentHostFingerprint = currentHostFingerprint;
+      _reportPath = string.Empty;
+    }
+
+    public void BeginPreview(
+      string inputSignature,
+      string hostFingerprint)
+    {
+      ObserveCurrent(inputSignature, hostFingerprint);
+      _reportPath = string.Empty;
+    }
+
+    public bool TryPublish(
+      string inputSignature,
+      string hostFingerprint,
+      string reportPath)
+    {
+      if (string.IsNullOrWhiteSpace(reportPath)
+        || !string.Equals(
+          _currentInputSignature,
+          inputSignature ?? string.Empty,
+          StringComparison.Ordinal)
+        || !string.Equals(
+          _currentHostFingerprint,
+          hostFingerprint ?? string.Empty,
+          StringComparison.OrdinalIgnoreCase))
+      {
+        return false;
+      }
+
+      _reportPath = reportPath;
+      return true;
     }
   }
 

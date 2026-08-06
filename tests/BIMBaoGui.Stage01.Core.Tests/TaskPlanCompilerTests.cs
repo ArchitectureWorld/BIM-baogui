@@ -97,7 +97,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
-    public void OfficialProtocolIncompatibleContext_IsBlockedIndependentlyOfInitialization()
+    public void LegacyOfficialProtocolFlag_DoesNotBlockCurrentTaskPlan()
     {
       HBRFileContext ready = BuildContext(
         PlanningTargetRequirementPolicy.SiteModel,
@@ -132,9 +132,10 @@ namespace BIMBaoGui.Stage01.Core.Tests
 
       TaskPlanCompilationResult result = TaskPlanCompiler.Compile(incompatible);
 
-      Assert.False(result.Success);
+      Assert.True(result.Success, string.Join("; ", result.Blockers));
       Assert.DoesNotContain(result.Blockers, message => message.Contains("初始化尚未通过"));
-      Assert.Contains(result.Blockers, message => message.Contains("官方 H-IFC 参数协议兼容性尚未通过"));
+      Assert.DoesNotContain(result.Blockers, message => message.Contains("官方 H-IFC 参数协议"));
+      Assert.NotNull(result.Plan);
     }
 
     internal static HBRFileContext BuildContext(string modelFileType, IDictionary<string, bool> conditions)

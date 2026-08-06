@@ -250,7 +250,17 @@ def test_revit_host_forwards_current_and_legacy_callback_failures():
     ):
         assert token in text
     assert "return EnqueueAction(uiAction, null, out error);" in compact
-    assert text.count("InvokeUiAction(") >= 5
+    assert text.count("InvokeUiAction(") >= 3
+    for gate_token in (
+        "RevitHostCallbackExecutionGate",
+        "TryStartCurrentBusinessCallback",
+        "TryStartCurrentFailureCallback",
+        "TryClaimLegacyFallback",
+        "RethrowStartedCallbackFailure",
+    ):
+        assert gate_token in text
+    assert "int callbackStarted = 0;" in text
+    assert "Action<UIApplication> execute" in text
 
 
 def test_revit_host_defers_document_validation_to_business_callback():
@@ -266,7 +276,10 @@ def test_revit_host_defers_document_validation_to_business_callback():
     assert "currentDocument" not in invoke_ui_action
     assert "ActiveUIDocument?.Document" not in invoke_ui_action
     assert "return EnqueueAction(uiAction, null, out error);" in compact
-    assert compact.count("uiAction, callbackFailure") >= 4
+    assert compact.count("uiAction, callbackFailure") >= 2
+    assert "new Action<Document>(_ => execute(null))" in compact
+    assert "new Action<UIApplication>(execute)" in compact
+    assert "new Action(() => execute(null))" in compact
 
 
 def test_revit_host_resolves_uiapplication_inside_failure_seam():

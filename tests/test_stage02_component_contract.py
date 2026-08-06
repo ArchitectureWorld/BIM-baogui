@@ -63,11 +63,14 @@ def test_selection_contract_has_four_distinct_modes_and_frozen_id_evidence():
     selection = read(
         "src/BIMBaoGui.Stage01/Revit/Stage02RevitSelectionService.cs"
     )
+    operation_results = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitOperationResults.cs"
+    )
     models = read("src/BIMBaoGui.Stage01/Stage02/Stage02Models.cs")
     preview = read(
         "src/BIMBaoGui.Stage01/Revit/Stage02RevitPreviewService.cs"
     )
-    combined = component + policy + selection + models + preview
+    combined = component + policy + selection + operation_results + models + preview
     for mode in (
         "ProjectInformation",
         "ExplicitIds",
@@ -80,9 +83,9 @@ def test_selection_contract_has_four_distinct_modes_and_frozen_id_evidence():
     assert "ResolveElementIds" in selection
     assert "document.GetElement(new ElementId" in selection
     assert "CreateReference" in selection
-    assert "DocumentFingerprint" in selection
-    assert "UniqueId" in selection
-    assert "RoleHint" in selection
+    assert "DocumentFingerprint" in operation_results
+    assert "UniqueId" in operation_results
+    assert "RoleHint" in operation_results
 
 
 def test_explicit_ids_is_a_first_class_preview_identity():
@@ -110,11 +113,107 @@ def test_selection_failures_preserve_the_requested_mode():
         "ExplicitIds",
         "ProjectInformation",
     ):
-        assert f"Failed(error, Stage02SelectionModes.{mode})" in text
+        assert (
+            "Stage02RevitHostFailurePolicy.ForSelection(\n"
+            f"        Stage02SelectionModes.{mode},"
+        ) in text
     empty_selection = text.index('"当前 Revit 选择集中没有元素。"')
     assert "Stage02SelectionModes.CurrentSelection" in text[
         empty_selection : empty_selection + 160
     ]
+
+
+def test_host_selection_technical_failures_use_typed_exception_wiring():
+    host = read("src/BIMBaoGui.Stage01/Revit/RevitHost.cs")
+    selection = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitSelectionService.cs"
+    )
+    results = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitOperationResults.cs"
+    )
+    component = read(
+        "src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs"
+    )
+    begin = method_body(component, "private void BeginPreview")
+
+    assert "out Exception exception" in host
+    assert "RevitHostReadOperation.Capture(read)" in host
+    assert "Stage02RevitSelectionDisposition" in results
+    for disposition in (
+        "Success",
+        "BusinessBlocked",
+        "Cancelled",
+        "TechnicalFailure",
+    ):
+        assert disposition in results
+    assert "internal Exception Exception" in results
+    for signature in (
+        "internal static Stage02RevitSelectionResult ReadCurrentSelection(\n"
+        "      HBRFileContext context,\n"
+        "      string roleHint)",
+        "internal static Stage02RevitSelectionResult PickElements(\n"
+        "      HBRFileContext context,\n"
+        "      string roleHint)",
+        "internal static Stage02RevitSelectionResult ResolveElementIds(",
+        "internal static Stage02RevitSelectionResult SelectProjectInformation(",
+    ):
+        entry = method_body(selection, signature)
+        assert "out Exception exception" in entry
+        assert "Stage02RevitHostFailurePolicy.ForSelection(" in entry
+    host_policy = results[results.index("class Stage02RevitHostFailurePolicy") :]
+    assert "exception == null" in host_policy
+    assert "Stage02RevitSelectionResult.BusinessBlocked(" in host_policy
+    assert "Stage02RevitSelectionResult.TechnicalFailure(" in host_policy
+    assert "Stage02RevitFailureReportPolicy.ForSelection(selection)" in begin
+    policy_position = begin.index(
+        "Stage02RevitFailureReportPolicy.ForSelection(selection)"
+    )
+    assert policy_position < begin.index("if (selection.Cancelled)")
+    assert "selection.Exception.Message" not in begin
+    assert ".Contains(\"" not in begin
+
+
+def test_preview_outcomes_use_executable_typed_classification_and_policy():
+    preview = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitPreviewService.cs"
+    )
+    results = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitOperationResults.cs"
+    )
+    component = read(
+        "src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs"
+    )
+    begin = method_body(component, "private void BeginPreview")
+    create = method_body(
+        preview,
+        "internal Stage02RevitPreviewResult CreatePreview",
+    )
+    core = method_body(
+        preview,
+        "private Stage02RevitPreviewResult CreatePreviewCore",
+    )
+
+    assert "Stage02RevitPreviewDisposition" in results
+    for disposition in (
+        "Success",
+        "BusinessBlocked",
+        "TechnicalFailure",
+        "NoResult",
+    ):
+        assert disposition in results
+    assert "exception is Stage02ContractException" in results
+    assert "internal static Stage02RevitPreviewResult FromException" in results
+    assert "out Exception exception" in create
+    assert "Stage02RevitHostFailurePolicy.ForPreview(" in create
+    host_policy = results[results.index("class Stage02RevitHostFailurePolicy") :]
+    assert "Stage02RevitPreviewResult.TechnicalFailure(" in host_policy
+    assert core.count("Stage02RevitPreviewResult.FromException(exception)") == 2
+    assert "Stage02RevitPreviewResult.FromException(hostException)" in core
+    assert "Stage02RevitFailureReportPolicy.ForPreview(result)" in begin
+    assert begin.index(
+        "Stage02RevitFailureReportPolicy.ForPreview(result)"
+    ) < begin.index("CompletePreview(", begin.index("_previewService.CreatePreview"))
+    assert "result == null || result.Preview == null" not in begin
 
 
 def test_preview_and_confirmation_use_two_explicit_edge_gates():
@@ -285,6 +384,170 @@ def test_write_callbacks_and_enqueue_failures_are_bound_to_attempt_tokens():
     assert "_writePending" not in text
 
 
+def test_write_failure_report_is_finalized_after_attempt_identity_decision():
+    component = read(
+        "src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs"
+    )
+    write_service = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitWriteService.cs"
+    )
+    begin = method_body(component, "private void BeginWrite")
+    callback = method_body(component, "private void CompleteWrite")
+    build_failure = method_body(
+        write_service,
+        "private Stage02RevitWriteResult BuildFailureResult",
+    )
+    request_model = write_service[
+        write_service.index("internal sealed class Stage02RevitWriteRequest") :
+        write_service.index("internal sealed class Stage02RevitWriteResult")
+    ]
+
+    assert begin.index("_writeAttemptState.BeginAttempt") < begin.index(
+        "Stage02RevitWriteRequest.FromPreview"
+    )
+    assert "InputSignature" in request_model
+    assert "AttemptToken" in request_model
+    assert "PreviewHash" in request_model
+    assert "inputSignature" in begin[begin.index("FromPreview") :]
+    assert "attemptToken" in begin[begin.index("FromPreview") :]
+
+    assert "Stage02FailureReportDraft.Capture" in build_failure
+    assert "InputSignature = _request.InputSignature" in build_failure
+    assert "AttemptToken = _request.AttemptToken" in build_failure
+    assert "PreviewHash = _request.PreviewHash" in build_failure
+    assert "Stage02FailureReportWriter.TryWrite" not in build_failure
+
+    complete_attempt = callback.index("_writeAttemptState.CompleteAttempt")
+    ignored = callback.index(
+        "Stage02PreparationWriteCompletionDisposition.Ignored"
+    )
+    finalize = callback.index("Stage02FailureReportFinalizer.TryPublish")
+    publish_path = callback.index("_failureReportState.TryPublish")
+    assert complete_attempt < ignored < finalize < publish_path
+    assert "Stage02FailureReportPublicationDisposition.DiscardedStale" in callback
+    assert "Stage02FailureReportPublicationDisposition.PublishedCurrent" in callback
+
+
+def test_write_enqueue_failure_creates_and_publishes_typed_report():
+    component = read(
+        "src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs"
+    )
+    operation_results = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitOperationResults.cs"
+    )
+    begin = method_body(component, "private void BeginWrite")
+    draft_builder = method_body(
+        component,
+        "private static Stage02FailureReportDraft BuildEnqueueFailureReportDraft",
+    )
+    catch = begin[begin.index("catch (Exception exception)") :]
+    failure = begin[begin.index("if (enqueued) return;") :]
+
+    assert "enqueueException = exception" in catch
+    assert "Stage02RevitWriteEnqueueFailurePolicy.ForFailure" in failure
+    assert "BuildEnqueueFailureReportDraft" in failure
+    assert "Stage02FailureReportFinalizer.TryPublish" in failure
+    assert "_failureReportState.TryPublish" in failure
+    assert "reportPublication.ShouldPublishCurrent" in failure
+    assert failure.index(
+        "Stage02PreparationWriteCompletionDisposition.Ignored"
+    ) < failure.index("Stage02FailureReportFinalizer.TryPublish")
+    assert "STAGE02_WRITE_ENQUEUE_EXCEPTION" in operation_results
+    assert "STAGE02_WRITE_ENQUEUE_REJECTED" in operation_results
+    assert 'OperationStage = "WRITE_ENQUEUE"' in draft_builder
+    assert "InputSignature = request.InputSignature" in draft_builder
+    assert "AttemptToken = request.AttemptToken" in draft_builder
+    assert "PreviewHash = request.PreviewHash" in draft_builder
+
+
+def test_write_post_enqueue_callback_failure_completes_once_with_full_identity():
+    write_service = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitWriteService.cs"
+    )
+    operation_results = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitOperationResults.cs"
+    )
+    enqueue = method_body(write_service, "internal bool EnqueueWrite(")
+    failure = method_body(
+        write_service,
+        "private static Stage02RevitWriteResult BuildHostCallbackFailure",
+    )
+
+    assert "Stage02PreparationCompletionGate<Stage02RevitWriteResult>" in enqueue
+    assert "RevitHost.EnqueueAction(" in enqueue
+    assert enqueue.count("completionGate.TryComplete") == 2
+    assert "Stage02RevitWriteHostCallbackFailurePolicy.ForFailure" in failure
+    assert '"WRITE_HOST_CALLBACK"' in operation_results
+    for mapping in (
+        "InputSignature = request.InputSignature",
+        "AttemptToken = request.AttemptToken",
+        "FileGuid = request.Preview.FileGuid",
+        "DocumentFingerprint = request.DocumentFingerprint",
+        "DocumentTitle = request.Preview.DocumentTitle",
+        "RulePackageId = request.Preview.RulePackageId",
+        "RulePackageVersion = request.Preview.RulePackageVersion",
+        "RulePackageSha256 = request.Preview.RulePackageSha256",
+        "PreviewHash = request.PreviewHash",
+        "UniqueIds = request.Targets",
+        "PropertyIds = request.Preview.Elements",
+        "OperationStage = decision.OperationStage",
+        "RootCauseStage = decision.OperationStage",
+        "Exception = decision.Exception",
+        "FailureReportDraft = reportDraft",
+    ):
+        assert mapping in failure
+
+
+def test_write_completion_consumer_failure_has_independent_terminal_route():
+    component = read(
+        "src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs"
+    )
+    write_service = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitWriteService.cs"
+    )
+    enqueue = method_body(write_service, "internal bool EnqueueWrite(")
+    complete = method_body(
+        write_service,
+        "internal void Complete(Stage02RevitWriteResult result)",
+    )
+    begin = method_body(component, "private void BeginWrite")
+
+    assert "consumerFailureTerminal" in enqueue
+    assert "consumerFailureRecorder" in enqueue
+    assert "consumerFailureRefresh" in enqueue
+    assert "Stage02PreparationCompletionGate<Stage02RevitWriteResult>" in enqueue
+    assert "_completed(result);" in complete
+    assert "_completionIssued" not in complete
+    assert "catch" not in complete
+    for callback in (
+        "TerminateWriteCompletionConsumerFailure",
+        "RecordWriteCompletionConsumerFailure",
+        "RefreshAfterWriteCompletionConsumerFailure",
+    ):
+        assert callback in begin
+
+    terminal = method_body(
+        component,
+        "private void TerminateWriteCompletionConsumerFailure",
+    )
+    recorder = method_body(
+        component,
+        "private void RecordWriteCompletionConsumerFailure",
+    )
+    report_builder = method_body(
+        component,
+        "private static Stage02FailureReportDraft\n"
+        "      BuildCompletionConsumerFailureReportDraft",
+    )
+    assert "_writeAttemptState.CompleteAttempt" in terminal
+    assert "_writeStatus = WriteFailed" in terminal
+    assert "_status = WriteFailed" in terminal
+    assert "ClearPreviewLocked" in terminal
+    assert "Stage02FailureReportFinalizer.TryPublish" in recorder
+    assert "STAGE02_WRITE_COMPLETION_CONSUMER_FAILED" in report_builder
+    assert 'OperationStage = "WRITE_COMPLETION_CONSUMER"' in report_builder
+
+
 def test_stale_pending_status_survives_repeated_drift_and_enqueue_failure():
     text = read("src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs")
     solve = method_body(text, "protected override void SolveInstance")
@@ -336,14 +599,120 @@ def test_write_attempt_phase_and_discarded_paths_replace_legacy_state():
         assert forbidden not in combined
 
 
-def test_last_failure_report_path_is_owned_by_attempt_state_and_not_cleared():
+def test_failure_report_path_is_owned_by_current_input_identity_state():
     text = read("src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs")
     snapshot = method_body(
         text,
         "private Stage02PreparationRuntimeSnapshot CaptureRuntimeSnapshot",
     )
-    assert "_writeAttemptState.LastFailureReportPath" in snapshot
+    assert "_failureReportState.ReportPath" in snapshot
+    assert "_writeAttemptState.LastFailureReportPath" not in snapshot
     assert "_reportPath" not in text
+
+
+def test_preview_technical_failures_publish_only_current_identity_report():
+    component = read(
+        "src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs"
+    )
+    solve = method_body(component, "protected override void SolveInstance")
+    begin = method_body(component, "private void BeginPreview")
+    failure = method_body(
+        component,
+        "private void CompleteTechnicalPreviewFailure",
+    )
+    operation_results = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitOperationResults.cs"
+    )
+    snapshot = method_body(
+        component,
+        "private Stage02PreparationRuntimeSnapshot CaptureRuntimeSnapshot",
+    )
+
+    assert "using BIMBaoGui.Stage01.Diagnostics;" in component
+    assert "_failureReportState.ObserveCurrent" in solve
+    assert "_failureReportState.BeginPreview" in begin
+    assert "Stage02FailureReportWriter.TryWrite" in failure
+    assert "Stage02FailureReportContext" in failure
+    assert "DIAG_STAGE02_PREVIEW_FAILED" in failure
+    assert "PREVIEW_SELECTION" in begin
+    assert "PREVIEW_BUILD" in begin
+    assert "STAGE02_SELECTION_SERVICE_EXCEPTION" in operation_results
+    assert "STAGE02_PREVIEW_SERVICE_EXCEPTION" in operation_results
+    assert "STAGE02_PREVIEW_NO_RESULT" in operation_results
+    assert "IsInputSignatureCurrentLocked" in failure
+    assert "_failureReportState.TryPublish" in failure
+    assert "_failureReportState.ReportPath" in snapshot
+    assert "_writeAttemptState.LastFailureReportPath" not in snapshot
+
+    cancelled = begin[begin.index("if (selection.Cancelled)") :]
+    cancelled = cancelled[: cancelled.index("if (!selection.Success)")]
+    assert "CompleteTechnicalPreviewFailure" not in cancelled
+
+    create_preview = begin.index("_previewService.CreatePreview")
+    preview_try = begin.rfind("try", 0, create_preview)
+    preview_catch = begin.index("catch (Exception exception)", create_preview)
+    assert preview_try >= 0
+    assert preview_try < create_preview < preview_catch
+
+
+def test_technical_preview_failure_has_distinct_status_from_business_blockers():
+    component = read(
+        "src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs"
+    )
+    ui = read("src/BIMBaoGui.Stage01/UI/Stage02PreparationAttributes.cs")
+    technical_failure = method_body(
+        component,
+        "private void CompleteTechnicalPreviewFailure",
+    )
+    business_failure = method_body(
+        component,
+        "private void CompletePreviewFailure(\n"
+        "      string inputSignature,\n"
+        "      string hostFingerprint,\n"
+        "      IEnumerable<string> messages)",
+    )
+    complete_preview = method_body(component, "private void CompletePreview")
+
+    assert 'PreviewTechnicalFailed = "预览技术失败"' in component
+    assert "_writeStatus = PreviewTechnicalFailed" in technical_failure
+    assert "_status = PreviewTechnicalFailed" in technical_failure
+    assert "_writeStatus = PreviewBlocked" not in technical_failure
+    assert "_status = PreviewBlocked" not in technical_failure
+    assert "_writeStatus = PreviewBlocked" in business_failure
+    assert "PreviewBlocked" in complete_preview
+    assert 'string.Equals(status, "预览技术失败"' in ui
+
+
+def test_null_selection_is_reported_before_any_result_dereference():
+    component = read(
+        "src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs"
+    )
+    operation_results = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitOperationResults.cs"
+    )
+    begin = method_body(component, "private void BeginPreview")
+    technical_failure = method_body(
+        component,
+        "private void CompleteTechnicalPreviewFailure",
+    )
+    policy = begin.index("Stage02RevitFailureReportPolicy.ForSelection")
+    cancelled = begin.index("selection.Cancelled")
+    success = begin.index("selection.Success")
+    report_branch = begin[policy:cancelled]
+
+    assert policy < cancelled < success
+    assert "selection?.Messages" in report_branch
+    assert "STAGE02_SELECTION_NO_RESULT" in operation_results
+    assert "Stage02 元素选择服务未返回结果。" in operation_results
+    assert "_previewPending = false" in technical_failure
+
+
+def test_stage02_report_output_describes_current_preview_or_write_failure():
+    component = read(
+        "src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs"
+    )
+    assert "当前输入签名的预览或写入失败报告路径；无报告时为空。" in component
+    assert "最近一次写入失败报告路径；无报告时为空。" not in component
 
 
 def test_write_status_output_preserves_backend_status_text():
@@ -368,6 +737,8 @@ def test_outputs_include_stable_element_and_property_data_tree():
     details = method_body(component, "private static GH_Structure<GH_String> BuildFieldDetails")
     assert "Stage02PreparationFieldDetailFormatter.Format" in details
     for token in (
+        '"documentFingerprint"',
+        '"documentTitle"',
         '"elementId"',
         '"uniqueId"',
         '"elementName"',
@@ -461,6 +832,24 @@ def test_card_text_exposes_identity_counts_and_all_distinct_states():
         "结果过期",
     ):
         assert state in combined
+
+
+def test_stage02_card_displays_deterministic_matched_roles():
+    component = read(
+        "src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs"
+    )
+    ui = read("src/BIMBaoGui.Stage01/UI/Stage02PreparationAttributes.cs")
+    snapshot = method_body(
+        component,
+        "internal Stage02PreparationUiSnapshot GetUiSnapshot",
+    )
+
+    assert "MatchedRoles" in component
+    assert ".Select(element => element.RoleId)" in snapshot
+    assert ".Distinct(StringComparer.Ordinal)" in snapshot
+    assert ".OrderBy(value => value, StringComparer.Ordinal)" in snapshot
+    assert '"｜角色 "' in ui
+    assert "snapshot.MatchedRoles" in ui
 
 
 def test_card_maps_each_actual_selection_mode_to_simplified_chinese():

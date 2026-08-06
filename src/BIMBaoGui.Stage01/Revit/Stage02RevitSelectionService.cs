@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
@@ -10,68 +9,6 @@ using BIMBaoGui.Stage01.Stage02;
 
 namespace BIMBaoGui.Stage01.Revit
 {
-  internal sealed class Stage02RevitSelectionItem
-  {
-    internal Stage02RevitSelectionItem(
-      Stage02ElementReference element,
-      string roleHint)
-      : this(element, roleHint, string.Empty)
-    {
-    }
-
-    internal Stage02RevitSelectionItem(
-      Stage02ElementReference element,
-      string roleHint,
-      string stage01RecordIdentity)
-    {
-      Element = element ?? throw new ArgumentNullException(nameof(element));
-      RoleHint = roleHint ?? string.Empty;
-      Stage01RecordIdentity = stage01RecordIdentity ?? string.Empty;
-    }
-
-    internal Stage02ElementReference Element { get; }
-    internal string DocumentFingerprint => Element.DocumentFingerprint;
-    internal string UniqueId => Element.UniqueId;
-    internal int ElementId => Element.ElementId;
-    internal string RoleHint { get; }
-    internal string Stage01RecordIdentity { get; }
-  }
-
-  internal sealed class Stage02RevitSelectionResult
-  {
-    internal Stage02RevitSelectionResult(
-      bool cancelled,
-      IEnumerable<Stage02RevitSelectionItem> items,
-      IEnumerable<string> messages)
-      : this(
-        Stage02SelectionModes.Legacy,
-        cancelled,
-        items,
-        messages)
-    {
-    }
-
-    internal Stage02RevitSelectionResult(
-      string selectionMode,
-      bool cancelled,
-      IEnumerable<Stage02RevitSelectionItem> items,
-      IEnumerable<string> messages)
-    {
-      SelectionMode = selectionMode ?? string.Empty;
-      Cancelled = cancelled;
-      Items = new ReadOnlyCollection<Stage02RevitSelectionItem>(
-        (items ?? Array.Empty<Stage02RevitSelectionItem>()).ToArray());
-      Messages = new ReadOnlyCollection<string>(
-        (messages ?? Array.Empty<string>()).ToArray());
-    }
-
-    internal bool Cancelled { get; }
-    internal string SelectionMode { get; }
-    internal IReadOnlyList<Stage02RevitSelectionItem> Items { get; }
-    internal IReadOnlyList<string> Messages { get; }
-    internal bool Success => !Cancelled && Messages.Count == 0;
-  }
-
   internal static class Stage02RevitSelectionService
   {
     internal static Stage02RevitSelectionResult ReadCurrentSelection(
@@ -87,11 +24,15 @@ namespace BIMBaoGui.Stage01.Revit
       if (RevitHost.RunReadInHostContext(
         () => ReadCurrentSelectionCore(context, roleHint),
         out Stage02RevitSelectionResult result,
-        out string error))
+        out string error,
+        out Exception exception))
       {
         return result;
       }
-      return Failed(error, Stage02SelectionModes.CurrentSelection);
+      return Stage02RevitHostFailurePolicy.ForSelection(
+        Stage02SelectionModes.CurrentSelection,
+        error,
+        exception);
     }
 
     internal static Stage02RevitSelectionResult PickElements(
@@ -107,11 +48,15 @@ namespace BIMBaoGui.Stage01.Revit
       if (RevitHost.RunReadInHostContext(
         () => PickElementsCore(context, roleHint),
         out Stage02RevitSelectionResult result,
-        out string error))
+        out string error,
+        out Exception exception))
       {
         return result;
       }
-      return Failed(error, Stage02SelectionModes.ExplicitPick);
+      return Stage02RevitHostFailurePolicy.ForSelection(
+        Stage02SelectionModes.ExplicitPick,
+        error,
+        exception);
     }
 
     internal static Stage02RevitSelectionResult ResolveElementIds(
@@ -126,11 +71,15 @@ namespace BIMBaoGui.Stage01.Revit
       if (RevitHost.RunReadInHostContext(
         () => ResolveElementIdsCore(context, frozenIds, roleHint),
         out Stage02RevitSelectionResult result,
-        out string error))
+        out string error,
+        out Exception exception))
       {
         return result;
       }
-      return Failed(error, Stage02SelectionModes.ExplicitIds);
+      return Stage02RevitHostFailurePolicy.ForSelection(
+        Stage02SelectionModes.ExplicitIds,
+        error,
+        exception);
     }
 
     internal static Stage02RevitSelectionResult SelectProjectInformation(
@@ -140,19 +89,30 @@ namespace BIMBaoGui.Stage01.Revit
       if (RevitHost.RunReadInHostContext(
         () => SelectProjectInformationCore(context, roleHint),
         out Stage02RevitSelectionResult result,
-        out string error))
+        out string error,
+        out Exception exception))
       {
         return result;
       }
-      return Failed(error, Stage02SelectionModes.ProjectInformation);
+      return Stage02RevitHostFailurePolicy.ForSelection(
+        Stage02SelectionModes.ProjectInformation,
+        error,
+        exception);
     }
 
     private static Stage02RevitSelectionResult ReadCurrentSelectionCore(
       HBRFileContext context,
       string roleHint)
     {
-      RequireHost(out UIApplication uiApplication, out UIDocument uiDocument,
-        out Document document);
+      if (!TryRequireHost(
+        Stage02SelectionModes.CurrentSelection,
+        out UIApplication uiApplication,
+        out UIDocument uiDocument,
+        out Document document,
+        out Stage02RevitSelectionResult hostFailure))
+      {
+        return hostFailure;
+      }
       IReadOnlyList<string> blockers = ValidateDocument(
         context,
         uiApplication,
@@ -182,8 +142,15 @@ namespace BIMBaoGui.Stage01.Revit
       HBRFileContext context,
       string roleHint)
     {
-      RequireHost(out UIApplication uiApplication, out UIDocument uiDocument,
-        out Document document);
+      if (!TryRequireHost(
+        Stage02SelectionModes.ExplicitPick,
+        out UIApplication uiApplication,
+        out UIDocument uiDocument,
+        out Document document,
+        out Stage02RevitSelectionResult hostFailure))
+      {
+        return hostFailure;
+      }
       IReadOnlyList<string> blockers = ValidateDocument(
         context,
         uiApplication,
@@ -220,7 +187,15 @@ namespace BIMBaoGui.Stage01.Revit
       IEnumerable<int> elementIds,
       string roleHint)
     {
-      RequireHost(out UIApplication uiApplication, out _, out Document document);
+      if (!TryRequireHost(
+        Stage02SelectionModes.ExplicitIds,
+        out UIApplication uiApplication,
+        out _,
+        out Document document,
+        out Stage02RevitSelectionResult hostFailure))
+      {
+        return hostFailure;
+      }
       IReadOnlyList<string> blockers = ValidateDocument(
         context,
         uiApplication,
@@ -270,7 +245,15 @@ namespace BIMBaoGui.Stage01.Revit
       HBRFileContext context,
       string roleHint)
     {
-      RequireHost(out UIApplication uiApplication, out _, out Document document);
+      if (!TryRequireHost(
+        Stage02SelectionModes.ProjectInformation,
+        out UIApplication uiApplication,
+        out _,
+        out Document document,
+        out Stage02RevitSelectionResult hostFailure))
+      {
+        return hostFailure;
+      }
       IReadOnlyList<string> blockers = ValidateDocument(
         context,
         uiApplication,
@@ -424,19 +407,28 @@ namespace BIMBaoGui.Stage01.Revit
       return RevitDocumentIdentityService.Validate(context, identity);
     }
 
-    private static void RequireHost(
+    private static bool TryRequireHost(
+      string selectionMode,
       out UIApplication uiApplication,
       out UIDocument uiDocument,
-      out Document document)
+      out Document document,
+      out Stage02RevitSelectionResult failure)
     {
-      if (!RevitHost.TryGetContext(
+      if (RevitHost.TryGetContext(
         out uiApplication,
         out uiDocument,
         out document,
-        out string error))
+        out string error,
+        out Exception exception))
       {
-        throw new InvalidOperationException(error);
+        failure = null;
+        return true;
       }
+      failure = Stage02RevitHostFailurePolicy.ForSelection(
+        selectionMode,
+        error,
+        exception);
+      return false;
     }
 
     private static bool IsProjectInformationRole(string roleHint)

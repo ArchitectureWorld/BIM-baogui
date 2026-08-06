@@ -102,7 +102,14 @@ def test_stage01_projection_is_registry_driven_not_ten_field_hardcoding():
     assert "TryResolveStage01FieldKey" in projection
     assert "payload.organizations" in projection
     assert "Stage01OfficialCompatibilityPolicy.Evaluate" in projection
-    assert "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT" in compatibility
+    assert "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT" not in compatibility
+
+
+def test_mapping_readme_marks_official_plugin_route_as_superseded_history():
+    mapping_readme = read("specs/hifc-mapping/v1/README.md")
+    assert "历史证据" in mapping_readme
+    assert "已被 2026-08-02 三阶段设计替代" in mapping_readme
+    assert "2026-08-02-hbr-three-stage-rule-database-design.md" in mapping_readme
 
 
 def test_non_project_properties_never_default_to_project_information():
@@ -113,20 +120,36 @@ def test_non_project_properties_never_default_to_project_information():
     assert "留空仅适用于 IfcProject/IfcBuilding" in component
 
 
-def test_active_plan_requires_official_export_and_checker_roundtrip():
-    design = read(
-        "docs/superpowers/specs/2026-08-01-official-plugin-compatible-write-design.md"
-    )
-    plan = read(
-        "docs/superpowers/plans/2026-08-01-official-plugin-compatible-write.md"
-    )
-    review = read(
-        "docs/reviews/2026-08-01-official-plugin-write-deep-review.md"
-    )
-    for text in (design, plan, review):
-        assert "官方插件导出" in text
-        assert "检查软件" in text
-        assert "Golden RVT" in text
-        assert "Golden IFC" in text
-    assert "不以 Revit 参数回读作为最终兼容性结论" in design
-    assert "禁止将 POST_EXPORT_ENRICH 作为当前产品路径" in design
+def test_current_release_docs_use_standard_ifc4_then_hifc_post_processing():
+    readme = read("README.md")
+    checklist = read("docs/revit2020-v090-acceptance-checklist.md")
+
+    for text in (readme, checklist):
+        assert "Autodesk Revit 标准 IFC4" in text
+        assert "-RAW.ifc" in text
+        assert "-HIFC-MVD.ifc" in text
+        assert "-fields.json" in text
+        assert "Strict" in text
+        assert "Force" in text
+
+    assert "Strict 遇到任何活动业务阻断时只输出 fields JSON" in readme
+    assert "Force 必须提供非空原因" in readme
+    assert "只绕过业务阻断" in readme
+    assert "技术致命错误永不绕过" in readme
+    assert "RAW 不改写" in readme
+    assert "RAW IFC SHA-256" in checklist
+
+
+def test_current_release_docs_do_not_publish_legacy_export_as_current_flow():
+    readme = read("README.md")
+    checklist = read("docs/revit2020-v090-acceptance-checklist.md")
+    current_docs = readme + "\n" + checklist
+
+    for obsolete in (
+        "03 官方 H-IFC 属性写入",
+        "04 MVD IFC 规范化",
+        "Stage 04",
+        "官方 H-IFC 导出新",
+        "禁止将 POST_EXPORT_ENRICH 作为当前产品路径",
+    ):
+        assert obsolete not in current_docs

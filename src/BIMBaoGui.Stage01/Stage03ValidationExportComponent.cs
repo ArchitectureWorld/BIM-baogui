@@ -31,7 +31,9 @@ namespace BIMBaoGui.Stage01
       IReadOnlyList<Stage03FieldDetail> fieldDetails,
       IReadOnlyList<string> blockers,
       int passedFields,
-      int blockedFields)
+      int blockedFields,
+      bool forcedWithBusinessDefects,
+      int businessBlockerCount)
     {
       Mode = mode;
       Pending = pending;
@@ -45,6 +47,8 @@ namespace BIMBaoGui.Stage01
       Blockers = blockers ?? Array.Empty<string>();
       PassedFields = passedFields;
       BlockedFields = blockedFields;
+      ForcedWithBusinessDefects = forcedWithBusinessDefects;
+      BusinessBlockerCount = businessBlockerCount;
     }
 
     internal Stage03GateMode Mode { get; }
@@ -60,6 +64,8 @@ namespace BIMBaoGui.Stage01
     internal int TotalFields => FieldDetails.Count;
     internal int PassedFields { get; }
     internal int BlockedFields { get; }
+    internal bool ForcedWithBusinessDefects { get; }
+    internal int BusinessBlockerCount { get; }
   }
 
   public sealed class Stage03ValidationExportComponent : GH_Component
@@ -157,7 +163,7 @@ namespace BIMBaoGui.Stage01
       pManager.AddTextParameter(
         "全部阻断",
         "Blockers",
-        "业务阻断、技术致命码、诊断和消息的稳定完整列表。",
+        "输入检查失败、业务阻断、技术致命码和阻断级诊断；每项均为稳定 JSON。",
         GH_ParamAccess.list);
       pManager.AddTextParameter(
         "RAW IFC",
@@ -225,9 +231,7 @@ namespace BIMBaoGui.Stage01
             _hasObservedSignature
               ? "输入已变化｜等待重新执行"
               : "等待执行",
-            _hasObservedSignature
-              ? new[] { "输入签名已变化，旧 UI 结果已失效。" }
-              : Array.Empty<string>());
+            Array.Empty<string>());
           _hasObservedSignature = true;
         }
 
@@ -247,21 +251,24 @@ namespace BIMBaoGui.Stage01
             out string preflightError))
           {
             _status = "输入阻断";
-            _blockers = Freeze(new[] { "输入阻断|" + preflightError });
+            _blockers = Stage03FieldDetailFormatter.FormatComponentFailure(
+              "COMPONENT_PREFLIGHT",
+              "COMPONENT_PREFLIGHT",
+              preflightError);
           }
           else if (!_state.TryBegin(signature, out token, out string startError))
           {
             _status = "输入阻断";
-            _blockers = Freeze(new[] { "输入阻断|" + startError });
+            _blockers = Stage03FieldDetailFormatter.FormatComponentFailure(
+              "COMPONENT_PREFLIGHT",
+              "COMPONENT_PREFLIGHT",
+              startError);
           }
           else
           {
             _currentPendingGeneration = token.Generation;
             _status = "执行中";
-            _blockers = Freeze(new[]
-            {
-              "消息|Stage03 请求已提交；Revit 扫描与导出只在 host callback 中执行。"
-            });
+            _blockers = Array.Empty<string>();
             start = true;
           }
         }
@@ -310,15 +317,13 @@ namespace BIMBaoGui.Stage01
           {
             ClearPublishedState(
               "Stage03 失败",
-              new[]
-              {
-                "技术致命|" + Stage03TechnicalFatalCodes.InvalidIfc,
-                "诊断|" + Stage03TechnicalFatalCodes.InvalidIfc
-                  + "|COMPONENT|ERROR|"
-                  + (failure == null
-                    ? "Stage03 workflow 未返回结果。"
-                    : failure.Message)
-              });
+              Stage03FieldDetailFormatter.FormatComponentFailure(
+                Stage03TechnicalFatalCodes.InvalidIfc,
+                "COMPONENT",
+                failure == null
+                  ? "Stage03 workflow 未返回结果。"
+                  : failure.Message,
+                new[] { Stage03TechnicalFatalCodes.InvalidIfc }));
           }
         }
       }
@@ -332,8 +337,7 @@ namespace BIMBaoGui.Stage01
       _blockers = Stage03FieldDetailFormatter.FormatAllBlockers(
         completed.GateDecision,
         completed.TechnicalFatalCodes,
-        completed.Diagnostics,
-        completed.Messages);
+        completed.Diagnostics);
       _status = completed.Status;
     }
 
@@ -358,6 +362,12 @@ namespace BIMBaoGui.Stage01
         field.Status == Stage03FieldStatus.Pass
         || field.Status == Stage03FieldStatus.NotApplicable);
       int blocked = fields.Count(field => field.IsBusinessBlocker);
+      int businessBlockerCount =
+        _result?.GateDecision?.BusinessBlockers?.Count ?? 0;
+      bool forcedWithBusinessDefects =
+        Stage03ComponentPresentationPolicy.IsForcedWithBusinessDefects(
+          _result != null && _result.Forced,
+          businessBlockerCount);
       return new Stage03ComponentViewState(
         _mode,
         pending,
@@ -370,7 +380,9 @@ namespace BIMBaoGui.Stage01
         Freeze(_fieldDetails),
         Freeze(_blockers),
         passed,
-        blocked);
+        blocked,
+        forcedWithBusinessDefects,
+        businessBlockerCount);
     }
 
     private static bool TryCreateRequest(

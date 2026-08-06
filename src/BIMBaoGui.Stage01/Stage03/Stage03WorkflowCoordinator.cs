@@ -329,6 +329,30 @@ namespace BIMBaoGui.Stage01.Stage03
           failureStage = "post-report-blocked-paths";
           EnsureAbsent(paths.RawIfc, failureCode, failureStage);
           EnsureAbsent(paths.FinalIfc, failureCode, failureStage);
+          if (technicalCodes.Count > 0)
+          {
+            string technicalCode = technicalCodes[0];
+            return CreateFailureResult(
+              request,
+              input,
+              paths,
+              scan,
+              gate,
+              carriers,
+              fields,
+              diagnostics,
+              technicalCodes,
+              startedUtc,
+              rawHash,
+              finalHash,
+              fieldReportPath,
+              fieldReportHash,
+              Failure(
+                technicalCode,
+                "export-gate",
+                new InvalidOperationException(
+                  "Stage03 技术门禁阻断：" + technicalCode)));
+          }
           bool strictBusinessBlock = input.Mode == Stage03GateMode.Strict
             && technicalCodes.Count == 0
             && gate.BusinessBlockers.Count > 0;
@@ -1206,7 +1230,8 @@ namespace BIMBaoGui.Stage01.Stage03
         || result.RawInspection == null
         || result.FinalInspection == null
         || result.Diagnostics == null
-        || result.Diagnostics.Any(IsFatalTranslationDiagnostic))
+        || result.Diagnostics.Any(
+          Stage03BlockingDiagnosticPolicy.IsBlocking))
       {
         Exception failureException = result != null
             && !result.Success
@@ -1357,41 +1382,6 @@ namespace BIMBaoGui.Stage01.Stage03
         ? IfcStepSyntax.EncodeString(decision.NormalizedValue)
         : decision.NormalizedValue;
       return IfcStepSyntax.FormatTypedValue(type, inner);
-    }
-
-    private static bool IsFatalTranslationDiagnostic(
-      Stage03Diagnostic diagnostic)
-    {
-      if (diagnostic == null) return true;
-      string severity = (diagnostic.Severity ?? string.Empty).Trim();
-      if (string.Equals(severity, "ERROR", StringComparison.OrdinalIgnoreCase)
-        || string.Equals(severity, "FATAL", StringComparison.OrdinalIgnoreCase)
-        || string.Equals(
-          severity,
-          "CRITICAL",
-          StringComparison.OrdinalIgnoreCase))
-      {
-        return true;
-      }
-
-      string code = (diagnostic.Code ?? string.Empty).Trim();
-      return string.Equals(code, Stage03TechnicalFatalCodes.WrongDocument,
-          StringComparison.Ordinal)
-        || string.Equals(code, Stage03TechnicalFatalCodes.UnsupportedRevit,
-          StringComparison.Ordinal)
-        || string.Equals(code, Stage03TechnicalFatalCodes.DocumentUnavailable,
-          StringComparison.Ordinal)
-        || string.Equals(code, Stage03TechnicalFatalCodes.OutputExists,
-          StringComparison.Ordinal)
-        || string.Equals(code, Stage03TechnicalFatalCodes.ExportFailed,
-          StringComparison.Ordinal)
-        || string.Equals(code, Stage03TechnicalFatalCodes.InvalidIfc,
-          StringComparison.Ordinal)
-        || string.Equals(code, Stage03TechnicalFatalCodes.ReportFailed,
-          StringComparison.Ordinal)
-        || string.Equals(code, Stage03TechnicalFatalCodes.InvalidFieldStatus,
-          StringComparison.Ordinal)
-        || code.IndexOf("FATAL", StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
     private static bool SameScanOwnedField(

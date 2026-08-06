@@ -13,22 +13,6 @@ using BIMBaoGui.Stage01.Stage02;
 
 namespace BIMBaoGui.Stage01.Revit
 {
-  internal sealed class Stage02RevitPreviewResult
-  {
-    internal Stage02RevitPreviewResult(
-      Stage02Preview preview,
-      IEnumerable<Stage02Blocker> blockers)
-    {
-      Preview = preview;
-      Blockers = new ReadOnlyCollection<Stage02Blocker>(
-        (blockers ?? Array.Empty<Stage02Blocker>()).ToArray());
-    }
-
-    internal Stage02Preview Preview { get; }
-    internal IReadOnlyList<Stage02Blocker> Blockers { get; }
-    internal bool Success => Preview != null && Blockers.Count == 0;
-  }
-
   internal sealed class Stage02RevitPreviewService
   {
     private readonly HbrRuleDatabase _database;
@@ -51,11 +35,12 @@ namespace BIMBaoGui.Stage01.Revit
       if (RevitHost.RunReadInHostContext(
         () => CreatePreviewCore(context, selection, nonce),
         out Stage02RevitPreviewResult result,
-        out string error))
+        out string error,
+        out Exception exception))
       {
         return result;
       }
-      return Blocked("REVIT_PREVIEW_FAILED", error);
+      return Stage02RevitHostFailurePolicy.ForPreview(error, exception);
     }
 
     internal Stage02ConfirmationSnapshot BuildLiveConfirmationSnapshot(
@@ -248,9 +233,14 @@ namespace BIMBaoGui.Stage01.Revit
         out UIApplication uiApplication,
         out _,
         out Document document,
-        out string hostError))
+        out string hostError,
+        out Exception hostException))
       {
-        return Blocked("REVIT_HOST_UNAVAILABLE", hostError);
+        return hostException == null
+          ? Stage02RevitPreviewResult.BusinessBlocked(
+            "REVIT_HOST_UNAVAILABLE",
+            hostError)
+          : Stage02RevitPreviewResult.FromException(hostException);
       }
       try
       {
@@ -266,11 +256,11 @@ namespace BIMBaoGui.Stage01.Revit
       }
       catch (Stage02ContractException exception)
       {
-        return Blocked(exception.Code, exception.Message);
+        return Stage02RevitPreviewResult.FromException(exception);
       }
       catch (Exception exception)
       {
-        return Blocked("REVIT_PREVIEW_FAILED", exception.Message);
+        return Stage02RevitPreviewResult.FromException(exception);
       }
     }
 
@@ -826,15 +816,6 @@ namespace BIMBaoGui.Stage01.Revit
           selectionMode,
           Stage02SelectionModes.ProjectInformation,
           StringComparison.Ordinal);
-    }
-
-    private static Stage02RevitPreviewResult Blocked(
-      string code,
-      string message)
-    {
-      return new Stage02RevitPreviewResult(
-        null,
-        new[] { new Stage02Blocker(code, message) });
     }
 
     private static Stage02Blocker[] CollectOperationBlockers(

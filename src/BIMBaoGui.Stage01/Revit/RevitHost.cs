@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
+using System.Threading;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 
@@ -14,10 +16,26 @@ namespace BIMBaoGui.Stage01.Revit
 
     public static bool TryGetContext(out UIApplication uiapp, out UIDocument uidoc, out Document document, out string error)
     {
+      return TryGetContext(
+        out uiapp,
+        out uidoc,
+        out document,
+        out error,
+        out _);
+    }
+
+    public static bool TryGetContext(
+      out UIApplication uiapp,
+      out UIDocument uidoc,
+      out Document document,
+      out string error,
+      out Exception exception)
+    {
       uiapp = null;
       uidoc = null;
       document = null;
       error = string.Empty;
+      exception = null;
 
       Type hostType = ResolveRhinoInsideType(RevitTypeName);
       if (hostType == null)
@@ -39,9 +57,10 @@ namespace BIMBaoGui.Stage01.Revit
 
         return true;
       }
-      catch (Exception exception)
+      catch (Exception caught)
       {
-        error = "读取 Rhino.Inside.Revit 当前文档失败：" + Unwrap(exception).Message;
+        exception = Unwrap(caught);
+        error = "读取 Rhino.Inside.Revit 当前文档失败：" + exception.Message;
         return false;
       }
     }
@@ -54,39 +73,67 @@ namespace BIMBaoGui.Stage01.Revit
     /// </summary>
     public static bool RunReadInHostContext<T>(Func<T> read, out T result, out string error)
     {
+      return RunReadInHostContext(
+        read,
+        out result,
+        out error,
+        out _);
+    }
+
+    public static bool RunReadInHostContext<T>(
+      Func<T> read,
+      out T result,
+      out string error,
+      out Exception exception)
+    {
       result = default(T);
       error = string.Empty;
+      exception = null;
       if (read == null)
       {
         error = "读取操作不能为空。";
+        exception = new ArgumentNullException(nameof(read));
         return false;
       }
 
-      T capturedResult = default(T);
-      Exception capturedException = null;
-      Action hostAction = () =>
-      {
-        try { capturedResult = read(); }
-        catch (Exception exception) { capturedException = exception; }
-      };
+      RevitHostReadCapture<T> capture = null;
+      Action hostAction = () => capture = RevitHostReadOperation.Capture(read);
 
-      if (!TryInvokeCurrentHostContext(hostAction, out string invokeError))
+      if (!TryInvokeCurrentHostContext(
+        hostAction,
+        out string invokeError,
+        out Exception invokeException))
       {
-        if (!TryGetContext(out _, out _, out _, out string contextError))
+        if (!TryGetContext(
+          out _,
+          out _,
+          out _,
+          out string contextError,
+          out Exception contextException))
         {
           error = string.IsNullOrWhiteSpace(invokeError) ? contextError : invokeError + " " + contextError;
+          exception = contextException
+            ?? invokeException;
           return false;
         }
         hostAction();
       }
 
-      if (capturedException != null)
+      if (capture == null)
       {
-        error = "Revit 读取操作失败：" + Unwrap(capturedException).Message;
+        error = "Revit 读取操作失败：宿主回调未执行读取操作。";
+        exception = new InvalidOperationException(error);
         return false;
       }
 
-      result = capturedResult;
+      if (!capture.Success)
+      {
+        exception = Unwrap(capture.Exception);
+        error = "Revit 读取操作失败：" + exception.Message;
+        return false;
+      }
+
+      result = capture.Result;
       return true;
     }
 
@@ -120,17 +167,45 @@ namespace BIMBaoGui.Stage01.Revit
         return false;
       }
 
+      var callbackGate = new RevitHostCallbackExecutionGate();
+      Action<UIApplication> currentUiAction = uiApplication =>
+      {
+        if (!callbackGate.TryStartCurrentBusinessCallback()) return;
+        uiAction(uiApplication);
+      };
+      Action<Exception> currentCallbackFailure = exception =>
+      {
+        if (callbackGate.IsLegacyFallbackClaimed) return;
+        if (callbackFailure == null) throw exception;
+        if (!callbackGate.TryStartCurrentFailureCallback()) return;
+        callbackFailure(exception);
+      };
       Action hostAction = () =>
       {
         InvokeUiAction(
           hostType,
           null,
-          uiAction,
-          callbackFailure);
+          currentUiAction,
+          currentCallbackFailure);
       };
 
-      if (TryInvokeCurrentHostContext(hostAction, out string currentError))
+      if (TryInvokeCurrentHostContext(
+        hostAction,
+        out string currentError,
+        out Exception currentException))
+      {
         return true;
+      }
+
+      if (callbackGate.HasCurrentCallbackStarted)
+        RethrowStartedCallbackFailure(currentException, currentError);
+
+      if (!callbackGate.TryClaimLegacyFallback())
+      {
+        if (callbackGate.HasCurrentCallbackStarted)
+          RethrowStartedCallbackFailure(currentException, currentError);
+        return true;
+      }
 
       if (TryInvokeLegacyQueue(
         hostType,
@@ -145,9 +220,30 @@ namespace BIMBaoGui.Stage01.Revit
       return false;
     }
 
+    private static void RethrowStartedCallbackFailure(
+      Exception exception,
+      string error)
+    {
+      if (exception != null)
+        ExceptionDispatchInfo.Capture(exception).Throw();
+      throw new InvalidOperationException(
+        string.IsNullOrWhiteSpace(error)
+          ? "Revit 业务回调已开始，但当前接口执行失败。"
+          : error);
+    }
+
     private static bool TryInvokeCurrentHostContext(Action action, out string error)
     {
+      return TryInvokeCurrentHostContext(action, out error, out _);
+    }
+
+    private static bool TryInvokeCurrentHostContext(
+      Action action,
+      out string error,
+      out Exception exception)
+    {
       error = string.Empty;
+      exception = null;
       Type rhinocerosType = ResolveRhinoInsideType(RhinocerosTypeName);
       if (rhinocerosType == null)
       {
@@ -176,9 +272,10 @@ namespace BIMBaoGui.Stage01.Revit
         invoke.Invoke(null, new object[] { action });
         return true;
       }
-      catch (Exception exception)
+      catch (Exception caught)
       {
-        error = Unwrap(exception).Message;
+        exception = Unwrap(caught);
+        error = exception.Message;
         return false;
       }
     }
@@ -190,6 +287,17 @@ namespace BIMBaoGui.Stage01.Revit
       out string error)
     {
       error = string.Empty;
+      int callbackStarted = 0;
+      Action<UIApplication> execute = uiApplication =>
+      {
+        if (Interlocked.CompareExchange(ref callbackStarted, 1, 0) != 0)
+          return;
+        InvokeUiAction(
+          hostType,
+          uiApplication,
+          uiAction,
+          callbackFailure);
+      };
       MethodInfo[] candidates = hostType
         .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
         .Where(method => string.Equals(method.Name, "EnqueueAction", StringComparison.Ordinal))
@@ -203,30 +311,15 @@ namespace BIMBaoGui.Stage01.Revit
 
         if (parameterType == typeof(Action<Document>))
         {
-          callback = new Action<Document>(_ =>
-            InvokeUiAction(
-              hostType,
-              null,
-              uiAction,
-              callbackFailure));
+          callback = new Action<Document>(_ => execute(null));
         }
         else if (parameterType == typeof(Action<UIApplication>))
         {
-          callback = new Action<UIApplication>(uiApplication =>
-            InvokeUiAction(
-              hostType,
-              uiApplication,
-              uiAction,
-              callbackFailure));
+          callback = new Action<UIApplication>(execute);
         }
         else if (parameterType == typeof(Action))
         {
-          callback = new Action(() =>
-            InvokeUiAction(
-              hostType,
-              null,
-              uiAction,
-              callbackFailure));
+          callback = new Action(() => execute(null));
         }
 
         if (callback == null) continue;
@@ -236,9 +329,12 @@ namespace BIMBaoGui.Stage01.Revit
           candidate.Invoke(null, new[] { callback });
           return true;
         }
-        catch (Exception exception)
+        catch (Exception caught)
         {
-          error = Unwrap(exception).Message;
+          Exception exception = Unwrap(caught);
+          if (Volatile.Read(ref callbackStarted) != 0)
+            ExceptionDispatchInfo.Capture(exception).Throw();
+          error = exception.Message;
         }
       }
 

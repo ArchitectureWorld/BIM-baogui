@@ -22,7 +22,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
-    public void Evaluate_NonEmptyOrganizationValueReturnsDeterministicBlocker()
+    public void Evaluate_NonEmptyOrganizationValueDoesNotBlockThreeStageWorkflow()
     {
       Stage01OfficialCompatibilityDecision decision =
         Stage01OfficialCompatibilityPolicy.Evaluate(
@@ -32,13 +32,8 @@ namespace BIMBaoGui.Stage01.Core.Tests
             new Dictionary<string, string> { ["code"] = "ORG-001" }
           });
 
-      Assert.False(decision.IsCompatible);
-      Assert.Equal(
-        new[]
-        {
-          "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT：IfcOrganization 的官方 Revit 写入/导出协议尚未确认；组织数据已保存在 HBR 初始化载荷中，但不伪装成 IfcProject 参数。"
-        },
-        decision.Blockers);
+      Assert.True(decision.IsCompatible);
+      Assert.Empty(decision.Blockers);
     }
   }
 }

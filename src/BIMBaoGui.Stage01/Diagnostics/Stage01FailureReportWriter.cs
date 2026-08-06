@@ -189,7 +189,8 @@ namespace BIMBaoGui.Stage01.Diagnostics
           File.Move(temporaryPath, path);
           return path;
         }
-        catch (IOException) when (File.Exists(path))
+        catch (IOException exception) when (
+          AtomicJsonReportWriter.IsCreateNewCollision(exception))
         {
         }
         timestamp = timestamp.AddMilliseconds(1);

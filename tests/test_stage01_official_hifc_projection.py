@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -23,13 +24,12 @@ def test_stage01_projects_all_nonempty_project_fields_through_catalog():
     assert '"HIFC." + propertySet + "." + ifcProperty' in catalog
 
 
-def test_stage01_projection_preserves_but_blocks_unverified_organizations():
+def test_stage01_projection_preserves_organizations_without_current_blocker():
     service = read("src/BIMBaoGui.Stage01/Revit/Stage01OfficialHifcProjectionService.cs")
     policy = read("src/BIMBaoGui.Stage01/Hifc/Stage01OfficialCompatibilityPolicy.cs")
     assert "payload.organizations" in service
     assert "Stage01OfficialCompatibilityPolicy.Evaluate" in service
-    assert "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT" in policy
-    assert "不伪装成 IfcProject 参数" in policy
+    assert "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT" not in policy
 
 
 def test_stage01_projection_delegates_dual_write_and_revit_readback():
@@ -62,12 +62,30 @@ def test_stage01_projection_delegates_dual_write_and_revit_readback():
 def test_stage01_projection_runs_explicitly_inside_initialization_transaction():
     storage = read("src/BIMBaoGui.Stage01/Revit/Stage01Storage.cs")
     revit_service = read("src/BIMBaoGui.Stage01/Revit/Stage01RevitService.cs")
+    projection_service = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage01OfficialHifcProjectionService.cs"
+    )
     assert "Stage01OfficialHifcProjectionService" not in storage
     assert "Stage01Storage.Write" in revit_service
     assert "Stage01OfficialHifcProjectionService.WriteAndVerify" in revit_service
     assert "using (var transaction = new Transaction" in revit_service
     assert "group.RollBack()" in revit_service
-    assert "待官方重新导出验收" in revit_service
+    public_stage01 = revit_service + "\n" + projection_service
+    assert "可进入 02 构件与属性准备" in public_stage01
+    assert "标准 IFC4 导出与 HIFC-MVD 转译" in public_stage01
+    for obsolete in (
+        "必须使用官方 H-IFC 插件重新导出",
+        "最终仍需官方 H-IFC 插件重新导出",
+        "待官方重新导出验收",
+    ):
+        assert obsolete not in public_stage01
+
+
+def test_stage01_revit_undo_label_describes_compatibility_projection():
+    service = read("src/BIMBaoGui.Stage01/Revit/Stage01RevitService.cs")
+    assert '"写入文件初始化与兼容源参数"' in service
+    assert '"写入文件初始化与官方插件源参数"' not in service
+    assert "Stage01OfficialHifcProjectionService.WriteAndVerify" in service
 
 
 def test_parameter_binding_failures_identify_operation_and_projection():

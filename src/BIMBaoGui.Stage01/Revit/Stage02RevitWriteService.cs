@@ -34,13 +34,26 @@ namespace BIMBaoGui.Stage01.Revit
       HBRFileContext context,
       Stage02Preview preview,
       Stage02RevitSelectionResult currentSelectionEvidence,
+      string inputSignature,
+      Guid attemptToken,
       IEnumerable<Stage02RevitWriteTargetRequest> targets)
     {
       Context = context ?? throw new ArgumentNullException(nameof(context));
       Preview = preview ?? throw new ArgumentNullException(nameof(preview));
       CurrentSelectionEvidence = currentSelectionEvidence
         ?? throw new ArgumentNullException(nameof(currentSelectionEvidence));
+      if (string.IsNullOrWhiteSpace(inputSignature))
+        throw new ArgumentException(
+          "Stage02 写入请求缺少输入签名。",
+          nameof(inputSignature));
+      if (attemptToken == Guid.Empty)
+        throw new ArgumentException(
+          "Stage02 写入请求缺少尝试标识。",
+          nameof(attemptToken));
+      InputSignature = inputSignature;
+      AttemptToken = attemptToken;
       DocumentFingerprint = preview.DocumentFingerprint;
+      PreviewHash = preview.PreviewHash;
       Targets = new ReadOnlyCollection<Stage02RevitWriteTargetRequest>(
         (targets ?? Array.Empty<Stage02RevitWriteTargetRequest>()).ToArray());
     }
@@ -48,19 +61,26 @@ namespace BIMBaoGui.Stage01.Revit
     internal HBRFileContext Context { get; }
     internal Stage02Preview Preview { get; }
     internal Stage02RevitSelectionResult CurrentSelectionEvidence { get; }
+    internal string InputSignature { get; }
+    internal Guid AttemptToken { get; }
     internal string DocumentFingerprint { get; }
+    internal string PreviewHash { get; }
     internal IReadOnlyList<Stage02RevitWriteTargetRequest> Targets { get; }
 
     internal static Stage02RevitWriteRequest FromPreview(
       HBRFileContext context,
       Stage02Preview preview,
-      Stage02RevitSelectionResult currentSelectionEvidence)
+      Stage02RevitSelectionResult currentSelectionEvidence,
+      string inputSignature,
+      Guid attemptToken)
     {
       if (preview == null) throw new ArgumentNullException(nameof(preview));
       return new Stage02RevitWriteRequest(
         context,
         preview,
         currentSelectionEvidence,
+        inputSignature,
+        attemptToken,
         preview.Elements.Select(element =>
           new Stage02RevitWriteTargetRequest(
             element.Element.UniqueId,
@@ -74,6 +94,7 @@ namespace BIMBaoGui.Stage01.Revit
     internal bool RequiresNewPreview { get; set; }
     internal string Status { get; set; } = string.Empty;
     internal string ReportPath { get; set; } = string.Empty;
+    internal Stage02FailureReportDraft FailureReportDraft { get; set; }
     internal IReadOnlyList<Stage02Blocker> Blockers { get; set; } =
       Array.Empty<Stage02Blocker>();
     internal IReadOnlyList<string> Messages { get; set; } =
@@ -112,16 +133,81 @@ namespace BIMBaoGui.Stage01.Revit
     internal bool EnqueueWrite(
       Stage02RevitWriteRequest request,
       Action<Stage02RevitWriteResult> completed,
+      Action<Exception> consumerFailureTerminal,
+      Action<Exception> consumerFailureRecorder,
+      Action consumerFailureRefresh,
       out string error)
     {
       if (request == null) throw new ArgumentNullException(nameof(request));
       if (completed == null) throw new ArgumentNullException(nameof(completed));
+      var completionGate =
+        new Stage02PreparationCompletionGate<Stage02RevitWriteResult>(
+          completed,
+          consumerFailureTerminal,
+          consumerFailureRecorder,
+          consumerFailureRefresh);
       return RevitHost.EnqueueAction(
         uiApplication => ExecuteInHostContext(
           uiApplication,
           request,
-          completed),
+          result => completionGate.TryComplete(result)),
+        exception => completionGate.TryComplete(
+          BuildHostCallbackFailure(request, exception)),
         out error);
+    }
+
+    private static Stage02RevitWriteResult BuildHostCallbackFailure(
+      Stage02RevitWriteRequest request,
+      Exception exception)
+    {
+      if (request == null) throw new ArgumentNullException(nameof(request));
+      Stage02RevitWriteHostCallbackFailureDecision decision =
+        Stage02RevitWriteHostCallbackFailurePolicy.ForFailure(exception);
+      DateTimeOffset occurredUtc = DateTimeOffset.UtcNow;
+      Stage02FailureReportDraft reportDraft =
+        Stage02FailureReportDraft.Capture(
+          new Stage02FailureReportContext
+          {
+            DiagnosticCode = "DIAG_STAGE02_WRITE_FAILED",
+            ErrorCode = decision.ErrorCode,
+            DiagnosticMessage = decision.DiagnosticMessage,
+            InputSignature = request.InputSignature,
+            AttemptToken = request.AttemptToken,
+            FileGuid = request.Preview.FileGuid,
+            DocumentFingerprint = request.DocumentFingerprint,
+            DocumentTitle = request.Preview.DocumentTitle,
+            RulePackageId = request.Preview.RulePackageId,
+            RulePackageVersion = request.Preview.RulePackageVersion,
+            RulePackageSha256 = request.Preview.RulePackageSha256,
+            PreviewHash = request.PreviewHash,
+            UniqueIds = request.Targets
+              .Select(item => item.UniqueId)
+              .ToArray(),
+            PropertyIds = request.Preview.Elements
+              .SelectMany(element => element.Operations)
+              .Select(operation => operation.PropertyId)
+              .Distinct(StringComparer.Ordinal)
+              .ToArray(),
+            OperationStage = decision.OperationStage,
+            RootCauseStage = decision.OperationStage,
+            CleanupStage = string.Empty,
+            TransactionRolledBack = false,
+            GroupRolledBack = false,
+            RollbackConfirmed = false,
+            TransactionStatus = "NOT_STARTED",
+            TransactionGroupStatus = "NOT_STARTED",
+            Exception = decision.Exception,
+            OccurredUtc = occurredUtc,
+            OccurredLocal = occurredUtc.ToLocalTime()
+          });
+      return new Stage02RevitWriteResult
+      {
+        Success = false,
+        RequiresNewPreview = false,
+        Status = decision.UserMessage,
+        FailureReportDraft = reportDraft,
+        Messages = new[] { decision.UserMessage }
+      };
     }
 
     internal void ExecuteInHostContext(
@@ -337,7 +423,6 @@ namespace BIMBaoGui.Stage01.Revit
     private string _lastObservedGroupStatus = string.Empty;
     private string _transactionStatusForReport = string.Empty;
     private bool _handoffTerminalConflict;
-    private int _completionIssued;
     private int _idlingScheduled;
 
     internal Stage02RevitTransactionExecution(
@@ -475,15 +560,7 @@ namespace BIMBaoGui.Stage01.Revit
 
     internal void Complete(Stage02RevitWriteResult result)
     {
-      if (Interlocked.Exchange(ref _completionIssued, 1) != 0) return;
-      try
-      {
-        _completed(result);
-      }
-      catch
-      {
-        // Revit failure callbacks and host actions must never leak UI callback errors.
-      }
+      _completed(result);
     }
 
     public FailureProcessingResult PreprocessFailures(
@@ -1078,17 +1155,19 @@ namespace BIMBaoGui.Stage01.Revit
       string transactionGroupStatus = "")
     {
       DateTimeOffset occurredUtc = DateTimeOffset.UtcNow;
-      Stage02FailureReportWriteResult report =
-        Stage02FailureReportWriter.TryWrite(
+      Stage02FailureReportDraft reportDraft =
+        Stage02FailureReportDraft.Capture(
           new Stage02FailureReportContext
           {
+            InputSignature = _request.InputSignature,
+            AttemptToken = _request.AttemptToken,
             FileGuid = _request.Preview.FileGuid,
             DocumentFingerprint = _request.DocumentFingerprint,
             DocumentTitle = _document.Title,
             RulePackageId = _request.Preview.RulePackageId,
             RulePackageVersion = _request.Preview.RulePackageVersion,
             RulePackageSha256 = _request.Preview.RulePackageSha256,
-            PreviewHash = _request.Preview.PreviewHash,
+            PreviewHash = _request.PreviewHash,
             UniqueIds = _request.Targets
               .Select(item => item.UniqueId)
               .ToArray(),
@@ -1118,12 +1197,6 @@ namespace BIMBaoGui.Stage01.Revit
             OccurredUtc = occurredUtc,
             OccurredLocal = DateTimeOffset.Now
           });
-      string diagnostic = report.Success
-        ? "DIAG_STAGE02_WRITE_FAILED；错误报告=" + report.ReportPath
-        : "DIAG_STAGE02_WRITE_FAILED；REPORT_WRITE_FAILED；原始异常="
-          + report.OriginalExceptionSummary
-          + "；报告写入异常="
-          + report.ReportWriteErrorSummary;
       return new Stage02RevitWriteResult
       {
         Success = false,
@@ -1131,8 +1204,8 @@ namespace BIMBaoGui.Stage01.Revit
         Status = _consumed
           ? "Stage02 写入失败｜必须重新预览"
           : "Stage02 预检失败｜预览未消费",
-        ReportPath = report.ReportPath ?? string.Empty,
-        Messages = new[] { diagnostic }
+        FailureReportDraft = reportDraft,
+        Messages = new[] { "DIAG_STAGE02_WRITE_FAILED" }
       };
     }
 

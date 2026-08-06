@@ -142,8 +142,7 @@ namespace BIMBaoGui.Stage01.Context
       && !string.IsNullOrWhiteSpace(FileContextHash);
 
     public bool IsReady => IsValid
-      && InitializationPassed
-      && OfficialProtocolCompatible;
+      && InitializationPassed;
 
     internal HBRFileContext WithHash(string hash)
     {

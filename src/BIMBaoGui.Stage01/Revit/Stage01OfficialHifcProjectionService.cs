@@ -73,7 +73,7 @@ namespace BIMBaoGui.Stage01.Revit
       messages.AddRange(result.Messages);
       messages.Add(
         "Stage 01 已双写内部唯一参数与官方精确源参数；"
-        + "最终仍需官方 H-IFC 插件重新导出并由检查软件验收。" );
+        + "可进入 02 构件与属性准备，后续由 03 执行标准 IFC4 导出与 HIFC-MVD 转译。" );
       return messages;
     }
 

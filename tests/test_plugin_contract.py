@@ -46,6 +46,7 @@ def test_stage01_custom_component_and_attributes_exist():
     assert "class Stage01ComponentAttributes : GH_ComponentAttributes" in attributes
     assert "湖北BIM报规" in component
     assert "文件初始化" in component
+    assert '"湖北BIM报规｜01 文件初始化"' in component
     assert "InlineEditor" in attributes
     assert "PlanningTargetEditor" in attributes
 
@@ -73,6 +74,8 @@ def test_stage01_has_no_external_inputs_and_exposes_strong_context_output():
     assert re.search(r"RegisterInputParams\([^)]*\)\s*\{\s*\}", component, re.S)
     assert "new HBRFileContextParam()" in component
     assert "new HBRFileContextGoo(context)" in component
+    assert "供 02 构件与属性准备使用的强类型 HBR_FileContext。" in component
+    assert "供 02 模型任务与骨架分流使用" not in component
     for output in ("初始化通过", "状态", "文件上下文", "消息", "上下文JSON"):
         assert output in component
 

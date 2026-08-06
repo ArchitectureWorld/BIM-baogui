@@ -646,6 +646,20 @@ namespace BIMBaoGui.Stage01.Diagnostics
       DateTimeOffset occurredLocal,
       byte[] payload)
     {
+      return AllocateAndWrite(
+        directory,
+        occurredLocal,
+        payload,
+        Guid.NewGuid);
+    }
+
+    internal static string AllocateAndWrite(
+      string directory,
+      DateTimeOffset occurredLocal,
+      byte[] payload,
+      Func<Guid> nextGuid)
+    {
+      if (nextGuid == null) throw new ArgumentNullException(nameof(nextGuid));
       string timestamp = occurredLocal.ToString(
         "yyyyMMdd-HHmmss-fff",
         CultureInfo.InvariantCulture);
@@ -654,13 +668,14 @@ namespace BIMBaoGui.Stage01.Diagnostics
         string path = Path.Combine(
           directory,
           ReportPrefix + timestamp + "-"
-          + Guid.NewGuid().ToString("N") + ".json");
+          + nextGuid().ToString("N") + ".json");
         try
         {
           AtomicJsonReportWriter.WriteTrustedJson(path, payload);
           return path;
         }
-        catch (IOException) when (File.Exists(path))
+        catch (IOException exception) when (
+          AtomicJsonReportWriter.IsCreateNewCollision(exception))
         {
         }
       }

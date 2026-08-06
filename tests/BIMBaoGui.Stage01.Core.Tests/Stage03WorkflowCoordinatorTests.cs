@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 using BIMBaoGui.Stage01.Context;
 using BIMBaoGui.Stage01.Core;
 using BIMBaoGui.Stage01.Diagnostics;
@@ -185,10 +186,65 @@ namespace BIMBaoGui.Stage01.Core.Tests
         Assert.False(result.Success);
         Assert.False(result.AllowExport);
         Assert.False(result.Forced);
+        Assert.Equal(1, fixture.ScanCalls);
         Assert.Equal(0, fixture.ExportCalls);
         Assert.Equal(0, fixture.TranslateCalls);
+        Assert.Equal(1, fixture.FieldReportCalls);
+        Assert.Equal(0, fixture.FailureReportCalls);
+        Assert.True(File.Exists(result.FieldReportPath));
+        Assert.Empty(result.FailureReportPath);
+        Assert.Equal(result.RunId, fixture.LastFieldReportContext.RunId);
+        Assert.Single(result.Fields);
         Assert.Contains(result.Messages, message =>
           message.Contains("Force") && message.Contains("原因"));
+      }
+    }
+
+    [Fact]
+    public async Task Force_without_reason_with_clean_scan_publishes_typed_blocker()
+    {
+      using (CoordinatorFixture fixture = CoordinatorFixture.Create())
+      {
+        Stage03RunResult result = await fixture.RunAsync(
+          Stage03GateMode.Force,
+          " \t\r\n ");
+
+        Assert.False(result.Success);
+        Assert.False(result.AllowExport);
+        Assert.False(result.Forced);
+        Assert.Equal(1, fixture.ScanCalls);
+        Assert.Equal(0, fixture.ExportCalls);
+        Assert.Equal(0, fixture.TranslateCalls);
+        Assert.Equal(1, fixture.FieldReportCalls);
+        Assert.Equal(0, fixture.FailureReportCalls);
+        Assert.All(result.Fields, field =>
+        {
+          Assert.Equal(Stage03FieldStatus.Pass, field.Status);
+          Assert.Equal(Stage03FieldStatus.Pass, field.CarrierStatus);
+          Assert.Equal(Stage03FieldStatus.Pass, field.ParameterStatus);
+          Assert.Equal(Stage03FieldStatus.Pass, field.RevitStatus);
+        });
+        Assert.Empty(result.TechnicalFatalCodes);
+        Assert.DoesNotContain(
+          result.Diagnostics,
+          Stage03BlockingDiagnosticPolicy.IsBlocking);
+        Stage03BusinessBlocker blocker = Assert.Single(
+          result.GateDecision.BusinessBlockers);
+        Assert.Equal("FORCE_REASON_REQUIRED", blocker.StatusCode);
+        Assert.Equal(
+          "FORCE_REASON_REQUIRED",
+          Assert.Single(fixture.LastFieldReportContext
+            .GateDecision.BusinessBlockers).StatusCode);
+
+        string encoded = Assert.Single(
+          Stage03FieldDetailFormatter.FormatAllBlockers(
+            result.GateDecision,
+            result.TechnicalFatalCodes,
+            result.Diagnostics));
+        var record = Assert.IsType<Dictionary<string, object>>(
+          new JavaScriptSerializer().DeserializeObject(encoded));
+        Assert.Equal("业务阻断", record["kind"]);
+        Assert.Equal("FORCE_REASON_REQUIRED", record["status"]);
       }
     }
 
@@ -338,6 +394,15 @@ namespace BIMBaoGui.Stage01.Core.Tests
         Assert.False(result.AllowExport);
         Assert.Equal(0, fixture.ExportCalls);
         Assert.Equal(0, fixture.TranslateCalls);
+        Assert.Equal(1, fixture.FieldReportCalls);
+        Assert.True(File.Exists(result.FieldReportPath));
+        Assert.Equal(1, fixture.FailureReportCalls);
+        Assert.True(File.Exists(result.FailureReportPath));
+        Assert.Equal(result.RunId, fixture.LastFailureReportContext.RunId);
+        var failureReport = Assert.IsType<Dictionary<string, object>>(
+          new JavaScriptSerializer().DeserializeObject(
+            File.ReadAllText(result.FailureReportPath)));
+        Assert.Equal(result.RunId, failureReport["runId"]);
         Assert.Contains(
           Stage03TechnicalFatalCodes.UnsupportedRevit,
           result.TechnicalFatalCodes);
@@ -1765,7 +1830,13 @@ namespace BIMBaoGui.Stage01.Core.Tests
             ReportWriteErrorSummary = "fixture report failure"
           };
         }
-        File.WriteAllText(reportPath, "{}");
+        File.WriteAllText(
+          reportPath,
+          new JavaScriptSerializer().Serialize(
+            new Dictionary<string, object>
+            {
+              ["runId"] = context.RunId
+            }));
         return new Stage03FailureReportWriteResult
         {
           Success = true,

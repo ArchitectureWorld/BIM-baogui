@@ -7,7 +7,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
   public sealed class Stage03ComponentStatePolicyTests
   {
     [Fact]
-    public void Strict_and_force_mapping_are_exact_and_force_requires_reason()
+    public void Strict_and_force_mapping_are_exact_and_force_reason_is_deferred_to_gate()
     {
       Assert.Equal(
         Stage03GateMode.Strict,
@@ -22,12 +22,12 @@ namespace BIMBaoGui.Stage01.Core.Tests
         forceReason: " \t ");
       state.UpdateSignature(force);
 
-      Assert.False(state.TryBegin(
+      Assert.True(state.TryBegin(
         force,
         out Stage03ComponentRunToken token,
         out string error));
-      Assert.Null(token);
-      Assert.Contains("强制原因", error);
+      Assert.NotNull(token);
+      Assert.Empty(error);
 
       Stage03ComponentInputSignature strict = Signature(
         mode: Stage03GateMode.Strict,
@@ -113,6 +113,96 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Assert.True(currentA.Generation > oldA.Generation);
       Assert.False(state.TryPublish(oldA));
       Assert.True(state.TryPublish(currentA));
+    }
+
+    [Fact]
+    public void Presentation_copy_uses_exact_chinese_gate_semantics()
+    {
+      Assert.Equal(
+        "严格门禁｜全部通过后导出",
+        Stage03ComponentPresentationPolicy.ModeDescription(
+          Stage03GateMode.Strict));
+      Assert.Equal(
+        "测试放行｜缺陷仍写入报告",
+        Stage03ComponentPresentationPolicy.ModeDescription(
+          Stage03GateMode.Force));
+    }
+
+    [Theory]
+    [InlineData(
+      Stage03GateMode.Strict,
+      true,
+      true,
+      false,
+      false,
+      "Warning")]
+    [InlineData(
+      Stage03GateMode.Force,
+      false,
+      true,
+      true,
+      true,
+      "Warning")]
+    [InlineData(
+      Stage03GateMode.Force,
+      false,
+      true,
+      false,
+      false,
+      "Warning")]
+    [InlineData(
+      Stage03GateMode.Strict,
+      false,
+      false,
+      true,
+      false,
+      "Error")]
+    [InlineData(
+      Stage03GateMode.Strict,
+      false,
+      true,
+      false,
+      false,
+      "Success")]
+    [InlineData(
+      Stage03GateMode.Strict,
+      false,
+      false,
+      false,
+      false,
+      "Muted")]
+    public void Presentation_tone_never_marks_force_as_clean_success(
+      Stage03GateMode mode,
+      bool pending,
+      bool allowExport,
+      bool hasBlockers,
+      bool forcedWithBusinessDefects,
+      string expected)
+    {
+      Assert.Equal(
+        expected,
+        Stage03ComponentPresentationPolicy.ResolveTone(
+          mode,
+          pending,
+          allowExport,
+          hasBlockers,
+          forcedWithBusinessDefects).ToString());
+    }
+
+    [Theory]
+    [InlineData(true, 1, true)]
+    [InlineData(true, 0, false)]
+    [InlineData(false, 1, false)]
+    public void Forced_business_defect_state_requires_both_signals(
+      bool forced,
+      int businessBlockerCount,
+      bool expected)
+    {
+      Assert.Equal(
+        expected,
+        Stage03ComponentPresentationPolicy.IsForcedWithBusinessDefects(
+          forced,
+          businessBlockerCount));
     }
 
     private static Stage03ComponentInputSignature ChangedSignature(

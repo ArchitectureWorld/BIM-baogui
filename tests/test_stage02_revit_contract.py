@@ -20,11 +20,57 @@ def test_stage02_request_uses_document_fingerprint_and_unique_id():
 
 def test_selection_supports_current_selection_explicit_pick_and_cancel():
     text = read("src/BIMBaoGui.Stage01/Revit/Stage02RevitSelectionService.cs")
+    results = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitOperationResults.cs"
+    )
     assert "Selection.GetElementIds()" in text
     assert "PickObjects(ObjectType.Element)" in text
     assert "OperationCanceledException" in text
-    assert "Cancelled" in text
+    assert "Cancelled" in results
     assert "Task.Run" not in text
+
+
+def test_host_unavailable_is_typed_without_synthetic_technical_exception():
+    host = read("src/BIMBaoGui.Stage01/Revit/RevitHost.cs")
+    selection = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitSelectionService.cs"
+    )
+    preview = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitPreviewService.cs"
+    )
+    results = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage02RevitOperationResults.cs"
+    )
+    run_read = host[
+        host.index("public static bool RunReadInHostContext<T>(") :
+        host.index("public static bool EnqueueAction(")
+    ]
+    policy = results[results.index("class Stage02RevitHostFailurePolicy") :]
+
+    assert "?? new InvalidOperationException(error)" not in run_read
+    assert "throw exception ?? new InvalidOperationException(error);" not in selection
+    assert "private static bool TryRequireHost(" in selection
+    assert selection.count("TryRequireHost(") == 5
+    for core_method, mode in (
+        ("ReadCurrentSelectionCore", "CurrentSelection"),
+        ("PickElementsCore", "ExplicitPick"),
+        ("ResolveElementIdsCore", "ExplicitIds"),
+        ("SelectProjectInformationCore", "ProjectInformation"),
+    ):
+        core_start = selection.index(
+            f"private static Stage02RevitSelectionResult {core_method}("
+        )
+        require_start = selection.index("TryRequireHost(", core_start)
+        require_call = selection[require_start : require_start + 320]
+        assert f"Stage02SelectionModes.{mode}" in require_call
+    require_host = selection[selection.index("private static bool TryRequireHost(") :]
+    assert "Stage02RevitHostFailurePolicy.ForSelection(" in require_host
+    assert "return false;" in require_host
+    assert selection.count("Stage02RevitHostFailurePolicy.ForSelection") >= 4
+    assert "Stage02RevitHostFailurePolicy.ForPreview" in preview
+    assert "exception == null" in policy
+    assert ".Contains(" not in policy
+    assert ".IndexOf(" not in policy
 
 
 def test_project_information_has_a_non_pickable_role_hint_entrypoint():
@@ -343,7 +389,15 @@ def test_fatal_unknown_transaction_status_reports_once_without_unsafe_cleanup():
         write.index("internal void Complete(Stage02RevitWriteResult result)") :
         write.index("public FailureProcessingResult PreprocessFailures")
     ]
-    assert "Interlocked.Exchange(ref _completionIssued, 1)" in complete
+    enqueue = write[
+        write.index("internal bool EnqueueWrite(") :
+        write.index("private static Stage02RevitWriteResult", write.index("internal bool EnqueueWrite("))
+    ]
+    assert "Stage02PreparationCompletionGate<Stage02RevitWriteResult>" in enqueue
+    assert enqueue.count("completionGate.TryComplete") == 2
+    assert "_completed(result);" in complete
+    assert "_completionIssued" not in complete
+    assert "catch" not in complete
 
 
 def test_terminal_handoff_conflict_rolls_back_group_and_reports_both_statuses():

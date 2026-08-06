@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using BIMBaoGui.Stage01.Context;
 using BIMBaoGui.Stage01.Core;
+using BIMBaoGui.Stage01.Diagnostics;
 using BIMBaoGui.Stage01.GrasshopperTypes;
 using BIMBaoGui.Stage01.Revit;
 using BIMBaoGui.Stage01.Stage02;
@@ -24,6 +25,7 @@ namespace BIMBaoGui.Stage01
     internal string RulePackageVersion { get; set; } = string.Empty;
     internal string RulePackageSha256 { get; set; } = string.Empty;
     internal string SelectionMode { get; set; } = string.Empty;
+    internal string MatchedRoles { get; set; } = string.Empty;
     internal int SelectedCount { get; set; }
     internal int MatchedCount { get; set; }
     internal string PreviewHash { get; set; } = string.Empty;
@@ -41,6 +43,7 @@ namespace BIMBaoGui.Stage01
     private const string WaitingPreview = "等待预览";
     private const string SelectionCancelled = "选择取消";
     private const string PreviewBlocked = "预览阻断";
+    private const string PreviewTechnicalFailed = "预览技术失败";
     private const string PreviewReady = "预览就绪";
     private const string Confirming = "确认中";
     private const string WriteSucceeded = "写入成功";
@@ -58,6 +61,8 @@ namespace BIMBaoGui.Stage01
       new Stage02RevitWriteService();
     private readonly Stage02PreparationWriteAttemptState _writeAttemptState =
       new Stage02PreparationWriteAttemptState();
+    private readonly Stage02PreparationFailureReportState _failureReportState =
+      new Stage02PreparationFailureReportState();
     private readonly Stage02PreparationPreviewCountCache _previewCountCache =
       new Stage02PreparationPreviewCountCache();
 
@@ -206,7 +211,7 @@ namespace BIMBaoGui.Stage01
       pManager.AddTextParameter(
         "报告路径",
         "ReportPath",
-        "最近一次写入失败报告路径；无报告时为空。",
+        "当前输入签名的预览或写入失败报告路径；无报告时为空。",
         GH_ParamAccess.item);
       pManager.AddTextParameter(
         "总状态",
@@ -267,6 +272,9 @@ namespace BIMBaoGui.Stage01
         _currentInputSignature = decision.InputSignature;
         _currentHostFingerprint =
           hostSnapshot?.DocumentFingerprint ?? string.Empty;
+        _failureReportState.ObserveCurrent(
+          _currentInputSignature,
+          _currentHostFingerprint);
         _currentContext = context;
         _hostSnapshot = hostSnapshot ?? new Stage02RevitContextSnapshot();
         _selectionMode = SelectionModeLabel(decision.SelectionMode);
@@ -367,6 +375,9 @@ namespace BIMBaoGui.Stage01
         }
         ClearPreviewLocked();
         ResetCountsLocked();
+        _failureReportState.BeginPreview(
+          decision.InputSignature,
+          hostFingerprint);
         _previewPending = true;
         _blockers = Array.Empty<string>();
         _writeStatus = WaitingPreview;
@@ -402,10 +413,34 @@ namespace BIMBaoGui.Stage01
       }
       catch (Exception exception)
       {
-        CompletePreviewFailure(
+        CompleteTechnicalPreviewFailure(
+          context,
           decision.InputSignature,
           hostFingerprint,
-          "选择 Revit 元素失败：" + exception.Message);
+          null,
+          "PREVIEW_SELECTION",
+          "STAGE02_SELECTION_SERVICE_EXCEPTION",
+          "Stage02 元素选择发生技术失败。",
+          exception,
+          new[] { "选择 Revit 元素失败：" + exception.Message });
+        return;
+      }
+
+      Stage02RevitFailureReportDecision selectionReport =
+        Stage02RevitFailureReportPolicy.ForSelection(selection);
+      if (selectionReport.ShouldWrite)
+      {
+        CompleteTechnicalPreviewFailure(
+          context,
+          decision.InputSignature,
+          hostFingerprint,
+          selection,
+          selectionReport.OperationStage,
+          selectionReport.ErrorCode,
+          selectionReport.DiagnosticMessage,
+          selectionReport.Exception,
+          selection?.Messages
+            ?? new[] { "Stage02 元素选择服务未返回结果。" });
         return;
       }
 
@@ -430,10 +465,47 @@ namespace BIMBaoGui.Stage01
       }
 
       string nonce = Guid.NewGuid().ToString("N");
-      Stage02RevitPreviewResult result = _previewService.CreatePreview(
-        context,
-        selection,
-        nonce);
+      Stage02RevitPreviewResult result;
+      try
+      {
+        result = _previewService.CreatePreview(
+          context,
+          selection,
+          nonce);
+      }
+      catch (Exception exception)
+      {
+        CompleteTechnicalPreviewFailure(
+          context,
+          decision.InputSignature,
+          hostFingerprint,
+          selection,
+          "PREVIEW_BUILD",
+          "STAGE02_PREVIEW_SERVICE_EXCEPTION",
+          "Stage02 预览构建发生技术失败。",
+          exception,
+          new[] { "生成 Stage02 预览失败：" + exception.Message });
+        return;
+      }
+      Stage02RevitFailureReportDecision previewReport =
+        Stage02RevitFailureReportPolicy.ForPreview(result);
+      if (previewReport.ShouldWrite)
+      {
+        IReadOnlyList<string> messages = FormatBlockers(result?.Blockers);
+        CompleteTechnicalPreviewFailure(
+          context,
+          decision.InputSignature,
+          hostFingerprint,
+          selection,
+          previewReport.OperationStage,
+          previewReport.ErrorCode,
+          previewReport.DiagnosticMessage,
+          previewReport.Exception,
+          messages.Count == 0
+            ? new[] { "预览服务未返回可发布的结果。" }
+            : messages);
+        return;
+      }
       CompletePreview(
         decision.InputSignature,
         hostFingerprint,
@@ -441,6 +513,93 @@ namespace BIMBaoGui.Stage01
         selection,
         nonce,
         result);
+    }
+
+    private void CompleteTechnicalPreviewFailure(
+      HBRFileContext context,
+      string inputSignature,
+      string hostFingerprint,
+      Stage02RevitSelectionResult selection,
+      string operationStage,
+      string errorCode,
+      string diagnosticMessage,
+      Exception exception,
+      IEnumerable<string> messages)
+    {
+      DateTimeOffset occurredUtc = DateTimeOffset.UtcNow;
+      Stage02FailureReportWriteResult report =
+        Stage02FailureReportWriter.TryWrite(
+          new Stage02FailureReportContext
+          {
+            DiagnosticCode = "DIAG_STAGE02_PREVIEW_FAILED",
+            ErrorCode = errorCode,
+            DiagnosticMessage = diagnosticMessage,
+            InputSignature = inputSignature,
+            FileGuid = context?.FileGuid ?? string.Empty,
+            DocumentFingerprint = hostFingerprint ?? string.Empty,
+            DocumentTitle = context?.RevitDocumentTitle ?? string.Empty,
+            RulePackageId = context?.RulePackageId ?? string.Empty,
+            RulePackageVersion = context?.RulePackageVersion ?? string.Empty,
+            RulePackageSha256 = context?.RulePackageSha256 ?? string.Empty,
+            PreviewHash = string.Empty,
+            UniqueIds = selection?.Items
+              .Select(item => item.UniqueId)
+              .ToArray()
+              ?? Array.Empty<string>(),
+            PropertyIds = Array.Empty<string>(),
+            OperationStage = operationStage,
+            RootCauseStage = operationStage,
+            CleanupStage = string.Empty,
+            TransactionRolledBack = false,
+            GroupRolledBack = false,
+            RollbackConfirmed = false,
+            TransactionStatus = "NOT_STARTED",
+            TransactionGroupStatus = "NOT_STARTED",
+            Exception = exception,
+            OccurredUtc = occurredUtc,
+            OccurredLocal = occurredUtc.ToLocalTime()
+          });
+
+      lock (_stateLock)
+      {
+        _previewPending = false;
+        if (!IsInputSignatureCurrentLocked(
+          inputSignature,
+          hostFingerprint))
+        {
+          ClearPreviewLocked();
+          ResetCountsLocked();
+          _blockers = Array.Empty<string>();
+          _writeStatus = ResultExpired;
+          _status = ResultExpired;
+        }
+        else
+        {
+          ClearPreviewLocked();
+          ResetCountsLocked();
+          var blockers = new List<string>(FreezeStrings(messages));
+          if (report.Success)
+          {
+            _failureReportState.TryPublish(
+              inputSignature,
+              hostFingerprint,
+              report.ReportPath);
+          }
+          else
+          {
+            blockers.Add(
+              report.ErrorCode
+              + "｜Stage02 失败报告写入失败："
+              + report.ReportWriteErrorSummary);
+          }
+          _blockers = FreezeStrings(blockers);
+          _writeStatus = PreviewTechnicalFailed;
+          _status = PreviewTechnicalFailed;
+        }
+      }
+      OnPingDocument()?.ScheduleSolution(
+        1,
+        document => ExpireSolution(false));
     }
 
     private void CompletePreview(
@@ -625,14 +784,16 @@ namespace BIMBaoGui.Stage01
           return;
         }
 
-        request = Stage02RevitWriteRequest.FromPreview(
-          _previewContext,
-          _preview,
-          _previewSelectionEvidence);
         inputSignature = _previewInputSignature;
         hostFingerprint = _previewHostFingerprint;
         previewHash = _preview.PreviewHash;
         attemptToken = _writeAttemptState.BeginAttempt();
+        request = Stage02RevitWriteRequest.FromPreview(
+          _previewContext,
+          _preview,
+          _previewSelectionEvidence,
+          inputSignature,
+          attemptToken);
         _blockers = _previewBlockers;
         _writeStatus = Confirming;
         _status = Confirming;
@@ -640,6 +801,7 @@ namespace BIMBaoGui.Stage01
 
       bool enqueued;
       string error;
+      Exception enqueueException = null;
       try
       {
         enqueued = _writeService.EnqueueWrite(
@@ -650,12 +812,25 @@ namespace BIMBaoGui.Stage01
             hostFingerprint,
             previewHash,
             completed),
+          exception => TerminateWriteCompletionConsumerFailure(
+            attemptToken,
+            inputSignature,
+            hostFingerprint,
+            previewHash,
+            exception),
+          exception => RecordWriteCompletionConsumerFailure(
+            request,
+            inputSignature,
+            hostFingerprint,
+            exception),
+          RefreshAfterWriteCompletionConsumerFailure,
           out error);
       }
       catch (Exception exception)
       {
         enqueued = false;
         error = exception.Message;
+        enqueueException = exception;
       }
       if (enqueued) return;
 
@@ -670,21 +845,238 @@ namespace BIMBaoGui.Stage01
         {
           return;
         }
+        Stage02RevitWriteEnqueueFailureDecision failureDecision =
+          Stage02RevitWriteEnqueueFailurePolicy.ForFailure(
+            error,
+            enqueueException);
+        Stage02FailureReportDraft failureDraft =
+          BuildEnqueueFailureReportDraft(request, failureDecision);
+        bool currentIdentity = disposition ==
+            Stage02PreparationWriteCompletionDisposition.Publish
+          && IsInputSignatureCurrentLocked(
+            inputSignature,
+            hostFingerprint)
+          && _preview != null
+          && string.Equals(
+            _preview.PreviewHash,
+            previewHash,
+            StringComparison.Ordinal);
+        Stage02FailureReportPublicationResult reportPublication =
+          Stage02FailureReportFinalizer.TryPublish(
+            failureDraft,
+            currentIdentity
+              ? Stage02FailureReportPublicationDisposition.PublishedCurrent
+              : Stage02FailureReportPublicationDisposition.DiscardedStale);
+        var completed = new Stage02RevitWriteResult
+        {
+          Success = false,
+          RequiresNewPreview = false,
+          Status = WriteFailed,
+          FailureReportDraft = failureDraft,
+          Messages = new[] { failureDecision.UserMessage }
+        };
+        ApplyFailureReportPublication(completed, reportPublication);
         if (disposition ==
           Stage02PreparationWriteCompletionDisposition.Discarded)
         {
           SetStalePendingStatusLocked();
           return;
         }
-        _blockers = new[]
+        if (!currentIdentity)
         {
-          string.IsNullOrWhiteSpace(error)
-            ? "无法提交 Stage02 写入请求。"
-            : error
-        };
+          ClearPreviewLocked();
+          ResetCountsLocked();
+          _blockers = Array.Empty<string>();
+          _writeStatus = ResultExpired;
+          _status = ResultExpired;
+          return;
+        }
+        if (reportPublication.ShouldPublishCurrent)
+        {
+          _failureReportState.TryPublish(
+            inputSignature,
+            hostFingerprint,
+            reportPublication.ReportPath);
+        }
+        _blockers = FreezeStrings(
+          new[] { failureDecision.UserMessage }
+            .Concat(FormatWriteMessages(completed)));
         _writeStatus = WriteFailed;
         _status = WriteFailed;
       }
+    }
+
+    private static Stage02FailureReportDraft BuildEnqueueFailureReportDraft(
+      Stage02RevitWriteRequest request,
+      Stage02RevitWriteEnqueueFailureDecision decision)
+    {
+      if (request == null) throw new ArgumentNullException(nameof(request));
+      if (decision == null) throw new ArgumentNullException(nameof(decision));
+      DateTimeOffset occurredUtc = DateTimeOffset.UtcNow;
+      return Stage02FailureReportDraft.Capture(
+        new Stage02FailureReportContext
+        {
+          DiagnosticCode = "DIAG_STAGE02_WRITE_FAILED",
+          ErrorCode = decision.ErrorCode,
+          DiagnosticMessage = decision.DiagnosticMessage,
+          InputSignature = request.InputSignature,
+          AttemptToken = request.AttemptToken,
+          FileGuid = request.Preview.FileGuid,
+          DocumentFingerprint = request.DocumentFingerprint,
+          DocumentTitle = request.Context.RevitDocumentTitle,
+          RulePackageId = request.Preview.RulePackageId,
+          RulePackageVersion = request.Preview.RulePackageVersion,
+          RulePackageSha256 = request.Preview.RulePackageSha256,
+          PreviewHash = request.PreviewHash,
+          UniqueIds = request.Targets
+            .Select(item => item.UniqueId)
+            .ToArray(),
+          PropertyIds = request.Preview.Elements
+            .SelectMany(element => element.Operations)
+            .Select(operation => operation.PropertyId)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray(),
+          OperationStage = "WRITE_ENQUEUE",
+          RootCauseStage = "WRITE_ENQUEUE",
+          CleanupStage = string.Empty,
+          TransactionRolledBack = false,
+          GroupRolledBack = false,
+          RollbackConfirmed = false,
+          TransactionStatus = "NOT_STARTED",
+          TransactionGroupStatus = "NOT_STARTED",
+          Exception = decision.Exception,
+          OccurredUtc = occurredUtc,
+          OccurredLocal = occurredUtc.ToLocalTime()
+        });
+    }
+
+    private void TerminateWriteCompletionConsumerFailure(
+      Guid attemptToken,
+      string inputSignature,
+      string hostFingerprint,
+      string previewHash,
+      Exception exception)
+    {
+      lock (_stateLock)
+      {
+        _writeAttemptState.CompleteAttempt(attemptToken, string.Empty);
+        bool currentIdentity = IsInputSignatureCurrentLocked(
+            inputSignature,
+            hostFingerprint)
+          && (_preview == null
+            || string.Equals(
+              _preview.PreviewHash,
+              previewHash,
+              StringComparison.Ordinal));
+        if (!currentIdentity)
+        {
+          _writeStatus = ResultExpired;
+          _status = ResultExpired;
+          return;
+        }
+
+        ClearPreviewLocked();
+        ResetCountsLocked();
+        _blockers = new[]
+        {
+          "STAGE02_WRITE_COMPLETION_CONSUMER_FAILED｜"
+          + "Stage02 写入结果发布发生技术失败；业务完成未重试，必须重新预览。"
+        };
+        _writeStatus = WriteFailed
+          + "｜完成消费者技术失败｜必须重新预览";
+        _status = WriteFailed;
+      }
+    }
+
+    private void RecordWriteCompletionConsumerFailure(
+      Stage02RevitWriteRequest request,
+      string inputSignature,
+      string hostFingerprint,
+      Exception exception)
+    {
+      Stage02FailureReportDraft draft =
+        BuildCompletionConsumerFailureReportDraft(request, exception);
+      lock (_stateLock)
+      {
+        bool currentIdentity = IsInputSignatureCurrentLocked(
+          inputSignature,
+          hostFingerprint);
+        Stage02FailureReportPublicationResult publication =
+          Stage02FailureReportFinalizer.TryPublish(
+            draft,
+            currentIdentity
+              ? Stage02FailureReportPublicationDisposition.PublishedCurrent
+              : Stage02FailureReportPublicationDisposition.DiscardedStale);
+        if (!currentIdentity) return;
+        if (publication.ShouldPublishCurrent)
+        {
+          _failureReportState.TryPublish(
+            inputSignature,
+            hostFingerprint,
+            publication.ReportPath);
+        }
+        if (!publication.WasWritten)
+        {
+          Stage02FailureReportWriteResult report = publication.WriteResult;
+          _blockers = FreezeStrings(_blockers.Concat(new[]
+          {
+            "REPORT_WRITE_FAILED｜Stage02 完成消费者失败报告写入失败："
+            + (report?.ReportWriteErrorSummary ?? string.Empty)
+          }));
+        }
+      }
+    }
+
+    private static Stage02FailureReportDraft
+      BuildCompletionConsumerFailureReportDraft(
+        Stage02RevitWriteRequest request,
+        Exception exception)
+    {
+      if (request == null) throw new ArgumentNullException(nameof(request));
+      DateTimeOffset occurredUtc = DateTimeOffset.UtcNow;
+      return Stage02FailureReportDraft.Capture(
+        new Stage02FailureReportContext
+        {
+          DiagnosticCode = "DIAG_STAGE02_WRITE_FAILED",
+          ErrorCode = "STAGE02_WRITE_COMPLETION_CONSUMER_FAILED",
+          DiagnosticMessage =
+            "Stage02 写入结果完成消费者发生技术失败；业务完成未重试。",
+          InputSignature = request.InputSignature,
+          AttemptToken = request.AttemptToken,
+          FileGuid = request.Preview.FileGuid,
+          DocumentFingerprint = request.DocumentFingerprint,
+          DocumentTitle = request.Preview.DocumentTitle,
+          RulePackageId = request.Preview.RulePackageId,
+          RulePackageVersion = request.Preview.RulePackageVersion,
+          RulePackageSha256 = request.Preview.RulePackageSha256,
+          PreviewHash = request.PreviewHash,
+          UniqueIds = request.Targets
+            .Select(item => item.UniqueId)
+            .ToArray(),
+          PropertyIds = request.Preview.Elements
+            .SelectMany(element => element.Operations)
+            .Select(operation => operation.PropertyId)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray(),
+          OperationStage = "WRITE_COMPLETION_CONSUMER",
+          RootCauseStage = "WRITE_COMPLETION_CONSUMER",
+          CleanupStage = string.Empty,
+          TransactionRolledBack = false,
+          GroupRolledBack = false,
+          RollbackConfirmed = false,
+          TransactionStatus = "TERMINAL_RESULT_DELIVERED",
+          TransactionGroupStatus = "TERMINAL_RESULT_DELIVERED",
+          Exception = exception,
+          OccurredUtc = occurredUtc,
+          OccurredLocal = occurredUtc.ToLocalTime()
+        });
+    }
+
+    private void RefreshAfterWriteCompletionConsumerFailure()
+    {
+      OnPingDocument()?.ScheduleSolution(
+        1,
+        document => ExpireSolution(false));
     }
 
     private void CompleteWrite(
@@ -699,27 +1091,45 @@ namespace BIMBaoGui.Stage01
       {
         disposition = _writeAttemptState.CompleteAttempt(
           attemptToken,
-          completed?.ReportPath ?? string.Empty);
+          string.Empty);
         if (disposition ==
           Stage02PreparationWriteCompletionDisposition.Ignored)
         {
           return;
+        }
+        completed = completed ?? new Stage02RevitWriteResult
+          {
+            Success = false,
+            RequiresNewPreview = true,
+            Status = WriteFailed,
+            Messages = new[] { "Stage02 写入未返回结果。" }
+          };
+        bool currentIdentity = disposition ==
+            Stage02PreparationWriteCompletionDisposition.Publish
+          && IsInputSignatureCurrentLocked(
+            inputSignature,
+            hostFingerprint)
+          && _preview != null
+          && string.Equals(
+            _preview.PreviewHash,
+            previewHash,
+            StringComparison.Ordinal);
+        Stage02FailureReportPublicationResult reportPublication = null;
+        if (completed.FailureReportDraft != null)
+        {
+          reportPublication = Stage02FailureReportFinalizer.TryPublish(
+            completed.FailureReportDraft,
+            currentIdentity
+              ? Stage02FailureReportPublicationDisposition.PublishedCurrent
+              : Stage02FailureReportPublicationDisposition.DiscardedStale);
+          ApplyFailureReportPublication(completed, reportPublication);
         }
         if (disposition ==
           Stage02PreparationWriteCompletionDisposition.Discarded)
         {
           SetStalePendingStatusLocked();
         }
-        else if (disposition ==
-            Stage02PreparationWriteCompletionDisposition.Publish
-          && (!IsInputSignatureCurrentLocked(
-              inputSignature,
-              hostFingerprint)
-            || _preview == null
-            || !string.Equals(
-              _preview.PreviewHash,
-              previewHash,
-              StringComparison.Ordinal)))
+        else if (!currentIdentity)
         {
           ClearPreviewLocked();
           ResetCountsLocked();
@@ -729,13 +1139,14 @@ namespace BIMBaoGui.Stage01
         }
         else
         {
-          completed = completed ?? new Stage02RevitWriteResult
-            {
-              Success = false,
-              RequiresNewPreview = true,
-              Status = WriteFailed,
-              Messages = new[] { "Stage02 写入未返回结果。" }
-            };
+          if (reportPublication == null
+            || reportPublication.ShouldPublishCurrent)
+          {
+            _failureReportState.TryPublish(
+              inputSignature,
+              hostFingerprint,
+              completed.ReportPath);
+          }
           _blockers = FormatWriteMessages(completed);
           Stage02PreparationWritePublicationDecision publication =
             Stage02PreparationWritePublicationPolicy.Evaluate(
@@ -823,6 +1234,15 @@ namespace BIMBaoGui.Stage01
             ?? _currentContext?.RulePackageSha256
             ?? string.Empty,
           SelectionMode = _selectionMode,
+          MatchedRoles = string.Join(
+            "、",
+            (_preview == null
+                ? Array.Empty<string>()
+                : _preview.Elements
+                  .Select(element => element.RoleId)
+                  .Where(value => !string.IsNullOrWhiteSpace(value)))
+              .Distinct(StringComparer.Ordinal)
+              .OrderBy(value => value, StringComparer.Ordinal)),
           SelectedCount = _previewSelectionEvidence?.Items.Count ?? 0,
           MatchedCount = _preview?.Elements.Count ?? 0,
           PreviewHash = _preview?.PreviewHash ?? string.Empty,
@@ -845,7 +1265,7 @@ namespace BIMBaoGui.Stage01
           _preview,
           _blockers,
           _writeStatus,
-          _writeAttemptState.LastFailureReportPath,
+          _failureReportState.ReportPath,
           _status,
           _previewCountCache.Current,
           _installedCount,
@@ -904,6 +1324,23 @@ namespace BIMBaoGui.Stage01
       return FreezeStrings((blockers ?? Array.Empty<Stage02Blocker>())
         .Where(blocker => blocker != null)
         .Select(blocker => blocker.Code + "｜" + blocker.Message));
+    }
+
+    private static void ApplyFailureReportPublication(
+      Stage02RevitWriteResult completed,
+      Stage02FailureReportPublicationResult publication)
+    {
+      if (completed == null || publication == null) return;
+      completed.ReportPath = publication.ReportPath;
+      Stage02FailureReportWriteResult report = publication.WriteResult;
+      if (report == null) return;
+      string diagnostic = report.Success
+        ? "DIAG_STAGE02_WRITE_FAILED；错误报告=" + report.ReportPath
+        : "DIAG_STAGE02_WRITE_FAILED；REPORT_WRITE_FAILED；原始异常="
+          + report.OriginalExceptionSummary
+          + "；报告写入异常="
+          + report.ReportWriteErrorSummary;
+      completed.Messages = new[] { diagnostic };
     }
 
     private static IReadOnlyList<string> FormatWriteMessages(

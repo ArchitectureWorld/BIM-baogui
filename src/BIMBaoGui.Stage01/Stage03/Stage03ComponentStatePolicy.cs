@@ -2,6 +2,61 @@ using System;
 
 namespace BIMBaoGui.Stage01.Stage03
 {
+  internal enum Stage03ComponentStatusTone
+  {
+    Muted,
+    Success,
+    Warning,
+    Error
+  }
+
+  internal static class Stage03ComponentPresentationPolicy
+  {
+    internal static string ModeDescription(Stage03GateMode mode)
+    {
+      switch (mode)
+      {
+        case Stage03GateMode.Strict:
+          return "严格门禁｜全部通过后导出";
+        case Stage03GateMode.Force:
+          return "测试放行｜缺陷仍写入报告";
+        default:
+          throw new ArgumentOutOfRangeException(nameof(mode));
+      }
+    }
+
+    internal static bool IsForcedWithBusinessDefects(
+      bool forced,
+      int businessBlockerCount)
+    {
+      return forced && businessBlockerCount > 0;
+    }
+
+    internal static Stage03ComponentStatusTone ResolveTone(
+      Stage03GateMode mode,
+      bool pending,
+      bool allowExport,
+      bool hasBlockers,
+      bool forcedWithBusinessDefects)
+    {
+      if (mode != Stage03GateMode.Strict && mode != Stage03GateMode.Force)
+        throw new ArgumentOutOfRangeException(nameof(mode));
+      if (pending || forcedWithBusinessDefects)
+        return Stage03ComponentStatusTone.Warning;
+      if (hasBlockers)
+      {
+        return allowExport
+          ? Stage03ComponentStatusTone.Warning
+          : Stage03ComponentStatusTone.Error;
+      }
+      if (mode == Stage03GateMode.Force)
+        return Stage03ComponentStatusTone.Warning;
+      return allowExport
+        ? Stage03ComponentStatusTone.Success
+        : Stage03ComponentStatusTone.Muted;
+    }
+  }
+
   internal sealed class Stage03ComponentInputSignature
     : IEquatable<Stage03ComponentInputSignature>
   {
@@ -135,12 +190,6 @@ namespace BIMBaoGui.Stage01.Stage03
       if (signature == null)
       {
         error = "Stage03 运行输入签名不能为空。";
-        return false;
-      }
-      if (signature.Mode == Stage03GateMode.Force
-        && string.IsNullOrWhiteSpace(signature.OriginalForceReason))
-      {
-        error = "Force 模式必须填写非空强制原因。";
         return false;
       }
       UpdateSignature(signature);

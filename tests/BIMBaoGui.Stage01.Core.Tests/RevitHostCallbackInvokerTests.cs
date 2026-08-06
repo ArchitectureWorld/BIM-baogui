@@ -1,11 +1,38 @@
 using System;
+using System.Reflection;
 using BIMBaoGui.Stage01.Revit;
+using BIMBaoGui.Stage01.Stage02;
 using Xunit;
 
 namespace BIMBaoGui.Stage01.Core.Tests
 {
   public sealed class RevitHostCallbackInvokerTests
   {
+    [Fact]
+    public void ReadOperationCapturePreservesOriginalExceptionIdentity()
+    {
+      Type operationType = typeof(RevitHostCallbackInvoker).Assembly.GetType(
+        "BIMBaoGui.Stage01.Revit.RevitHostReadOperation",
+        false);
+      Assert.True(operationType != null, "Expected typed Revit read capture seam.");
+      MethodInfo capture = operationType.GetMethod(
+        "Capture",
+        BindingFlags.Static | BindingFlags.NonPublic);
+      Assert.NotNull(capture);
+      var expected = new InvalidOperationException("revit read failed");
+      MethodInfo genericCapture = capture.MakeGenericMethod(typeof(object));
+
+      object result = genericCapture.Invoke(
+        null,
+        new object[] { new Func<object>(() => throw expected) });
+      PropertyInfo exception = result.GetType().GetProperty(
+        "Exception",
+        BindingFlags.Instance | BindingFlags.NonPublic);
+
+      Assert.NotNull(exception);
+      Assert.Same(expected, exception.GetValue(result, null));
+    }
+
     [Fact]
     public void AvailableContextAlwaysInvokesBusinessAction()
     {
@@ -47,6 +74,103 @@ namespace BIMBaoGui.Stage01.Core.Tests
 
       Assert.Equal(1, forwardCount);
       Assert.Same(expected, forwarded);
+    }
+
+    [Theory]
+    [InlineData("missing-context")]
+    [InlineData("resolver-throw")]
+    [InlineData("action-throw")]
+    public void CallbackFailureCompletesWriteAttemptExactlyOnce(
+      string failureMode)
+    {
+      var state = new Stage02PreparationWriteAttemptState();
+      Guid attemptToken = state.BeginAttempt();
+      var expected = new InvalidOperationException(failureMode);
+      Exception completedException = null;
+      int completionCount = 0;
+      var completionGate =
+        new Stage02PreparationCompletionGate<Exception>(exception =>
+        {
+          completionCount++;
+          completedException = exception;
+          Assert.Equal(
+            Stage02PreparationWriteCompletionDisposition.Publish,
+            state.CompleteAttempt(attemptToken, "host-callback-failure.json"));
+        });
+
+      Func<object> resolver = () => new object();
+      Action<object> action = _ => { };
+      if (string.Equals(
+        failureMode,
+        "missing-context",
+        StringComparison.Ordinal))
+      {
+        resolver = () => null;
+      }
+      else if (string.Equals(
+        failureMode,
+        "resolver-throw",
+        StringComparison.Ordinal))
+      {
+        resolver = () => throw expected;
+      }
+      else
+      {
+        action = _ => throw expected;
+      }
+
+      RevitHostCallbackInvoker.Invoke(
+        resolver,
+        expected,
+        action,
+        exception => completionGate.TryComplete(exception));
+
+      Assert.Equal(1, completionCount);
+      Assert.Same(expected, completedException);
+      Assert.Equal(Stage02PreparationWriteAttemptPhase.Idle, state.Phase);
+      Assert.False(
+        completionGate.TryComplete(
+          new InvalidOperationException("duplicate callback")));
+      Assert.Equal(1, completionCount);
+      Assert.Equal(
+        "host-callback-failure.json",
+        state.LastFailureReportPath);
+    }
+
+    [Fact]
+    public void CompletionConsumerFailureDoesNotDeliverASecondCompletion()
+    {
+      var state = new Stage02PreparationWriteAttemptState();
+      Guid attemptToken = state.BeginAttempt();
+      var expected = new InvalidOperationException("completion consumer failed");
+      Exception forwarded = null;
+      int completionCount = 0;
+      int callbackFailureCount = 0;
+      var completionGate =
+        new Stage02PreparationCompletionGate<object>(_ =>
+        {
+          completionCount++;
+          Assert.Equal(
+            Stage02PreparationWriteCompletionDisposition.Publish,
+            state.CompleteAttempt(attemptToken, string.Empty));
+          throw expected;
+        });
+
+      RevitHostCallbackInvoker.Invoke(
+        new object(),
+        new InvalidOperationException("context missing"),
+        _ => completionGate.TryComplete(new object()),
+        exception =>
+        {
+          callbackFailureCount++;
+          forwarded = exception;
+          Assert.False(completionGate.TryComplete(new object()));
+        });
+
+      Assert.Equal(1, completionCount);
+      Assert.Equal(1, callbackFailureCount);
+      Assert.Same(expected, forwarded);
+      Assert.Equal(Stage02PreparationWriteAttemptPhase.Idle, state.Phase);
     }
 
     [Fact]

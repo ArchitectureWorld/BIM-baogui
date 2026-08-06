@@ -1,27 +1,43 @@
 # BIM-baogui
 
-湖北省 BIM 规划报建自动化工具。v0.9.0 面向 **Revit 2020 + Rhino 8 + Rhino.Inside.Revit**，以编译型 Grasshopper 插件连接文件初始化、任务分流、官方 H-IFC 参数写入和 MVD IFC 规范化。
+湖北省 BIM 规划报建自动化工具。v0.9.0 面向 **Revit 2020 + Rhino 8 + Rhino.Inside.Revit**，当前公开流程由三个编译型 Grasshopper 组件完成。
 
-## 工作流组件
+## 当前公开组件
 
 ```text
-湖北BIM报规 / 报规工作流
-├─ 01 文件初始化
-├─ 02 模型任务与骨架分流
-├─ 03 官方 H-IFC 属性写入
-└─ 04 MVD IFC 规范化
+湖北BIM报规｜01 文件初始化
+湖北BIM报规｜02 构件与属性准备
+湖北BIM报规｜03 检测、导出与 H-IFC 转译
 ```
 
-- **01 文件初始化**：校验项目身份、坐标高程、规划目标和项目条件；写入 Revit DataStorage、内部唯一参数与官方精确源参数，并执行回读。
-- **02 模型任务与骨架分流**：读取强类型 `HBR_FileContext 0.9.0`，校验当前 Revit 文件的 GUID、载荷哈希和工作流版本，再生成 `HBR_TaskPlan`。
-- **03 官方 H-IFC 属性写入**：只在当前 Grasshopper 会话观察到 `false -> true` 后执行；打开已经为 `true` 的 Toggle 不会触发写入。
-- **04 MVD IFC 规范化**：读取官方导出的 IFC4，保留几何和非目标数据，按官方示例统一 `Pset_` 属性集标识并按 MVD 修正 IFC 值类型，输出新的 `-MVD.ifc`。
+- **01 文件初始化**：保持既有项目身份、坐标 X / Y、高程、真北和项目条件的初始化行为，输出携带规则包身份的 `HBR_FileContext`。
+- **02 构件与属性准备**：按当前项目和条件匹配所需载体与字段；选择、预览并一次性确认后，安装 Revit UI 可见、可编辑的共享参数并写入建议值，保存后持久。
+- **03 检测、导出与 H-IFC 转译**：全模型扫描并区分缺构件、名称不匹配、缺参数、空值和未分类；通过门禁后执行标准 IFC4 导出与确定性后处理。
 
-初始化通过、官方参数协议兼容和真实官方 H-IFC 导出验收是三个独立结论。Revit 参数回读成功不等于 IFC 已通过验收。
+## 推荐流程
+
+```text
+Stage01 → Stage02 → Stage03
+```
+
+Stage03 内部使用 **Autodesk Revit 标准 IFC4** 导出 `<RVT名>-<runId>-RAW.ifc`，再后处理为 `<RVT名>-<runId>-HIFC-MVD.ifc`，并输出 `<RVT名>-<runId>-fields.json`。不要求官方 H-IFC 插件重新导出。
+
+- **Strict**：Strict 遇到任何活动业务阻断时只输出 fields JSON，不发布 IFC。
+- **Force**：Force 必须提供非空原因；报告中的“去除首尾空白后的记录原因”采用 `forceReason.Trim()` 后的文本。Force 只绕过业务阻断，技术致命错误永不绕过。
+- **文件安全**：RAW 不改写；不覆盖已有目标。失败时保留已有证据，不把半成品冒充为成功产物。
+
+### Stage03 Grasshopper 接线
+
+- 将 Grasshopper `Boolean Toggle` 接到“全部通过才导出”：`true`（默认值）= Strict，所有活动业务阻断处理完才导出；`false` = Force 测试放行。
+- Force 时，将非空 `Panel` 文本接到“强制原因”；技术致命错误始终阻断，Force 不可绕过。
+- “执行”建议接 `Button`。切换模式、强制原因、输出目录或其他输入后，将“执行”先复位为 `false`，再产生 `false → true` 上升沿重新运行。
+- 卡片显示 Strict / Force、字段计数、运行状态，以及 RAW IFC、HIFC-MVD IFC 和 fields JSON 三条路径。
+
+单一规则包 `.hbrpack` 是三个阶段的规则源；`packageId / version / hash` 从 FileContext 传播到预览、检测、产物和报告。Stage01、Stage02、Stage03 的失败报告与活动 GHA 同目录。
 
 ## 安装
 
-固定构建产物名称：
+固定构建产物：
 
 ```text
 BIMBaoGui.Stage01.gha
@@ -33,51 +49,34 @@ BIMBaoGui.Stage01.gha
 %APPDATA%\Grasshopper\Libraries\BIMbaogui
 ```
 
-活动目录中只能保留一个 BIMBaoGui GHA。部署时直接覆盖固定名文件，不创建插件备份；回滚使用 Git 提交重新构建。覆盖前必须关闭 Revit、Rhino.Inside.Revit 和 Grasshopper。
+活动插件目录只能保留一个 `BIMBaoGui.Stage01.gha`，并保持 0 个 `.bak` / `.backup`。部署时关闭 Revit、Rhino.Inside.Revit 和 Grasshopper，直接覆盖固定名文件；回滚依靠 Git 中的目标提交重新构建。
 
 启动顺序：
 
 ```text
 Revit 2020
--> Rhino.Inside.Revit / Start
--> Grasshopper
--> 湖北BIM报规 / 报规工作流
+→ Rhino.Inside.Revit / Start
+→ Grasshopper
+→ 湖北BIM报规 / 报规工作流
 ```
-
-推荐 IFC 流程：
-
-```text
-Stage 01 写入 Revit 参数
--> 官方 H-IFC 导出新的 IFC4
--> Stage 04 输入官方 IFC 路径
--> 输出同目录 <源文件名>-MVD.ifc
-```
-
-Stage 04 不覆盖源 IFC、不覆盖已存在的目标 IFC、不创建 `.bak` 或 `.backup`。失败时生成 `BIMBaoGui.Stage04.failure-*.json`，位置与活动 GHA 相同。
 
 ## 开发验证
 
+本地使用与 CI 一致的 Python 3.13。激活项目使用的 Python 环境后，先安装固定版本的测试依赖，再执行验证；CI 继续由 `actions/setup-python` 提供 Python 3.13。
+
 ```powershell
+python -m pip install --disable-pip-version-check pytest==8.3.5 jsonschema==4.23.0
 $env:PYTEST_DISABLE_PLUGIN_AUTOLOAD='1'
-C:\ProgramData\Anaconda3\python.exe -m pytest -q
+python -m pytest -q
 dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release
 dotnet build src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj -c Release --nologo
 git diff --check
-dotnet list src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj package --vulnerable --include-transitive
 ```
 
-构建产物位于：
+Release 构建产物位于：
 
 ```text
 src\BIMBaoGui.Stage01\bin\Release\net48\BIMBaoGui.Stage01.gha
 ```
 
-Revit 2020 实机步骤见 [v0.9.0 验收清单](docs/revit2020-v090-acceptance-checklist.md)。
-
-## 数据与边界
-
-- Stage 01 注册表包含 102 项 `IfcProject / IfcOrganization` MVD 初始化字段与 12 项工作流内部字段。
-- 官方规则目录包含 166 条属性映射；官方精确源参数按 Revit carrier 共享别名并在写入前检查值冲突。
-- Stage 04 的属性集和属性名称以官方 IFC 示例及官方 H-IFC 映射为准，值类型以 MVD 注册表为准；首版只处理 IFC4。
-- `IfcOrganization` 的官方 Revit carrier/export 协议仍未确认；填写非空组织数据会使 `OfficialProtocolCompatible=false` 并阻断 Stage 02。
-- 仅支持 Revit 2020。原始 RVT 和 IFC 不应被自动覆盖，正式验收必须输出独立的新 IFC 文件。
+Revit 2020 实机步骤见 [v0.9.0 验收清单](docs/revit2020-v090-acceptance-checklist.md)。自动化测试通过不等于实机验收完成；在该清单全部留证前，不宣称所有字段或 IFC owner 策略已经过指定 RVT 的实机验证。

@@ -29,7 +29,7 @@ namespace BIMBaoGui.Stage01
 
     public Stage01Component()
       : base(
-        "湖北BIM报规｜文件初始化",
+        "湖北BIM报规｜01 文件初始化",
         "报规初始化",
         "在 Rhino.Inside.Revit 中填写、校验并写入 Revit 2020 单文件初始化数据，并输出 HBR_FileContext。",
         "湖北BIM报规",
@@ -69,7 +69,7 @@ namespace BIMBaoGui.Stage01
         new HBRFileContextParam(),
         "文件上下文",
         "Context",
-        "供 02 模型任务与骨架分流使用的强类型 HBR_FileContext。",
+        "供 02 构件与属性准备使用的强类型 HBR_FileContext。",
         GH_ParamAccess.item);
       pManager.AddBooleanParameter("初始化通过", "OK", "写入与回读均通过时为 True。", GH_ParamAccess.item);
       pManager.AddTextParameter("状态", "S", "当前文件初始化状态。", GH_ParamAccess.item);

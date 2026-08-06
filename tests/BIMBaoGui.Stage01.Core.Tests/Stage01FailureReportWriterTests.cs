@@ -159,6 +159,41 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void TryWrite_WhenFirstReportNameIsDirectory_RetriesNextTimestamp()
+    {
+      string directory = CreateTemporaryDirectory();
+
+      try
+      {
+        string assemblyPath = Path.Combine(directory, "BIMBaoGui.Stage01.gha");
+        File.WriteAllText(assemblyPath, "assembly", new UTF8Encoding(false));
+        Stage01FailureReportContext context = CreateContext(
+          assemblyPath,
+          new InvalidOperationException("commit failed"));
+        string occupiedPath = Path.Combine(
+          directory,
+          "BIMBaoGui.Stage01.failure-"
+            + context.OccurredLocal.ToString(
+              "yyyyMMdd-HHmmss-fff",
+              System.Globalization.CultureInfo.InvariantCulture)
+            + ".json");
+        Directory.CreateDirectory(occupiedPath);
+
+        Stage01FailureReportWriteResult result =
+          Stage01FailureReportWriter.TryWrite(context);
+
+        Assert.True(result.Success, result.ReportWriteErrorSummary);
+        Assert.True(Directory.Exists(occupiedPath));
+        Assert.NotEqual(occupiedPath, result.ReportPath);
+        Assert.True(File.Exists(result.ReportPath));
+      }
+      finally
+      {
+        DeleteDirectoryBestEffort(directory);
+      }
+    }
+
+    [Fact]
     public void TryWrite_WhenExceptionMessageGetterThrows_NeverThrowsToCaller()
     {
       string directory = CreateTemporaryDirectory();

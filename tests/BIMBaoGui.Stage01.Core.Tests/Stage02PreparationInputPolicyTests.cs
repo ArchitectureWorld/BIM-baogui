@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using System.Web.Script.Serialization;
 using BIMBaoGui.Stage01.Revit.Parameters;
@@ -403,6 +404,118 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void CompletionGate_ConsumerFailureUsesIndependentTerminalPathExactlyOnce()
+    {
+      Type openGateType = typeof(Stage02PreparationInputPolicy)
+        .Assembly
+        .GetType(
+          "BIMBaoGui.Stage01.Stage02.Stage02PreparationCompletionGate`1");
+      Assert.NotNull(openGateType);
+      Type gateType = openGateType.MakeGenericType(typeof(object));
+      ConstructorInfo constructor = gateType.GetConstructor(
+        BindingFlags.Instance | BindingFlags.NonPublic,
+        null,
+        new[]
+        {
+          typeof(Action<object>),
+          typeof(Action<Exception>),
+          typeof(Action<Exception>),
+          typeof(Action)
+        },
+        null);
+      Assert.True(
+        constructor != null,
+        "Completion gate must expose an independent technical-failure path.");
+
+      var state = new Stage02PreparationWriteAttemptState();
+      Guid attemptToken = state.BeginAttempt();
+      var expected = new InvalidOperationException(
+        "completion consumer sentinel");
+      int businessCompletionCount = 0;
+      int terminalCount = 0;
+      int recordCount = 0;
+      int refreshCount = 0;
+      object gate = constructor.Invoke(new object[]
+      {
+        new Action<object>(_ =>
+        {
+          businessCompletionCount++;
+          throw expected;
+        }),
+        new Action<Exception>(exception =>
+        {
+          terminalCount++;
+          Assert.Same(expected, exception);
+          Assert.Equal(
+            Stage02PreparationWriteCompletionDisposition.Publish,
+            state.CompleteAttempt(attemptToken, string.Empty));
+        }),
+        new Action<Exception>(exception =>
+        {
+          recordCount++;
+          Assert.Same(expected, exception);
+          throw new InvalidOperationException("report writer sentinel");
+        }),
+        new Action(() => refreshCount++)
+      });
+      MethodInfo tryComplete = gateType.GetMethod(
+        "TryComplete",
+        BindingFlags.Instance | BindingFlags.NonPublic);
+      Assert.NotNull(tryComplete);
+
+      Assert.True((bool) tryComplete.Invoke(gate, new[] { new object() }));
+      Assert.False((bool) tryComplete.Invoke(gate, new[] { new object() }));
+
+      Assert.Equal(1, businessCompletionCount);
+      Assert.Equal(1, terminalCount);
+      Assert.Equal(1, recordCount);
+      Assert.Equal(1, refreshCount);
+      Assert.Equal(Stage02PreparationWriteAttemptPhase.Idle, state.Phase);
+    }
+
+    [Fact]
+    public void FailureReportState_clears_for_new_preview_and_rejects_late_identity()
+    {
+      Type stateType = typeof(Stage02PreparationInputPolicy)
+        .Assembly
+        .GetType(
+          "BIMBaoGui.Stage01.Stage02.Stage02PreparationFailureReportState");
+      Assert.NotNull(stateType);
+      object state = Activator.CreateInstance(stateType);
+      var observeCurrent = stateType.GetMethod("ObserveCurrent");
+      var beginPreview = stateType.GetMethod("BeginPreview");
+      var tryPublish = stateType.GetMethod("TryPublish");
+      var reportPath = stateType.GetProperty("ReportPath");
+      Assert.NotNull(observeCurrent);
+      Assert.NotNull(beginPreview);
+      Assert.NotNull(tryPublish);
+      Assert.NotNull(reportPath);
+
+      observeCurrent.Invoke(state, new object[] { "input-a", "host-a" });
+      Assert.True((bool) tryPublish.Invoke(
+        state,
+        new object[] { "input-a", "host-a", "write-a.json" }));
+      Assert.Equal("write-a.json", reportPath.GetValue(state));
+
+      beginPreview.Invoke(state, new object[] { "input-a", "host-a" });
+      Assert.Equal(string.Empty, reportPath.GetValue(state));
+      Assert.True((bool) tryPublish.Invoke(
+        state,
+        new object[] { "input-a", "host-a", "preview-a.json" }));
+
+      observeCurrent.Invoke(state, new object[] { "input-b", "host-b" });
+      Assert.Equal(string.Empty, reportPath.GetValue(state));
+      Assert.False((bool) tryPublish.Invoke(
+        state,
+        new object[] { "input-a", "host-a", "late-a.json" }));
+      Assert.Equal(string.Empty, reportPath.GetValue(state));
+      Assert.True((bool) tryPublish.Invoke(
+        state,
+        new object[] { "input-b", "HOST-B", "preview-b.json" }));
+      Assert.Equal("preview-b.json", reportPath.GetValue(state));
+    }
+
+    [Fact]
     public void PreviewCounts_DeduplicateGuidsAcrossElementsAndCountSetOperations()
     {
       Stage02PreparationPreviewCounts counts =
@@ -584,7 +697,9 @@ namespace BIMBaoGui.Stage01.Core.Tests
       var serializer = new JavaScriptSerializer();
       var root = Assert.IsType<Dictionary<string, object>>(
         serializer.DeserializeObject(first));
-      Assert.Equal(17, root.Count);
+      Assert.Equal(19, root.Count);
+      Assert.Equal("document-fingerprint", root["documentFingerprint"]);
+      Assert.Equal("测试文档", root["documentTitle"]);
       Assert.Equal(201, Convert.ToInt32(root["elementId"]));
       Assert.Equal("element-json", root["uniqueId"]);
       Assert.Equal("名称" + tricky, root["elementName"]);
@@ -766,6 +881,8 @@ namespace BIMBaoGui.Stage01.Core.Tests
     {
       string[] orderedKeys =
       {
+        "\"documentFingerprint\":",
+        "\"documentTitle\":",
         "\"elementId\":",
         "\"uniqueId\":",
         "\"elementName\":",

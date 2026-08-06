@@ -380,6 +380,22 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void Preview_request_accepts_initialized_legacy_official_protocol_flag()
+    {
+      HBRFileContext context = FileContext(
+        officialProtocolCompatible: false);
+
+      var request = new Stage02PreviewRequest(
+        context,
+        "legacy-official-protocol-flag",
+        new[] { Matched("uid-1", 1, "WALL") });
+
+      Assert.True(context.IsReady);
+      Assert.Equal(context.FileContextHash, request.FileContextHash);
+      Assert.False(context.OfficialProtocolCompatible);
+    }
+
+    [Fact]
     public void Preview_request_defensively_copies_project_conditions()
     {
       HBRFileContext context = FileContext(
@@ -942,7 +958,8 @@ namespace BIMBaoGui.Stage01.Core.Tests
 
     internal static HBRFileContext FileContext(
       string schemaVersion = HBRContextVersions.FileContextSchema,
-      IDictionary<string, bool> projectConditions = null)
+      IDictionary<string, bool> projectConditions = null,
+      bool officialProtocolCompatible = true)
     {
       HbrRulePackage package = HbrRuleDatabase.Current.Package;
       var provisional = new HBRFileContext(
@@ -963,7 +980,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
         Array.Empty<string>(),
         Array.Empty<string>(),
         true,
-        true,
+        officialProtocolCompatible,
         package.PackageVersion,
         package.PackageId,
         package.PackageVersion,

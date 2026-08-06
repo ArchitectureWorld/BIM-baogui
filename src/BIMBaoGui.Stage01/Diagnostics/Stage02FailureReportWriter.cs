@@ -12,6 +12,12 @@ namespace BIMBaoGui.Stage01.Diagnostics
 {
   public sealed class Stage02FailureReportContext
   {
+    public string DiagnosticCode { get; set; }
+    public string ErrorCode { get; set; }
+    public string DiagnosticMessage { get; set; }
+    public string InputSignature { get; set; }
+    public Guid AttemptToken { get; set; }
+    public string PublicationDisposition { get; set; }
     public string FileGuid { get; set; }
     public string DocumentFingerprint { get; set; }
     public string DocumentTitle { get; set; }
@@ -45,10 +51,155 @@ namespace BIMBaoGui.Stage01.Diagnostics
     public string ReportWriteErrorSummary { get; internal set; }
   }
 
+  public enum Stage02FailureReportPublicationDisposition
+  {
+    PublishedCurrent,
+    DiscardedStale,
+    IgnoredDuplicate
+  }
+
+  public sealed class Stage02FailureReportDraft
+  {
+    private readonly Stage02FailureReportContext _snapshot;
+
+    private Stage02FailureReportDraft(Stage02FailureReportContext snapshot)
+    {
+      _snapshot = snapshot;
+    }
+
+    public static Stage02FailureReportDraft Capture(
+      Stage02FailureReportContext context)
+    {
+      if (context == null) throw new ArgumentNullException(nameof(context));
+      if (string.IsNullOrWhiteSpace(context.InputSignature))
+        throw new ArgumentException(
+          "Stage02 写失败报告缺少输入签名。",
+          nameof(context));
+      if (context.AttemptToken == Guid.Empty)
+        throw new ArgumentException(
+          "Stage02 写失败报告缺少尝试标识。",
+          nameof(context));
+      return new Stage02FailureReportDraft(Clone(context, string.Empty));
+    }
+
+    internal Stage02FailureReportContext WithPublicationDisposition(
+      string publicationDisposition)
+    {
+      return Clone(_snapshot, publicationDisposition);
+    }
+
+    private static Stage02FailureReportContext Clone(
+      Stage02FailureReportContext source,
+      string publicationDisposition)
+    {
+      return new Stage02FailureReportContext
+      {
+        DiagnosticCode = source.DiagnosticCode,
+        ErrorCode = source.ErrorCode,
+        DiagnosticMessage = source.DiagnosticMessage,
+        InputSignature = source.InputSignature,
+        AttemptToken = source.AttemptToken,
+        PublicationDisposition = publicationDisposition,
+        FileGuid = source.FileGuid,
+        DocumentFingerprint = source.DocumentFingerprint,
+        DocumentTitle = source.DocumentTitle,
+        RulePackageId = source.RulePackageId,
+        RulePackageVersion = source.RulePackageVersion,
+        RulePackageSha256 = source.RulePackageSha256,
+        PreviewHash = source.PreviewHash,
+        UniqueIds = (source.UniqueIds ?? Array.Empty<string>()).ToArray(),
+        PropertyIds = (source.PropertyIds ?? Array.Empty<string>()).ToArray(),
+        OperationStage = source.OperationStage,
+        RootCauseStage = source.RootCauseStage,
+        CleanupStage = source.CleanupStage,
+        TransactionRolledBack = source.TransactionRolledBack,
+        GroupRolledBack = source.GroupRolledBack,
+        RollbackConfirmed = source.RollbackConfirmed,
+        TransactionStatus = source.TransactionStatus,
+        TransactionGroupStatus = source.TransactionGroupStatus,
+        HandoffFinalizerTerminalStatus =
+          source.HandoffFinalizerTerminalStatus,
+        HandoffEndCallTerminalStatus =
+          source.HandoffEndCallTerminalStatus,
+        Exception = source.Exception,
+        OccurredUtc = source.OccurredUtc,
+        OccurredLocal = source.OccurredLocal
+      };
+    }
+  }
+
+  public sealed class Stage02FailureReportPublicationResult
+  {
+    internal Stage02FailureReportPublicationResult(
+      bool wasWritten,
+      bool shouldPublishCurrent,
+      Stage02FailureReportWriteResult writeResult)
+    {
+      WasWritten = wasWritten;
+      ShouldPublishCurrent = shouldPublishCurrent;
+      WriteResult = writeResult;
+    }
+
+    public bool WasWritten { get; }
+    public bool ShouldPublishCurrent { get; }
+    public Stage02FailureReportWriteResult WriteResult { get; }
+    public string ReportPath => WriteResult?.ReportPath ?? string.Empty;
+  }
+
+  public static class Stage02FailureReportFinalizer
+  {
+    public static Stage02FailureReportPublicationResult TryPublish(
+      Stage02FailureReportDraft draft,
+      Stage02FailureReportPublicationDisposition disposition)
+    {
+      if (draft == null) throw new ArgumentNullException(nameof(draft));
+      if (disposition ==
+        Stage02FailureReportPublicationDisposition.IgnoredDuplicate)
+      {
+        return new Stage02FailureReportPublicationResult(
+          false,
+          false,
+          null);
+      }
+
+      string publicationDisposition;
+      bool publishCurrent;
+      switch (disposition)
+      {
+        case Stage02FailureReportPublicationDisposition.PublishedCurrent:
+          publicationDisposition = "PUBLISHED_CURRENT";
+          publishCurrent = true;
+          break;
+        case Stage02FailureReportPublicationDisposition.DiscardedStale:
+          publicationDisposition = "DISCARDED_STALE";
+          publishCurrent = false;
+          break;
+        default:
+          throw new ArgumentOutOfRangeException(
+            nameof(disposition),
+            disposition,
+            "未知的 Stage02 失败报告发布归属。");
+      }
+
+      Stage02FailureReportWriteResult writeResult =
+        Stage02FailureReportWriter.TryWrite(
+          draft.WithPublicationDisposition(publicationDisposition));
+      bool written = writeResult.Success;
+      return new Stage02FailureReportPublicationResult(
+        written,
+        publishCurrent && written,
+        writeResult);
+    }
+  }
+
   public static class Stage02FailureReportWriter
   {
     private const string ReportWriteFailedCode = "REPORT_WRITE_FAILED";
     private const string ReportFilePrefix = "BIMBaoGui.Stage02.failure-";
+    private const string WriteFailureDiagnosticCode =
+      "DIAG_STAGE02_WRITE_FAILED";
+    private const string PreviewFailureDiagnosticCode =
+      "DIAG_STAGE02_PREVIEW_FAILED";
 
     public static Stage02FailureReportWriteResult TryWrite(
       Stage02FailureReportContext context)
@@ -116,6 +267,7 @@ namespace BIMBaoGui.Stage01.Diagnostics
       return new Dictionary<string, object>
       {
         ["schemaVersion"] = "1.0",
+        ["stage"] = "STAGE02",
         ["reportId"] = Guid.NewGuid().ToString("D"),
         ["occurredUtc"] = context.OccurredUtc.ToString(
           "O",
@@ -123,7 +275,15 @@ namespace BIMBaoGui.Stage01.Diagnostics
         ["occurredLocal"] = context.OccurredLocal.ToString(
           "O",
           CultureInfo.InvariantCulture),
-        ["diagnosticCode"] = "DIAG_STAGE02_WRITE_FAILED",
+        ["diagnosticCode"] = ResolveDiagnosticCode(context),
+        ["errorCode"] = ResolveErrorCode(context),
+        ["message"] = ResolveDiagnosticMessage(context),
+        ["inputSignature"] = context.InputSignature ?? string.Empty,
+        ["attemptToken"] = context.AttemptToken == Guid.Empty
+          ? string.Empty
+          : context.AttemptToken.ToString("D"),
+        ["publicationDisposition"] =
+          context.PublicationDisposition ?? string.Empty,
         ["operationStage"] = rootCauseStage,
         ["rootCauseStage"] = rootCauseStage,
         ["cleanupStage"] = context.CleanupStage ?? string.Empty,
@@ -157,6 +317,69 @@ namespace BIMBaoGui.Stage01.Diagnostics
         },
         ["exceptionChain"] = BuildExceptionChain(context.Exception)
       };
+    }
+
+    private static string ResolveDiagnosticCode(
+      Stage02FailureReportContext context)
+    {
+      string value = (context.DiagnosticCode ?? string.Empty).Trim();
+      if (value.Length == 0) return WriteFailureDiagnosticCode;
+      if (string.Equals(
+          value,
+          WriteFailureDiagnosticCode,
+          StringComparison.Ordinal)
+        || string.Equals(
+          value,
+          PreviewFailureDiagnosticCode,
+          StringComparison.Ordinal))
+      {
+        return value;
+      }
+      throw new ArgumentException("不支持的 Stage02 诊断码。", nameof(context));
+    }
+
+    private static string ResolveErrorCode(Stage02FailureReportContext context)
+    {
+      string value = (context.ErrorCode ?? string.Empty).Trim();
+      if (value.Length == 0) return string.Empty;
+      switch (value)
+      {
+        case "STAGE02_SELECTION_SERVICE_EXCEPTION":
+        case "STAGE02_SELECTION_NO_RESULT":
+        case "STAGE02_PREVIEW_SERVICE_EXCEPTION":
+        case "STAGE02_PREVIEW_NO_RESULT":
+        case "STAGE02_WRITE_ENQUEUE_EXCEPTION":
+        case "STAGE02_WRITE_ENQUEUE_REJECTED":
+        case "STAGE02_WRITE_COMPLETION_CONSUMER_FAILED":
+        case "WRITE_HOST_CALLBACK":
+          return value;
+        default:
+          throw new ArgumentException(
+            "不支持的 Stage02 失败错误码。",
+            nameof(context));
+      }
+    }
+
+    private static string ResolveDiagnosticMessage(
+      Stage02FailureReportContext context)
+    {
+      string value = (context.DiagnosticMessage ?? string.Empty).Trim();
+      if (value.Length == 0) return string.Empty;
+      switch (value)
+      {
+        case "Stage02 元素选择发生技术失败。":
+        case "Stage02 元素选择服务未返回结果。":
+        case "Stage02 预览构建发生技术失败。":
+        case "Stage02 预览服务未返回可发布结果。":
+        case "Stage02 写入请求提交发生技术失败。":
+        case "Stage02 写入宿主回调发生技术失败。":
+        case "Stage02 写入结果完成消费者发生技术失败；业务完成未重试。":
+          return value;
+        default:
+          throw new ArgumentException(
+            "不支持的 Stage02 诊断消息。",
+            nameof(context));
+      }
     }
 
     private static string[] Sort(IEnumerable<string> values)
@@ -246,7 +469,8 @@ namespace BIMBaoGui.Stage01.Diagnostics
           File.Move(temporaryPath, path);
           return path;
         }
-        catch (IOException) when (File.Exists(path))
+        catch (IOException exception) when (
+          AtomicJsonReportWriter.IsCreateNewCollision(exception))
         {
           timestamp = timestamp.AddMilliseconds(1);
         }

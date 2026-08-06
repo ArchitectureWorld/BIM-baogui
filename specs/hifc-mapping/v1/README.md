@@ -1,6 +1,6 @@
-# GH H-IFC 映射与官方插件兼容基线 v1
+# GH H-IFC 映射与官方插件兼容历史证据基线 v1
 
-本目录保存从官方 HIFCTool 配置、规划报建规则和现有 GH 产品中整理出的开发证据。当前产品路径已经冻结为：
+本目录保存从官方 HIFCTool 配置、规划报建规则和现有 GH 产品中整理出的历史证据。下列旧产品路径已被 2026-08-02 三阶段设计替代，不再是当前产品边界：
 
 ```text
 GH 写入 Revit
@@ -8,7 +8,7 @@ GH 写入 Revit
 → 官方检查软件识别
 ```
 
-## 当前有效边界
+## 历史边界（已替代）
 
 - IFC 仅由官方 H-IFC 插件导出；
 - 不开发自有 IFC 导出器；
@@ -16,7 +16,7 @@ GH 写入 Revit
 - Revit 参数写入与回读只证明 Revit 内部一致，不等于官方兼容通过；
 - 只有完成 Golden RVT → 官方插件 → Golden IFC → 检查软件闭环，才能把字段标记为正式兼容。
 
-旧文档中的 `POST_EXPORT_ENRICH`、`POST_EXPORT_CREATE_OR_ENRICH`、自研 IFC 模块等内容仅保留为历史研究，不再作为当前实施依据。当前有效设计、计划和 Review 为：
+本目录及 2026-08-01 文档继续作为官方插件提取证据和历史研究保留，不再作为当前实施依据。当前唯一产品与架构依据为 `docs/superpowers/specs/2026-08-02-hbr-three-stage-rule-database-design.md`；以下旧设计、计划和 Review 仅供证据追溯：
 
 - `docs/superpowers/specs/2026-08-01-official-plugin-compatible-write-design.md`；
 - `docs/superpowers/plans/2026-08-01-official-plugin-compatible-write.md`；

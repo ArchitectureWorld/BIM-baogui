@@ -290,7 +290,7 @@ namespace BIMBaoGui.Stage01.Revit
         {
           using (var transaction = new Transaction(
             document,
-            "写入文件初始化与官方插件源参数"))
+            "写入文件初始化与兼容源参数"))
           {
             if (transaction.Start() != TransactionStatus.Started)
               throw new InvalidOperationException("无法启动 Revit 事务。");
@@ -339,24 +339,16 @@ namespace BIMBaoGui.Stage01.Revit
           if (group.Assimilate() != TransactionStatus.Committed)
             return Failure("事务组未能合并为一次可撤销操作。");
 
-          bool hasOfficialProtocolBlocker = commitMessages.Any(message =>
-            message.StartsWith("BLOCK_", StringComparison.Ordinal));
           var resultMessages = new List<string>
           {
-            "文件初始化、内部唯一参数、官方精确源参数写入与 Revit 回读均已完成。",
-            "必须使用官方 H-IFC 插件重新导出 IFC；旧 IFC 不会自动更新。"
+            "文件初始化、内部唯一参数、初始化字段写入与 Revit 回读均已完成。",
+            "可进入 02 构件与属性准备；后续由 03 执行标准 IFC4 导出与 HIFC-MVD 转译。"
           };
           resultMessages.AddRange(commitMessages);
 
-          string status;
-          if (hasOfficialProtocolBlocker)
-            status = requiresMigration
-              ? "初始化升级完成｜官方导出协议存在阻断"
-              : "初始化完成｜官方导出协议存在阻断";
-          else
-            status = requiresMigration
-              ? "旧版初始化已升级｜待官方重新导出验收"
-              : "初始化完成｜待官方重新导出验收";
+          string status = requiresMigration
+            ? "旧版初始化已升级｜可进入 02 构件与属性准备"
+            : "初始化完成｜可进入 02 构件与属性准备";
 
           return new CommitResult
           {

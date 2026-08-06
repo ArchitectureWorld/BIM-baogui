@@ -212,6 +212,7 @@ namespace BIMBaoGui.Stage01.Diagnostics
           item.ElementId,
           item.PropertyId,
           item.Status,
+          item.StatusCode,
           item.Requirement,
           item.Message)).ToArray(),
         SnapshotStrings(value.TechnicalFatalCodes),

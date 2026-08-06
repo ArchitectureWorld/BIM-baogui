@@ -97,11 +97,22 @@ namespace BIMBaoGui.Stage01.Core.Tests
         Stage03GateDecision decision = Stage03ExportGatePolicy.Decide(
           Stage03GateMode.Force,
           reason,
-          Array.Empty<Stage03FieldResult>(),
+          new[]
+          {
+            Field("pass", Stage03FieldStatus.Pass, true, "REQUIRED", false)
+          },
           Array.Empty<string>());
 
         Assert.False(decision.AllowExport);
         Assert.False(decision.Forced);
+        Assert.Empty(decision.TechnicalFatalCodes);
+        Stage03BusinessBlocker blocker = Assert.Single(
+          decision.BusinessBlockers);
+        Assert.Equal("FORCE_REASON_REQUIRED", blocker.StatusCode);
+        Assert.Equal(Stage03FieldStatus.NotEvaluated, blocker.Status);
+        Assert.Equal(
+          "Force 模式必须提供非空强制原因。",
+          blocker.Message);
         Assert.Contains(
           decision.Messages,
           message => message.Contains("原因"));

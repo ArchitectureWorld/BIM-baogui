@@ -45,7 +45,11 @@ namespace BIMBaoGui.Stage01.Diagnostics
       Action<string, string> publisher)
     {
       if (File.Exists(target) || Directory.Exists(target))
-        throw new IOException("JSON 报告目标已存在，禁止覆盖：" + target);
+      {
+        throw new IOException(
+          "JSON 报告目标已存在，禁止覆盖：" + target,
+          HResultAlreadyExists);
+      }
 
       string temporaryPath = null;
       try
@@ -204,7 +208,7 @@ namespace BIMBaoGui.Stage01.Diagnostics
       throw new IOException("无法分配唯一的同目录 JSON 临时文件。");
     }
 
-    private static bool IsCreateNewCollision(IOException exception)
+    internal static bool IsCreateNewCollision(IOException exception)
     {
       return exception.HResult == HResultFileExists
         || exception.HResult == HResultAlreadyExists;

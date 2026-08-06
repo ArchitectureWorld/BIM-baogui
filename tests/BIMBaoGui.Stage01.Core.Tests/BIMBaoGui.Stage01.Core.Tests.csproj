@@ -39,6 +39,9 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ComponentStatePolicy.cs"
              Link="Stage03\Stage03ComponentStatePolicy.cs"
              Condition="Exists('..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ComponentStatePolicy.cs')" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03BlockingDiagnosticPolicy.cs"
+             Link="Stage03\Stage03BlockingDiagnosticPolicy.cs"
+             Condition="Exists('..\..\src\BIMBaoGui.Stage01\Stage03\Stage03BlockingDiagnosticPolicy.cs')" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03FieldDetailFormatter.cs"
              Link="Stage03\Stage03FieldDetailFormatter.cs"
              Condition="Exists('..\..\src\BIMBaoGui.Stage01\Stage03\Stage03FieldDetailFormatter.cs')" />
@@ -48,7 +51,9 @@
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03RevitRequestPolicy.cs" Link="Stage03\Stage03RevitRequestPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ActivationStatePolicy.cs" Link="Stage03\Stage03ActivationStatePolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03HostCallbackStartGate.cs" Link="Stage03\Stage03HostCallbackStartGate.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\RevitHost.cs" Link="Revit\RevitHost.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\RevitHostCallbackInvoker.cs" Link="Revit\RevitHostCallbackInvoker.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02RevitOperationResults.cs" Link="Revit\Stage02RevitOperationResults.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ScannerFieldPolicy.cs" Link="Stage03\Stage03ScannerFieldPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03SavedRoleAuditPolicy.cs" Link="Stage03\Stage03SavedRoleAuditPolicy.cs" />
     <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrCanonicalUnitConverter.cs" Link="Revit\Parameters\HbrCanonicalUnitConverter.cs" />

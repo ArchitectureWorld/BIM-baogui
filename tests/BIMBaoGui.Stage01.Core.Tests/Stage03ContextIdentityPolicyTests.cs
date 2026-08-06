@@ -27,7 +27,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
           "document-fingerprint",
           "测试模型.rvt");
 
-      Assert.False(context.IsReady);
+      Assert.True(context.IsReady);
       Assert.True(decision.Success, string.Join(" ", decision.Messages));
       Assert.Empty(decision.Messages);
     }

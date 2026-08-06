@@ -189,6 +189,8 @@ namespace BIMBaoGui.Stage01.UI
             + snapshot.SelectedCount
             + "｜匹配 "
             + snapshot.MatchedCount
+            + "｜角色 "
+            + Empty(snapshot.MatchedRoles)
         },
         {
           "预览状态",
@@ -297,6 +299,7 @@ namespace BIMBaoGui.Stage01.UI
         return Success;
       }
       if (string.Equals(status, "预览阻断", StringComparison.Ordinal)
+        || string.Equals(status, "预览技术失败", StringComparison.Ordinal)
         || string.Equals(status, "写入失败", StringComparison.Ordinal))
       {
         return Error;
