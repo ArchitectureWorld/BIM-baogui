@@ -80,6 +80,17 @@ def test_public_stage03_has_exact_five_inputs_and_eight_outputs():
     )
 
 
+def test_stage03_rejects_relative_output_directory_before_full_path_resolution():
+    component = read(
+        "src/BIMBaoGui.Stage01/Stage03ValidationExportComponent.cs"
+    )
+    preflight = method_body(component, "private static bool TryCreateRequest")
+    assert re.search(
+        r"!Path\.IsPathRooted\(\s*outputDirectory\s*\)",
+        preflight,
+    )
+
+
 def test_public_stage03_uses_rising_edge_signature_and_generation_state():
     component = read(
         "src/BIMBaoGui.Stage01/Stage03ValidationExportComponent.cs"

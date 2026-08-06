@@ -442,6 +442,11 @@ namespace BIMBaoGui.Stage01
         error = "输出目录必须填写。";
         return false;
       }
+      if (!Path.IsPathRooted(outputDirectory))
+      {
+        error = "输出目录必须是绝对路径。";
+        return false;
+      }
       string fullOutputDirectory;
       try
       {
