@@ -1559,7 +1559,6 @@ namespace BIMBaoGui.Stage01.Core.Tests
         string ghaPath = CreateValidGha(directory);
         string wrongName = Path.Combine(directory, "Other.gha");
         File.Copy(ghaPath, wrongName);
-        string relativeGhaPath = RelativeToCurrentDirectory(ghaPath);
         string noncanonical = Path.Combine(
           directory,
           ".",
@@ -1568,7 +1567,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
         {
           string.Empty,
           directory,
-          relativeGhaPath,
+          Path.Combine("relative", "BIMBaoGui.Stage01.gha"),
           wrongName,
           Path.Combine(directory, "missing", "BIMBaoGui.Stage01.gha"),
           noncanonical
@@ -2323,17 +2322,6 @@ namespace BIMBaoGui.Stage01.Core.Tests
         name.Name,
         name.Version,
         Stage03PortableExecutableMetadataReader.ReadModuleVersionId(path));
-    }
-
-    private static string RelativeToCurrentDirectory(string absolutePath)
-    {
-      string currentDirectory = Environment.CurrentDirectory.TrimEnd(
-        Path.DirectorySeparatorChar,
-        Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
-      return Uri.UnescapeDataString(
-          new Uri(currentDirectory).MakeRelativeUri(new Uri(absolutePath))
-            .ToString())
-        .Replace('/', Path.DirectorySeparatorChar);
     }
 
     private static void AssertDeterministicNulReport(
