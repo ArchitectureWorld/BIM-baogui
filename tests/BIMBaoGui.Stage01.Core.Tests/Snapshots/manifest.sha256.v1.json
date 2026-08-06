@@ -20,8 +20,8 @@
     },
     {
       "name": "rule-activation.v1.json",
-      "length": 43534,
-      "sha256": "97337855657177d8a89b26675673cb73ac8c035473ff49b2954710f9f5b09e34"
+      "length": 41870,
+      "sha256": "661529a209b97b16b28c6261593c128fd302aecf0645a332d9beec34d8cd5be7"
     },
     {
       "name": "shared-parameters-canonical.v1.json",
@@ -30,13 +30,13 @@
     },
     {
       "name": "stage01-registry.v1.json",
-      "length": 52902,
-      "sha256": "f693908460cd6097d9fda159a552220d50d905b4b9b3ffb0eac7bbfeab5e31bc"
+      "length": 50110,
+      "sha256": "489485118d2cb49ce6d98c11f7ea74453748501990b3991b696876799d1a3253"
     },
     {
       "name": "task-rules.v1.json",
-      "length": 22755,
-      "sha256": "a5b6b4e6e05d37858f34823a9c8ba1be170df197a0e70e64e13c840cedd06b0f"
+      "length": 21290,
+      "sha256": "11f7ccf715ea9beb5a67aa8024b60fa8d48e47abd32bebc1fa725ed539a883fa"
     }
   ]
 }
