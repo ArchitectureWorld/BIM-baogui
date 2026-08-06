@@ -1,21 +1,40 @@
 # HBR 三阶段开发总进度
 
-> 最后更新：2026-08-04 23:50（UTC+08:00；Task 10 已完成7/7闸门并提交 `4890e07`，正式进度升至10/12）
+> 最后更新：2026-08-06 13:38（UTC+08:00；Stage03 相对输出目录 finding 已 RED→GREEN，等待远端 CI artifact 与无备份部署）
 > 计划基线：[`2026-08-02-hbr-three-stage-implementation.md`](superpowers/plans/2026-08-02-hbr-three-stage-implementation.md)
 > 当前分支：`fix/official-hifc-hardening-v090`
 > 更新规则：任务启动、测试结果变化、审查结论、Git 提交、部署或实机验收后，必须同步更新本页。
+> 实时口径：本页与 Codex 计划面板同步；只有实现、验证、审查、提交全部通过的 Task 才计入正式完成度。
 
 ## 一屏看懂
 
 | 你最关心的项目 | 当前结果 |
 |---|---|
 | 整体正式完成度 | **83%：10/12 个 Task 已通过实现、验证、双审查和提交** |
-| 当前开发进度 | **Task 10 已完成 7/7 闸门并提交 `4890e07`；Stage03 自动化开发闭环完成** |
-| 当前正在做 | **Task 11：文档、CI、完整自动化与单 GHA 无备份部署** |
-| 当前运行环节 | **Task 11 启动准备**：先更新三阶段产品文档/CI合同，再全量验证并部署唯一 GHA |
-| 当前阻塞 | **无外部阻塞**；部署前将检查 Revit、Rhino、Grasshopper 相关进程是否关闭 |
+| 现在能否直接作为最终版使用 | **还不能**：尚未完成 Task 11 无备份部署和 Task 12 Revit 2020 指定 RVT 实机闭环 |
+| 当前开发进度 | **Task 1–10 已完成；Task 11 已完成审查与提交，内部进度 4/5** |
+| 当前正在做 | **Task 11：等待 GitHub Actions clean runner 产出并核验 v0.9.0 artifact** |
+| 当前运行环节 | **修复后 Core/Python/Release/NuGet/静态全部通过；提交 `5152f0d` + `05b48ba` 已形成，尚未部署** |
+| 当前阻塞 | **无代码阻塞**；远端 CI 与单 GHA 无备份部署仍是 Task 11 的必要闸门 |
 | 现在是否需要你操作 | **不需要**；Task 11 部署时如相关程序未关闭，可能需要配合关闭；Task 12 明确需要实机点击验收 |
-| 下一节点 | Task 11 文档/CI RED→GREEN → 完整自动化 → 单 GHA 无备份部署 → Task 12 实机闭环 |
+| 下一节点 | 推送 `05b48ba` → clean runner → artifact manifest 核验 → 单 GHA 无备份部署 |
+
+## Grasshopper 最终使用路径
+
+| 顺序 | GH 公开组件 | 用户在 GH 中能看到什么 | 当前开发状态 |
+|---:|---|---|---|
+| 1 | `01 项目初始化` | 项目身份、坐标 X/Y、高程、真北、文件上下文与规则包身份 | ✅ 自动化完成；⏳ Task 12 复核既有效果不回归 |
+| 2 | `02 构件与属性准备` | 选择/匹配结果、完整字段明细、建议值、阻断原因、待安装/写入计数、写入状态和失败报告路径 | ✅ exactly-once 与异常终态自动化已闭环；⏳ 待 Task 12 实机复核 |
+| 3 | `03 检测、导出与转译` | Strict/Force 模式、字段通过与阻断计数、RAW IFC、HIFC-MVD IFC、fields JSON、失败报告和总状态 | ✅ Strict/Force 开关、条件化验收与 X/Y/高程证据槽已闭环；⏳ 待部署和实机验收 |
+
+### Stage03 测试开关
+
+| `全部通过才导出` | 实际模式 | 导出规则 |
+|---|---|---|
+| `true`（默认） | Strict | 任一活动业务阻断存在时不导出，只输出字段检测证据 |
+| `false` | Force | 必须填写非空“强制原因”；可绕过业务阻断以便测试并生成两份 IFC |
+
+无论开关取值如何，错文档、Revit 版本不支持、输出冲突、IFC 导出/解析失败、报告写入失败等技术故障都不能被绕过。卡片只提供摘要，完整字段、阻断和产物路径同时通过 GH 输出端口提供。
 
 状态图例：✅ 已完整验收；🟡 开发中；🟠 有待修复风险；🔵 自动化验证中；🟣 待审查；⏳ 等待前置任务/实机；⬜ 未开始；❌ 未通过/外部阻塞。
 
@@ -25,16 +44,16 @@
 
 `█████████████████░░░ 83%`
 
-**当前执行位置：Task 10 已完成 7/7 闸门；Task 11 即将开始**
+**当前执行位置：Task 10 已完成 7/7 闸门；Task 11 已通过前4道闸门，等待第5道无备份部署**
 
-`Task 10：███████ 7/7　　Task 11：░░░░░ 0/5（启动准备）`
+`Task 10：███████ 7/7　　Task 11：████░ 4/5（CI artifact / 部署待执行）`
 
 | 工作包 | 包含任务 | 状态 | 完成度 |
 |---|---:|---|---:|
 | 统一规则与运行时基础 | Task 1–3 | ✅ 完成 | 100% |
 | Stage02 属性准备 | Task 4–6 | ✅ 完成 | 100% |
 | Stage03 检测、导出与转译 | Task 7–10 | ✅ 完成 | 100% |
-| CI、文档与单 GHA 部署 | Task 11 | 🟡 启动准备 | 0% |
+| CI、文档与单 GHA 部署 | Task 11 | 🔵 等待 CI artifact / 部署 | 正式0%，内部4/5 |
 | Revit 2020 实机闭环 | Task 12 | ⏳ 待实机 | 0% |
 
 ## 12 项总计划与实时状态
@@ -51,7 +70,7 @@
 | 8 | IFC4 STEP 实体插入与缺失 Pset/属性转译 | ✅ 完成 | 100% | 已提交 `d1792ee`；终局双审 0/0/0，主代理 fresh Core 963/963、Python 375/375、Release 0/0 | 否 |
 | 9 | Revit 2020 全模型扫描与 Autodesk 标准 IFC4 导出 | ✅ 完成 | 100% | 已提交 `b56100a`；双审 0/0/0，主代理定向/全量/Release/静态/指纹全部通过 | 否 |
 | 10 | Stage03 协调器、新公开组件和 legacy 隐藏 | ✅ 完成 | 100% | 已提交 `4890e07`；16文件manifest `243858f4…77e04`，规格/质量0/0/0，主代理全量通过 | 否 |
-| 11 | 文档、CI、全量自动化与单 GHA 无备份部署 | 🟡 启动准备 | 0% | 插件目录须恰有1个GHA、0个`.bak/.backup`，源与部署SHA-256一致 | 否 |
+| 11 | 文档、CI、全量自动化与单 GHA 无备份部署 | 🔵 等待 CI artifact / 部署 | 正式0%，内部4/5 | 本地规格/质量0/0/0；Core1242/1242、Python516/516、严格Release0/0、NuGet0漏洞；已提交 `5152f0d` + `05b48ba`，待远端 artifact 与无备份部署 | 否 |
 | 12 | Revit 2020 真实项目全流程验收 | ⏳ 等待 Task 11 | 0% | 使用指定 RVT 完成 Stage01→Stage02→Stage03，并核验两份 IFC 与字段报告 | **是，届时按提示点击** |
 
 ### Task 9 七道验收闸门
@@ -78,11 +97,113 @@
 | 6. 主代理独立全量复验 | ✅ 完成 | 定向78/78、Stage03/MVD348/348、Core1167/1167、Python401/401、component9/9、Release0/0、静态/manifest通过 |
 | 7. Git 提交与看板更新 | ✅ 完成 | `4890e07 feat: complete Stage03 validation export workflow`；恰好16文件，提交manifest不变，看板独立提交 |
 
-## 当前执行看板
+### Task 11 五道验收闸门
+
+| 闸门 | 状态 | 完成标准 |
+|---:|---|---|
+| 1. 三阶段文档/CI合同 TDD | ✅ RED→GREEN完成 | 6 failed/9 passed真实RED→15/15 GREEN；README仅3组件，checklist为指定RVT实机表，CI合同已更新 |
+| 2. 完整自动化与安全审计 | ✅ 第六版 fresh 通过 | Core连续4轮各1242/1242；Python515/515；严格Release 0 warning/0 error；NuGet 1项目/1框架/0漏洞；diff/BOM/CRLF/备份门禁通过 |
+| 3. Task 11 整体验收审查 | ✅ 0/0/0 | 当前候选以 `90dada31…62079` 为精确 manifest；本地规格/质量复审与 fresh 全量验证均通过 |
+| 4. Git 提交与看板更新 | ✅ 候选已提交 | 62 个获批文件提交为 `5152f0d`，相对路径修复追加为 `05b48ba`；本看板保持独立提交 |
+| 5. 单 GHA 无备份部署 | ⬜ 待执行 | 相关宿主进程已关闭；插件目录恰好1个GHA、0个备份，源/部署SHA-256一致 |
+
+### Task 11 当前 6 项返修清单
+
+| ID | 来源 | 必须修复/补齐的内容 | 当前状态 | 关闭门槛 |
+|---|---|---|---|---|
+| Q1 | 代码质量 | Stage02 首次 completion 消费者异常进入独立、exactly-once 的技术失败终结路径，不得吞异常或二次执行业务 completion | ✅ RED→GREEN | 行为1/1、接线合同1/1、相关C#47/47；业务completion一次、技术终态/报告/刷新各一次，Pending清零且不重试业务回调 |
+| Q2 | 代码质量 | RevitHost 增加 callback-start/executed gate；业务回调已开始后禁止 fallback 到 legacy 队列 | ✅ RED→GREEN | 完整RevitHost路由2失败/1通过→3/3；相关C#17/17、Python122/122，入口失败可fallback，callback开始后异常传播且legacy=0 |
+| S1 | 规格 | `STRICT_CLEAN_EXPORT` 改为“权威分类完成后才适用”的条件场景；当前 v0.9.0 强制验收保留 Strict blocked 与三类 Force 场景 | ✅ RED→GREEN | 合同0/1→1/1、相关4/4；明确359/359均UNCLASSIFIED、不得伪造分类，Strict clean条件模板不阻塞当前诚实验收 |
+| S2 | 规格 | Stage02 清单加入项目信息及实例/类型哨兵编辑、保存重开回读、切换 RVT 后旧预览失效且不能确认写入 | ✅ RED→GREEN | 合同0/1→1/1、相关5/5；锁定两个真实GUID及固定哨兵、保存重开截图/哈希、RVT身份切换、结果过期且写入队列未进入证据槽 |
+| S3 | 规格 | Stage03 清单加入 X/Y/高程的 Revit GUID、显示值、单位与 final IFC 实体/Pset/属性/类型/值对照，以及源 RVT 前后 SHA-256 | ✅ RED→GREEN | 合同初次0/1→1/1，边界复核后二次0/1→相关7/7；两导出场景均锁定3个真实GUID与final IFC身份/类型/值，记录Stage03执行前后源RVT及RAW转译前后哈希 |
+| S4 | 规格/CI | Release 构建启用 warnings-as-errors，并以发布合同测试防止回退 | ✅ 规格复审 Ready：0/0/0 | 唯一严格 build、NoWarn、默认失败传播、PowerShell 常规调用、YAML folded scalar 与 `dotnet --% build` 边界全部闭环；实际 workflow 无需修改 |
+| S4 第三轮范围 | 规格/CI | 替代规格重审的 PowerShell/dotnet 调用边界 | ✅ 已 RED→GREEN，但后续复审发现新边界 | 三枚反引号续行、`&`、`dotnet.exe` 变异已关闭；其证据仅代表第三轮范围 |
+| S4 第四轮范围 | 规格/CI | YAML `>` / `>-` folded scalar 与 PowerShell `dotnet --% build` 调用边界 | ✅ 独立复审 Ready：0/0/0 | 三枚精确变异3/3、上一轮PowerShell三案3/3、历史16类16/16均被独立拒绝；发布合同39/39、CI22/22、真实Release0警告/0错误 |
+
+## 当前执行看板（最新状态）
 
 | 项目 | 实时状态 | 当前证据 / 剩余动作 |
 |---|---|---|
-| 当前任务 | 🟡 Task 11 启动准备 | 正式完成度10/12（83%）；Task10已7/7完成并提交，开始文档/CI/部署工作包 |
+| 当前任务 | 🔵 Task 11 等待 CI artifact / 部署 | 正式完成度10/12（83%）；代码已修复并提交，Task 11 仍须完成远端 artifact 核验和无备份部署 |
+| 根因与修复 | ✅ 行为 RED→GREEN | Stage03 预占目标原抛普通 `0x80131620` 并在首候选终止；现统一为可分类 `0x800700B7`，并以固定 GUID 验证“文件占用→目录占用→第三候选成功” |
+| 旧第三版候选 | ❌ 已作废 | 60 文件 manifest `a42f48d5…ca0d` 与 GHA/DLL `2db105fc…9ea3c` 均不再代表当前代码，不得提交或部署 |
+| 第四版候选 | ❌ 已作废 | 60文件 manifest `766f2191…b3fac` 与 GHA/DLL `4ce3a01c…6ec80` 不得提交或部署 |
+| 代码质量终审 | ✅ Ready：0/0/0 | writer、NoWarn/job flow、MSBuild/import/analyzer config/paths全部RED→GREEN；当前候选无新增 finding |
+| 规格终审 | ✅ 第五版 Ready：0/0/0 | folded/`--%`三案、反引号/`&`/`dotnet.exe`三案及历史16类变异全部独立拒绝；候选起止摘要一致 |
+| 验证证据 | ✅ 修复后 fresh 通过 | Stage03合同15/15；Core1242/1242；Python516/516；发布合同97/97；Release0/0；NuGet0漏洞；62文件manifest=`e07499b1…c8475ea2`；GHA/DLL=`35f746a0…96a6c` |
+| 下一动作 | 🔵 正在执行 | 推送 `05b48ba` → clean runner → 下载并核验 artifact manifest → 单 GHA 无备份部署 |
+| 用户操作 | ⏳ 当前不需要 | 仅当部署时宿主仍打开需协助关闭；Task 12 再按提示进行 Revit 2020 实机点击 |
+
+## 详细审计流水（历史记录，不代表当前阻塞）
+
+下表保留每次 RED、返修和复审证据。历史 `❌ Not Ready` 已由其后的 `✅ GREEN/Ready` 项闭环；判断当前状态请以上方“最新状态”为准。
+
+| 项目 | 历史状态 | 证据 |
+|---|---|---|
+| 质量 I1：Stage02 写失败报告身份 | ✅ RED→GREEN | identity 1/1、真实FS finalizer 1/1、集成1/1；回归C#13/13、Python30/30。current=`PUBLISHED_CURRENT`，stale=`DISCARDED_STALE`，ignored零文件 |
+| 质量 I2：Stage02/03 验收证据关联 | ✅ RED→GREEN | Task12定向4/4；Stage02按7项原生身份/时间窗关联且无runId，Stage03仍绑定runId；三类坏变异与fatal N/A变异均被拒绝 |
+| 质量 I3：preview含业务阻断的类型 | ✅ RED→GREEN | OperationResults 7/7；blockers只物化一次并优先判`BusinessBlocked`，保留preview、Success=false，且不生成技术失败报告 |
+| 质量 M1：活动文档不可用分类 | ✅ RED→GREEN | Core seam1/1、生产接线1/1；false+null异常统一BusinessBlocked/no-report，真实异常统一TechnicalFailure/report |
+| 质量 M2：null selection 受控失败 | ✅ RED→GREEN | 两条精确0/1→1/1；`SelectionNoResult`可报告、解引用前分类且清pending；合并定向C#22/22、Python108/108 |
+| 原质量复审3I+2M返修 | ✅ 全部GREEN | I1–I3、M1–M2均具真实RED与定向GREEN；仍须连同GH 6I+3M一起冻结、复审和全量验证 |
+| GH I1：技术Preview失败可辨识 | ✅ 0/1→1/1 | 新增“预览技术失败”总状态并映射Error；业务blocker仍为PreviewBlocked，卡片和状态端口不再混淆 |
+| GH I2：写入请求入队失败报告 | ✅ RED→GREEN | Core1/1、Python1/1；throw保留原异常，false受控异常，报告含WRITE_ENQUEUE及request身份，current/stale/ignored分类与路径发布完整 |
+| GH I3：Stage02字段证据完整 | ✅ 0/1→1/1 | 字段JSON现19个稳定键，并以documentFingerprint/documentTitle开头，Panel可直接绑定具体RVT |
+| GH M1：Stage02卡片匹配角色 | ✅ 0/1→1/1 | MatchedRoles按ordinal去重排序并显示，GH重算不改变角色摘要顺序 |
+| GH M2：Stage01公开菜单名含01 | ✅ GREEN 4/4 | 组件、README和Task12统一“湖北BIM报规｜01 文件初始化”，legacy GUID/隐藏状态不变 |
+| GH I4：Stage03完整字段Data Tree | ✅ RED→GREEN 3/3 | 已含合同/适用性/参数身份、全分层状态、Revit三值、active/blocker与稳定messages，并保留IFC原证据 |
+| GH I5：全部阻断保持纯语义 | ✅ RED→GREEN | C#12/12、Python1/1；只含业务阻断、typed fatal和blocking diagnostics，INFO/WARNING/普通messages排除，Force缺陷保留 |
+| GH I6：Stage03端口通道 | ✅ 0/1→1/1 | 外框934px、内卡620×338仅X内缩；Bounds与真实端口按outer box布局，卡片不覆盖通道 |
+| GH M3：Force呈现 | ✅ RED→GREEN | Core20/20、Python2/2；精确Strict/Force文案，Force为Warning、Force+缺陷橙色，仅无阻断Strict allow为Success绿色 |
+| 本批质量与GH返修汇总 | 🟠 复审finding返修 | 自动验证基线全过，但只读复审发现pending分支仍把“请求已提交”普通消息放入全部阻断；修复并重跑前不冻结 |
+| GH I5复审增量：pending污染 | ✅ 0/1→1/1 | 签名变化与健康pending均不写普通blockers；进度只在Status/footer；端口说明仅列三类真实阻断 |
+| 复审Minor 1：分隔符无歧义 | ✅ RED→GREEN | 碰撞1/1、formatter13/13；字段与各类阻断均为确定性JSON object，35键对齐报告，分隔符逐值round-trip |
+| 复审Minor 2：阻断策略边界 | ✅ RED→GREEN | Python1/1、C#22/22；独立policy文件，formatter/coordinator只调用；null/trim/case/8 fatal/反例全锁 |
+| 二次复审唯一I：异常路径JSON | ✅ RED→GREEN | Python1/1、Core round-trip1/1；共享FormatComponentFailure复用统一formatter，三条异常路径均稳定JSON |
+| 第三次全量回归与只读复审 | ✅ 复审0/0/0 | Stage03 Core340/340、GH14/14、Core1220/1220、Python439/439；继续Release/diff/text/hash/身份审计后冻结 |
+| Task11最终候选冻结 | ✅ 已冻结 | 排除本看板后48文件、6011-byte Ordinal/LF manifest `1476f86c…6062`；HEAD `21549ed`、staged=0 |
+| Task11正式规格复审 | ❌ Not Ready：0/4/1 | 4I：Stage03 fatal报告、Force空原因证据槽、NuGet空framework放行、Stage02 host callback丢完成回调；1M：Selection分类不一致。绝对RVT路径finding已撤销 |
+| 规格I1：Stage03 typed fatal报告 | ✅ 0/1→1/1 | 原FailureReportCalls=0；现保留fields并生成同runId failure report，Force仍不导出，Strict纯业务路径不变 |
+| 规格I2：Force空原因可审计运行 | ✅ RED→GREEN 2/2 | 删除重复TryBegin早拒绝；正式gate仍阻断，Scan/fields各1、同runId、Export/Translate=0，签名/边沿不变 |
+| 规格I3：NuGet空framework fail-closed | ✅ 3失败/2通过→5/5 | 双报告：inventory校验项目/framework，vulnerable专查漏洞；真实YAML gate执行`NUGET_GATE_OK`，健康零package不误杀 |
+| 规格I4：Stage02 post-enqueue callback failure | ✅ RED→GREEN | 三参数EnqueueAction+exactly-once；补writer白名单与冻结DocumentTitle；完整身份/Exception保留；Core70/70、Python88/88 |
+| 规格M1：Selection宿主不可用分类 | ✅ RED→GREEN | 四个core走typed helper；null=>BusinessBlocked/no-report，真实异常=>TechnicalFailure/Same/report；Core70/70、Python88/88 |
+| 规格4I+1M返修汇总 | 🔵 静态/manifest收尾 | 规格Core152/152、NuGet变异5/5、Stage02 Py88/88、Core1229/1229、Python444/444、Release0/0、实际gate`NUGET_GATE_OK` |
+| 规格返修后新候选冻结 | ✅ 已冻结 | 排除看板49文件、6153-byte Ordinal/LF manifest `0d0f5a8b…e185`；GHA/DLL 1,546,752 bytes、SHA `1f1b9b4b…bff7`一致，staged=0 |
+| 规格返修后正式复审 | ❌ Not Ready：0/1/1 | I：Force空原因fields路径/哈希仍允许N/A；M：扫描全Pass时GH全部阻断缺稳定Force原因JSON。其余原4I/1M关闭，manifest无漂移 |
+| 复审新增I：Force空原因fields证据 | ✅ RED→GREEN | 清单强制独立同runId fields路径/SHA，不得N/A；定向1/1、Task12相关6/6 |
+| 复审新增M：FORCE_REASON_REQUIRED | ✅ 4/4 GREEN | gate/formatter/clean workflow/fields snapshot全链保存typed blocker，普通Messages仍不混入AllBlockers |
+| GH 三阶段可用性独立审查 | ❌ Not Ready：0/6/3 | 核心安全语义通过；需补技术失败辨识/报告、Stage02/03字段证据、纯阻断输出、端口通道、角色摘要、01菜单名与Force测试放行文案/状态色 |
+| 部署前只读基线 | ✅ 可进入后续部署闸门 | 插件目录现有1个GHA、0个`.bak/.backup`；当前未发现Revit/Rhino/Grasshopper主进程。现有GHA仍是旧版，候选未提前覆盖 |
+| Stage02 预览失败报告返修 | ✅ 首轮与定向回归 GREEN | 首轮C# 43/43、Python 27/27；定向回归C# 55/55、Python 79/79；继续纳入最终全量复验与独立复审 |
+| Stage03 GH 展示独立审查 | ✅ Ready：0/0/0 | 5入8出、默认Strict、Force原因、上升沿、失效签名、卡片计数/路径与技术fatal均覆盖；组件合同9/9 |
+| Task 11 文档/CI合同 | ✅ RED→GREEN完成 | 6 failed/9 passed→15/15；README/验收清单/workflow已按三阶段当前产品路径更新 |
+| Task 11 完整自动化 | ✅ fresh全通过 | Task11+兼容28/28、rulepack159/159、Python413/413、Core1167/1167、Release0/0、workflow YAML/diff/static通过，NuGet 1项目/0已知漏洞 |
+| Task 11 兼容合同清理 | ✅ 完成 | 第6文件确认legacy Stage04 GUID唯一且hidden；当前README/checklist不再公开Stage04，目标联跑19/19 |
+| Task 11 候选冻结 | ✅ 完成 | 6 files、+266/-122、613-byte manifest `9f07a0e3d748b30b24ea9529135fd336fe2bb636f5af296697ce4d50ca3be566`；staged=0 |
+| Task 11 首轮规格审查 | ❌ Not Ready：0/4/0 | CI 缺jsonschema、diff-check、vulnerable fail gate；GH Toggle 接线语义与 Task12 count/failure/owner 证据槽位不完整 |
+| Task 11 规格返修 | 🔵 全量 GREEN，冻结中 | 5/19 RED → 目标25/25、rulepack159/159、Python410/410、Core1167/1167、Release0/0；YAML/diff/committed gate/实际 NuGet scan 全通过 |
+| Task 11 二轮候选冻结 | ✅ 完成 | 6 files、+557/-122、staged=0；613-byte manifest `a6ed73ed1a82f60981fd70e27c562c7c5dd58668c16d668058500b5c06bacda9` |
+| Task 11 第二轮规格复审 | ❌ Not Ready：0/3/0 | clean runner restore 在 Python 测试之后；空 projects 数组误放行；新分支首次多提交 push 只检查 HEAD^…HEAD |
+| Task 11 第三轮返修 | 🔵 全量 GREEN，冻结中 | Task11+兼容28/28、rulepack159/159、Python413/413、Core1167/1167、NuGet1项目/0漏洞、Release0/0，YAML/diff/static全通过 |
+| Task 11 第三轮候选冻结 | ✅ 完成 | 6 files、+646/-125、staged=0；613-byte manifest `90838b04cb2f355776b759331773443936dae05421f677858ca24de06a91e670` |
+| Task 11 第三轮规格复审 | ✅ 完成 | 原独立规格审查员只读复审全部历史finding、追加paths及规格1–9；看板排除在候选外 |
+| Task 11 第三轮规格复审结论 | ✅ Ready：0/0/0 | 原7项finding、追加paths与规格1–9全部关闭；起止manifest一致 |
+| Task 11 质量与 GH 可用性审查 | 🟣 基线0/4/4，返修已GREEN | 4I+4M全部具备真实RED→GREEN；相关终审C#113/113、Python137/137、CR offender 0，等待完整复审 |
+| Task 11 当前候选冻结 | ✅ 完成 | 排除本看板后27文件、3158-byte Ordinal/LF manifest `52f6cb5c…57f8`；HEAD `21549ed`、staged=0、diff-check clean |
+| Task 11 完整规格复审 | ❌ Not Ready：0/3/1 | 3I：选择技术异常漏报、预览业务/技术误分流、五场景未分Stage02/03报告；1M：.gitattributes未自触发/自校验 |
+| Task 11 规格finding返修 | ✅ RED→GREEN | I1 C#4/4+Py4/4；I2 C#3/3+Py2/2；I3 1/1；M1 3/3；相关回归C#27/27、Python102/102 |
+| Task 11 新候选冻结 | ✅ 完成 | 排除本看板后36文件、4275-byte Ordinal/LF manifest `1529c916…8723`；CR offender 0、staged=0、diff-check clean |
+| Task 11 第二轮规格复审 | ❌ Not Ready：0/1/0 | Selection/Preview与正文均通过；唯一I为fatal Stage03报告“禁止N/A”坏变异仍被合同放行 |
+| Task 11 二轮finding返修 | ✅ RED→GREEN | fatal“允许N/A”纯内存坏变异0/1→1/1；Task12定向2/2、发布合同22/22；正文未改 |
+| Task 11 第三轮候选冻结 | ✅ 完成 | 36文件、4275-byte Ordinal/LF manifest `e72511aa…c95c`；staged=0、diff-check clean |
+| Task 11 第三轮规格复审 | ✅ Ready：0/0/0 | 规格1–9静态回归166/166；fatal path/SHA三种坏变异均拒绝；起止manifest一致 |
+| Task 11 完整代码质量复审 | ❌ Not Ready：0/3/2 | 3I：写失败身份/迟到报告、Stage02不可能同Stage03 runId、preview blockers误Success；2M：宿主状态分类、null selection |
+| Task 11 质量审查验证基线 | ✅ fresh通过但不足以发布 | Python426/426、Core1178/1178、Release0/0、NuGet0漏洞、YAML/diff/CR/BOM/EOF通过，manifest无漂移 |
+| Task 11 第五版规格复审 | ❌ Not Ready：0/1/0 | Q1/Q2/S1–S3通过；唯一Important为S4只检查固定名称build step，放行continue-on-error、不同名二次弱build/NoWarn与always上传旧产物 |
+| S4 防绕过复审增量 | ✅ RED→GREEN，待独立重审 | 10类流程/后续build坏变异在旧helper上0/1 RED；全workflow唯一生产build、严格step与Verify→Prepare→唯一Upload默认失败传播闭环后，主合同+全部变异3/3、发布合同35/35、相关CI6/6、Release0/0 |
+| S4 PowerShell/YAML 边界返修 | ✅ 四轮RED→GREEN | 依次关闭改名弱build、continue/always、反引号、`&`、`dotnet.exe`、folded scalar与`--%`边界；最终发布合同39/39、CI22/22、Release0/0 |
+| Task 11 第五版规格终审 | ✅ Ready：0/0/0 | 独立重放folded/`--%`3/3、PowerShell常规调用3/3、历史16/16；排除看板62文件候选起止SHA `547096ab…3269d2`一致，diff clean、staged0 |
 | Task 10 backend TDD | ✅ 实现线程 GREEN | RED：缺 9 个生产类型；GREEN：协调器 18/18、相关回归 379/379、Release 0/0、diff-check clean |
 | Task 10 backend 首轮规格审查 | ❌ Not Ready：0/5/2 | TEMP 5 个探针全部复现；协调器官方 18/18 和 Stage03 244/244 仍通过，但不足以证明对抗 seam 变异 |
 | Task 10 backend 首轮返修 | ✅ 定向 GREEN | Coordinator 41/41、Stage03/MVD 311/311、Core 1130/1130、Release 0/0；manifest `29c204b4…122c84` |
@@ -222,7 +343,7 @@
 | 仓库静态审计 | ✅ 通过 | 12 文件范围、BOM、EOF、备份、绝对路径、busy-wait、残留进程均通过；DLL/GHA SHA-256 相同 |
 | Task 7 规格审查 | ✅ Ready | Critical / Important / Minor = **0 / 0 / 0**；终态指纹不变 |
 | Task 7 代码质量审查 | ✅ Ready | Critical / Important / Minor = **0 / 0 / 0**；终态指纹不变 |
-| 下一执行 | 🟡 Task 11 | 更新三阶段产品文档与CI合同，完成整体验收审查后执行单GHA无备份部署 |
+| 下一执行 | 🟠 质量finding真实RED→GREEN | 单一实现线程补行为测试并最小修复；再次冻结后由原质量审查员复审 |
 | 用户操作 | ✅ 当前不需要 | Task 11 如程序未关闭可能需配合；Task 12 再按明确提示完成实机点击 |
 
 ### Task 8 七道验收闸门
