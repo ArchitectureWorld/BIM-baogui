@@ -1386,14 +1386,14 @@ def test_ci_normalizes_windows_checkout_before_lf_contract_tests():
 
     assert "fetch-depth: 0" in checkout
     assert "git config core.autocrlf false" in normalize
-    assert "git checkout -- .gitattributes" in normalize
+    assert "git checkout-index --force .gitattributes" in normalize
     assert workflow.index("Normalize checkout line endings") < workflow.index(
         "Check committed diff whitespace"
     )
     assert workflow.index("Check out repository") < workflow.index(
         "Normalize checkout line endings"
     )
-    assert "git checkout -- .gitattributes" not in gate
+    assert "git checkout-index --force .gitattributes" not in gate
 
 
 def test_ci_new_branch_push_uses_default_branch_merge_base():

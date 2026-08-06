@@ -69,7 +69,7 @@ jobs:
         shell: pwsh
         run: |
           git config core.autocrlf false
-          git checkout -- .gitattributes
+          git checkout-index --force .gitattributes
 
       - name: Check committed diff whitespace
         shell: pwsh
