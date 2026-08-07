@@ -6,7 +6,7 @@ on:
       - fix/official-hifc-hardening-v090
     paths:
       - .github/workflows/bootstrap-hifc-reference-specimen.yml
-      - .bootstrap/HBR_HIFC_mapping_fixture_bundle.zip
+      - .bootstrap/HBR_HIFC_mapping_fixture_bundle.b64.part-*
 
 permissions:
   contents: write
@@ -29,29 +29,29 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Verify and extract deterministic fixture bundle
+      - name: Reassemble, verify and extract deterministic fixture bundle
         shell: bash
         run: |
+          cat .bootstrap/HBR_HIFC_mapping_fixture_bundle.b64.part-* > "$RUNNER_TEMP/hifc-mapping-fixture.b64"
+          base64 --decode "$RUNNER_TEMP/hifc-mapping-fixture.b64" > "$RUNNER_TEMP/hifc-mapping-fixture.zip"
           python - <<'PY'
           from pathlib import Path, PurePosixPath
           import hashlib
+          import os
           import zipfile
 
-          archive = Path('.bootstrap/HBR_HIFC_mapping_fixture_bundle.zip')
-          expected_sha = '1d689e731527cd1a0c71f5cc046c12767c42a6cbdba9e5870d58c8f4f91b8e96'
+          archive = Path(os.environ['RUNNER_TEMP']) / 'hifc-mapping-fixture.zip'
+          expected_sha = '0e08462da6b9fe25bc4a8262d49011d2710c169070c1905362ed6df134111484'
           actual_sha = hashlib.sha256(archive.read_bytes()).hexdigest()
           if actual_sha != expected_sha:
               raise SystemExit(f'fixture bundle SHA mismatch: {actual_sha}')
 
           allowed = {
               '.gitattributes',
-              'docs/hifc/HBR_HIFC_唯一映射基线_v1.0.md',
-              'docs/hifc/HBR_HIFC_完整属性映射_359.csv',
+              'docs/hifc/HBR_HIFC_mapping_authority_v1.md',
               'tests/fixtures/hifc/HBR_HIFC_全映射结构验证_v1.0.ifc',
               'tests/fixtures/hifc/HBR_HIFC_全映射结构验证_v1.0.manifest.json',
               'tests/fixtures/hifc/README.md',
-              'tests/test_hifc_mapping_smoke_fixture.py',
-              'tools/hifc/generate_hifc_mapping_smoke.py',
               'tools/hifc/validate_hifc_mapping_smoke.py',
           }
           with zipfile.ZipFile(archive) as bundle:
@@ -65,25 +65,39 @@ jobs:
               bundle.extractall('.')
           PY
 
-      - name: Install fixed test dependency
-        run: python -m pip install --disable-pip-version-check pytest==8.3.5
-
-      - name: Verify full H-IFC mapping fixture
-        env:
-          PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+      - name: Verify all 359 H-IFC mapping paths
+        shell: bash
         run: |
-          python -m py_compile \
-            tools/hifc/generate_hifc_mapping_smoke.py \
-            tools/hifc/validate_hifc_mapping_smoke.py \
-            tests/test_hifc_mapping_smoke_fixture.py
-          python -m pytest -q tests/test_hifc_mapping_smoke_fixture.py
+          python -m py_compile tools/hifc/validate_hifc_mapping_smoke.py
+          python tools/hifc/validate_hifc_mapping_smoke.py \
+            --mapping specs/hbr-rules/v1/source/hbr_rule_source.v1.json \
+            --ifc tests/fixtures/hifc/HBR_HIFC_全映射结构验证_v1.0.ifc
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import json
+
+          root = Path('tests/fixtures/hifc')
+          ifc = root / 'HBR_HIFC_全映射结构验证_v1.0.ifc'
+          manifest = json.loads((root / 'HBR_HIFC_全映射结构验证_v1.0.manifest.json').read_text(encoding='utf-8'))
+          actual_sha = hashlib.sha256(ifc.read_bytes()).hexdigest()
+          assert manifest['sha256'] == actual_sha
+          assert manifest['bytes'] == ifc.stat().st_size
+          assert manifest['schema'] == 'IFC4'
+          assert manifest['viewDefinition'] == 'ReferenceView_V1.2'
+          assert manifest['properties'] == 359
+          assert manifest['propertySets'] == 52
+          assert manifest['attachments'] == 52
+          assert len(manifest['ownerTypes']) == 14
+          assert manifest['extrudedSolids'] == 9
+          PY
 
       - name: Commit verified repository files
         shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .gitattributes docs/hifc tests/fixtures/hifc tests/test_hifc_mapping_smoke_fixture.py tools/hifc
+          git add .gitattributes docs/hifc tests/fixtures/hifc tools/hifc/validate_hifc_mapping_smoke.py
           git diff --cached --check
           git commit -m 'feat: freeze H-IFC mapping authority and full fixture'
           git push origin "HEAD:${GITHUB_REF_NAME}"
