@@ -164,13 +164,13 @@ _NEW_GUID_FIELD_KEY = "HBR|FileIdentity|FileGuid"
 _EXPECTED_SPATIAL_MAPPINGS = [
     {
         "sourceName": "X",
-        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 X",
+        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标X",
         "targetName": "NorthSouth",
         "unit": "m",
     },
     {
         "sourceName": "Y",
-        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标Y",
         "targetName": "EastWest",
         "unit": "m",
     },
@@ -292,9 +292,17 @@ _COMPATIBILITY_BASELINE_FIELDS = {
     "schemaVersion",
     "baselineId",
     "baselineVersion",
+    "approvedIdentityOverrides",
     "workbookEvidence",
     "officialProperties",
     "legacyMetadataDigests",
+}
+_COMPATIBILITY_IDENTITY_OVERRIDE_FIELDS = {
+    "propertyId",
+    "sourceIdentity",
+    "effectiveIdentity",
+    "reason",
+    "evidenceSha256",
 }
 _COMPATIBILITY_PROPERTY_FIELDS = {
     "propertyId",
@@ -304,7 +312,7 @@ _COMPATIBILITY_PROPERTY_FIELDS = {
     "officialUnit",
 }
 _COMPATIBILITY_BASELINE_ID = "HBR-WUHAN-PLANNING-COMPATIBILITY"
-_COMPATIBILITY_BASELINE_VERSION = "1.1.0"
+_COMPATIBILITY_BASELINE_VERSION = "1.2.0"
 _COMPATIBILITY_WORKBOOK_SOURCE = "《MVD》规划报建.xlsx"
 _COMPATIBILITY_WORKBOOK_SHA256 = (
     "63fac01de41f3bd149e4e857a81256e623382bbe9b3437ed69a2b5ace90628e4"
@@ -338,6 +346,32 @@ def canonical_bytes(source):
         sort_keys=True,
         separators=(",", ":"),
     ).encode("utf-8")
+
+
+def canonical_source_sha256(source):
+    return hashlib.sha256(canonical_bytes(source)).hexdigest()
+
+
+def _normalized_pset(value):
+    return value if value.startswith("Pset_") else f"Pset_{value}"
+
+
+def source_ifc_identity(rule):
+    raw = rule["source"]
+    return (
+        raw["rawEntityId"],
+        _normalized_pset(raw["rawPropertySetId"]),
+        raw["rawProperty"],
+    )
+
+
+def effective_ifc_identity(rule):
+    ifc = rule["ifc"]
+    return (
+        ifc["entity"],
+        _normalized_pset(ifc["propertySet"]),
+        ifc["property"],
+    )
 
 
 def _legacy_metadata_projections(source):
@@ -1348,7 +1382,11 @@ def validate_semantics(source):
             ifc["propertySet"] == raw["rawPropertySetId"],
             f"{label}.ifc.propertySet must match source.rawPropertySetId",
         )
-        _require(ifc["property"] == raw["rawProperty"], f"{label}.ifc.property must match source.rawProperty")
+        if ifc["property"] != raw["rawProperty"]:
+            _require(
+                raw["rawProperty"] in rule["suggestion"]["aliases"],
+                f"{label}.source.rawProperty must remain in suggestion.aliases when the effective IFC property differs",
+            )
         expected_source_unit = None if raw["rawUnit"] in {"", "14"} else raw["rawUnit"]
         accepted_source_units = {expected_source_unit}
         legacy_projection = rule["officialPlugin"].get("legacyProjection")
@@ -1386,11 +1424,13 @@ def validate_semantics(source):
         )
         _require(revit["bindingScope"] == "INSTANCE", f"{label}.revit.bindingScope must be INSTANCE")
         pset_name = raw["rawPropertySetName"].replace("Pset_", "")
-        expected_parameter_name = f"HBR｜{pset_name}｜{raw['rawProperty']}"
+        expected_parameter_name = (
+            f"HBR｜{pset_name}｜{effective_ifc_identity(rule)[2]}"
+        )
         legacy_name = f"HIFC.{pset_name}.{raw['rawProperty']}"
         _require(
             revit["parameterName"] == expected_parameter_name,
-            f"{label}.revit.parameterName must match the canonical HBR name",
+            f"{label}.revit.parameterName must match the effective identity canonical HBR name",
         )
         _require(legacy_name in revit["legacyNames"], f"{label}.revit.legacyNames must include {legacy_name!r}")
 
@@ -1702,7 +1742,7 @@ def validate_compatibility(source, baseline):
         _expect_string(baseline[key], f"compatibility baseline.{key}", nonempty=True)
     _require(
         baseline["schemaVersion"] == _COMPATIBILITY_BASELINE_VERSION,
-        "compatibility baseline.schemaVersion must be 1.1.0",
+        "compatibility baseline.schemaVersion must be 1.2.0",
     )
     _require(
         baseline["baselineId"] == _COMPATIBILITY_BASELINE_ID,
@@ -1710,7 +1750,51 @@ def validate_compatibility(source, baseline):
     )
     _require(
         baseline["baselineVersion"] == _COMPATIBILITY_BASELINE_VERSION,
-        "compatibility baseline.baselineVersion must be 1.1.0",
+        "compatibility baseline.baselineVersion must be 1.2.0",
+    )
+
+    approved_identity_overrides = baseline["approvedIdentityOverrides"]
+    _expect_array(
+        approved_identity_overrides,
+        "compatibility baseline.approvedIdentityOverrides",
+        unique=True,
+    )
+    for index, item in enumerate(approved_identity_overrides):
+        path = f"compatibility baseline.approvedIdentityOverrides[{index}]"
+        _expect_object(
+            item,
+            path,
+            required=_COMPATIBILITY_IDENTITY_OVERRIDE_FIELDS,
+        )
+        for key in _COMPATIBILITY_IDENTITY_OVERRIDE_FIELDS:
+            _expect_string(item[key], f"{path}.{key}", nonempty=True)
+        _parse_uuid5(item["propertyId"], f"{path}.propertyId")
+        for key in ("sourceIdentity", "effectiveIdentity"):
+            identity_parts = item[key].split("|")
+            _require(
+                len(identity_parts) == 3 and all(identity_parts),
+                f"{path}.{key} must contain entity|propertySet|property",
+            )
+        _require(
+            re.fullmatch(r"[0-9a-f]{64}", item["evidenceSha256"])
+            is not None,
+            f"{path}.evidenceSha256 must contain 64 lowercase hex characters",
+        )
+    _require_unique(
+        [item["propertyId"] for item in approved_identity_overrides],
+        "compatibility baseline.approvedIdentityOverrides.propertyId",
+    )
+    approved_identity_keys = [
+        (
+            item["propertyId"],
+            item["sourceIdentity"],
+            item["effectiveIdentity"],
+        )
+        for item in approved_identity_overrides
+    ]
+    _require_unique(
+        approved_identity_keys,
+        "compatibility baseline.approvedIdentityOverrides identity",
     )
 
     legacy_metadata_digests = baseline["legacyMetadataDigests"]
@@ -1798,6 +1882,28 @@ def validate_compatibility(source, baseline):
         for item in source["properties"]
         if item["officialPlugin"]["inExtracted166"]
     ]
+    for rule in source_official:
+        effective_identity = "|".join(effective_ifc_identity(rule))
+        _require(
+            effective_identity == rule["officialPlugin"]["originalIdentity"],
+            f"source official property {rule['propertyId']} originalIdentity does not match compatibility baseline effective identity",
+        )
+
+    actual_identity_keys = [
+        (
+            rule["propertyId"],
+            "|".join(source_ifc_identity(rule)),
+            "|".join(effective_ifc_identity(rule)),
+        )
+        for rule in source["properties"]
+        if source_ifc_identity(rule) != effective_ifc_identity(rule)
+    ]
+    _require_unique(actual_identity_keys, "source effective identity differences")
+    _require(
+        set(actual_identity_keys) == set(approved_identity_keys),
+        "source effective identity differences must exactly match compatibility baseline approvedIdentityOverrides",
+    )
+
     baseline_by_id = {item["propertyId"]: item for item in official_properties}
     source_by_id = {item["propertyId"]: item for item in source_official}
     _require(
@@ -1830,6 +1936,20 @@ def validate_compatibility(source, baseline):
         )
 
 
+def load_validated_rule_source(source_path, baseline_path):
+    source = _load_json_without_duplicate_keys(
+        source_path,
+        "HBR rule source",
+    )
+    baseline = _load_json_without_duplicate_keys(
+        baseline_path,
+        "compatibility baseline",
+    )
+    validate_semantics(source)
+    validate_compatibility(source, baseline)
+    return source
+
+
 def _paths_refer_to_same_file(first_path, second_path):
     if first_path.resolve(strict=False) == second_path.resolve(strict=False):
         return True
@@ -1853,16 +1973,7 @@ def compile_rulepack(source_path, output_path, baseline_path):
         not _paths_refer_to_same_file(baseline_path, output_path),
         "baseline and output must refer to different files",
     )
-    source = _load_json_without_duplicate_keys(
-        source_path,
-        "HBR rule source",
-    )
-    baseline = _load_json_without_duplicate_keys(
-        baseline_path,
-        "compatibility baseline",
-    )
-    validate_semantics(source)
-    validate_compatibility(source, baseline)
+    source = load_validated_rule_source(source_path, baseline_path)
     payload = canonical_bytes(source)
     header = (
         MAGIC

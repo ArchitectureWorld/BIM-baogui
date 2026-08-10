@@ -79,7 +79,8 @@ namespace BIMBaoGui.Stage01.Mvd
             canonicalProperty,
             sourceIdentity.Property,
             RemoveWhitespace(sourceIdentity.Property),
-            mapping?.IfcProperty),
+            mapping?.IfcProperty,
+            property.Source.RawProperty),
           TargetType = NormalizeIfcType(property.Ifc.DeclaredType),
           Unit = mapping?.Unit?.Trim() ?? string.Empty,
           InternalAliases = DistinctNonEmpty(

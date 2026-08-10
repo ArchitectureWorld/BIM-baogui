@@ -1,15 +1,31 @@
 {
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "1.2.0",
   "baselineId": "HBR-WUHAN-PLANNING-COMPATIBILITY",
-  "baselineVersion": "1.1.0",
+  "baselineVersion": "1.2.0",
+  "approvedIdentityOverrides": [
+    {
+      "propertyId": "6b407894-09d4-529a-9f9f-a031219cdeaa",
+      "sourceIdentity": "IfcProject|Pset_申报信息属性集|基点坐标 X",
+      "effectiveIdentity": "IfcProject|Pset_申报信息属性集|基点坐标X",
+      "reason": "IFCFlux B 单变量试件确认无空格属性名可识别",
+      "evidenceSha256": "570f5a554478535cb13638549b89f596d749be3ca4c66392de22f5617254c632"
+    },
+    {
+      "propertyId": "1a64ef8d-e97c-5fa1-b53f-52b969b6198a",
+      "sourceIdentity": "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+      "effectiveIdentity": "IfcProject|Pset_申报信息属性集|基点坐标Y",
+      "reason": "IFCFlux B 单变量试件确认无空格属性名可识别",
+      "evidenceSha256": "570f5a554478535cb13638549b89f596d749be3ca4c66392de22f5617254c632"
+    }
+  ],
   "legacyMetadataDigests": {
     "internalWorkflowFields": "2a22bcafd210ed5ae5077c5696c9d8935b667c0dc4d55a84f202cc4a9b5feb78",
-    "stage01FieldMetadata": "a4567722c47f6fbb4e56249edf4f0a96b8f0c846ff4f18e0a20f114c7d818a4e",
+    "stage01FieldMetadata": "36c9dc7d1e7a21b01bed90b17d718462d079d77c4177082d38e416716f02ea22",
     "officialLegacyProjection": "484126369ea28cfda9d8d670b27c94d4a458bbd13d9fd05c998c1f38cc407b64",
     "entityPolicies": "76ad736eebddbaf8b1519a14dd5dbdb44d149e8d158c1673d85160bb8f98125e",
     "exceptions": "054e7b77d8925d4b49c592cf0335dc3ae7c02b67e011fbbca43eea4d3084b964",
     "profileActivationRuleIds": "228276d9e42ce4fd1f0ee4fff175c15855d3c3efe08493aab7dfc05d31c100c3",
-    "spatialMappings": "970deede2eda404c0dc1ca389ce207f0e0fec0926f37fe19c4b0eab7061be553",
+    "spatialMappings": "0eac01f38be3a765b408ffa99c44afa8d8ed873e2ec27be7a38807bd7ab2584d",
     "conditionDefaults": "68a82064a207083c3dd533eb889ed70d5ca1feaf67715b6859fddff2fd93b2b4",
     "defaultActiveGroup": "24b778e84a9e5d0fe783fadaf3573196baff1ed34d370be1c222c59a4d4e4339"
   },

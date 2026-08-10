@@ -866,8 +866,8 @@
       ]
     },
     {
-      "key": "IfcProject|Pset_申报信息属性集|基点坐标 X",
-      "label": "基点坐标 X",
+      "key": "IfcProject|Pset_申报信息属性集|基点坐标X",
+      "label": "基点坐标X",
       "group": "02_坐标与高程",
       "kind": "Number",
       "readOnly": false,
@@ -881,8 +881,8 @@
       ]
     },
     {
-      "key": "IfcProject|Pset_申报信息属性集|基点坐标 Y",
-      "label": "基点坐标 Y",
+      "key": "IfcProject|Pset_申报信息属性集|基点坐标Y",
+      "label": "基点坐标Y",
       "group": "02_坐标与高程",
       "kind": "Number",
       "readOnly": false,

@@ -3552,7 +3552,7 @@
       "ifc": {
         "entity": "IfcProject",
         "propertySet": "Pset_申报信息属性集",
-        "property": "基点坐标 X",
+        "property": "基点坐标X",
         "sourceUnit": "m",
         "declaredType": "IfcReal",
         "canonicalUnit": "m",
@@ -3563,10 +3563,11 @@
       },
       "revit": {
         "parameterGuid": "6b407894-09d4-529a-9f9f-a031219cdeaa",
-        "parameterName": "HBR｜申报信息属性集｜基点坐标 X",
+        "parameterName": "HBR｜申报信息属性集｜基点坐标X",
         "legacyNames": [
           "HIFC.申报信息属性集.基点坐标X",
-          "HIFC.申报信息属性集.基点坐标 X"
+          "HIFC.申报信息属性集.基点坐标 X",
+          "HBR｜申报信息属性集｜基点坐标 X"
         ],
         "visible": true,
         "userModifiable": true,
@@ -3603,7 +3604,9 @@
         "kind": "EXISTING_OR_ALIAS",
         "aliases": [
           "基点坐标 X",
-          "HIFC.申报信息属性集.基点坐标 X"
+          "HIFC.申报信息属性集.基点坐标X",
+          "HIFC.申报信息属性集.基点坐标 X",
+          "HBR｜申报信息属性集｜基点坐标 X"
         ]
       },
       "ifcWrite": {
@@ -3632,7 +3635,7 @@
       "ifc": {
         "entity": "IfcProject",
         "propertySet": "Pset_申报信息属性集",
-        "property": "基点坐标 Y",
+        "property": "基点坐标Y",
         "sourceUnit": "m",
         "declaredType": "IfcReal",
         "canonicalUnit": "m",
@@ -3643,10 +3646,11 @@
       },
       "revit": {
         "parameterGuid": "1a64ef8d-e97c-5fa1-b53f-52b969b6198a",
-        "parameterName": "HBR｜申报信息属性集｜基点坐标 Y",
+        "parameterName": "HBR｜申报信息属性集｜基点坐标Y",
         "legacyNames": [
           "HIFC.申报信息属性集.基点坐标Y",
-          "HIFC.申报信息属性集.基点坐标 Y"
+          "HIFC.申报信息属性集.基点坐标 Y",
+          "HBR｜申报信息属性集｜基点坐标 Y"
         ],
         "visible": true,
         "userModifiable": true,
@@ -3683,7 +3687,9 @@
         "kind": "EXISTING_OR_ALIAS",
         "aliases": [
           "基点坐标 Y",
-          "HIFC.申报信息属性集.基点坐标 Y"
+          "HIFC.申报信息属性集.基点坐标Y",
+          "HIFC.申报信息属性集.基点坐标 Y",
+          "HBR｜申报信息属性集｜基点坐标 Y"
         ]
       },
       "ifcWrite": {
@@ -28808,7 +28814,7 @@
         "defaultValue": null
       },
       {
-        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 X",
+        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标X",
         "propertyId": "6b407894-09d4-529a-9f9f-a031219cdeaa",
         "sourceRow": 47,
         "uiGroup": "02_坐标与高程",
@@ -28819,7 +28825,7 @@
         "defaultValue": null
       },
       {
-        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标Y",
         "propertyId": "1a64ef8d-e97c-5fa1-b53f-52b969b6198a",
         "sourceRow": 48,
         "uiGroup": "02_坐标与高程",
@@ -29590,13 +29596,13 @@
     "spatialMappings": [
       {
         "sourceName": "X",
-        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 X",
+        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标X",
         "targetName": "NorthSouth",
         "unit": "m"
       },
       {
         "sourceName": "Y",
-        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+        "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标Y",
         "targetName": "EastWest",
         "unit": "m"
       },

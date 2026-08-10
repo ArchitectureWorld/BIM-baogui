@@ -209,6 +209,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
           spatial.FieldKey,
           out OfficialHifcMapping mapping));
         Assert.Equal("m", mapping.Unit);
+        Assert.DoesNotContain(" ", spatial.FieldKey);
         Assert.StartsWith("HIFC.", mapping.ParameterName);
         Assert.DoesNotContain(" ", mapping.IfcProperty);
       }

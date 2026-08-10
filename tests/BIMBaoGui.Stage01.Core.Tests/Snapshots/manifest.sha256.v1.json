@@ -10,8 +10,8 @@
     },
     {
       "name": "official-hifc-mappings.v1.json",
-      "length": 289010,
-      "sha256": "70304a4a1e5ef2b035fdb46d86c67e279d4c5359a7f503097a7e80a0dcc510e1"
+      "length": 289008,
+      "sha256": "41df230476e42ea515c94fa2c16b82ea660cfccc13ede215b5d1f6c2108bac46"
     },
     {
       "name": "official-plugin-compatibility.v1.json",
@@ -30,8 +30,8 @@
     },
     {
       "name": "stage01-registry.v1.json",
-      "length": 50110,
-      "sha256": "489485118d2cb49ce6d98c11f7ea74453748501990b3991b696876799d1a3253"
+      "length": 50106,
+      "sha256": "142b1f200daeb6a885a2521cb8bb4b06bb1db34959ac06be92fc54eed5711751"
     },
     {
       "name": "task-rules.v1.json",

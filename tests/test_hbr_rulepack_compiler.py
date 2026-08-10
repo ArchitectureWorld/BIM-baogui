@@ -31,6 +31,67 @@ def _load_source():
     return json.loads(SOURCE_PATH.read_text(encoding="utf-8"))
 
 
+def test_effective_ifc_identity_separates_raw_evidence_from_output_identity():
+    from tools.build_hbr_rulepack import effective_ifc_identity
+
+    source = _load_source()
+    rules = {rule["propertyId"]: rule for rule in source["properties"]}
+
+    x_rule = rules["6b407894-09d4-529a-9f9f-a031219cdeaa"]
+    y_rule = rules["1a64ef8d-e97c-5fa1-b53f-52b969b6198a"]
+
+    assert x_rule["source"]["rawProperty"] == "基点坐标 X"
+    assert y_rule["source"]["rawProperty"] == "基点坐标 Y"
+    assert effective_ifc_identity(x_rule) == (
+        "IfcProject",
+        "Pset_申报信息属性集",
+        "基点坐标X",
+    )
+    assert effective_ifc_identity(y_rule) == (
+        "IfcProject",
+        "Pset_申报信息属性集",
+        "基点坐标Y",
+    )
+
+
+def test_all_166_official_effective_identities_match_published_identity():
+    from tools.build_hbr_rulepack import effective_ifc_identity
+
+    source = _load_source()
+    official = [
+        rule
+        for rule in source["properties"]
+        if rule["officialPlugin"]["inExtracted166"]
+    ]
+    matches = sum(
+        "|".join(effective_ifc_identity(rule))
+        == rule["officialPlugin"]["originalIdentity"]
+        for rule in official
+    )
+
+    assert matches == 166
+
+
+def test_compiler_rejects_spaced_xy_as_final_output(tmp_path):
+    from tools.build_hbr_rulepack import compile_rulepack
+
+    source = _load_source()
+    x_rule = next(
+        rule
+        for rule in source["properties"]
+        if rule["propertyId"] == "6b407894-09d4-529a-9f9f-a031219cdeaa"
+    )
+    x_rule["ifc"]["property"] = "基点坐标 X"
+    mutated_source = tmp_path / "spaced X output.json"
+    output = tmp_path / "spaced X output.hbrpack"
+    _write_json(mutated_source, source)
+
+    with pytest.raises(ValueError, match=r"effective identity"):
+        compile_rulepack(mutated_source, output, BASELINE_PATH)
+
+    assert not output.exists()
+
+
 def _load_baseline():
     return json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
 
@@ -173,12 +234,29 @@ def test_compatibility_baseline_freezes_only_verified_published_identity_fields(
         "schemaVersion",
         "baselineId",
         "baselineVersion",
+        "approvedIdentityOverrides",
         "workbookEvidence",
         "officialProperties",
         "legacyMetadataDigests",
     }
-    assert baseline["schemaVersion"] == "1.1.0"
-    assert baseline["baselineVersion"] == "1.1.0"
+    assert baseline["schemaVersion"] == "1.2.0"
+    assert baseline["baselineVersion"] == "1.2.0"
+    assert baseline["approvedIdentityOverrides"] == [
+        {
+            "propertyId": "6b407894-09d4-529a-9f9f-a031219cdeaa",
+            "sourceIdentity": "IfcProject|Pset_申报信息属性集|基点坐标 X",
+            "effectiveIdentity": "IfcProject|Pset_申报信息属性集|基点坐标X",
+            "reason": "IFCFlux B 单变量试件确认无空格属性名可识别",
+            "evidenceSha256": "570f5a554478535cb13638549b89f596d749be3ca4c66392de22f5617254c632",
+        },
+        {
+            "propertyId": "1a64ef8d-e97c-5fa1-b53f-52b969b6198a",
+            "sourceIdentity": "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+            "effectiveIdentity": "IfcProject|Pset_申报信息属性集|基点坐标Y",
+            "reason": "IFCFlux B 单变量试件确认无空格属性名可识别",
+            "evidenceSha256": "570f5a554478535cb13638549b89f596d749be3ca4c66392de22f5617254c632",
+        },
+    ]
     assert baseline["workbookEvidence"] == {
         "logicalSource": "《MVD》规划报建.xlsx",
         "sha256": "63fac01de41f3bd149e4e857a81256e623382bbe9b3437ed69a2b5ace90628e4",
@@ -424,8 +502,8 @@ def test_compiler_rejects_duplicate_json_keys_in_baseline(tmp_path):
 
     baseline_text = BASELINE_PATH.read_text(encoding="utf-8")
     duplicate_key_text = baseline_text.replace(
-        '"schemaVersion": "1.1.0",',
-        '"schemaVersion": "1.1.0",\n  "schemaVersion": "1.1.0",',
+        '"schemaVersion": "1.2.0",',
+        '"schemaVersion": "1.2.0",\n  "schemaVersion": "1.2.0",',
         1,
     )
     invalid_baseline = tmp_path / "duplicate key baseline.json"

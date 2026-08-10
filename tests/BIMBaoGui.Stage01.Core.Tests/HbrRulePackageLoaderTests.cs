@@ -243,7 +243,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
         {
           Assert.Equal("X", item.SourceName);
           Assert.Equal(
-            "IfcProject|Pset_申报信息属性集|基点坐标 X",
+            "IfcProject|Pset_申报信息属性集|基点坐标X",
             item.FieldKey);
           Assert.Equal("NorthSouth", item.TargetName);
           Assert.Equal("m", item.Unit);
@@ -252,7 +252,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
         {
           Assert.Equal("Y", item.SourceName);
           Assert.Equal(
-            "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+            "IfcProject|Pset_申报信息属性集|基点坐标Y",
             item.FieldKey);
           Assert.Equal("EastWest", item.TargetName);
           Assert.Equal("m", item.Unit);

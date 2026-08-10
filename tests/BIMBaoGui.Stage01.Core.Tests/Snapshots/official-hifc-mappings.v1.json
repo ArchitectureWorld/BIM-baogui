@@ -7430,12 +7430,12 @@
       "propertyId": "73742866-4015-51ac-a863-9020cca3088f"
     },
     {
-      "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 X",
+      "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标X",
       "resolved": true,
       "propertyId": "6b407894-09d4-529a-9f9f-a031219cdeaa"
     },
     {
-      "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+      "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标Y",
       "resolved": true,
       "propertyId": "1a64ef8d-e97c-5fa1-b53f-52b969b6198a"
     },

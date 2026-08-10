@@ -21,8 +21,8 @@ namespace BIMBaoGui.Stage01.Core
     public const string OwnerOrganization = "IfcProject|Pset_申报信息属性集|建设单位";
     public const string DesignOrganization = "IfcProject|Pset_申报信息属性集|设计单位";
     public const string Stage = "IfcProject|Pset_Manifest|阶段";
-    public const string BaseX = "IfcProject|Pset_申报信息属性集|基点坐标 X";
-    public const string BaseY = "IfcProject|Pset_申报信息属性集|基点坐标 Y";
+    public const string BaseX = "IfcProject|Pset_申报信息属性集|基点坐标X";
+    public const string BaseY = "IfcProject|Pset_申报信息属性集|基点坐标Y";
     public const string BaseElevation = "IfcProject|Pset_申报信息属性集|基点高程";
     public const string CoordinateSystem = "IfcProject|Pset_申报信息属性集|坐标系名称";
     public const string ElevationSystem = "IfcProject|Pset_申报信息属性集|高程系名称";

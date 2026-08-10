@@ -140,13 +140,13 @@ def test_source_contains_complete_legacy_compatibility_metadata():
     assert stage01["spatialMappings"] == [
         {
             "sourceName": "X",
-            "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 X",
+            "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标X",
             "targetName": "NorthSouth",
             "unit": "m",
         },
         {
             "sourceName": "Y",
-            "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+            "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标Y",
             "targetName": "EastWest",
             "unit": "m",
         },

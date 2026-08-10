@@ -9,6 +9,10 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_PATH = ROOT / "specs/hbr-rules/v1/source/hbr_rule_source.v1.json"
+BASELINE_PATH = (
+    ROOT
+    / "specs/hbr-rules/v1/compatibility/hbr_rule_compatibility_baseline.v1.json"
+)
 OLD_OFFICIAL_PATH = ROOT / "specs/hifc-mapping/v1/data/wuhan_planning_rules.v1.json"
 OLD_STAGE01_PATH = (
     ROOT
@@ -102,8 +106,8 @@ ESSENTIAL_FIELD_KEYS = frozenset(
         "IfcProject|Pset_申报信息属性集|建设单位",
         "IfcProject|Pset_申报信息属性集|设计单位",
         "IfcProject|Pset_Manifest|阶段",
-        "IfcProject|Pset_申报信息属性集|基点坐标 X",
-        "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+        "IfcProject|Pset_申报信息属性集|基点坐标X",
+        "IfcProject|Pset_申报信息属性集|基点坐标Y",
         "IfcProject|Pset_申报信息属性集|基点高程",
         "IfcProject|Pset_申报信息属性集|坐标系名称",
         "IfcProject|Pset_申报信息属性集|高程系名称",
@@ -475,8 +479,15 @@ def test_migrated_metadata_is_exactly_equivalent_to_legacy_resources():
     }
     assert actual_internal == expected_internal
 
+    identity_overrides = {
+        item["sourceIdentity"]: item["effectiveIdentity"]
+        for item in _load(BASELINE_PATH)["approvedIdentityOverrides"]
+    }
     expected_refs = {
-        (legacy["field_key"], legacy["source_row"]): {
+        (
+            identity_overrides.get(legacy["field_key"], legacy["field_key"]),
+            legacy["source_row"],
+        ): {
             "uiGroup": legacy["ui_group"],
             "sourceKind": legacy["source_kind"],
             "writeInStage01": legacy["write_in_stage01"],
@@ -554,13 +565,13 @@ def test_stage01_defaults_essential_spatial_and_condition_contracts_equal_runtim
     assert stage01["spatialMappings"] == [
         {
             "sourceName": "X",
-            "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 X",
+            "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标X",
             "targetName": "NorthSouth",
             "unit": "m",
         },
         {
             "sourceName": "Y",
-            "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标 Y",
+            "fieldKey": "IfcProject|Pset_申报信息属性集|基点坐标Y",
             "targetName": "EastWest",
             "unit": "m",
         },
@@ -782,7 +793,7 @@ def test_parameter_names_visibility_and_unclassified_requiredness_are_explicit()
     for rule in source["properties"]:
         pset_name = rule["source"]["rawPropertySetName"].replace("Pset_", "")
         assert rule["revit"]["parameterName"] == (
-            f"HBR｜{pset_name}｜{rule['source']['rawProperty']}"
+            f"HBR｜{pset_name}｜{rule['ifc']['property']}"
         )
         assert rule["revit"]["visible"] is True
         assert rule["revit"]["userModifiable"] is True
@@ -795,9 +806,14 @@ def test_stage01_refs_match_the_registry_and_have_no_dangling_ids():
     old_stage01 = _load(OLD_STAGE01_PATH)
     property_ids = {rule["propertyId"] for rule in source["properties"]}
     refs = source["stage01"]["fieldRefs"]
+    identity_overrides = {
+        item["sourceIdentity"]: item["effectiveIdentity"]
+        for item in _load(BASELINE_PATH)["approvedIdentityOverrides"]
+    }
 
     assert {ref["fieldKey"] for ref in refs} == {
-        field["field_key"] for field in old_stage01["mvd_fields"]
+        identity_overrides.get(field["field_key"], field["field_key"])
+        for field in old_stage01["mvd_fields"]
     }
     assert {ref["propertyId"] for ref in refs} <= property_ids
     assert all(ref["sourceRow"] in range(2, 358) for ref in refs)
@@ -979,7 +995,8 @@ def test_mvd_source_evidence_and_canonical_fields_remain_workbook_faithful():
         assert {"rawProperty", "rawPropertySetId", "rawPropertySetName"} <= set(raw)
         assert rule["ifc"]["entity"] == raw["rawEntityId"]
         assert rule["ifc"]["propertySet"] == raw["rawPropertySetId"]
-        assert rule["ifc"]["property"] == raw["rawProperty"]
+        if rule["ifc"]["property"] != raw["rawProperty"]:
+            assert raw["rawProperty"] in rule["suggestion"]["aliases"]
         expected_source_unit = None if raw["rawUnit"] in {"", "14"} else raw["rawUnit"]
         accepted_source_units = {expected_source_unit}
         legacy_projection = rule["officialPlugin"].get("legacyProjection")
@@ -989,7 +1006,7 @@ def test_mvd_source_evidence_and_canonical_fields_remain_workbook_faithful():
                 accepted_source_units.add(official_unit)
         assert rule["ifc"]["sourceUnit"] in accepted_source_units
     by_row = {rule["source"]["row"]: rule for rule in mvd}
-    assert by_row[47]["ifc"]["property"] == "基点坐标 X"
+    assert by_row[47]["ifc"]["property"] == "基点坐标X"
     assert by_row[297]["ifc"]["propertySet"] == "Pset_Manifest"
     assert by_row[64]["ifc"]["sourceUnit"] == "度"
 
@@ -1092,7 +1109,7 @@ def test_reference_collections_are_unique_and_task_dependencies_form_profile_dag
         payload = json.dumps(source[key], ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         assert hashlib.sha256(payload.encode()).hexdigest() == digest
     stage_payload = json.dumps(sorted(refs), ensure_ascii=False, separators=(",", ":"))
-    assert hashlib.sha256(stage_payload.encode()).hexdigest() == "9c1ea357d65558736ecc6d2f43bf15cf6d8e64f2491e63bf8f0d18b0e75264fb"
+    assert hashlib.sha256(stage_payload.encode()).hexdigest() == "24bdb2fc2683634e47a65b9e2256cdec7ce2be0e96ea73529a52873d4f4bdcaf"
 
 
 def test_real_runtime_and_revit_types_follow_all_supported_dimensions():
