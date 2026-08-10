@@ -179,25 +179,58 @@ namespace BIMBaoGui.Stage01.Rules
           : Array.Empty<string>();
     }
 
-    public string GetEffectiveRuntimeStatus(HbrRuleProperty property)
+    public HbrRuntimeStatusDecision GetRuntimeStatusDecision(
+      HbrRuleProperty property)
     {
       if (property == null)
         throw new ArgumentNullException(nameof(property));
-      string ownerStatus;
-      string requirementStatus;
-      _ownerRuntimeStatuses.TryGetValue(
+      if (!_ownerRuntimeStatuses.TryGetValue(
         property.IfcWrite.OwnerStrategy,
-        out ownerStatus);
-      _requirementRuntimeStatuses.TryGetValue(
+        out string ownerStatus))
+        throw new InvalidDataException(
+          "HBRP unknown owner strategy for " + property.PropertyId + ".");
+      if (!_requirementRuntimeStatuses.TryGetValue(
         property.Requirement.Level,
-        out requirementStatus);
-      foreach (string status in _runtimeStatusPrecedence)
+        out string requirementStatus))
+        throw new InvalidDataException(
+          "HBRP unknown requirement level for " + property.PropertyId + ".");
+
+      string status = _runtimeStatusPrecedence.FirstOrDefault(
+        value => value == ownerStatus || value == requirementStatus);
+      switch (status)
       {
-        if (status == ownerStatus || status == requirementStatus)
-          return status;
+        case HbrRuntimeStatuses.NotImplemented:
+          return new HbrRuntimeStatusDecision(
+            status,
+            HbrRuntimeReasonCodes.OwnerStrategyNotImplemented,
+            "当前 IFC owner strategy 尚未实现："
+              + property.IfcWrite.OwnerStrategy + "。");
+        case HbrRuntimeStatuses.UnclassifiedRequirement:
+          return new HbrRuntimeStatusDecision(
+            status,
+            HbrRuntimeReasonCodes.RequirementLevelUnclassified,
+            "字段 requirement.level 为 "
+              + property.Requirement.Level + "，需求等级待定。");
+        case HbrRuntimeStatuses.OfficialEvidenceOnly:
+          return new HbrRuntimeStatusDecision(
+            status,
+            HbrRuntimeReasonCodes.OfficialEvidenceOnly,
+            "该字段仅用于官方证据对账，不自动形成写入策略。");
+        case HbrRuntimeStatuses.Supported:
+          return new HbrRuntimeStatusDecision(
+            status,
+            HbrRuntimeReasonCodes.Supported,
+            "当前运行策略已支持。");
+        default:
+          throw new InvalidDataException(
+            "HBRP has no runtime status for property "
+              + property.PropertyId + ".");
       }
-      throw new InvalidDataException(
-        "HBRP has no runtime status for property " + property.PropertyId + ".");
+    }
+
+    public string GetEffectiveRuntimeStatus(HbrRuleProperty property)
+    {
+      return GetRuntimeStatusDecision(property).Status;
     }
 
     public static HbrRuleDatabase Load(Stream stream)
