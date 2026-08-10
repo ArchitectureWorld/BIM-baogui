@@ -3,6 +3,27 @@
   "packageId": "HBR-WUHAN-PLANNING",
   "packageVersion": "1.0.0",
   "guidNamespace": "57736bb8-c060-558c-85d9-18226a3e3a4f",
+  "runtimeSupport": {
+    "statusPrecedence": [
+      "NOT_IMPLEMENTED",
+      "UNCLASSIFIED_REQUIREMENT",
+      "OFFICIAL_EVIDENCE_ONLY",
+      "SUPPORTED"
+    ],
+    "ownerStrategies": [
+      { "ownerStrategy": "BY_EXPORT_GUID", "status": "SUPPORTED" },
+      { "ownerStrategy": "CANONICAL_SPATIAL_ZONE_RECORD", "status": "NOT_IMPLEMENTED" },
+      { "ownerStrategy": "SINGLE_ENTITY_BY_TYPE", "status": "SUPPORTED" },
+      { "ownerStrategy": "USER_SELECTED_EXPORTABLE_GENERIC_MODEL", "status": "NOT_IMPLEMENTED" }
+    ],
+    "requirementLevels": [
+      { "level": "CONDITIONAL", "status": "SUPPORTED" },
+      { "level": "NOT_APPLICABLE", "status": "SUPPORTED" },
+      { "level": "OPTIONAL", "status": "SUPPORTED" },
+      { "level": "REQUIRED", "status": "SUPPORTED" },
+      { "level": "UNCLASSIFIED", "status": "UNCLASSIFIED_REQUIREMENT" }
+    ]
+  },
   "evidenceSources": [
     {
       "source": "《MVD》规划报建.xlsx",

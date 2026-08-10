@@ -18,6 +18,7 @@ _TOP_LEVEL_FIELDS = {
     "packageId",
     "packageVersion",
     "guidNamespace",
+    "runtimeSupport",
     "evidenceSources",
     "properties",
     "carrierRoles",
@@ -782,6 +783,22 @@ def _validate_structure(source):
     for key in ("schemaVersion", "packageId", "packageVersion", "guidNamespace"):
         _expect_string(source[key], key, nonempty=True)
 
+    runtime_support = source["runtimeSupport"]
+    _expect_object(
+        runtime_support,
+        "runtimeSupport",
+        required={"statusPrecedence", "ownerStrategies", "requirementLevels"},
+    )
+    _expect_array(runtime_support["statusPrecedence"], "runtimeSupport.statusPrecedence", minimum=1, unique=True)
+    for status in runtime_support["statusPrecedence"]:
+        _expect_string(status, "runtimeSupport.statusPrecedence[]", nonempty=True)
+    for key, name in (("ownerStrategies", "ownerStrategy"), ("requirementLevels", "level")):
+        _expect_array(runtime_support[key], "runtimeSupport." + key, minimum=1, unique=True)
+        for index, item in enumerate(runtime_support[key]):
+            _expect_object(item, "runtimeSupport." + key + "[" + str(index) + "]", required={name, "status"})
+            _expect_string(item[name], "runtimeSupport." + key + "[" + str(index) + "]." + name, nonempty=True)
+            _expect_string(item["status"], "runtimeSupport." + key + "[" + str(index) + "].status", nonempty=True)
+
     for key in (
         "evidenceSources",
         "properties",
@@ -1070,6 +1087,58 @@ def _validate_runtime_contract(rule, label):
     )
 
 
+_RUNTIME_STATUSES = {
+    "SUPPORTED",
+    "NOT_IMPLEMENTED",
+    "UNCLASSIFIED_REQUIREMENT",
+    "OFFICIAL_EVIDENCE_ONLY",
+}
+_EXPECTED_RUNTIME_PRECEDENCE = [
+    "NOT_IMPLEMENTED",
+    "UNCLASSIFIED_REQUIREMENT",
+    "OFFICIAL_EVIDENCE_ONLY",
+    "SUPPORTED",
+]
+_EXPECTED_OWNER_RUNTIME_STATUS = {
+    "BY_EXPORT_GUID": "SUPPORTED",
+    "CANONICAL_SPATIAL_ZONE_RECORD": "NOT_IMPLEMENTED",
+    "SINGLE_ENTITY_BY_TYPE": "SUPPORTED",
+    "USER_SELECTED_EXPORTABLE_GENERIC_MODEL": "NOT_IMPLEMENTED",
+}
+_EXPECTED_REQUIREMENT_RUNTIME_STATUS = {
+    "CONDITIONAL": "SUPPORTED",
+    "NOT_APPLICABLE": "SUPPORTED",
+    "OPTIONAL": "SUPPORTED",
+    "REQUIRED": "SUPPORTED",
+    "UNCLASSIFIED": "UNCLASSIFIED_REQUIREMENT",
+}
+
+
+def _runtime_status_map(entries, key, path):
+    mapping = {}
+    for index, entry in enumerate(entries):
+        entry_key = entry[key]
+        _require(entry_key not in mapping, f"{path}[{index}].{key} is duplicated")
+        mapping[entry_key] = entry["status"]
+    return mapping
+
+
+def effective_runtime_status(source, rule):
+    policy = source["runtimeSupport"]
+    owner_statuses = _runtime_status_map(
+        policy["ownerStrategies"], "ownerStrategy", "runtimeSupport.ownerStrategies")
+    requirement_statuses = _runtime_status_map(
+        policy["requirementLevels"], "level", "runtimeSupport.requirementLevels")
+    candidates = {
+        owner_statuses.get(rule["ifcWrite"]["ownerStrategy"]),
+        requirement_statuses.get(rule["requirement"]["level"]),
+    }
+    for status in policy["statusPrecedence"]:
+        if status in candidates:
+            return status
+    raise ValueError("no runtime status for property " + rule["propertyId"])
+
+
 def validate_semantics(source):
     _validate_structure(source)
 
@@ -1095,6 +1164,22 @@ def validate_semantics(source):
     entity_policies = compatibility["entityPolicies"]
     plugin_exceptions = compatibility["exceptions"]
     evidence_sources = source["evidenceSources"]
+
+    runtime_support = source["runtimeSupport"]
+    _require(
+        runtime_support["statusPrecedence"] == _EXPECTED_RUNTIME_PRECEDENCE,
+        "runtimeSupport.statusPrecedence must have the fixed order",
+    )
+    _require(
+        set(runtime_support["statusPrecedence"]) == _RUNTIME_STATUSES,
+        "runtimeSupport.statusPrecedence must cover all runtime statuses",
+    )
+    owner_statuses = _runtime_status_map(
+        runtime_support["ownerStrategies"], "ownerStrategy", "runtimeSupport.ownerStrategies")
+    requirement_statuses = _runtime_status_map(
+        runtime_support["requirementLevels"], "level", "runtimeSupport.requirementLevels")
+    _require(owner_statuses == _EXPECTED_OWNER_RUNTIME_STATUS, "runtimeSupport.ownerStrategies must use the fixed mapping")
+    _require(requirement_statuses == _EXPECTED_REQUIREMENT_RUNTIME_STATUS, "runtimeSupport.requirementLevels must use the fixed mapping")
 
     _require(len(properties) == 359, "properties must contain exactly 359 rules")
     _require(len(carriers) == 14, "carrierRoles must contain exactly 14 records")
@@ -1517,6 +1602,11 @@ def validate_semantics(source):
             )
 
         _validate_runtime_contract(rule, label)
+
+    runtime_statuses = [effective_runtime_status(source, rule) for rule in properties]
+    _require(len(runtime_statuses) == 359, "all properties must resolve a runtime status")
+    _require(runtime_statuses.count("NOT_IMPLEMENTED") == 57, "runtime statuses must contain exactly 57 NOT_IMPLEMENTED")
+    _require(runtime_statuses.count("UNCLASSIFIED_REQUIREMENT") == 302, "runtime statuses must contain exactly 302 UNCLASSIFIED_REQUIREMENT")
 
     _require(
         referenced_carrier_ids == set(carrier_ids),

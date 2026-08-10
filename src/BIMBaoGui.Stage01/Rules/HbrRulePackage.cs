@@ -25,6 +25,9 @@ namespace BIMBaoGui.Stage01.Rules
       GuidNamespace = HbrDomain.GuidValue(
         dto.guidNamespace,
         "guidNamespace");
+      RuntimeSupport = new HbrRuntimeSupportPolicy(
+        HbrDomain.Required(dto.runtimeSupport, "runtimeSupport"),
+        "runtimeSupport");
       EvidenceSources = HbrDomain.ConvertList(
         dto.evidenceSources,
         "evidenceSources",
@@ -64,6 +67,7 @@ namespace BIMBaoGui.Stage01.Rules
     public string PackageId { get; }
     public string PackageVersion { get; }
     public Guid GuidNamespace { get; }
+    public HbrRuntimeSupportPolicy RuntimeSupport { get; }
     public IReadOnlyList<HbrEvidenceSource> EvidenceSources { get; }
     public IReadOnlyList<HbrRuleProperty> Properties { get; }
     public IReadOnlyList<HbrCarrierRole> CarrierRoles { get; }
@@ -72,6 +76,55 @@ namespace BIMBaoGui.Stage01.Rules
     public IReadOnlyList<HbrTaskRule> Tasks { get; }
     public IReadOnlyList<HbrLegacyAlias> LegacyAliases { get; }
     public HbrStage01Rules Stage01 { get; }
+  }
+
+  public sealed class HbrRuntimeSupportPolicy
+  {
+    internal HbrRuntimeSupportPolicy(HbrRuntimeSupportPolicyDto dto, string path)
+    {
+      dto = HbrDomain.Required(dto, path);
+      StatusPrecedence = HbrDomain.FreezeStrings(
+        dto.statusPrecedence,
+        path + ".statusPrecedence");
+      OwnerStrategies = HbrDomain.ConvertList(
+        dto.ownerStrategies,
+        path + ".ownerStrategies",
+        (item, itemPath) => new HbrOwnerStrategySupport(item, itemPath));
+      RequirementLevels = HbrDomain.ConvertList(
+        dto.requirementLevels,
+        path + ".requirementLevels",
+        (item, itemPath) => new HbrRequirementLevelSupport(item, itemPath));
+    }
+
+    public IReadOnlyList<string> StatusPrecedence { get; }
+    public IReadOnlyList<HbrOwnerStrategySupport> OwnerStrategies { get; }
+    public IReadOnlyList<HbrRequirementLevelSupport> RequirementLevels { get; }
+  }
+
+  public sealed class HbrOwnerStrategySupport
+  {
+    internal HbrOwnerStrategySupport(HbrOwnerStrategySupportDto dto, string path)
+    {
+      dto = HbrDomain.Required(dto, path);
+      OwnerStrategy = HbrDomain.NonBlank(dto.ownerStrategy, path + ".ownerStrategy");
+      Status = HbrDomain.NonBlank(dto.status, path + ".status");
+    }
+
+    public string OwnerStrategy { get; }
+    public string Status { get; }
+  }
+
+  public sealed class HbrRequirementLevelSupport
+  {
+    internal HbrRequirementLevelSupport(HbrRequirementLevelSupportDto dto, string path)
+    {
+      dto = HbrDomain.Required(dto, path);
+      Level = HbrDomain.NonBlank(dto.level, path + ".level");
+      Status = HbrDomain.NonBlank(dto.status, path + ".status");
+    }
+
+    public string Level { get; }
+    public string Status { get; }
   }
 
   public sealed class HbrEvidenceSource
@@ -761,6 +814,7 @@ namespace BIMBaoGui.Stage01.Rules
     public string packageId { get; set; }
     public string packageVersion { get; set; }
     public string guidNamespace { get; set; }
+    public HbrRuntimeSupportPolicyDto runtimeSupport { get; set; }
     public List<HbrEvidenceSourceDto> evidenceSources { get; set; }
     public List<HbrRulePropertyDto> properties { get; set; }
     public List<HbrCarrierRoleDto> carrierRoles { get; set; }
@@ -769,6 +823,25 @@ namespace BIMBaoGui.Stage01.Rules
     public List<HbrTaskRuleDto> tasks { get; set; }
     public List<HbrLegacyAliasDto> legacyAliases { get; set; }
     public HbrStage01RulesDto stage01 { get; set; }
+  }
+
+  internal sealed class HbrRuntimeSupportPolicyDto
+  {
+    public List<string> statusPrecedence { get; set; }
+    public List<HbrOwnerStrategySupportDto> ownerStrategies { get; set; }
+    public List<HbrRequirementLevelSupportDto> requirementLevels { get; set; }
+  }
+
+  internal sealed class HbrOwnerStrategySupportDto
+  {
+    public string ownerStrategy { get; set; }
+    public string status { get; set; }
+  }
+
+  internal sealed class HbrRequirementLevelSupportDto
+  {
+    public string level { get; set; }
+    public string status { get; set; }
   }
 
   internal sealed class HbrEvidenceSourceDto

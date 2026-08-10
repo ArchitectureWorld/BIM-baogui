@@ -16,11 +16,54 @@ namespace BIMBaoGui.Stage01.Rules
 
     private static readonly Lazy<HbrRuleDatabase> LazyCurrent =
       CreateLazy(LoadCurrent);
+    private static readonly IReadOnlyDictionary<string, string>
+      ExpectedOwnerRuntimeStatuses =
+        new ReadOnlyDictionary<string, string>(
+          new Dictionary<string, string>(StringComparer.Ordinal)
+          {
+            { "BY_EXPORT_GUID", "SUPPORTED" },
+            { "CANONICAL_SPATIAL_ZONE_RECORD", "NOT_IMPLEMENTED" },
+            { "SINGLE_ENTITY_BY_TYPE", "SUPPORTED" },
+            {
+              "USER_SELECTED_EXPORTABLE_GENERIC_MODEL",
+              "NOT_IMPLEMENTED"
+            },
+          });
+    private static readonly IReadOnlyDictionary<string, string>
+      ExpectedRequirementRuntimeStatuses =
+        new ReadOnlyDictionary<string, string>(
+          new Dictionary<string, string>(StringComparer.Ordinal)
+          {
+            { "CONDITIONAL", "SUPPORTED" },
+            { "NOT_APPLICABLE", "SUPPORTED" },
+            { "OPTIONAL", "SUPPORTED" },
+            { "REQUIRED", "SUPPORTED" },
+            { "UNCLASSIFIED", "UNCLASSIFIED_REQUIREMENT" },
+          });
 
     private HbrRuleDatabase(HbrRulePackage package)
     {
       Package = package ?? throw new InvalidDataException(
         "HBRP package is null.");
+      if (Package.PackageId != "HBR-WUHAN-PLANNING"
+        || Package.PackageVersion != "1.0.0")
+        throw new InvalidDataException(
+          "HBRP runtime support policy requires HBR-WUHAN-PLANNING 1.0.0.");
+
+      _runtimeStatusPrecedence = ValidateRuntimeStatusPrecedence(
+        Package.RuntimeSupport.StatusPrecedence);
+      _ownerRuntimeStatuses = BuildRuntimeStatusIndex(
+        Package.RuntimeSupport.OwnerStrategies,
+        support => support.OwnerStrategy,
+        support => support.Status,
+        ExpectedOwnerRuntimeStatuses,
+        "RuntimeSupport.OwnerStrategies");
+      _requirementRuntimeStatuses = BuildRuntimeStatusIndex(
+        Package.RuntimeSupport.RequirementLevels,
+        support => support.Level,
+        support => support.Status,
+        ExpectedRequirementRuntimeStatuses,
+        "RuntimeSupport.RequirementLevels");
 
       var propertiesById = new Dictionary<string, HbrRuleProperty>(
         StringComparer.Ordinal);
@@ -136,6 +179,27 @@ namespace BIMBaoGui.Stage01.Rules
           : Array.Empty<string>();
     }
 
+    public string GetEffectiveRuntimeStatus(HbrRuleProperty property)
+    {
+      if (property == null)
+        throw new ArgumentNullException(nameof(property));
+      string ownerStatus;
+      string requirementStatus;
+      _ownerRuntimeStatuses.TryGetValue(
+        property.IfcWrite.OwnerStrategy,
+        out ownerStatus);
+      _requirementRuntimeStatuses.TryGetValue(
+        property.Requirement.Level,
+        out requirementStatus);
+      foreach (string status in _runtimeStatusPrecedence)
+      {
+        if (status == ownerStatus || status == requirementStatus)
+          return status;
+      }
+      throw new InvalidDataException(
+        "HBRP has no runtime status for property " + property.PropertyId + ".");
+    }
+
     public static HbrRuleDatabase Load(Stream stream)
     {
       return new HbrRuleDatabase(HbrRulePackageLoader.Load(stream));
@@ -175,6 +239,52 @@ namespace BIMBaoGui.Stage01.Rules
 
     private readonly IReadOnlyDictionary<string, IReadOnlyList<string>>
       _suggestionPropertyIdsByRoleAlias;
+    private readonly IReadOnlyList<string> _runtimeStatusPrecedence;
+    private readonly IReadOnlyDictionary<string, string> _ownerRuntimeStatuses;
+    private readonly IReadOnlyDictionary<string, string> _requirementRuntimeStatuses;
+
+    private static IReadOnlyList<string> ValidateRuntimeStatusPrecedence(
+      IReadOnlyList<string> statuses)
+    {
+      string[] expected = {
+        "NOT_IMPLEMENTED", "UNCLASSIFIED_REQUIREMENT",
+        "OFFICIAL_EVIDENCE_ONLY", "SUPPORTED",
+      };
+      if (statuses == null || !statuses.SequenceEqual(expected))
+        throw new InvalidDataException(
+          "HBRP runtime status precedence is invalid.");
+      return statuses;
+    }
+
+    private static IReadOnlyDictionary<string, string> BuildRuntimeStatusIndex<T>(
+      IEnumerable<T> supports,
+      Func<T, string> keySelector,
+      Func<T, string> statusSelector,
+      IReadOnlyDictionary<string, string> expected,
+      string name)
+    {
+      var result = new Dictionary<string, string>(StringComparer.Ordinal);
+      string[] known = {
+        "SUPPORTED", "NOT_IMPLEMENTED", "UNCLASSIFIED_REQUIREMENT",
+        "OFFICIAL_EVIDENCE_ONLY",
+      };
+      foreach (T support in supports ?? Array.Empty<T>())
+      {
+        string key = keySelector(support);
+        string status = statusSelector(support);
+        if (string.IsNullOrWhiteSpace(key) || !known.Contains(status)
+          || result.ContainsKey(key))
+          throw new InvalidDataException("HBRP invalid " + name + ".");
+        result.Add(key, status);
+      }
+      if (result.Count == 0)
+        throw new InvalidDataException("HBRP missing " + name + ".");
+      if (result.Count != expected.Count || expected.Any(pair =>
+        !result.ContainsKey(pair.Key) || result[pair.Key] != pair.Value))
+        throw new InvalidDataException(
+          "HBRP " + name + " must match the fixed runtime support mapping.");
+      return new ReadOnlyDictionary<string, string>(result);
+    }
 
     private static IReadOnlyDictionary<string, IReadOnlyList<string>>
       BuildSuggestionAliasIndex(IEnumerable<HbrRuleProperty> properties)

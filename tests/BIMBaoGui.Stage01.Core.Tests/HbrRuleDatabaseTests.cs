@@ -108,6 +108,98 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void Runtime_status_is_explicit_for_all_359_properties()
+    {
+      HbrRuleDatabase database = LoadEmbeddedDatabase();
+      string[] statuses = database.Package.Properties
+        .Select(database.GetEffectiveRuntimeStatus)
+        .ToArray();
+
+      Assert.Equal(359, statuses.Length);
+      Assert.Equal(57, statuses.Count(status => status == "NOT_IMPLEMENTED"));
+      Assert.Equal(
+        302,
+        statuses.Count(status => status == "UNCLASSIFIED_REQUIREMENT"));
+    }
+
+    [Fact]
+    public void Load_rejects_duplicate_runtime_owner_strategy()
+    {
+      AssertRuntimePolicyRejected(root =>
+      {
+        IList strategies = List(Object(root["runtimeSupport"]), "ownerStrategies");
+        Object(strategies[1])["ownerStrategy"] =
+          Object(strategies[0])["ownerStrategy"];
+      });
+    }
+
+    [Fact]
+    public void Load_rejects_unknown_runtime_status()
+    {
+      AssertRuntimePolicyRejected(root =>
+      {
+        IList strategies = List(Object(root["runtimeSupport"]), "ownerStrategies");
+        Object(strategies[0])["status"] = "UNKNOWN";
+      });
+    }
+
+    [Fact]
+    public void Load_rejects_extra_unknown_runtime_owner_strategy()
+    {
+      AssertRuntimePolicyRejected(root =>
+      {
+        IDictionary<string, object> policy = Object(root["runtimeSupport"]);
+        var strategies = new ArrayList(List(policy, "ownerStrategies"));
+        strategies.Add(new Dictionary<string, object>
+        {
+          { "ownerStrategy", "UNKNOWN_OWNER" },
+          { "status", "SUPPORTED" },
+        });
+        policy["ownerStrategies"] = strategies;
+      });
+    }
+
+    [Fact]
+    public void Load_rejects_extra_unknown_runtime_requirement_level()
+    {
+      AssertRuntimePolicyRejected(root =>
+      {
+        IDictionary<string, object> policy = Object(root["runtimeSupport"]);
+        var levels = new ArrayList(List(policy, "requirementLevels"));
+        levels.Add(new Dictionary<string, object>
+        {
+          { "level", "UNKNOWN_REQUIREMENT" },
+          { "status", "SUPPORTED" },
+        });
+        policy["requirementLevels"] = levels;
+      });
+    }
+
+    [Fact]
+    public void Load_rejects_missing_known_runtime_owner_strategy()
+    {
+      AssertRuntimePolicyRejected(root =>
+      {
+        IDictionary<string, object> policy = Object(root["runtimeSupport"]);
+        var strategies = new ArrayList(List(policy, "ownerStrategies"));
+        strategies.RemoveAt(0);
+        policy["ownerStrategies"] = strategies;
+      });
+    }
+
+    [Fact]
+    public void Load_rejects_missing_known_runtime_requirement_level()
+    {
+      AssertRuntimePolicyRejected(root =>
+      {
+        IDictionary<string, object> policy = Object(root["runtimeSupport"]);
+        var levels = new ArrayList(List(policy, "requirementLevels"));
+        levels.RemoveAt(0);
+        policy["requirementLevels"] = levels;
+      });
+    }
+
+    [Fact]
     public void Suggestion_alias_index_exposes_real_ambiguity_per_role()
     {
       HbrRuleDatabase database = LoadEmbeddedDatabase();
@@ -416,6 +508,14 @@ namespace BIMBaoGui.Stage01.Core.Tests
         () => HbrRuleDatabase.Load(new MemoryStream(pack)));
 
       Assert.Contains(indexName, error.Message);
+    }
+
+    private static void AssertRuntimePolicyRejected(
+      Action<IDictionary<string, object>> mutation)
+    {
+      byte[] pack = MutatePayload(mutation);
+      Assert.Throws<InvalidDataException>(
+        () => HbrRuleDatabase.Load(new MemoryStream(pack)));
     }
 
     private static byte[] MutatePayload(

@@ -1121,3 +1121,37 @@ def test_real_runtime_and_revit_types_follow_all_supported_dimensions():
         if rule["ifc"]["declaredType"] != "IfcReal" or rule["ifc"]["canonicalUnit"] not in expected: continue
         assert {"IfcReal", expected[rule["ifc"]["canonicalUnit"]]} <= set(rule["ifc"]["allowedRuntimeTypes"])
         assert rule["revit"]["parameterType"] == {"m":"Length","mm":"Length","m2":"Area","m3":"Volume","deg":"Angle"}[rule["ifc"]["canonicalUnit"]]
+
+
+EXPECTED_OWNER_STATUS = {
+    "SINGLE_ENTITY_BY_TYPE": "SUPPORTED",
+    "BY_EXPORT_GUID": "SUPPORTED",
+    "CANONICAL_SPATIAL_ZONE_RECORD": "NOT_IMPLEMENTED",
+    "USER_SELECTED_EXPORTABLE_GENERIC_MODEL": "NOT_IMPLEMENTED",
+}
+
+EXPECTED_REQUIREMENT_STATUS = {
+    "REQUIRED": "SUPPORTED",
+    "CONDITIONAL": "SUPPORTED",
+    "OPTIONAL": "SUPPORTED",
+    "NOT_APPLICABLE": "SUPPORTED",
+    "UNCLASSIFIED": "UNCLASSIFIED_REQUIREMENT",
+}
+
+
+def test_runtime_support_policy_resolves_all_359_rules_without_fallback():
+    from tools.build_hbr_rulepack import effective_runtime_status
+
+    source = _load(SOURCE_PATH)
+    assert {
+        item["ownerStrategy"]: item["status"]
+        for item in source["runtimeSupport"]["ownerStrategies"]
+    } == EXPECTED_OWNER_STATUS
+    assert {
+        item["level"]: item["status"]
+        for item in source["runtimeSupport"]["requirementLevels"]
+    } == EXPECTED_REQUIREMENT_STATUS
+    statuses = [effective_runtime_status(source, rule) for rule in source["properties"]]
+    assert len(statuses) == 359
+    assert statuses.count("NOT_IMPLEMENTED") == 57
+    assert statuses.count("UNCLASSIFIED_REQUIREMENT") == 302

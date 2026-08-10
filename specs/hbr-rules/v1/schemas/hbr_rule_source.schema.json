@@ -7,6 +7,7 @@
     "packageId",
     "packageVersion",
     "guidNamespace",
+    "runtimeSupport",
     "evidenceSources",
     "properties",
     "carrierRoles",
@@ -29,6 +30,9 @@
     "guidNamespace": {
       "type": "string",
       "format": "uuid"
+    },
+    "runtimeSupport": {
+      "$ref": "#/$defs/runtimeSupportPolicy"
     },
     "evidenceSources": {
       "type": "array",
@@ -1173,6 +1177,37 @@
           "minItems": 1,
           "uniqueItems": true
         }
+      }
+    },
+    "runtimeStatus": {
+      "enum": ["SUPPORTED", "NOT_IMPLEMENTED", "UNCLASSIFIED_REQUIREMENT", "OFFICIAL_EVIDENCE_ONLY"]
+    },
+    "ownerStrategySupport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ownerStrategy", "status"],
+      "properties": {
+        "ownerStrategy": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "status": { "$ref": "#/$defs/runtimeStatus" }
+      }
+    },
+    "requirementLevelSupport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "status"],
+      "properties": {
+        "level": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "status": { "$ref": "#/$defs/runtimeStatus" }
+      }
+    },
+    "runtimeSupportPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["statusPrecedence", "ownerStrategies", "requirementLevels"],
+      "properties": {
+        "statusPrecedence": { "type": "array", "items": { "$ref": "#/$defs/runtimeStatus" }, "uniqueItems": true, "minItems": 1 },
+        "ownerStrategies": { "type": "array", "items": { "$ref": "#/$defs/ownerStrategySupport" }, "uniqueItems": true, "minItems": 1 },
+        "requirementLevels": { "type": "array", "items": { "$ref": "#/$defs/requirementLevelSupport" }, "uniqueItems": true, "minItems": 1 }
       }
     },
     "stage01Contract": {
