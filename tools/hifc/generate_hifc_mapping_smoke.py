@@ -148,6 +148,7 @@ class IfcFixtureDocument:
         self.owners: dict[str, int] = {}
         self.owner_history = 0
         self.body_context = 0
+        self._spatial_relationships_requested = False
 
     def _add(self, entity_type: str, arguments: str) -> int:
         entity_id = self.ids.allocate()
@@ -290,8 +291,15 @@ class IfcFixtureDocument:
         )
         self.owners["IfcActor"] = actor
         self.owners["IfcOrganization"] = actor
+        if self._spatial_relationships_requested:
+            self._emit_spatial_relationships()
 
     def add_spatial_relationships(self) -> None:
+        # Relationships depend on the visible owner ids. Record the stage here;
+        # add_visible_geometry emits them after those deterministic ids exist.
+        self._spatial_relationships_requested = True
+
+    def _emit_spatial_relationships(self) -> None:
         relationships = (
             ("aggregate:project-site", "IFCRELAGGREGATES", f"#{self.owners['IfcProject']},(#{self.owners['IfcSite']})"),
             ("aggregate:site-building", "IFCRELAGGREGATES", f"#{self.owners['IfcSite']},(#{self.owners['IfcBuilding']})"),
@@ -404,8 +412,8 @@ def summarize_fixture(ifc_bytes: bytes) -> FixtureSummary:
 def build_ifc_bytes(source: Mapping[str, object]) -> tuple[bytes, FixtureSummary]:
     document = IfcFixtureDocument(source)
     document.add_owner_scaffold()
-    document.add_visible_geometry()
     document.add_spatial_relationships()
+    document.add_visible_geometry()
     document.add_rule_properties()
     ifc_bytes = document.to_bytes()
     return ifc_bytes, summarize_fixture(ifc_bytes)
@@ -429,21 +437,30 @@ def fixture_manifest_document(
     summary: FixtureSummary,
 ) -> dict[str, object]:
     return {
+        "schemaVersion": "1.0.0",
+        "fixtureId": "HBR-HIFC-FULL-MAPPING-V1",
         "generator": {
-            "file": _portable_path(root, generator_path),
+            "path": _portable_path(root, generator_path),
             "version": GENERATOR_VERSION,
+            "sha256": hashlib.sha256(generator_path.read_bytes()).hexdigest(),
         },
         "source": {
-            "ruleFile": _portable_path(root, source_path),
-            "baselineFile": _portable_path(root, baseline_path),
+            "path": _portable_path(root, source_path),
+            "sha256": hashlib.sha256(source_path.read_bytes()).hexdigest(),
+            "canonicalSha256": canonical_source_sha256(source),
+            "compatibilityBaselinePath": _portable_path(root, baseline_path),
+            "compatibilityBaselineSha256": hashlib.sha256(
+                baseline_path.read_bytes()
+            ).hexdigest(),
             "packageId": source["packageId"],
             "packageVersion": source["packageVersion"],
-            "canonicalSha256": canonical_source_sha256(source),
         },
         "fixture": {
-            "file": _portable_path(root, ifc_path),
+            "path": _portable_path(root, ifc_path),
             "sha256": hashlib.sha256(ifc_bytes).hexdigest(),
             "bytes": len(ifc_bytes),
+            "encoding": "UTF-8",
+            "lineEnding": "LF",
             "schema": "IFC4",
             "viewDefinition": "ReferenceView_V1.2",
         },
@@ -456,9 +473,8 @@ def fixture_manifest_document(
             "extrudedSolids": summary.extruded_solids,
         },
         "policies": {
-            "booleanSample": ".T.",
-            "ifcFluxBEvidenceSha256": IFCFLUX_B_SHA256,
-            "timestamp": FIXED_FILE_TIMESTAMP,
+            "valueProfile": "STRUCTURAL_SMOKE_V1",
+            "booleanSample": "ALWAYS_TRUE_FOR_IFCFLUX_SMOKE",
         },
     }
 
@@ -515,7 +531,7 @@ def generate_fixture(
     source_file, baseline_file, output_file, manifest_file = paths
     source = load_validated_rule_source(source_file, baseline_file)
     ifc_bytes, summary = build_ifc_bytes(source)
-    root = repository_root(__file__)
+    root = repository_root(Path(__file__))
     manifest_bytes = build_fixture_manifest(
         root,
         source_file,

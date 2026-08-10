@@ -18,6 +18,7 @@ BASELINE = (
 GENERATOR = ROOT / "tools/hifc/generate_hifc_mapping_smoke.py"
 FIXTURE = ROOT / "tests/fixtures/hifc/HBR_HIFC_全映射结构验证_v1.0.ifc"
 FIXTURE_MANIFEST = FIXTURE.with_suffix(".manifest.json")
+VALIDATOR = ROOT / "tools/hifc/validate_hifc_mapping_smoke.py"
 IFCFLUX_B_SHA256 = (
     "570f5a554478535cb13638549b89f596d749be3ca4c66392de22f5617254c632"
 )
@@ -25,6 +26,89 @@ IFCFLUX_B_SHA256 = (
 
 def test_generator_entrypoint_exists():
     assert GENERATOR.is_file()
+
+
+def test_generator_matches_committed_fixture_semantic_contract(tmp_path):
+    from tools.hifc.generate_hifc_mapping_smoke import generate_fixture
+
+    generated_ifc = tmp_path / "rebuilt.ifc"
+    generated_manifest = tmp_path / "rebuilt.manifest.json"
+
+    generated_summary = generate_fixture(
+        SOURCE, BASELINE, generated_ifc, generated_manifest
+    )
+
+    _, generated, generated_psets, generated_attachments = _actual_mapping(
+        generated_ifc.read_bytes()
+    )
+    _, committed, committed_psets, committed_attachments = _actual_mapping(
+        FIXTURE.read_bytes()
+    )
+
+    assert {key: value["type"] for key, value in generated.items()} == {
+        key: value["type"] for key, value in committed.items()
+    }
+    assert len(generated_psets) == len(committed_psets) == 52
+    assert len(generated_attachments) == len(committed_attachments) == 52
+    assert json.loads(generated_manifest.read_text(encoding="utf-8"))["summary"] == {
+        "stepEntities": 616,
+        "properties": 359,
+        "propertySets": 52,
+        "attachments": 52,
+        "ownerTypes": list(generated_summary.owner_types),
+        "extrudedSolids": 9,
+    }
+
+    from tools.hifc.validate_hifc_mapping_smoke import validate
+
+    assert validate(SOURCE, BASELINE, generated_ifc, generated_manifest)["status"] == "PASS"
+
+
+def test_fixture_keeps_616_359_52_52_14_9_release_contract():
+    from tools.hifc.validate_hifc_mapping_smoke import validate
+
+    report = validate(SOURCE, BASELINE, FIXTURE, FIXTURE_MANIFEST)
+
+    assert report["status"] == "PASS"
+    assert report["summary"] == {
+        "stepEntities": 616,
+        "properties": 359,
+        "propertySets": 52,
+        "attachments": 52,
+        "ownerTypes": [
+            "IfcActor",
+            "IfcBuilding",
+            "IfcBuildingStorey",
+            "IfcDoor",
+            "IfcDuctSegment",
+            "IfcProject",
+            "IfcRoof",
+            "IfcSite",
+            "IfcSlab",
+            "IfcSpace",
+            "IfcSpatialZone",
+            "IfcStairFlight",
+            "IfcWall",
+            "IfcWindow",
+        ],
+        "extrudedSolids": 9,
+    }
+
+
+def test_validator_rejects_manifest_environment_metadata(tmp_path):
+    from tools.hifc.validate_hifc_mapping_smoke import validate
+
+    invalid_manifest = tmp_path / "invalid.manifest.json"
+    document = json.loads(FIXTURE_MANIFEST.read_text(encoding="utf-8"))
+    document["sourceCommit"] = "forbidden"
+    invalid_manifest.write_text(
+        json.dumps(document, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+    with pytest.raises(AssertionError, match="manifest.*字段"):
+        validate(SOURCE, BASELINE, FIXTURE, invalid_manifest)
 
 
 def _source():
@@ -191,3 +275,123 @@ def test_generator_cli_supports_paths_with_spaces(tmp_path):
         output.read_bytes()
     ).hexdigest()
     assert manifest_document["summary"]["stepEntities"] == 616
+
+
+def test_generator_resolves_repository_from_implementation_not_external_source(
+    tmp_path, monkeypatch
+):
+    import tools.hifc.generate_hifc_mapping_smoke as generator
+
+    source = tmp_path / "external source.json"
+    baseline = tmp_path / "external baseline.json"
+    output = tmp_path / "external fixture.ifc"
+    manifest = tmp_path / "external fixture.manifest.json"
+    source.write_bytes(SOURCE.read_bytes())
+    baseline.write_bytes(BASELINE.read_bytes())
+    observed = []
+
+    def capture(path):
+        observed.append(Path(path).resolve())
+        return ROOT
+
+    monkeypatch.setattr(generator, "repository_root", capture)
+    generator.generate_fixture(source, baseline, output, manifest)
+
+    assert observed == [Path(generator.__file__).resolve()]
+
+
+@pytest.mark.parametrize(
+    ("canonical_hex", "spaced_hex"),
+    [
+        ("57FA70B9575068070058", "57FA70B95750680700200058"),
+        ("57FA70B9575068070059", "57FA70B95750680700200059"),
+    ],
+)
+def test_validator_rejects_spaced_xy_identity_mutation(
+    tmp_path, canonical_hex, spaced_hex
+):
+    from tools.hifc.validate_hifc_mapping_smoke import validate
+
+    mutated_ifc = tmp_path / "mutated.ifc"
+    mutated_manifest = tmp_path / "mutated.manifest.json"
+    payload = FIXTURE.read_bytes().replace(
+        canonical_hex.encode("ascii"), spaced_hex.encode("ascii"), 1
+    )
+    mutated_ifc.write_bytes(payload)
+    manifest = json.loads(FIXTURE_MANIFEST.read_text(encoding="utf-8"))
+    manifest["fixture"]["path"] = mutated_ifc.name
+    manifest["fixture"]["sha256"] = hashlib.sha256(payload).hexdigest()
+    manifest["fixture"]["bytes"] = len(payload)
+    mutated_manifest.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+    with pytest.raises(AssertionError, match="映射路径不一致|带空格坐标 identity"):
+        validate(SOURCE, BASELINE, mutated_ifc, mutated_manifest)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(VALIDATOR),
+            "--source",
+            str(SOURCE),
+            "--baseline",
+            str(BASELINE),
+            "--ifc",
+            str(mutated_ifc),
+            "--manifest",
+            str(mutated_manifest),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"},
+    )
+    assert result.returncode == 1
+    assert "映射路径不一致" in result.stderr or "带空格坐标 identity" in result.stderr
+
+
+def test_validator_cli_writes_deterministic_report_and_rejects_two_source_flags(
+    tmp_path,
+):
+    report = tmp_path / "validation report.json"
+    command = [
+        sys.executable,
+        str(VALIDATOR),
+        "--source",
+        str(SOURCE),
+        "--baseline",
+        str(BASELINE),
+        "--ifc",
+        str(FIXTURE),
+        "--manifest",
+        str(FIXTURE_MANIFEST),
+        "--report",
+        str(report),
+    ]
+    cli_env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
+    first = subprocess.run(
+        command, cwd=ROOT, capture_output=True, text=True, encoding="utf-8", env=cli_env
+    )
+    first_bytes = report.read_bytes()
+    second = subprocess.run(
+        command, cwd=ROOT, capture_output=True, text=True, encoding="utf-8", env=cli_env
+    )
+
+    assert first.returncode == second.returncode == 0
+    assert report.read_bytes() == first_bytes
+    assert json.loads(first_bytes)["summary"]["properties"] == 359
+
+    conflict = subprocess.run(
+        command[:-2] + ["--mapping", str(SOURCE)],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=cli_env,
+    )
+    assert conflict.returncode != 0
+    assert "not allowed with argument" in conflict.stderr

@@ -4,7 +4,7 @@
 
 ## 文件
 
-- `HBR_HIFC_全映射结构验证_v1.0.ifc`：由唯一规则源确定性生成的 IFC4 / ReferenceView_V1.2 综合验证模型。
+- `HBR_HIFC_全映射结构验证_v1.0.ifc`：IFCFlux 人工验收通过的字节锚点（SHA256 `570f5a554478535cb13638549b89f596d749be3ca4c66392de22f5617254c632`）。
 - `HBR_HIFC_全映射结构验证_v1.0.manifest.json`：源规则指纹、IFC指纹和数量统计。
 - `generate_hifc_mapping_smoke.py`：仅依赖Python标准库，直接读取仓库唯一规则源生成IFC。
 - `validate_hifc_mapping_smoke.py`：精确回读Owner、Pset、Property、类型、坐标和空间关系。
@@ -68,7 +68,7 @@ IFC Owner
 
 1. 最终字段名只使用 `specs/hbr-rules/v1/source/hbr_rule_source.v1.json` 的Canonical名称。
 2. 唯一字段身份为 `(实际挂接Owner实体, PropertySet, Property)`。
-3. `基点坐标 X`为南北坐标，`基点坐标 Y`为东西坐标；最终IFC不双写无空格别名。
+3. `基点坐标X`为南北坐标，`基点坐标Y`为东西坐标；最终IFC不允许带空格的旧 identity。
 4. `Pset_组织通用属性集`挂到`IfcActor`，其`TheActor`指向`IfcOrganization`；不得把资源级`IfcOrganization`非法直接塞入`IfcRelDefinesByProperties.RelatedObjects`。
 5. `Pset_建筑区域信息属性集`和`Pset_停车场信息属性集`挂到真实`IfcSpatialZone`。
 6. 样例中的Boolean验证值统一使用`.T.`，用于避免IFCFlux 0.1.0部分`.F.`值被误判为空；这不是业务默认值策略。
@@ -78,14 +78,16 @@ IFC Owner
 
 ```powershell
 python tools/hifc/generate_hifc_mapping_smoke.py `
-  --mapping specs/hbr-rules/v1/source/hbr_rule_source.v1.json `
-  --source-commit 1372497e20322d3f90a01360f3bd9d4829bdedf9 `
+  --source specs/hbr-rules/v1/source/hbr_rule_source.v1.json `
+  --baseline specs/hbr-rules/v1/compatibility/hbr_rule_compatibility_baseline.v1.json `
   --output tests/fixtures/hifc/HBR_HIFC_全映射结构验证_v1.0.ifc `
   --manifest tests/fixtures/hifc/HBR_HIFC_全映射结构验证_v1.0.manifest.json
 
 python tools/hifc/validate_hifc_mapping_smoke.py `
-  --mapping specs/hbr-rules/v1/source/hbr_rule_source.v1.json `
-  --ifc tests/fixtures/hifc/HBR_HIFC_全映射结构验证_v1.0.ifc
+  --source specs/hbr-rules/v1/source/hbr_rule_source.v1.json `
+  --baseline specs/hbr-rules/v1/compatibility/hbr_rule_compatibility_baseline.v1.json `
+  --ifc tests/fixtures/hifc/HBR_HIFC_全映射结构验证_v1.0.ifc `
+  --manifest tests/fixtures/hifc/HBR_HIFC_全映射结构验证_v1.0.manifest.json
 ```
 
-当前文件已通过确定性结构验证和二次生成一致性验证。只有在目标Windows环境中被IFCFlux/H-IFC软件实际打开、识别并产生检查结果后，才能标记为“目标软件验收通过”。
+正式 fixture 是人工 IFCFlux 验收字节锚点；generator 是从唯一 source 构建的确定性结构回归。两者的样例值和 GUID 可不同，但 359 条 identity/类型、Owner 和 `616/359/52/52/14/9` 结构合同必须一致。该 fixture 含有 GH 当前尚未实现的 `IfcSpatialZone` 与 `IfcOrganization` owner；它只证明目标 IFC 结构，不证明 Stage03 生产完整支持。

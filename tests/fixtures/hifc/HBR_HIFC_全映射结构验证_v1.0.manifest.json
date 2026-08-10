@@ -1,35 +1,54 @@
 {
-  "file": "HBR_HIFC_全映射结构验证_v1.0.ifc",
-  "sha256": "6293fb5a198716857292549297abed2f9a6affcc5f0552b3f60f2eb858742bf2",
-  "bytes": 56972,
-  "stepEntities": 616,
-  "properties": 359,
-  "propertySets": 52,
-  "attachments": 52,
-  "ownerTypes": [
-    "IfcActor",
-    "IfcBuilding",
-    "IfcBuildingStorey",
-    "IfcDoor",
-    "IfcDuctSegment",
-    "IfcProject",
-    "IfcRoof",
-    "IfcSite",
-    "IfcSlab",
-    "IfcSpace",
-    "IfcSpatialZone",
-    "IfcStairFlight",
-    "IfcWall",
-    "IfcWindow"
-  ],
-  "extrudedSolids": 9,
-  "schema": "IFC4",
-  "viewDefinition": "ReferenceView_V1.2",
-  "sourceRuleFile": "specs/hbr-rules/v1/source/hbr_rule_source.v1.json",
-  "sourceCommit": "1372497e20322d3f90a01360f3bd9d4829bdedf9",
-  "packageId": "HBR-WUHAN-PLANNING",
-  "packageVersion": "1.0.0",
-  "normalizedContractSha256": "8d62366ff8a5d1472f95c3619f0813d39e35724b38cd8e540fd9901167dbca8d",
-  "generatorVersion": "1.0.0",
-  "note": "Synthetic full-mapping structural smoke fixture. All Boolean values are .T. to avoid the known IFCFlux 0.1.0 false-as-missing behavior; this is not a business default policy."
+  "schemaVersion": "1.0.0",
+  "fixtureId": "HBR-HIFC-FULL-MAPPING-V1",
+  "generator": {
+    "path": "tools/hifc/generate_hifc_mapping_smoke.py",
+    "version": "1.0.0",
+    "sha256": "d432eefd77ecfe430f63b3387958ed9c832f4d3b477d388435fb2e9d5c53cc9f"
+  },
+  "source": {
+    "path": "specs/hbr-rules/v1/source/hbr_rule_source.v1.json",
+    "sha256": "78a95f16548d6ec43b9a6a4a019f3eafdad2be2467abd2c3e41b6518aec9f3a4",
+    "canonicalSha256": "e3dfd079a8bc10862c154471084ab6585a312fda7c0eb3a2920d7dc823c372de",
+    "compatibilityBaselinePath": "specs/hbr-rules/v1/compatibility/hbr_rule_compatibility_baseline.v1.json",
+    "compatibilityBaselineSha256": "d30a4076ba611b27777980ca2601ddbf0aa0dd546db978c90bf17741d33dd9bd",
+    "packageId": "HBR-WUHAN-PLANNING",
+    "packageVersion": "1.0.0"
+  },
+  "fixture": {
+    "path": "tests/fixtures/hifc/HBR_HIFC_全映射结构验证_v1.0.ifc",
+    "sha256": "570f5a554478535cb13638549b89f596d749be3ca4c66392de22f5617254c632",
+    "bytes": 56964,
+    "encoding": "UTF-8",
+    "lineEnding": "LF",
+    "schema": "IFC4",
+    "viewDefinition": "ReferenceView_V1.2"
+  },
+  "summary": {
+    "stepEntities": 616,
+    "properties": 359,
+    "propertySets": 52,
+    "attachments": 52,
+    "ownerTypes": [
+      "IfcActor",
+      "IfcBuilding",
+      "IfcBuildingStorey",
+      "IfcDoor",
+      "IfcDuctSegment",
+      "IfcProject",
+      "IfcRoof",
+      "IfcSite",
+      "IfcSlab",
+      "IfcSpace",
+      "IfcSpatialZone",
+      "IfcStairFlight",
+      "IfcWall",
+      "IfcWindow"
+    ],
+    "extrudedSolids": 9
+  },
+  "policies": {
+    "valueProfile": "STRUCTURAL_SMOKE_V1",
+    "booleanSample": "ALWAYS_TRUE_FOR_IFCFLUX_SMOKE"
+  }
 }

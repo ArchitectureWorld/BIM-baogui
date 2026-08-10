@@ -2,13 +2,26 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
+import os
 import re
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Mapping, Sequence, Tuple
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from tools.build_hbr_rulepack import (  # noqa: E402
+    canonical_source_sha256,
+    effective_ifc_identity,
+    load_validated_rule_source,
+)
 
 ENTITY_RE = re.compile(r"^#(?P<id>\d+)=(?P<type>[A-Z0-9_]+)\((?P<args>.*)\);$")
 TYPED_RE = re.compile(r"^(?P<type>IFC[A-Z0-9_]+)\((?P<value>.*)\)$")
@@ -325,14 +338,53 @@ def expect_aggregate(
     raise AssertionError(f"缺少空间分解关系：{parent_type} → {child_type}")
 
 
-def validate(mapping_path: Path, ifc_path: Path) -> Dict[str, object]:
-    if not mapping_path.is_file():
-        raise AssertionError(f"映射文件不存在：{mapping_path}")
+def _repository_root(source_path: Path) -> Path:
+    for candidate in (source_path.resolve().parent, *source_path.resolve().parents):
+        if (candidate / ".git").exists():
+            return candidate
+    raise AssertionError(f"无法从规则源定位仓库：{source_path}")
+
+
+def _logical_path(root: Path, path: Path) -> str:
+    try:
+        return path.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        return path.name
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def validate(
+    source_path: Path,
+    baseline_path: Path,
+    ifc_path: Path,
+    manifest_path: Path,
+) -> Dict[str, object]:
+    source_path = Path(source_path)
+    baseline_path = Path(baseline_path)
+    ifc_path = Path(ifc_path)
+    manifest_path = Path(manifest_path)
+    if not source_path.is_file():
+        raise AssertionError(f"规则源不存在：{source_path}")
     if not ifc_path.is_file():
         raise AssertionError(f"IFC文件不存在：{ifc_path}")
+    if not manifest_path.is_file():
+        raise AssertionError(f"manifest不存在：{manifest_path}")
 
-    mapping_payload = json.loads(mapping_path.read_text(encoding="utf-8"))
-    expected_rules = normalize_rules(mapping_payload)
+    source = load_validated_rule_source(source_path, baseline_path)
+    expected_rules = []
+    for rule in source["properties"]:
+        owner, property_set, property_name = effective_ifc_identity(rule)
+        expected_rules.append(
+            RuleIdentity(
+                attachment_owner=("IfcActor" if owner == "IfcOrganization" else owner).upper(),
+                property_set=property_set,
+                property_name=property_name,
+                declared_type=str(rule["ifc"]["declaredType"]).upper(),
+            )
+        )
     if len(expected_rules) != 359:
         raise AssertionError(f"唯一规则源应为359条，实际{len(expected_rules)}条。")
 
@@ -497,17 +549,16 @@ def validate(mapping_path: Path, ifc_path: Path) -> Dict[str, object]:
         if organization.entity_id in owner_ids:
             raise AssertionError("IfcOrganization不得被非法直接挂接Pset。")
 
-    x_key = ("IFCPROJECT", "Pset_申报信息属性集", "基点坐标 X")
-    y_key = ("IFCPROJECT", "Pset_申报信息属性集", "基点坐标 Y")
+    spaced_x = ("IFCPROJECT", "Pset_申报信息属性集", "基点坐标 X")
+    spaced_y = ("IFCPROJECT", "Pset_申报信息属性集", "基点坐标 Y")
+    if spaced_x in actual or spaced_y in actual:
+        raise AssertionError("最终 IFC 含带空格坐标 identity。")
+    x_key = ("IFCPROJECT", "Pset_申报信息属性集", "基点坐标X")
+    y_key = ("IFCPROJECT", "Pset_申报信息属性集", "基点坐标Y")
     if actual[x_key]["typed_token"] != "IFCREAL(3353559.52)":
         raise AssertionError(f"X/南北坐标值错误：{actual[x_key]['typed_token']}")
     if actual[y_key]["typed_token"] != "IFCREAL(38345264.397)":
         raise AssertionError(f"Y/东西坐标值错误：{actual[y_key]['typed_token']}")
-    if ("IFCPROJECT", "Pset_申报信息属性集", "基点坐标X") in actual:
-        raise AssertionError("最终IFC不得双写无空格别名“基点坐标X”。")
-    if ("IFCPROJECT", "Pset_申报信息属性集", "基点坐标Y") in actual:
-        raise AssertionError("最终IFC不得双写无空格别名“基点坐标Y”。")
-
     if counts.get("IFCEXTRUDEDAREASOLID", 0) < 9:
         raise AssertionError("至少9类可视对象应具有简单拉伸体几何。")
 
@@ -524,31 +575,142 @@ def validate(mapping_path: Path, ifc_path: Path) -> Dict[str, object]:
     if len(global_ids) != len(set(global_ids)):
         raise AssertionError("IFC GlobalId存在重复。")
 
-    return {
-        "status": "PASS",
-        "ifc": str(ifc_path),
+    summary = {
         "stepEntities": len(entities),
         "properties": len(actual),
         "propertySets": len(property_sets),
         "attachments": len(attachments),
-        "ownerTypes": sorted(actual_owner_types),
+        "ownerTypes": [
+            name.replace("IFC", "Ifc", 1)
+            for name in sorted(actual_owner_types)
+        ],
         "extrudedSolids": counts.get("IFCEXTRUDEDAREASOLID", 0),
+    }
+    display_names = {
+        "IFCACTOR": "IfcActor",
+        "IFCBUILDING": "IfcBuilding",
+        "IFCBUILDINGSTOREY": "IfcBuildingStorey",
+        "IFCDOOR": "IfcDoor",
+        "IFCDUCTSEGMENT": "IfcDuctSegment",
+        "IFCPROJECT": "IfcProject",
+        "IFCROOF": "IfcRoof",
+        "IFCSITE": "IfcSite",
+        "IFCSLAB": "IfcSlab",
+        "IFCSPACE": "IfcSpace",
+        "IFCSPATIALZONE": "IfcSpatialZone",
+        "IFCSTAIRFLIGHT": "IfcStairFlight",
+        "IFCWALL": "IfcWall",
+        "IFCWINDOW": "IfcWindow",
+    }
+    summary["ownerTypes"] = sorted(display_names.values())
+
+    root = _repository_root(source_path)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    expected_manifest_keys = {
+        "schemaVersion", "fixtureId", "generator", "source", "fixture", "summary", "policies"
+    }
+    if set(manifest) != expected_manifest_keys:
+        raise AssertionError("manifest顶层字段不符合固定合同。")
+    expected_nested_keys = {
+        "generator": {"path", "version", "sha256"},
+        "source": {
+            "path", "sha256", "canonicalSha256", "compatibilityBaselinePath",
+            "compatibilityBaselineSha256", "packageId", "packageVersion",
+        },
+        "fixture": {
+            "path", "sha256", "bytes", "encoding", "lineEnding", "schema", "viewDefinition",
+        },
+        "policies": {"valueProfile", "booleanSample"},
+    }
+    for section, keys in expected_nested_keys.items():
+        if not isinstance(manifest.get(section), dict) or set(manifest[section]) != keys:
+            raise AssertionError(f"manifest {section}字段不符合固定合同。")
+    if manifest.get("schemaVersion") != "1.0.0":
+        raise AssertionError("manifest schemaVersion错误。")
+    if manifest.get("fixtureId") != "HBR-HIFC-FULL-MAPPING-V1":
+        raise AssertionError("manifest fixtureId错误。")
+    generator = manifest["generator"]
+    generator_path = root / generator["path"]
+    if generator["path"] != "tools/hifc/generate_hifc_mapping_smoke.py":
+        raise AssertionError("manifest generator path错误。")
+    if generator["version"] != "1.0.0" or generator["sha256"] != _sha256(generator_path):
+        raise AssertionError("manifest generator版本或SHA256不一致。")
+    if manifest.get("fixture", {}).get("sha256") != _sha256(ifc_path):
+        raise AssertionError("manifest IFC SHA256与实际文件不一致。")
+    if manifest.get("fixture", {}).get("bytes") != len(ifc_path.read_bytes()):
+        raise AssertionError("manifest IFC字节数与实际文件不一致。")
+    if manifest.get("source", {}).get("sha256") != _sha256(source_path):
+        raise AssertionError("manifest规则源SHA256不一致。")
+    if manifest.get("source", {}).get("canonicalSha256") != canonical_source_sha256(source):
+        raise AssertionError("manifest canonicalSha256不一致。")
+    if manifest.get("source", {}).get("compatibilityBaselineSha256") != _sha256(baseline_path):
+        raise AssertionError("manifest兼容基线SHA256不一致。")
+    source_manifest = manifest["source"]
+    if source_manifest["path"] != _logical_path(root, source_path):
+        raise AssertionError("manifest规则源路径不一致。")
+    if source_manifest["compatibilityBaselinePath"] != _logical_path(root, baseline_path):
+        raise AssertionError("manifest兼容基线路径不一致。")
+    if source_manifest["packageId"] != source["packageId"] or source_manifest["packageVersion"] != source["packageVersion"]:
+        raise AssertionError("manifest规则包身份不一致。")
+    fixture_manifest = manifest["fixture"]
+    if fixture_manifest["encoding"] != "UTF-8" or fixture_manifest["lineEnding"] != "LF":
+        raise AssertionError("manifest IFC编码或换行合同错误。")
+    if fixture_manifest["schema"] != "IFC4" or fixture_manifest["viewDefinition"] != "ReferenceView_V1.2":
+        raise AssertionError("manifest IFC schema/viewDefinition错误。")
+    if manifest["policies"] != {
+        "valueProfile": "STRUCTURAL_SMOKE_V1",
+        "booleanSample": "ALWAYS_TRUE_FOR_IFCFLUX_SMOKE",
+    }:
+        raise AssertionError("manifest policies错误。")
+    if manifest.get("summary") != summary:
+        raise AssertionError("manifest summary与IFC实际结构不一致。")
+
+    return {
+        "status": "PASS",
+        "inputs": {
+            "source": {"path": _logical_path(root, source_path), "sha256": _sha256(source_path)},
+            "baseline": {"path": _logical_path(root, baseline_path), "sha256": _sha256(baseline_path)},
+            "manifest": {"path": _logical_path(root, manifest_path), "sha256": _sha256(manifest_path)},
+        },
+        "ifc": {"path": _logical_path(root, ifc_path), "sha256": _sha256(ifc_path)},
+        "summary": summary,
     }
 
 
-def main() -> int:
+def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Validate the HBR-HIFC full-mapping IFC4 smoke fixture."
     )
-    parser.add_argument("--mapping", type=Path, required=True)
+    source_group = parser.add_mutually_exclusive_group(required=True)
+    source_group.add_argument("--source", type=Path)
+    source_group.add_argument("--mapping", type=Path, help="--source的兼容别名")
+    parser.add_argument("--baseline", type=Path, required=True)
     parser.add_argument("--ifc", type=Path, required=True)
-    arguments = parser.parse_args()
+    parser.add_argument("--manifest", type=Path, required=True)
+    parser.add_argument("--report", type=Path)
+    arguments = parser.parse_args(argv)
     try:
-        result = validate(arguments.mapping, arguments.ifc)
+        result = validate(
+            arguments.source or arguments.mapping,
+            arguments.baseline,
+            arguments.ifc,
+            arguments.manifest,
+        )
     except Exception as exception:
         print(f"FAIL: {exception}", file=sys.stderr)
         return 1
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    payload = (json.dumps(result, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+    if arguments.report:
+        arguments.report.parent.mkdir(parents=True, exist_ok=True)
+        descriptor, temporary = tempfile.mkstemp(
+            dir=arguments.report.parent,
+            prefix=f".{arguments.report.name}.",
+            suffix=".tmp",
+        )
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(payload)
+        os.replace(temporary, arguments.report)
+    print(payload.decode("utf-8"), end="")
     return 0
 
 

@@ -63,8 +63,8 @@ IfcRelDefinesByProperties
 ```text
 IfcProject
 └─ Pset_申报信息属性集
-   ├─ 基点坐标 X : IfcReal
-   ├─ 基点坐标 Y : IfcReal
+   ├─ 基点坐标X : IfcReal
+   ├─ 基点坐标Y : IfcReal
    └─ 基点高程   : IfcReal
 ```
 
@@ -75,11 +75,11 @@ X = Northing = 南北坐标
 Y = Easting  = 东西坐标
 ```
 
-`基点坐标X / 基点坐标Y` 等旧名称只能作为输入迁移别名，不允许与 Canonical 名称一起输出到最终 IFC。
+`基点坐标 X / 基点坐标 Y` 等带空格旧名称只能作为输入迁移别名，不允许输出到最终 IFC。
 
 ## 5. 全映射结构验证文件
 
-`tests/fixtures/hifc/HBR_HIFC_全映射结构验证_v1.0.ifc` 是根据机器唯一规则源生成的结构试件，目的不是模拟一个真实报建项目，而是让人和程序检查全部映射路径是否被正确理解。
+`tests/fixtures/hifc/HBR_HIFC_全映射结构验证_v1.0.ifc` 是 IFCFlux 人工验收字节锚点；source-derived generator 另负责确定性结构回归。两者共享同一 identity/类型/Owner/数量合同，不要求样例值与 GUID 逐字节相同。
 
 试件包含：
 
@@ -97,4 +97,4 @@ Y = Easting  = 东西坐标
 
 ## 6. 验收边界
 
-该试件已经完成本地结构校验和 359 条路径精确对账，但在真实 IFCFlux/H-IFC 软件中打开后的结果，仍以人工实机截图和导入报告作为最终兼容证据。在该证据完成前，只称为“结构验证试件”，不称为“官方软件已认证样例”。
+该字节锚点已由用户确认 IFCFlux 人工运行通过；当次未记录 IFCFlux 版本，也没有独立机器导出报告或截图。试件中的 `IfcSpatialZone` 和 `IfcOrganization` owner 尚未由 GH 完整实现；本证据只证明目标 IFC 结构，不证明 Stage03 生产完整支持。
