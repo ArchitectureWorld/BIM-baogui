@@ -10,7 +10,7 @@ namespace BIMBaoGui.Stage01.UI
   internal sealed class Stage02PreparationAttributes : GH_ComponentAttributes
   {
     private const float CardWidth = 760f;
-    private const float CardHeight = 400f;
+    private const float CardHeight = 470f;
     private static readonly Color Primary = Color.FromArgb(34, 105, 139);
     private static readonly Color PrimaryDark = Color.FromArgb(18, 62, 84);
     private static readonly Color Surface = Color.White;
@@ -169,7 +169,7 @@ namespace BIMBaoGui.Stage01.UI
         _contentBounds.X,
         _contentBounds.Y + 86f,
         _contentBounds.Width,
-        238f);
+        308f);
       FillRounded(graphics, body, Surface, 8f);
       DrawRoundedBorder(graphics, body, Border, 8f);
 
@@ -211,6 +211,18 @@ namespace BIMBaoGui.Stage01.UI
             + snapshot.PendingWriteCount
             + "｜已写入 "
             + snapshot.WrittenCount
+        },
+        {
+          "运行支持",
+          "未实现 " + snapshot.RuntimeNotImplementedCount
+            + "｜需求待定 "
+            + snapshot.RuntimeUnclassifiedRequirementCount
+        },
+        {
+          "首条运行原因",
+          string.IsNullOrWhiteSpace(snapshot.FirstRuntimeBlockReason)
+            ? "无"
+            : Compact(snapshot.FirstRuntimeBlockReason, 46)
         },
         {
           "首条阻断",

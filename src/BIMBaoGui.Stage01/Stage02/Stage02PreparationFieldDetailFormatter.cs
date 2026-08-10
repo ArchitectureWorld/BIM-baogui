@@ -106,6 +106,21 @@ namespace BIMBaoGui.Stage01.Stage02
       AppendStringProperty(
         builder,
         ref firstProperty,
+        "runtimeStatus",
+        operation.RuntimeStatus);
+      AppendStringProperty(
+        builder,
+        ref firstProperty,
+        "runtimeBlockCode",
+        operation.RuntimeBlockCode);
+      AppendStringProperty(
+        builder,
+        ref firstProperty,
+        "runtimeBlockReason",
+        operation.RuntimeBlockReason);
+      AppendStringProperty(
+        builder,
+        ref firstProperty,
         "bindingAction",
         operation.BindingAction);
       AppendStringProperty(

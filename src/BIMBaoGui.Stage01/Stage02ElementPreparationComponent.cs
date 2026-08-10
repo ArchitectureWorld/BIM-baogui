@@ -33,6 +33,9 @@ namespace BIMBaoGui.Stage01
     internal int InstalledCount { get; set; }
     internal int PendingWriteCount { get; set; }
     internal int WrittenCount { get; set; }
+    internal int RuntimeNotImplementedCount { get; set; }
+    internal int RuntimeUnclassifiedRequirementCount { get; set; }
+    internal string FirstRuntimeBlockReason { get; set; } = string.Empty;
     internal string FirstBlocker { get; set; } = string.Empty;
     internal string Status { get; set; } = string.Empty;
   }
@@ -1220,6 +1223,14 @@ namespace BIMBaoGui.Stage01
       {
         Stage02PreparationPreviewCounts previewCounts =
           _previewCountCache.Current;
+        Stage02WriteOperation[] runtimeOperations = (_preview == null
+            ? Array.Empty<Stage02MatchedElement>()
+            : _preview.Elements)
+          .OrderBy(x => x.Element.UniqueId, StringComparer.Ordinal)
+          .SelectMany(x => x.Operations
+            .OrderBy(y => y.PropertyId, StringComparer.Ordinal)
+            .ThenBy(y => y.RuntimeBlockCode, StringComparer.Ordinal))
+          .ToArray();
         return new Stage02PreparationUiSnapshot
         {
           RevitVersion = _hostSnapshot?.RevitVersion ?? string.Empty,
@@ -1250,6 +1261,24 @@ namespace BIMBaoGui.Stage01
           InstalledCount = _installedCount,
           PendingWriteCount = previewCounts.PendingWriteCount,
           WrittenCount = _writtenCount,
+          RuntimeNotImplementedCount = runtimeOperations.Count(operation =>
+            string.Equals(
+              operation.RuntimeStatus,
+              "NOT_IMPLEMENTED",
+              StringComparison.Ordinal)),
+          RuntimeUnclassifiedRequirementCount = runtimeOperations.Count(
+            operation => string.Equals(
+              operation.RuntimeStatus,
+              "UNCLASSIFIED_REQUIREMENT",
+              StringComparison.Ordinal)),
+          FirstRuntimeBlockReason = runtimeOperations
+            .Where(operation => !string.Equals(
+              operation.RuntimeStatus,
+              "SUPPORTED",
+              StringComparison.Ordinal))
+            .Select(operation => operation.RuntimeBlockReason)
+            .FirstOrDefault(reason => !string.IsNullOrWhiteSpace(reason))
+              ?? string.Empty,
           FirstBlocker = _blockers.FirstOrDefault() ?? string.Empty,
           Status = _status
         };

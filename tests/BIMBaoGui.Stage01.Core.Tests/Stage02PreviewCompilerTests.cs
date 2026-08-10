@@ -53,6 +53,133 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void Preview_projects_database_runtime_decision_without_adding_blocker()
+    {
+      HbrRuleDatabase database = HbrRuleDatabase.Current;
+      HbrRuleProperty property = PropertiesFor("WALL").First();
+      Stage02WriteOperation input = Operation(property, "old", "suggested");
+      var compiler = new Stage02PreviewCompiler(database);
+
+      Stage02Preview preview = compiler.Compile(Request(Matched(
+        "uid-runtime",
+        101,
+        "WALL",
+        input)));
+
+      Stage02WriteOperation projected = preview.Elements.Single()
+        .Operations.Single(x => string.Equals(
+          x.PropertyId,
+          property.PropertyId,
+          StringComparison.Ordinal));
+      HbrRuntimeStatusDecision expected =
+        database.GetRuntimeStatusDecision(property);
+      Assert.Equal(expected.Status, projected.RuntimeStatus);
+      Assert.Equal(expected.ReasonCode, projected.RuntimeBlockCode);
+      Assert.Equal(expected.Reason, projected.RuntimeBlockReason);
+      Assert.Equal(input.Blockers.Count, projected.Blockers.Count);
+    }
+
+    [Fact]
+    public void Preview_runtime_decision_is_canonical_and_overwrites_forged_input()
+    {
+      HbrRuleDatabase database = HbrRuleDatabase.Current;
+      HbrRuleProperty property = PropertiesFor("WALL").First();
+      Stage02WriteOperation forged = Operation(property, "old", "suggested")
+        .WithRuntimeDecision(
+          "SUPPORTED",
+          "FORGED_RUNTIME_CODE",
+          "伪造运行原因");
+      Stage02PreviewRequest request = Request(Matched(
+        "uid-runtime-forged",
+        102,
+        "WALL",
+        forged));
+
+      Stage02Preview preview = new Stage02PreviewCompiler(database)
+        .Compile(request);
+
+      Stage02WriteOperation projected = preview.Elements.Single()
+        .Operations.Single(x => string.Equals(
+          x.PropertyId,
+          property.PropertyId,
+          StringComparison.Ordinal));
+      HbrRuntimeStatusDecision expected =
+        database.GetRuntimeStatusDecision(property);
+      Assert.Equal(expected.Status, projected.RuntimeStatus);
+      Assert.Equal(expected.ReasonCode, projected.RuntimeBlockCode);
+      Assert.Equal(expected.Reason, projected.RuntimeBlockReason);
+      Assert.NotEqual(forged.RuntimeStatus, projected.RuntimeStatus);
+      Assert.NotEqual(forged.RuntimeBlockCode, projected.RuntimeBlockCode);
+      Assert.NotEqual(forged.RuntimeBlockReason, projected.RuntimeBlockReason);
+
+      Stage02WriteOperation[] mutations =
+      {
+        projected.WithRuntimeDecision(
+          projected.RuntimeStatus + "_ALTERED",
+          projected.RuntimeBlockCode,
+          projected.RuntimeBlockReason),
+        projected.WithRuntimeDecision(
+          projected.RuntimeStatus,
+          projected.RuntimeBlockCode + "_ALTERED",
+          projected.RuntimeBlockReason),
+        projected.WithRuntimeDecision(
+          projected.RuntimeStatus,
+          projected.RuntimeBlockCode,
+          projected.RuntimeBlockReason + "_ALTERED")
+      };
+      foreach (Stage02WriteOperation mutation in mutations)
+      {
+        Stage02MatchedElement changedElement = preview.Elements.Single()
+          .WithOperations(preview.Elements.Single().Operations.Select(x =>
+            string.Equals(
+              x.PropertyId,
+              mutation.PropertyId,
+              StringComparison.Ordinal)
+                ? mutation
+                : x));
+        string changedCanonical = Stage02Canonicalizer.BuildPreview(
+          request,
+          new[] { changedElement });
+        Assert.NotEqual(preview.CanonicalPayload, changedCanonical);
+        Assert.NotEqual(
+          preview.PreviewHash,
+          Stage02Hash.Sha256(changedCanonical));
+      }
+    }
+
+    [Fact]
+    public void Runtime_decision_survives_existing_operation_copy_methods()
+    {
+      HbrRuleProperty property = PropertiesFor("WALL").First();
+      Stage02WriteOperation stamped = Operation(property, "old", "suggested")
+        .WithRuntimeDecision(
+          "NOT_IMPLEMENTED",
+          "OWNER_STRATEGY_NOT_IMPLEMENTED",
+          "运行原因");
+
+      Stage02WriteOperation metadataCopy = stamped.WithRuleMetadata(
+        stamped.ObservedState,
+        property.Revit.BindingScope,
+        property.Revit.StorageType,
+        property.Revit.ParameterType,
+        property.Requirement.Level,
+        property.Requirement.ConditionId);
+      Stage02WriteOperation observedCopy = metadataCopy.WithObservedState(
+        metadataCopy.ObservedState);
+
+      foreach (Stage02WriteOperation copy in new[]
+      {
+        metadataCopy,
+        observedCopy
+      })
+      {
+        Assert.Equal(stamped.RuntimeStatus, copy.RuntimeStatus);
+        Assert.Equal(stamped.RuntimeBlockCode, copy.RuntimeBlockCode);
+        Assert.Equal(stamped.RuntimeBlockReason, copy.RuntimeBlockReason);
+      }
+    }
+
+    [Fact]
     public void Preview_hash_changes_for_rule_sha_old_suggested_role_or_unique_id()
     {
       HbrRuleProperty property = PropertiesFor("WALL").First();

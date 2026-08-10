@@ -722,7 +722,7 @@ def test_write_status_output_preserves_backend_status_text():
     assert "WriteStatusText" in callback
 
 
-def test_outputs_include_stable_element_and_property_data_tree():
+def test_field_detail_outputs_include_stable_element_and_property_data_tree():
     component = read(
         "src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs"
     )
@@ -753,6 +753,9 @@ def test_outputs_include_stable_element_and_property_data_tree():
         '"source"',
         '"requirementLevel"',
         '"applicability"',
+        '"runtimeStatus"',
+        '"runtimeBlockCode"',
+        '"runtimeBlockReason"',
         '"bindingAction"',
         '"valueAction"',
         '"blockers"',
@@ -818,6 +821,9 @@ def test_card_text_exposes_identity_counts_and_all_distinct_states():
         "PendingWriteCount",
         "WrittenCount",
         "FirstBlocker",
+        "RuntimeNotImplementedCount",
+        "RuntimeUnclassifiedRequirementCount",
+        "FirstRuntimeBlockReason",
     ):
         assert token in combined
     for state in (
@@ -832,6 +838,42 @@ def test_card_text_exposes_identity_counts_and_all_distinct_states():
         "结果过期",
     ):
         assert state in combined
+
+
+def test_runtime_support_card_consumes_only_projected_operation_snapshot():
+    component = read(
+        "src/BIMBaoGui.Stage01/Stage02ElementPreparationComponent.cs"
+    )
+    ui = read("src/BIMBaoGui.Stage01/UI/Stage02PreparationAttributes.cs")
+    snapshot = method_body(
+        component,
+        "internal Stage02PreparationUiSnapshot GetUiSnapshot",
+    )
+
+    for token in (
+        "RuntimeStatus",
+        "RuntimeBlockCode",
+        "RuntimeBlockReason",
+        "RuntimeNotImplementedCount",
+        "RuntimeUnclassifiedRequirementCount",
+        "FirstRuntimeBlockReason",
+    ):
+        assert token in snapshot
+    for label in ("运行支持", "未实现", "需求待定", "首条运行原因"):
+        assert label in ui
+    for forbidden in (
+        "HbrRuleDatabase",
+        "OwnerStrategy",
+        "RequirementLevel",
+        "GetRuntimeStatusDecision",
+        "GetEffectiveRuntimeStatus",
+    ):
+        assert forbidden not in snapshot
+        assert forbidden not in ui
+    assert "runtimeOperations.Count" in snapshot
+    assert re.search(r"CardHeight\s*=\s*470f", ui)
+    assert "308f" in ui
+    assert "_contentBounds.Bottom - 42f" in ui
 
 
 def test_stage02_card_displays_deterministic_matched_roles():

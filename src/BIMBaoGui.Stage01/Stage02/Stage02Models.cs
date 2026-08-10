@@ -302,6 +302,9 @@ namespace BIMBaoGui.Stage01.Stage02
         string.Empty,
         string.Empty,
         string.Empty,
+        string.Empty,
+        string.Empty,
+        string.Empty,
         string.Empty)
     {
     }
@@ -329,6 +332,9 @@ namespace BIMBaoGui.Stage01.Stage02
         valueAction,
         applicability,
         blockers,
+        string.Empty,
+        string.Empty,
+        string.Empty,
         string.Empty,
         string.Empty,
         string.Empty,
@@ -363,6 +369,9 @@ namespace BIMBaoGui.Stage01.Stage02
         string.Empty,
         string.Empty,
         string.Empty,
+        string.Empty,
+        string.Empty,
+        string.Empty,
         string.Empty)
     {
     }
@@ -395,6 +404,9 @@ namespace BIMBaoGui.Stage01.Stage02
         string.Empty,
         string.Empty,
         string.Empty,
+        string.Empty,
+        string.Empty,
+        string.Empty,
         string.Empty)
     {
     }
@@ -415,7 +427,10 @@ namespace BIMBaoGui.Stage01.Stage02
       string storageType,
       string parameterType,
       string requirementLevel,
-      string conditionId)
+      string conditionId,
+      string runtimeStatus,
+      string runtimeBlockCode,
+      string runtimeBlockReason)
     {
       PropertyId = propertyId ?? string.Empty;
       ParameterGuid = parameterGuid;
@@ -433,6 +448,9 @@ namespace BIMBaoGui.Stage01.Stage02
       RequirementLevel = requirementLevel ?? string.Empty;
       ConditionId = conditionId ?? string.Empty;
       Applicability = applicability ?? string.Empty;
+      RuntimeStatus = runtimeStatus ?? string.Empty;
+      RuntimeBlockCode = runtimeBlockCode ?? string.Empty;
+      RuntimeBlockReason = runtimeBlockReason ?? string.Empty;
       Blockers = Stage02Collections.Freeze(
         (blockers ?? Array.Empty<Stage02Blocker>())
           .OrderBy(x => x == null ? string.Empty : x.Code,
@@ -474,6 +492,9 @@ namespace BIMBaoGui.Stage01.Stage02
     public string RequirementLevel { get; }
     public string ConditionId { get; }
     public string Applicability { get; }
+    public string RuntimeStatus { get; }
+    public string RuntimeBlockCode { get; }
+    public string RuntimeBlockReason { get; }
     public IReadOnlyList<Stage02Blocker> Blockers { get; }
 
     internal Stage02WriteOperation WithRuleMetadata(
@@ -500,7 +521,10 @@ namespace BIMBaoGui.Stage01.Stage02
         storageType,
         parameterType,
         requirementLevel,
-        conditionId);
+        conditionId,
+        RuntimeStatus,
+        RuntimeBlockCode,
+        RuntimeBlockReason);
     }
 
     internal Stage02WriteOperation WithObservedState(
@@ -529,7 +553,44 @@ namespace BIMBaoGui.Stage01.Stage02
         StorageType,
         ParameterType,
         RequirementLevel,
-        ConditionId);
+        ConditionId,
+        RuntimeStatus,
+        RuntimeBlockCode,
+        RuntimeBlockReason);
+    }
+
+    internal Stage02WriteOperation WithRuntimeDecision(
+      string runtimeStatus,
+      string runtimeBlockCode,
+      string runtimeBlockReason)
+    {
+      if (string.IsNullOrWhiteSpace(runtimeStatus)
+        || string.IsNullOrWhiteSpace(runtimeBlockCode)
+        || string.IsNullOrWhiteSpace(runtimeBlockReason))
+      {
+        throw new ArgumentException(
+          "Stage02 runtime decision must be complete.");
+      }
+      return new Stage02WriteOperation(
+        PropertyId,
+        ParameterGuid,
+        ParameterName,
+        ObservedState,
+        SuggestedValue,
+        ValueSource,
+        SuggestionConfidence,
+        BindingAction,
+        ValueAction,
+        Applicability,
+        Blockers,
+        BindingScope,
+        StorageType,
+        ParameterType,
+        RequirementLevel,
+        ConditionId,
+        runtimeStatus,
+        runtimeBlockCode,
+        runtimeBlockReason);
     }
 
     private static Stage02ObservedParameterState LegacyState(string oldValue)

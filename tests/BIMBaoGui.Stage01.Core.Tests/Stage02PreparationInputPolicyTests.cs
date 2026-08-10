@@ -661,7 +661,11 @@ namespace BIMBaoGui.Stage01.Core.Tests
           "STRING",
           "TEXT",
           "REQUIRED" + tricky,
-          "CONDITION");
+          "CONDITION")
+        .WithRuntimeDecision(
+          "NOT_IMPLEMENTED",
+          "OWNER_STRATEGY_NOT_IMPLEMENTED",
+          "运行原因" + tricky);
       var reference = new Stage02ElementReference(
         "document-fingerprint",
         "测试文档",
@@ -697,7 +701,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
       var serializer = new JavaScriptSerializer();
       var root = Assert.IsType<Dictionary<string, object>>(
         serializer.DeserializeObject(first));
-      Assert.Equal(19, root.Count);
+      Assert.Equal(22, root.Count);
       Assert.Equal("document-fingerprint", root["documentFingerprint"]);
       Assert.Equal("测试文档", root["documentTitle"]);
       Assert.Equal(201, Convert.ToInt32(root["elementId"]));
@@ -714,6 +718,11 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Assert.Equal("来源" + tricky, root["source"]);
       Assert.Equal("REQUIRED" + tricky, root["requirementLevel"]);
       Assert.Equal("APPLICABLE" + tricky, root["applicability"]);
+      Assert.Equal("NOT_IMPLEMENTED", root["runtimeStatus"]);
+      Assert.Equal(
+        "OWNER_STRATEGY_NOT_IMPLEMENTED",
+        root["runtimeBlockCode"]);
+      Assert.Equal("运行原因" + tricky, root["runtimeBlockReason"]);
       Assert.Equal(HbrBindingActions.MergeCategories, root["bindingAction"]);
       Assert.Equal("SET", root["valueAction"]);
       object[] blockers = Assert.IsType<object[]>(root["blockers"]);
@@ -897,6 +906,9 @@ namespace BIMBaoGui.Stage01.Core.Tests
         "\"source\":",
         "\"requirementLevel\":",
         "\"applicability\":",
+        "\"runtimeStatus\":",
+        "\"runtimeBlockCode\":",
+        "\"runtimeBlockReason\":",
         "\"bindingAction\":",
         "\"valueAction\":",
         "\"blockers\":"

@@ -261,14 +261,21 @@ namespace BIMBaoGui.Stage01.Stage02
             "属性 " + operation.PropertyId
             + " 的实例写入 TargetUniqueId 与所选元素不一致。");
         }
-        normalized.Add(requirementNormalized.WithRuleMetadata(
-          requirementNormalized.ObservedState.With(
-            targetUniqueId: targetUniqueId),
-          property.Revit.BindingScope,
-          property.Revit.StorageType,
-          property.Revit.ParameterType,
-          property.Requirement.Level,
-          conditionId));
+        HbrRuntimeStatusDecision runtimeDecision =
+          _database.GetRuntimeStatusDecision(property);
+        normalized.Add(requirementNormalized
+          .WithRuleMetadata(
+            requirementNormalized.ObservedState.With(
+              targetUniqueId: targetUniqueId),
+            property.Revit.BindingScope,
+            property.Revit.StorageType,
+            property.Revit.ParameterType,
+            property.Requirement.Level,
+            conditionId)
+          .WithRuntimeDecision(
+            runtimeDecision.Status,
+            runtimeDecision.ReasonCode,
+            runtimeDecision.Reason));
       }
       if (!propertyIds.SetEquals(expectedPropertyIds))
       {
@@ -664,6 +671,17 @@ namespace BIMBaoGui.Stage01.Stage02
         builder,
         "applicability",
         operation.Applicability,
+        false);
+      AppendProperty(builder, "runtimeStatus", operation.RuntimeStatus, false);
+      AppendProperty(
+        builder,
+        "runtimeBlockCode",
+        operation.RuntimeBlockCode,
+        false);
+      AppendProperty(
+        builder,
+        "runtimeBlockReason",
+        operation.RuntimeBlockReason,
         false);
       AppendProperty(
         builder,
