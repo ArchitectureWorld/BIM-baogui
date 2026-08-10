@@ -676,7 +676,7 @@ def test_ci_packages_manifest_with_hash_and_commit_sha_under_concurrency():
     assert "artifacts/artifact-manifest.json" in workflow
     assert "Get-FileHash" in workflow
     assert "sha256" in workflow
-    assert "commitSha" in workflow
+    assert '--commit-sha "${{ github.sha }}"' in workflow
     assert "github.sha" in workflow
 
 
@@ -718,7 +718,7 @@ def test_ci_paths_trigger_for_rulepack_source_baseline_and_compiler():
         assert '"tools/build_hbr_rulepack.py"' in event_paths
 
 
-def test_ci_rebuilds_and_semantically_verifies_hifc_baseline_from_temp_outputs():
+def test_ci_runs_real_hifc_fixture_and_rules_manifest_rebuild_contracts():
     workflow = read(".github/workflows/build-stage01-gha.yml")
     push = workflow[workflow.index("  push:") : workflow.index("  pull_request:")]
     pull_request = workflow[
@@ -727,6 +727,7 @@ def test_ci_rebuilds_and_semantically_verifies_hifc_baseline_from_temp_outputs()
     required_paths = (
         "tools/hifc/**",
         "tools/build_hbr_rules_manifest.py",
+        "tools/build_hbr_artifact_manifest.py",
         "tests/fixtures/hifc/**",
         "docs/hifc/acceptance/**",
     )
@@ -735,71 +736,33 @@ def test_ci_rebuilds_and_semantically_verifies_hifc_baseline_from_temp_outputs()
             assert f'- "{path}"' in event_paths
 
     gate = workflow_step(workflow, "Rebuild and verify HBR mapping baseline")
-    assert "$env:RUNNER_TEMP" in gate
-    for variable in (
-        "$firstIfc",
-        "$secondIfc",
-        "$firstFixtureManifest",
-        "$secondFixtureManifest",
-        "$firstValidation",
-        "$secondValidation",
-        "$committedValidation",
-        "$committedIfc",
-        "$committedFixtureManifest",
-        "$rebuiltRulesManifest",
-    ):
-        assert variable in gate
-    assert gate.count("tools/hifc/generate_hifc_mapping_smoke.py") == 2
-    assert gate.count("tools/hifc/validate_hifc_mapping_smoke.py") == 3
-    assert gate.count("tools/build_hbr_rules_manifest.py") == 1
-    assert "$firstRoot = Join-Path $gateRoot" in gate
-    assert "$secondRoot = Join-Path $gateRoot" in gate
-    assert "$rebuiltRulesManifest = Join-Path $gateRoot" in gate
-    assert "--output $firstIfc" in gate
-    assert "--output $secondIfc" in gate
-    assert "--manifest $firstFixtureManifest" in gate
-    assert "--manifest $secondFixtureManifest" in gate
-    assert "--ifc $firstIfc" in gate
-    assert "--ifc $secondIfc" in gate
-    assert "--ifc $committedIfc" in gate
-    assert "--manifest $committedFixtureManifest" in gate
-    assert "Get-FileHash $firstIfc" in gate
-    assert "Get-FileHash $secondIfc" in gate
-    assert "Get-FileHash $committedIfc" not in gate
-    assert "$generatedSummary" in gate
-    assert "$committedSummary" in gate
-    assert "ConvertTo-Json -Depth 10 -Compress" in gate
-    assert "Get-FileHash $rebuiltRulesManifest" in gate
-    assert "Get-FileHash $committedRulesManifest" in gate
-    assert "Get-Item $rebuiltRulesManifest" in gate
-    assert "Get-Item $committedRulesManifest" in gate
-    assert "--output tests/fixtures/hifc/" not in gate
-    assert "--report artifacts/" not in gate
+    expected = (
+        "python -m pytest tests/test_hifc_mapping_smoke_fixture.py "
+        "tests/test_hbr_rules_manifest.py -q"
+    )
+    assert workflow_step_run_commands(gate) == [expected]
+    assert not re.search(r"(?mi)^        (?:if|continue-on-error)\s*:", gate)
+    assert "if(false)" not in re.sub(r"\s+", "", gate).casefold()
 
 
 def test_ci_artifact_manifest_records_hbr_identity_without_archive_or_second_upload():
     workflow = read(".github/workflows/build-stage01-gha.yml")
     prepare = workflow_step(workflow, "Prepare validation artifact")
-    required_manifest_fields = (
-        "rulePackageId = $rules.packageId",
-        "rulePackageVersion = $rules.packageVersion",
-        "ruleSourcePath = $rules.ruleSource.path",
-        "ruleSourceSha256 = $rules.ruleSource.sha256",
-        "ruleSourceCanonicalSha256 = $rules.ruleSource.canonicalSha256",
-        "compatibilityBaselinePath = $rules.compatibilityBaseline.path",
-        "compatibilityBaselineSha256 = $rules.compatibilityBaseline.sha256",
-        "rulePackSha256 = $rules.rulePack.sha256",
-        "rulePackPayloadSha256 = $rules.rulePack.payloadSha256",
-        "fixturePath = $rules.fixture.path",
-        "fixtureSha256 = $rules.fixture.sha256",
-        "fixtureManifestPath = $rules.fixture.manifestPath",
-        "fixtureManifestSha256 = $rules.fixture.manifestSha256",
-        "rulesManifestPath = $rulesManifestRelativePath",
-        "rulesManifestId = $rules.manifestId",
-        "rulesManifestSha256 = (Get-FileHash $rulesManifestPath",
+    expected_commands = (
+        "New-Item -ItemType Directory -Force -Path artifacts | Out-Null",
+        'Copy-Item "src/BIMBaoGui.Stage01/bin/Release/net48/'
+        'BIMBaoGui.Stage01.gha" "artifacts/BIMBaoGui.Stage01.gha"',
+        "python tools/build_hbr_artifact_manifest.py --root . "
+        "--gha artifacts/BIMBaoGui.Stage01.gha "
+        "--rules-manifest specs/hbr-rules/v1/manifest.sha256.json "
+        '--commit-sha "${{ github.sha }}" '
+        "--output artifacts/artifact-manifest.json",
     )
-    for field in required_manifest_fields:
-        assert field in prepare
+    assert workflow_step_run_commands(prepare) == list(expected_commands)
+    assert "$rules" not in prepare
+    assert "Get-Content" not in prepare
+    assert "ConvertTo-Json" not in prepare
+    assert not re.search(r"(?mi)^        (?:if|continue-on-error)\s*:", prepare)
 
     assert workflow.count("actions/upload-artifact@") == 1
     for forbidden in (
