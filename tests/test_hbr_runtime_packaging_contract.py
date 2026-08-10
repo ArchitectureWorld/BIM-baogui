@@ -31,6 +31,14 @@ LEGACY_EVIDENCE_FILES = (
     / "specs/hifc-mapping/v1/data/official_plugin_compatibility_status.v1.json",
 )
 
+LEGACY_RUNTIME_INPUT_NAMES = frozenset(
+    path.name for path in LEGACY_EVIDENCE_FILES
+)
+
+# Production diagnostics may name a retired input only after an explicit review.
+# No such exception exists today.
+LEGACY_FILENAME_DIAGNOSTIC_ALLOWLIST = frozenset()
+
 
 def _normalize_msbuild_path(value: str) -> str:
     return value.replace("/", "\\").casefold()
@@ -96,6 +104,23 @@ def test_csproj_removes_five_legacy_embedded_resources():
 
     assert embedded.isdisjoint(forbidden), sorted(embedded & forbidden)
     assert all(path.is_file() for path in LEGACY_EVIDENCE_FILES)
+
+
+def test_production_csharp_never_reads_retired_rule_inputs():
+    source_root = ROOT / "src/BIMBaoGui.Stage01"
+    occurrences = {
+        path.relative_to(ROOT).as_posix(): sorted(
+            name for name in LEGACY_RUNTIME_INPUT_NAMES if name in text
+        )
+        for path in source_root.rglob("*.cs")
+        if (text := path.read_text(encoding="utf-8-sig"))
+        if any(name in text for name in LEGACY_RUNTIME_INPUT_NAMES)
+    }
+
+    assert set(occurrences).issubset(LEGACY_FILENAME_DIAGNOSTIC_ALLOWLIST), (
+        "production C# names retired rule inputs outside the explicit "
+        f"diagnostic allowlist: {occurrences}"
+    )
 
 
 def test_pack_projects_share_inputs_but_use_project_intermediate_outputs():

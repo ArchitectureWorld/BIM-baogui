@@ -1,9 +1,13 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
+using System.Web.Script.Serialization;
+using BIMBaoGui.Stage01.Rules;
 using Xunit;
 
 namespace BIMBaoGui.Stage01.Core.Tests
@@ -12,8 +16,6 @@ namespace BIMBaoGui.Stage01.Core.Tests
   {
     private const string ProductionAssemblyFixtureName =
       "BIMBaoGui.Stage01.production.dll";
-    private const string RuntimePackResourceName =
-      "BIMBaoGui.Stage01.Resources.HBR_RulePack.hbrpack";
     private const int PackHeaderLength = 48;
 
     private static readonly string[] LegacyRuntimeResourceNames =
@@ -31,8 +33,37 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Assembly productionAssembly = LoadProductionAssembly();
       AssertOnlyRuntimePack(productionAssembly);
       Assert.Equal(
-        new[] { RuntimePackResourceName },
+        new[] { HbrRuleDatabase.ResourceName },
         productionAssembly.GetManifestResourceNames());
+    }
+
+    [Fact]
+    public void Production_pack_identity_matches_current_manifest()
+    {
+      Assembly productionAssembly = LoadProductionAssembly();
+      object database = GetStaticProperty(
+        ProductionType(
+          productionAssembly,
+          "BIMBaoGui.Stage01.Rules.HbrRuleDatabase"),
+        "Current");
+      object package = GetInstanceProperty(database, "Package");
+
+      Assert.Equal("HBR-WUHAN-PLANNING", GetStringProperty(package, "PackageId"));
+      Assert.Equal("1.0.0", GetStringProperty(package, "PackageVersion"));
+      string packageSha = GetStringProperty(package, "RulePackageSha256");
+      Assert.Matches(new Regex("^[0-9a-f]{64}$"), packageSha);
+      string payloadSha = ComputeSha256(ReadPayload(productionAssembly));
+      Assert.Equal(payloadSha, packageSha);
+
+      string manifestPath = FindRepositoryFile(
+        Path.Combine("specs", "hbr-rules", "v1", "manifest.sha256.json"));
+      var serializer = new JavaScriptSerializer();
+      var manifest = serializer.Deserialize<Dictionary<string, object>>(
+        File.ReadAllText(manifestPath));
+      var rulePack = (Dictionary<string, object>)manifest["rulePack"];
+      Assert.Equal(
+        (string)rulePack["payloadSha256"],
+        payloadSha);
     }
 
     [Fact]
@@ -141,6 +172,10 @@ namespace BIMBaoGui.Stage01.Core.Tests
     private static void AssertOnlyRuntimePack(Assembly assembly)
     {
       string[] manifestResources = assembly.GetManifestResourceNames();
+      string[] hbrPacks = manifestResources
+        .Where(name => name.EndsWith(".hbrpack", StringComparison.Ordinal))
+        .ToArray();
+      Assert.Equal(new[] { HbrRuleDatabase.ResourceName }, hbrPacks);
       string[] runtimeResources = manifestResources
         .Where(name => name.StartsWith(
           "BIMBaoGui.Stage01.Resources.",
@@ -148,10 +183,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
         .OrderBy(name => name, StringComparer.Ordinal)
         .ToArray();
 
-      Assert.Equal(new[] { RuntimePackResourceName }, runtimeResources);
-      Assert.Single(
-        manifestResources,
-        name => name.EndsWith(".hbrpack", StringComparison.Ordinal));
+      Assert.Equal(new[] { HbrRuleDatabase.ResourceName }, runtimeResources);
       Assert.All(
         LegacyRuntimeResourceNames,
         legacy => Assert.DoesNotContain(legacy, manifestResources));
@@ -159,17 +191,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
 
     private static byte[] ReadPayload(Assembly assembly)
     {
-      byte[] pack;
-      using (Stream stream = assembly.GetManifestResourceStream(
-        RuntimePackResourceName))
-      {
-        Assert.NotNull(stream);
-        using (var buffer = new MemoryStream())
-        {
-          stream.CopyTo(buffer);
-          pack = buffer.ToArray();
-        }
-      }
+      byte[] pack = ReadPack(assembly);
 
       Assert.True(pack.Length >= PackHeaderLength);
       Assert.Equal((byte)'H', pack[0]);
@@ -192,6 +214,20 @@ namespace BIMBaoGui.Stage01.Core.Tests
       Buffer.BlockCopy(pack, 16, headerSha, 0, headerSha.Length);
       Assert.Equal(ToLowerHex(headerSha), ComputeSha256(payload));
       return payload;
+    }
+
+    private static byte[] ReadPack(Assembly assembly)
+    {
+      using (Stream stream = assembly.GetManifestResourceStream(
+        HbrRuleDatabase.ResourceName))
+      {
+        Assert.NotNull(stream);
+        using (var buffer = new MemoryStream())
+        {
+          stream.CopyTo(buffer);
+          return buffer.ToArray();
+        }
+      }
     }
 
     private static int ReadInt32BigEndian(byte[] bytes, int offset)
@@ -238,6 +274,37 @@ namespace BIMBaoGui.Stage01.Core.Tests
       object value = property.GetValue(null, null);
       Assert.NotNull(value);
       return value;
+    }
+
+    private static object GetInstanceProperty(object value, string name)
+    {
+      PropertyInfo property = value.GetType().GetProperty(
+        name,
+        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+      Assert.NotNull(property);
+      object result = property.GetValue(value, null);
+      Assert.NotNull(result);
+      return result;
+    }
+
+    private static string GetStringProperty(object value, string name)
+    {
+      return Assert.IsType<string>(GetInstanceProperty(value, name));
+    }
+
+    private static string FindRepositoryFile(string relativePath)
+    {
+      DirectoryInfo directory = new DirectoryInfo(
+        AppDomain.CurrentDomain.BaseDirectory);
+      while (directory != null)
+      {
+        string candidate = Path.Combine(directory.FullName, relativePath);
+        if (File.Exists(candidate)) return candidate;
+        directory = directory.Parent;
+      }
+      throw new FileNotFoundException(
+        "无法从测试输出目录定位仓库文件。",
+        relativePath);
     }
 
     private static object InvokeFromDatabase(

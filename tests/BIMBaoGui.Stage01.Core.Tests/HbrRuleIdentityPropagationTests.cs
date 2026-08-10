@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using BIMBaoGui.Stage01.Context;
 using BIMBaoGui.Stage01.Core;
+using BIMBaoGui.Stage01.Diagnostics;
 using BIMBaoGui.Stage01.GrasshopperTypes;
 using BIMBaoGui.Stage01.Rules;
 using BIMBaoGui.Stage01.Revit;
+using BIMBaoGui.Stage01.Stage03;
 using BIMBaoGui.Stage01.TaskPlanning;
 using GH_IO.Serialization;
 using Xunit;
@@ -15,6 +19,98 @@ namespace BIMBaoGui.Stage01.Core.Tests
 {
   public sealed class HbrRuleIdentityPropagationTests
   {
+    [Fact]
+    public async Task Current_package_identity_reaches_real_stage03_field_report()
+    {
+      string directory = Path.Combine(
+        Path.GetTempPath(),
+        "hbr-rule-identity-" + Guid.NewGuid().ToString("N"));
+      Directory.CreateDirectory(directory);
+      try
+      {
+        string documentPath = Path.Combine(directory, "identity-test.rvt");
+        File.WriteAllText(documentPath, "identity fixture");
+        HbrRulePackage package = HbrRuleDatabase.Current.Package;
+        var model = new Stage01Model();
+        model.SetValue(Stage01Keys.FileGuid, "identity-file-guid");
+        model.SetValue(
+          Stage01Keys.ModelFileType,
+          PlanningTargetRequirementPolicy.SiteModel);
+        model.SetValue(
+          Stage01Keys.WorkflowVersion,
+          HBRContextVersions.FileContextSchema);
+        HBRFileContext fileContext = HBRFileContextFactory.Create(
+          model,
+          new RevitDocumentSnapshot
+          {
+            DocumentPath = documentPath,
+            DocumentTitle = "identity-test.rvt",
+            RevitVersion = "2020"
+          },
+          initializationPassed: true);
+        AssertIdentity(package, fileContext);
+
+        TaskPlanCompilationResult compilation =
+          TaskPlanCompiler.Compile(fileContext);
+        Assert.True(compilation.Success, string.Join("; ", compilation.Blockers));
+        AssertIdentity(package, compilation.Plan);
+
+        var scanRequest = new Stage03RevitScanRequest(fileContext);
+        AssertIdentity(package, scanRequest);
+
+        Stage03FieldReportContext captured = null;
+        var coordinator = new Stage03WorkflowCoordinator(
+          new Stage03WorkflowServices
+          {
+            ScanAsync = _ => Task.FromResult(new Stage03WorkflowScanResult
+            {
+              FileGuid = fileContext.FileGuid,
+              DocumentFingerprint = fileContext.RevitDocumentFingerprint,
+              DocumentTitle = fileContext.RevitDocumentTitle,
+              DocumentPath = documentPath,
+              RevitVersion = "2020",
+              RulePackageId = scanRequest.RulePackageId,
+              RulePackageVersion = scanRequest.RulePackageVersion,
+              RulePackageSha256 = scanRequest.RulePackageSha256,
+              TechnicalFatalCodes = new[]
+              {
+                Stage03TechnicalFatalCodes.DocumentUnavailable
+              }
+            }),
+            ExportRawAsync = _ => throw new InvalidOperationException(
+              "identity propagation test must remain gate-blocked"),
+            TranslateAsync = _ => throw new InvalidOperationException(
+              "identity propagation test must remain gate-blocked"),
+            WriteFieldReport = context =>
+            {
+              captured = context;
+              return Stage03FieldReportWriter.Write(context);
+            },
+            WriteFailureReport = Stage03FailureReportWriter.TryWrite,
+            UtcNow = () => new DateTimeOffset(
+              2026, 8, 10, 12, 0, 0, TimeSpan.Zero)
+          });
+
+        await coordinator.RunAsync(new Stage03WorkflowRequest
+        {
+          Context = fileContext,
+          OutputDirectory = directory,
+          RvtStem = "identity-test",
+          RunId = "20260810T120000Z-identity",
+          DocumentPath = documentPath,
+          PluginVersion = "1.0.0",
+          Mode = Stage03GateMode.Strict
+        });
+
+        Assert.NotNull(captured);
+        AssertIdentity(package, captured);
+      }
+      finally
+      {
+        if (Directory.Exists(directory)) Directory.Delete(directory, true);
+      }
+    }
+
     [Fact]
     public void File_context_and_task_plan_hashes_include_package_identity()
     {
@@ -402,6 +498,23 @@ namespace BIMBaoGui.Stage01.Core.Tests
         "source-payload-hash",
         string.Empty);
       return provisional.WithHash(HBRFileContextCanonicalizer.ComputeHash(provisional));
+    }
+
+    private static void AssertIdentity(HbrRulePackage expected, object actual)
+    {
+      Type type = actual.GetType();
+      const BindingFlags flags = BindingFlags.Public
+        | BindingFlags.NonPublic
+        | BindingFlags.Instance;
+      Assert.Equal(
+        expected.PackageId,
+        type.GetProperty("RulePackageId", flags).GetValue(actual, null));
+      Assert.Equal(
+        expected.PackageVersion,
+        type.GetProperty("RulePackageVersion", flags).GetValue(actual, null));
+      Assert.Equal(
+        expected.RulePackageSha256,
+        type.GetProperty("RulePackageSha256", flags).GetValue(actual, null));
     }
 
     private static HBRTaskPlan BuildTaskPlan(
