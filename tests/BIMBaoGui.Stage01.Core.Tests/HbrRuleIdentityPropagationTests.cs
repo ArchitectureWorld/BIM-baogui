@@ -55,28 +55,41 @@ namespace BIMBaoGui.Stage01.Core.Tests
         Assert.True(compilation.Success, string.Join("; ", compilation.Blockers));
         AssertIdentity(package, compilation.Plan);
 
-        var scanRequest = new Stage03RevitScanRequest(fileContext);
-        AssertIdentity(package, scanRequest);
-
         Stage03FieldReportContext captured = null;
         var coordinator = new Stage03WorkflowCoordinator(
           new Stage03WorkflowServices
           {
-            ScanAsync = _ => Task.FromResult(new Stage03WorkflowScanResult
+            ScanAsync = request =>
             {
-              FileGuid = fileContext.FileGuid,
-              DocumentFingerprint = fileContext.RevitDocumentFingerprint,
-              DocumentTitle = fileContext.RevitDocumentTitle,
-              DocumentPath = documentPath,
-              RevitVersion = "2020",
-              RulePackageId = scanRequest.RulePackageId,
-              RulePackageVersion = scanRequest.RulePackageVersion,
-              RulePackageSha256 = scanRequest.RulePackageSha256,
-              TechnicalFatalCodes = new[]
+              AssertIdentity(package, request.Context);
+              Assert.Equal(
+                compilation.Plan.RulePackageId,
+                request.Context.RulePackageId);
+              Assert.Equal(
+                compilation.Plan.RulePackageVersion,
+                request.Context.RulePackageVersion);
+              Assert.Equal(
+                compilation.Plan.RulePackageSha256,
+                request.Context.RulePackageSha256);
+              var actualScanRequest = new Stage03RevitScanRequest(
+                request.Context);
+              AssertIdentity(package, actualScanRequest);
+              return Task.FromResult(new Stage03WorkflowScanResult
               {
-                Stage03TechnicalFatalCodes.DocumentUnavailable
-              }
-            }),
+                FileGuid = request.Context.FileGuid,
+                DocumentFingerprint = actualScanRequest.DocumentFingerprint,
+                DocumentTitle = actualScanRequest.DocumentTitle,
+                DocumentPath = documentPath,
+                RevitVersion = "2020",
+                RulePackageId = actualScanRequest.RulePackageId,
+                RulePackageVersion = actualScanRequest.RulePackageVersion,
+                RulePackageSha256 = actualScanRequest.RulePackageSha256,
+                TechnicalFatalCodes = new[]
+                {
+                  Stage03TechnicalFatalCodes.DocumentUnavailable
+                }
+              });
+            },
             ExportRawAsync = _ => throw new InvalidOperationException(
               "identity propagation test must remain gate-blocked"),
             TranslateAsync = _ => throw new InvalidOperationException(
