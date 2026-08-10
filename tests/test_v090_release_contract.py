@@ -716,6 +716,98 @@ def test_ci_paths_trigger_for_rulepack_source_baseline_and_compiler():
         assert '"tools/build_hbr_rulepack.py"' in event_paths
 
 
+def test_ci_rebuilds_and_semantically_verifies_hifc_baseline_from_temp_outputs():
+    workflow = read(".github/workflows/build-stage01-gha.yml")
+    push = workflow[workflow.index("  push:") : workflow.index("  pull_request:")]
+    pull_request = workflow[
+        workflow.index("  pull_request:") : workflow.index("  workflow_dispatch:")
+    ]
+    required_paths = (
+        "tools/hifc/**",
+        "tools/build_hbr_rules_manifest.py",
+        "tests/fixtures/hifc/**",
+        "docs/hifc/acceptance/**",
+    )
+    for event_paths in (push, pull_request):
+        for path in required_paths:
+            assert f'- "{path}"' in event_paths
+
+    gate = workflow_step(workflow, "Rebuild and verify HBR mapping baseline")
+    assert "$env:RUNNER_TEMP" in gate
+    for variable in (
+        "$firstIfc",
+        "$secondIfc",
+        "$firstFixtureManifest",
+        "$secondFixtureManifest",
+        "$firstValidation",
+        "$secondValidation",
+        "$committedValidation",
+        "$committedIfc",
+        "$committedFixtureManifest",
+        "$rebuiltRulesManifest",
+    ):
+        assert variable in gate
+    assert gate.count("tools/hifc/generate_hifc_mapping_smoke.py") == 2
+    assert gate.count("tools/hifc/validate_hifc_mapping_smoke.py") == 3
+    assert gate.count("tools/build_hbr_rules_manifest.py") == 1
+    assert "$firstRoot = Join-Path $gateRoot" in gate
+    assert "$secondRoot = Join-Path $gateRoot" in gate
+    assert "$rebuiltRulesManifest = Join-Path $gateRoot" in gate
+    assert "--output $firstIfc" in gate
+    assert "--output $secondIfc" in gate
+    assert "--manifest $firstFixtureManifest" in gate
+    assert "--manifest $secondFixtureManifest" in gate
+    assert "--ifc $firstIfc" in gate
+    assert "--ifc $secondIfc" in gate
+    assert "--ifc $committedIfc" in gate
+    assert "--manifest $committedFixtureManifest" in gate
+    assert "Get-FileHash $firstIfc" in gate
+    assert "Get-FileHash $secondIfc" in gate
+    assert "Get-FileHash $committedIfc" not in gate
+    assert "$generatedSummary" in gate
+    assert "$committedSummary" in gate
+    assert "ConvertTo-Json -Depth 10 -Compress" in gate
+    assert "Get-FileHash $rebuiltRulesManifest" in gate
+    assert "Get-FileHash $committedRulesManifest" in gate
+    assert "Get-Item $rebuiltRulesManifest" in gate
+    assert "Get-Item $committedRulesManifest" in gate
+    assert "--output tests/fixtures/hifc/" not in gate
+    assert "--report artifacts/" not in gate
+
+
+def test_ci_artifact_manifest_records_hbr_identity_without_archive_or_second_upload():
+    workflow = read(".github/workflows/build-stage01-gha.yml")
+    prepare = workflow_step(workflow, "Prepare validation artifact")
+    required_manifest_fields = (
+        "rulePackageId = $rules.packageId",
+        "rulePackageVersion = $rules.packageVersion",
+        "ruleSourcePath = $rules.ruleSource.path",
+        "ruleSourceSha256 = $rules.ruleSource.sha256",
+        "ruleSourceCanonicalSha256 = $rules.ruleSource.canonicalSha256",
+        "compatibilityBaselinePath = $rules.compatibilityBaseline.path",
+        "compatibilityBaselineSha256 = $rules.compatibilityBaseline.sha256",
+        "rulePackSha256 = $rules.rulePack.sha256",
+        "rulePackPayloadSha256 = $rules.rulePack.payloadSha256",
+        "fixturePath = $rules.fixture.path",
+        "fixtureSha256 = $rules.fixture.sha256",
+        "fixtureManifestPath = $rules.fixture.manifestPath",
+        "fixtureManifestSha256 = $rules.fixture.manifestSha256",
+        "rulesManifestPath = $rulesManifestRelativePath",
+        "rulesManifestId = $rules.manifestId",
+        "rulesManifestSha256 = (Get-FileHash $rulesManifestPath",
+    )
+    for field in required_manifest_fields:
+        assert field in prepare
+
+    assert workflow.count("actions/upload-artifact@") == 1
+    for forbidden in (
+        "tools/build_hbr_baseline_archive.py",
+        "HBR-WUHAN-PLANNING-v1.0.0-baseline.zip",
+        "baselineArchiveName",
+    ):
+        assert forbidden not in workflow
+
+
 def test_ci_pins_all_clean_runner_python_test_dependencies():
     workflow = read(".github/workflows/build-stage01-gha.yml")
     install = workflow_step(workflow, "Install Python test dependencies")
@@ -1737,23 +1829,27 @@ def test_task12_stage03_locks_coordinate_values_and_source_integrity_evidence():
     coordinates = (
         (
             "基点坐标 X",
+            "基点坐标X",
             "6b407894-09d4-529a-9f9f-a031219cdeaa",
         ),
         (
             "基点坐标 Y",
+            "基点坐标Y",
             "1a64ef8d-e97c-5fa1-b53f-52b969b6198a",
         ),
         (
             "基点高程",
+            "基点高程",
             "50164757-c346-5005-a1b8-7b423c6b8de5",
         ),
     )
-    for property_name, parameter_guid in coordinates:
+    for raw_property_name, output_property_name, parameter_guid in coordinates:
         rule = by_id[parameter_guid]
         assert rule["revit"]["parameterGuid"] == parameter_guid
+        assert rule["source"]["rawProperty"] == raw_property_name
         assert rule["ifc"]["entity"] == "IfcProject"
         assert rule["ifc"]["propertySet"] == "Pset_申报信息属性集"
-        assert rule["ifc"]["property"] == property_name
+        assert rule["ifc"]["property"] == output_property_name
         assert rule["ifc"]["declaredType"] == "IfcReal"
 
     scenario_bounds = (
@@ -1770,10 +1866,10 @@ def test_task12_stage03_locks_coordinate_values_and_source_integrity_evidence():
         end = checklist.index(f"### `{next_scenario}`", start)
         section = checklist[start:end]
         assert field_header in section
-        for property_name, parameter_guid in coordinates:
+        for raw_property_name, _, parameter_guid in coordinates:
             assert (
-                f"| {property_name} | `{parameter_guid}` |  |  | "
-                f"`IfcProject` | `Pset_申报信息属性集` | `{property_name}` | "
+                f"| {raw_property_name} | `{parameter_guid}` |  |  | "
+                f"`IfcProject` | `Pset_申报信息属性集` | `{raw_property_name}` | "
                 "`IfcReal` |  |  |"
             ) in section
 

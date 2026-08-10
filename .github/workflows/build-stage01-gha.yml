@@ -18,9 +18,13 @@ on:
       - "specs/hifc-mapping/**"
       - "specs/hbr-rules/**"
       - "tools/build_hbr_rulepack.py"
+      - "tools/build_hbr_rules_manifest.py"
+      - "tools/hifc/**"
       - "tests/**"
+      - "tests/fixtures/hifc/**"
       - "README.md"
       - "docs/**"
+      - "docs/hifc/acceptance/**"
       - ".github/workflows/build-stage01-gha.yml"
   pull_request:
     branches:
@@ -39,9 +43,13 @@ on:
       - "specs/hifc-mapping/**"
       - "specs/hbr-rules/**"
       - "tools/build_hbr_rulepack.py"
+      - "tools/build_hbr_rules_manifest.py"
+      - "tools/hifc/**"
       - "tests/**"
+      - "tests/fixtures/hifc/**"
       - "README.md"
       - "docs/**"
+      - "docs/hifc/acceptance/**"
       - ".github/workflows/build-stage01-gha.yml"
   workflow_dispatch:
 
@@ -58,6 +66,7 @@ jobs:
     timeout-minutes: 20
     env:
       PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
 
     steps:
       - name: Check out repository
@@ -150,6 +159,100 @@ jobs:
       - name: Run rule pack compiler and packaging contracts
         shell: pwsh
         run: python -m pytest tests/test_hbr_rulepack_compiler.py tests/test_hbr_runtime_packaging_contract.py -q
+
+      - name: Rebuild and verify HBR mapping baseline
+        shell: pwsh
+        run: |
+          $source = "specs/hbr-rules/v1/source/hbr_rule_source.v1.json"
+          $baseline = "specs/hbr-rules/v1/compatibility/hbr_rule_compatibility_baseline.v1.json"
+          $committedIfc = "tests/fixtures/hifc/HBR_HIFC_全映射结构验证_v1.0.ifc"
+          $committedFixtureManifest = "tests/fixtures/hifc/HBR_HIFC_全映射结构验证_v1.0.manifest.json"
+          $committedRulesManifest = "specs/hbr-rules/v1/manifest.sha256.json"
+          $gateRoot = Join-Path $env:RUNNER_TEMP ("hbr-mapping-baseline-" + [Guid]::NewGuid().ToString("N"))
+          $firstRoot = Join-Path $gateRoot "first"
+          $secondRoot = Join-Path $gateRoot "second"
+          New-Item -ItemType Directory -Force -Path $firstRoot, $secondRoot | Out-Null
+          $fixtureName = "HBR_HIFC_全映射结构验证_v1.0.ifc"
+          $fixtureManifestName = "HBR_HIFC_全映射结构验证_v1.0.manifest.json"
+          $validationName = "HBR_HIFC_全映射结构验证_v1.0.validation.json"
+          $firstIfc = Join-Path $firstRoot $fixtureName
+          $secondIfc = Join-Path $secondRoot $fixtureName
+          $firstFixtureManifest = Join-Path $firstRoot $fixtureManifestName
+          $secondFixtureManifest = Join-Path $secondRoot $fixtureManifestName
+          $firstValidation = Join-Path $firstRoot $validationName
+          $secondValidation = Join-Path $secondRoot $validationName
+          $committedValidation = Join-Path $gateRoot "committed.validation.json"
+          $rebuiltRulesManifest = Join-Path $gateRoot "manifest.sha256.json"
+
+          python tools/hifc/generate_hifc_mapping_smoke.py `
+            --source $source `
+            --baseline $baseline `
+            --output $firstIfc `
+            --manifest $firstFixtureManifest
+          if ($LASTEXITCODE -ne 0) { throw "First H-IFC fixture rebuild failed." }
+          python tools/hifc/generate_hifc_mapping_smoke.py `
+            --source $source `
+            --baseline $baseline `
+            --output $secondIfc `
+            --manifest $secondFixtureManifest
+          if ($LASTEXITCODE -ne 0) { throw "Second H-IFC fixture rebuild failed." }
+
+          python tools/hifc/validate_hifc_mapping_smoke.py `
+            --source $source `
+            --baseline $baseline `
+            --ifc $firstIfc `
+            --manifest $firstFixtureManifest `
+            --report $firstValidation
+          if ($LASTEXITCODE -ne 0) { throw "First rebuilt H-IFC fixture validation failed." }
+          python tools/hifc/validate_hifc_mapping_smoke.py `
+            --source $source `
+            --baseline $baseline `
+            --ifc $secondIfc `
+            --manifest $secondFixtureManifest `
+            --report $secondValidation
+          if ($LASTEXITCODE -ne 0) { throw "Second rebuilt H-IFC fixture validation failed." }
+          python tools/hifc/validate_hifc_mapping_smoke.py `
+            --source $source `
+            --baseline $baseline `
+            --ifc $committedIfc `
+            --manifest $committedFixtureManifest `
+            --report $committedValidation
+          if ($LASTEXITCODE -ne 0) { throw "Committed IFCFlux-accepted fixture validation failed." }
+
+          python tools/build_hbr_rules_manifest.py `
+            --root . `
+            --output $rebuiltRulesManifest
+          if ($LASTEXITCODE -ne 0) { throw "HBR rules manifest rebuild failed." }
+
+          $firstIfcHash = (Get-FileHash $firstIfc -Algorithm SHA256).Hash
+          $secondIfcHash = (Get-FileHash $secondIfc -Algorithm SHA256).Hash
+          if ($firstIfcHash -ne $secondIfcHash) { throw "H-IFC generator output is not deterministic." }
+          $firstFixtureManifestHash = (Get-FileHash $firstFixtureManifest -Algorithm SHA256).Hash
+          $secondFixtureManifestHash = (Get-FileHash $secondFixtureManifest -Algorithm SHA256).Hash
+          if ($firstFixtureManifestHash -ne $secondFixtureManifestHash) { throw "H-IFC fixture manifest is not deterministic." }
+          $firstValidationHash = (Get-FileHash $firstValidation -Algorithm SHA256).Hash
+          $secondValidationHash = (Get-FileHash $secondValidation -Algorithm SHA256).Hash
+          if ($firstValidationHash -ne $secondValidationHash) { throw "H-IFC validator report is not deterministic." }
+
+          $generatedResult = Get-Content -Raw $firstValidation | ConvertFrom-Json -ErrorAction Stop
+          $committedResult = Get-Content -Raw $committedValidation | ConvertFrom-Json -ErrorAction Stop
+          if ($generatedResult.status -ne "PASS" -or $committedResult.status -ne "PASS") {
+            throw "Generated and committed H-IFC fixtures must both pass the semantic validator."
+          }
+          $generatedSummary = $generatedResult.summary | ConvertTo-Json -Depth 10 -Compress
+          $committedSummary = $committedResult.summary | ConvertTo-Json -Depth 10 -Compress
+          if ($generatedSummary -cne $committedSummary) {
+            throw "Generated and IFCFlux-accepted fixtures are not semantically equivalent."
+          }
+
+          $rebuiltRulesManifestHash = (Get-FileHash $rebuiltRulesManifest -Algorithm SHA256).Hash
+          $committedRulesManifestHash = (Get-FileHash $committedRulesManifest -Algorithm SHA256).Hash
+          $rebuiltRulesManifestBytes = (Get-Item $rebuiltRulesManifest).Length
+          $committedRulesManifestBytes = (Get-Item $committedRulesManifest).Length
+          if ($rebuiltRulesManifestHash -ne $committedRulesManifestHash -or
+            $rebuiltRulesManifestBytes -ne $committedRulesManifestBytes) {
+            throw "Rebuilt HBR rules manifest does not fully match the committed manifest."
+          }
 
       - name: Run repository contract tests
         shell: pwsh
@@ -277,12 +380,31 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path artifacts | Out-Null
           Copy-Item "src/BIMBaoGui.Stage01/bin/Release/net48/BIMBaoGui.Stage01.gha" "artifacts/BIMBaoGui.Stage01.gha"
+          $rulesManifestRelativePath = "specs/hbr-rules/v1/manifest.sha256.json"
+          $rulesManifestPath = Resolve-Path $rulesManifestRelativePath
+          $rules = Get-Content -Raw $rulesManifestPath | ConvertFrom-Json -ErrorAction Stop
           $manifest = [ordered]@{
             artifactName = "BIMBaoGui.Stage01.gha"
             assemblyVersion = "0.9.0.0"
             sha256 = "${{ steps.verify.outputs.sha256 }}"
             sizeBytes = [int64]"${{ steps.verify.outputs.size }}"
             commitSha = "${{ github.sha }}"
+            rulePackageId = $rules.packageId
+            rulePackageVersion = $rules.packageVersion
+            ruleSourcePath = $rules.ruleSource.path
+            ruleSourceSha256 = $rules.ruleSource.sha256
+            ruleSourceCanonicalSha256 = $rules.ruleSource.canonicalSha256
+            compatibilityBaselinePath = $rules.compatibilityBaseline.path
+            compatibilityBaselineSha256 = $rules.compatibilityBaseline.sha256
+            rulePackSha256 = $rules.rulePack.sha256
+            rulePackPayloadSha256 = $rules.rulePack.payloadSha256
+            fixturePath = $rules.fixture.path
+            fixtureSha256 = $rules.fixture.sha256
+            fixtureManifestPath = $rules.fixture.manifestPath
+            fixtureManifestSha256 = $rules.fixture.manifestSha256
+            rulesManifestPath = $rulesManifestRelativePath
+            rulesManifestId = $rules.manifestId
+            rulesManifestSha256 = (Get-FileHash $rulesManifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
           }
           $manifest | ConvertTo-Json | Set-Content "artifacts/artifact-manifest.json" -Encoding utf8
 
