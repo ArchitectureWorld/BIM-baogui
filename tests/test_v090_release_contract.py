@@ -614,6 +614,8 @@ def test_repository_text_eol_policy_is_minimal_and_lf():
     expected = [
         "*.cs text eol=lf",
         "*.csproj text eol=lf",
+        "*.csv text eol=lf",
+        "*.ifc text eol=lf",
         "*.json text eol=lf",
         "*.md text eol=lf",
         "*.py text eol=lf",
