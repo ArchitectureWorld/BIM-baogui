@@ -179,6 +179,51 @@ namespace BIMBaoGui.Stage01.Core.Tests
       }
     }
 
+    [Theory]
+    [MemberData(nameof(InvalidRuntimeDecisionArguments))]
+    public void Runtime_decision_rejects_each_incomplete_field(
+      string runtimeStatus,
+      string runtimeBlockCode,
+      string runtimeBlockReason)
+    {
+      HbrRuleProperty property = PropertiesFor("WALL").First();
+      Stage02WriteOperation operation = Operation(
+        property,
+        "old",
+        "suggested");
+
+      Assert.Throws<ArgumentException>(() => operation.WithRuntimeDecision(
+        runtimeStatus,
+        runtimeBlockCode,
+        runtimeBlockReason));
+    }
+
+    public static IEnumerable<object[]> InvalidRuntimeDecisionArguments()
+    {
+      string[] invalidValues = { null, string.Empty, " \t" };
+      foreach (string invalidValue in invalidValues)
+      {
+        yield return new object[]
+        {
+          invalidValue,
+          "SUPPORTED",
+          "当前运行策略已支持。"
+        };
+        yield return new object[]
+        {
+          "SUPPORTED",
+          invalidValue,
+          "当前运行策略已支持。"
+        };
+        yield return new object[]
+        {
+          "SUPPORTED",
+          "SUPPORTED",
+          invalidValue
+        };
+      }
+    }
+
     [Fact]
     public void Preview_hash_changes_for_rule_sha_old_suggested_role_or_unique_id()
     {
