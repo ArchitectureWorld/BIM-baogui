@@ -1435,6 +1435,20 @@ def test_compile_rulepack_is_deterministic_and_has_a_verified_header(tmp_path):
     assert payload == expected_payload
 
 
+def test_build_rulepack_bytes_is_deterministic_and_matches_compiler_output(tmp_path):
+    from tools.build_hbr_rulepack import build_rulepack_bytes, compile_rulepack
+
+    source = _load_source()
+    first = build_rulepack_bytes(source)
+    second = build_rulepack_bytes(copy.deepcopy(source))
+    output = tmp_path / "compiled.hbrpack"
+
+    compile_rulepack(SOURCE_PATH, output, BASELINE_PATH)
+
+    assert first == second
+    assert output.read_bytes() == first
+
+
 def test_mvd_identity_must_not_duplicate_a_verified_extension_identity():
     from tools.build_hbr_rulepack import validate_semantics
 

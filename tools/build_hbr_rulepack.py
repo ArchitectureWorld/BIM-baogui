@@ -349,6 +349,17 @@ def canonical_bytes(source):
     ).encode("utf-8")
 
 
+def build_rulepack_bytes(source):
+    payload = canonical_bytes(source)
+    return (
+        MAGIC
+        + struct.pack(">I", FORMAT_VERSION)
+        + struct.pack(">Q", len(payload))
+        + hashlib.sha256(payload).digest()
+        + payload
+    )
+
+
 def canonical_source_sha256(source):
     return hashlib.sha256(canonical_bytes(source)).hexdigest()
 
@@ -2064,13 +2075,7 @@ def compile_rulepack(source_path, output_path, baseline_path):
         "baseline and output must refer to different files",
     )
     source = load_validated_rule_source(source_path, baseline_path)
-    payload = canonical_bytes(source)
-    header = (
-        MAGIC
-        + struct.pack(">I", FORMAT_VERSION)
-        + struct.pack(">Q", len(payload))
-        + hashlib.sha256(payload).digest()
-    )
+    rulepack_bytes = build_rulepack_bytes(source)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary_name = tempfile.mkstemp(
         dir=str(output_path.parent),
@@ -2079,8 +2084,7 @@ def compile_rulepack(source_path, output_path, baseline_path):
     )
     try:
         with os.fdopen(descriptor, "wb") as stream:
-            stream.write(header)
-            stream.write(payload)
+            stream.write(rulepack_bytes)
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(temporary_name, output_path)
