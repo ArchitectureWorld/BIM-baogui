@@ -179,14 +179,17 @@ namespace BIMBaoGui.Stage01.Core.Tests
     [InlineData(
       Stage03FieldStatus.RuleNotImplemented,
       "NOT_IMPLEMENTED",
+      "OWNER_STRATEGY_NOT_IMPLEMENTED",
       "RULE_NOT_IMPLEMENTED")]
     [InlineData(
       Stage03FieldStatus.UnclassifiedRequirement,
       "UNCLASSIFIED_REQUIREMENT",
+      "REQUIREMENT_LEVEL_UNCLASSIFIED",
       "UNCLASSIFIED_REQUIREMENT")]
     public void Runtime_support_status_does_not_change_existing_gate_behavior(
       Stage03FieldStatus fieldStatus,
       string runtimeStatus,
+      string runtimeBlockCode,
       string expectedBlockerCode)
     {
       Stage03FieldResult field = Field(
@@ -198,8 +201,10 @@ namespace BIMBaoGui.Stage01.Core.Tests
           : "UNCLASSIFIED",
         true);
       field.RuntimeStatus = runtimeStatus;
-      field.RuntimeBlockCode = expectedBlockerCode;
+      field.RuntimeBlockCode = runtimeBlockCode;
       field.RuntimeBlockReason = "运行支持状态只展示，不重写 Stage03 门禁。";
+
+      Assert.NotEqual(runtimeBlockCode, expectedBlockerCode);
 
       Stage03GateDecision strict = Stage03ExportGatePolicy.Decide(
         Stage03GateMode.Strict,
