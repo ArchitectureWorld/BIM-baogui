@@ -585,6 +585,53 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Theory]
+    [InlineData(InvalidServiceResult.TranslationChangesRuntimeStatus)]
+    [InlineData(InvalidServiceResult.TranslationChangesRuntimeBlockCode)]
+    [InlineData(InvalidServiceResult.TranslationChangesRuntimeBlockReason)]
+    public async Task Translation_cannot_rewrite_scan_owned_runtime_metadata(
+      InvalidServiceResult invalidServiceResult)
+    {
+      using (CoordinatorFixture fixture = CoordinatorFixture.Create(
+        invalidServiceResult: invalidServiceResult))
+      {
+        Stage03RunResult result = await fixture.RunAsync(
+          Stage03GateMode.Strict,
+          string.Empty);
+
+        Assert.False(result.Success);
+        Assert.Contains(
+          Stage03TechnicalFatalCodes.InvalidIfc,
+          result.TechnicalFatalCodes);
+        Assert.True(File.Exists(result.RawIfcPath));
+      }
+    }
+
+    [Theory]
+    [InlineData(nameof(Stage03FieldResult.RuntimeStatus))]
+    [InlineData(nameof(Stage03FieldResult.RuntimeBlockCode))]
+    [InlineData(nameof(Stage03FieldResult.RuntimeBlockReason))]
+    public async Task Scan_runtime_metadata_must_be_nonempty(
+      string propertyName)
+    {
+      Stage03FieldResult field = PassingField();
+      SetRuntimeMetadata(field, propertyName, " \t\r\n");
+      using (CoordinatorFixture fixture = CoordinatorFixture.Create(
+        fields: new[] { field }))
+      {
+        Stage03RunResult result = await fixture.RunAsync(
+          Stage03GateMode.Strict,
+          string.Empty);
+
+        Assert.False(result.Success);
+        Assert.Equal(1, fixture.ScanCalls);
+        Assert.Equal(0, fixture.ExportCalls);
+        Assert.Contains(
+          Stage03TechnicalFatalCodes.InvalidFieldStatus,
+          result.TechnicalFatalCodes);
+      }
+    }
+
+    [Theory]
     [InlineData(InvalidServiceResult.TranslationMissingFieldDetails)]
     [InlineData(InvalidServiceResult.TranslationRawNotEvaluated)]
     [InlineData(InvalidServiceResult.TranslationFinalNotEvaluated)]
@@ -1053,6 +1100,10 @@ namespace BIMBaoGui.Stage01.Core.Tests
       return new Stage03FieldResult
       {
         PropertyId = "HBR.TEST",
+        RuntimeStatus = "NOT_IMPLEMENTED",
+        RuntimeBlockCode = "OWNER_STRATEGY_NOT_IMPLEMENTED",
+        RuntimeBlockReason =
+          "当前 IFC owner strategy 尚未实现：CANONICAL_SPATIAL_ZONE_RECORD。",
         Entity = "IfcProject",
         PropertySet = "HBR",
         IfcProperty = "Test",
@@ -1065,6 +1116,27 @@ namespace BIMBaoGui.Stage01.Core.Tests
         FinalIfcStatus = Stage03FieldStatus.NotEvaluated,
         Messages = Array.Empty<string>()
       };
+    }
+
+    private static void SetRuntimeMetadata(
+      Stage03FieldResult field,
+      string propertyName,
+      string value)
+    {
+      switch (propertyName)
+      {
+        case nameof(Stage03FieldResult.RuntimeStatus):
+          field.RuntimeStatus = value;
+          break;
+        case nameof(Stage03FieldResult.RuntimeBlockCode):
+          field.RuntimeBlockCode = value;
+          break;
+        case nameof(Stage03FieldResult.RuntimeBlockReason):
+          field.RuntimeBlockReason = value;
+          break;
+        default:
+          throw new ArgumentOutOfRangeException(nameof(propertyName));
+      }
     }
 
     private static Stage03FieldResult BlockingField()
@@ -1131,6 +1203,9 @@ namespace BIMBaoGui.Stage01.Core.Tests
       TranslationWrongHash,
       TranslationMissingFile,
       TranslationChangesRevitValue,
+      TranslationChangesRuntimeStatus,
+      TranslationChangesRuntimeBlockCode,
+      TranslationChangesRuntimeBlockReason,
       TranslationRawNotEvaluated,
       TranslationFinalNotEvaluated,
       TranslationTechnicalFatal,
@@ -1511,6 +1586,24 @@ namespace BIMBaoGui.Stage01.Core.Tests
           && translated.Length > 0)
         {
           translated[0].RevitNormalizedValue = "rewritten";
+        }
+        if (_invalidServiceResult ==
+            InvalidServiceResult.TranslationChangesRuntimeStatus
+          && translated.Length > 0)
+        {
+          translated[0].RuntimeStatus = "SUPPORTED";
+        }
+        if (_invalidServiceResult ==
+            InvalidServiceResult.TranslationChangesRuntimeBlockCode
+          && translated.Length > 0)
+        {
+          translated[0].RuntimeBlockCode = "REWRITTEN_RUNTIME_BLOCK";
+        }
+        if (_invalidServiceResult ==
+            InvalidServiceResult.TranslationChangesRuntimeBlockReason
+          && translated.Length > 0)
+        {
+          translated[0].RuntimeBlockReason = "rewritten runtime block reason";
         }
         if (_invalidServiceResult ==
             InvalidServiceResult.TranslationRawNotEvaluated
@@ -1903,6 +1996,9 @@ namespace BIMBaoGui.Stage01.Core.Tests
           ContractKind = source.ContractKind,
           Requirement = source.Requirement,
           Applicability = source.Applicability,
+          RuntimeStatus = source.RuntimeStatus,
+          RuntimeBlockCode = source.RuntimeBlockCode,
+          RuntimeBlockReason = source.RuntimeBlockReason,
           Entity = source.Entity,
           PropertySet = source.PropertySet,
           IfcProperty = source.IfcProperty,

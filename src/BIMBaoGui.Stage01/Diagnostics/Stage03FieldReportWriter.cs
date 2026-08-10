@@ -245,6 +245,9 @@ namespace BIMBaoGui.Stage01.Diagnostics
         ContractKind = value.ContractKind ?? string.Empty,
         Requirement = value.Requirement ?? string.Empty,
         Applicability = value.Applicability ?? string.Empty,
+        RuntimeStatus = value.RuntimeStatus ?? string.Empty,
+        RuntimeBlockCode = value.RuntimeBlockCode ?? string.Empty,
+        RuntimeBlockReason = value.RuntimeBlockReason ?? string.Empty,
         Entity = value.Entity ?? string.Empty,
         PropertySet = value.PropertySet ?? string.Empty,
         IfcProperty = value.IfcProperty ?? string.Empty,
@@ -446,6 +449,9 @@ namespace BIMBaoGui.Stage01.Diagnostics
         ["contractKind"] = field.ContractKind,
         ["requirement"] = field.Requirement,
         ["applicability"] = field.Applicability,
+        ["runtimeStatus"] = field.RuntimeStatus,
+        ["runtimeBlockCode"] = field.RuntimeBlockCode,
+        ["runtimeBlockReason"] = field.RuntimeBlockReason,
         ["entity"] = field.Entity,
         ["propertySet"] = field.PropertySet,
         ["ifcProperty"] = field.IfcProperty,
@@ -716,6 +722,16 @@ namespace BIMBaoGui.Stage01.Diagnostics
         comparison = CompareText(left.Requirement, right.Requirement);
         if (comparison != 0) return comparison;
         comparison = CompareText(left.Applicability, right.Applicability);
+        if (comparison != 0) return comparison;
+        comparison = CompareText(left.RuntimeStatus, right.RuntimeStatus);
+        if (comparison != 0) return comparison;
+        comparison = CompareText(
+          left.RuntimeBlockCode,
+          right.RuntimeBlockCode);
+        if (comparison != 0) return comparison;
+        comparison = CompareText(
+          left.RuntimeBlockReason,
+          right.RuntimeBlockReason);
         if (comparison != 0) return comparison;
         comparison = CompareText(left.Entity, right.Entity);
         if (comparison != 0) return comparison;

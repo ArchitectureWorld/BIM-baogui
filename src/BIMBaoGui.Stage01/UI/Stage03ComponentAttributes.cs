@@ -13,7 +13,7 @@ namespace BIMBaoGui.Stage01.UI
     private const float InputChannelWidth = 152f;
     private const float CardWidth = 620f;
     private const float OutputChannelWidth = 162f;
-    private const float CardHeight = 338f;
+    private const float CardHeight = 364f;
     private static readonly Color Primary = Color.FromArgb(32, 108, 125);
     private static readonly Color PrimaryDark = Color.FromArgb(20, 68, 82);
     private static readonly Color Background = Color.FromArgb(242, 248, 248);
@@ -181,7 +181,7 @@ namespace BIMBaoGui.Stage01.UI
         _cardBounds.X + 14,
         _cardBounds.Y + 86,
         _cardBounds.Width - 28,
-        204f);
+        230f);
       FillRounded(graphics, body, Surface, 8);
       DrawBorder(graphics, body, Border, 8);
 
@@ -195,6 +195,13 @@ namespace BIMBaoGui.Stage01.UI
           "总计 " + view.TotalFields + "｜通过/不适用 "
             + view.PassedFields + "｜阻断 " + view.BlockedFields
             + "｜业务缺陷 " + view.BusinessBlockerCount
+        },
+        {
+          "运行支持",
+          "支持 " + view.RuntimeSupportedCount
+            + "｜未实现 " + view.RuntimeNotImplementedCount
+            + "｜需求待定 " + view.RuntimeUnclassifiedRequirementCount
+            + "｜仅证据 " + view.RuntimeOfficialEvidenceOnlyCount
         },
         { "运行状态", view.Status },
         { "RAW IFC", PathText(view.RawIfcPath) },
@@ -240,7 +247,7 @@ namespace BIMBaoGui.Stage01.UI
     {
       RectangleF footer = new RectangleF(
         _cardBounds.X + 16,
-        _cardBounds.Y + 300,
+        _cardBounds.Y + 326f,
         _cardBounds.Width - 32,
         25f);
       Color color = ResolveToneColor(

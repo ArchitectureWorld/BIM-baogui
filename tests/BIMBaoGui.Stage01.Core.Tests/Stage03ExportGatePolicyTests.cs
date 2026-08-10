@@ -175,6 +175,55 @@ namespace BIMBaoGui.Stage01.Core.Tests
         Assert.False(string.IsNullOrWhiteSpace(item.Message)));
     }
 
+    [Theory]
+    [InlineData(
+      Stage03FieldStatus.RuleNotImplemented,
+      "NOT_IMPLEMENTED",
+      "RULE_NOT_IMPLEMENTED")]
+    [InlineData(
+      Stage03FieldStatus.UnclassifiedRequirement,
+      "UNCLASSIFIED_REQUIREMENT",
+      "UNCLASSIFIED_REQUIREMENT")]
+    public void Runtime_support_status_does_not_change_existing_gate_behavior(
+      Stage03FieldStatus fieldStatus,
+      string runtimeStatus,
+      string expectedBlockerCode)
+    {
+      Stage03FieldResult field = Field(
+        "runtime-field",
+        fieldStatus,
+        true,
+        fieldStatus == Stage03FieldStatus.RuleNotImplemented
+          ? "REQUIRED"
+          : "UNCLASSIFIED",
+        true);
+      field.RuntimeStatus = runtimeStatus;
+      field.RuntimeBlockCode = expectedBlockerCode;
+      field.RuntimeBlockReason = "运行支持状态只展示，不重写 Stage03 门禁。";
+
+      Stage03GateDecision strict = Stage03ExportGatePolicy.Decide(
+        Stage03GateMode.Strict,
+        string.Empty,
+        new[] { field },
+        Array.Empty<string>());
+      Stage03GateDecision force = Stage03ExportGatePolicy.Decide(
+        Stage03GateMode.Force,
+        "验收放行",
+        new[] { field },
+        Array.Empty<string>());
+
+      Assert.False(strict.AllowExport);
+      Assert.False(strict.Forced);
+      Assert.Equal(
+        expectedBlockerCode,
+        Assert.Single(strict.BusinessBlockers).StatusCode);
+      Assert.True(force.AllowExport);
+      Assert.True(force.Forced);
+      Assert.Equal(
+        expectedBlockerCode,
+        Assert.Single(force.BusinessBlockers).StatusCode);
+    }
+
     [Fact]
     public void Blocker_deduplication_preserves_same_property_on_distinct_owners()
     {

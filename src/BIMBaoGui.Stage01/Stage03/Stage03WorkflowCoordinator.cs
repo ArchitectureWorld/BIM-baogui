@@ -1398,6 +1398,14 @@ namespace BIMBaoGui.Stage01.Stage03
           StringComparison.Ordinal)
         && string.Equals(expected.Applicability, actual.Applicability,
           StringComparison.Ordinal)
+        && string.Equals(expected.RuntimeStatus, actual.RuntimeStatus,
+          StringComparison.Ordinal)
+        && string.Equals(expected.RuntimeBlockCode, actual.RuntimeBlockCode,
+          StringComparison.Ordinal)
+        && string.Equals(
+          expected.RuntimeBlockReason,
+          actual.RuntimeBlockReason,
+          StringComparison.Ordinal)
         && string.Equals(expected.Entity, actual.Entity,
           StringComparison.Ordinal)
         && string.Equals(expected.PropertySet, actual.PropertySet,
@@ -1695,14 +1703,32 @@ namespace BIMBaoGui.Stage01.Stage03
       string technicalCode,
       string stage)
     {
-      if (values == null || values.Any(value => value == null))
+      if (values == null)
       {
         throw Failure(
           technicalCode,
           stage,
           new InvalidDataException("字段快照不能为 null 或包含 null。"));
       }
-      return Freeze(values.Select(CloneField));
+      Stage03FieldResult[] source = values.ToArray();
+      if (source.Any(value => value == null))
+      {
+        throw Failure(
+          technicalCode,
+          stage,
+          new InvalidDataException("字段快照不能为 null 或包含 null。"));
+      }
+      if (source.Any(value =>
+        string.IsNullOrWhiteSpace(value.RuntimeStatus)
+        || string.IsNullOrWhiteSpace(value.RuntimeBlockCode)
+        || string.IsNullOrWhiteSpace(value.RuntimeBlockReason)))
+      {
+        throw Failure(
+          Stage03TechnicalFatalCodes.InvalidFieldStatus,
+          stage,
+          new InvalidDataException("字段运行支持状态必须完整且非空。"));
+      }
+      return Freeze(source.Select(CloneField));
     }
 
     private static IReadOnlyList<Stage03Diagnostic> SnapshotDiagnostics(
@@ -1776,6 +1802,9 @@ namespace BIMBaoGui.Stage01.Stage03
         ContractKind = value.ContractKind ?? string.Empty,
         Requirement = value.Requirement ?? string.Empty,
         Applicability = value.Applicability ?? string.Empty,
+        RuntimeStatus = value.RuntimeStatus ?? string.Empty,
+        RuntimeBlockCode = value.RuntimeBlockCode ?? string.Empty,
+        RuntimeBlockReason = value.RuntimeBlockReason ?? string.Empty,
         Entity = value.Entity ?? string.Empty,
         PropertySet = value.PropertySet ?? string.Empty,
         IfcProperty = value.IfcProperty ?? string.Empty,

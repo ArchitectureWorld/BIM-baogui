@@ -164,6 +164,9 @@ namespace BIMBaoGui.Stage01.Stage03
     public string ContractKind { get; set; } = string.Empty;
     public string Requirement { get; set; } = string.Empty;
     public string Applicability { get; set; } = string.Empty;
+    public string RuntimeStatus { get; set; } = string.Empty;
+    public string RuntimeBlockCode { get; set; } = string.Empty;
+    public string RuntimeBlockReason { get; set; } = string.Empty;
     public string Entity { get; set; } = string.Empty;
     public string PropertySet { get; set; } = string.Empty;
     public string IfcProperty { get; set; } = string.Empty;

@@ -49,6 +49,7 @@ def test_public_stage03_has_exact_name_default_mode_and_primary_exposure():
         r"new\s+Guid\(\"[0-9a-fA-F-]{36}\"\)",
         component,
     )
+    assert 'new Guid("9bf87680-c1dc-499a-b267-33a430ee4201")' in component
 
 
 def test_public_stage03_has_exact_five_inputs_and_eight_outputs():
@@ -129,12 +130,52 @@ def test_public_stage03_card_shows_mode_counts_state_and_three_paths():
     assert "Stage03ComponentPresentationPolicy.ModeDescription" in attributes
     for text in [
         "字段",
+        "运行支持",
         "运行状态",
         "RAW IFC",
         "HIFC-MVD IFC",
         "fields JSON",
     ]:
         assert text in attributes
+
+
+def test_stage03_runtime_support_uses_one_database_decision_and_ui_only_counts_snapshot():
+    component = read(
+        "src/BIMBaoGui.Stage01/Stage03ValidationExportComponent.cs"
+    )
+    attributes = read(
+        "src/BIMBaoGui.Stage01/UI/Stage03ComponentAttributes.cs"
+    )
+    scanner = read(
+        "src/BIMBaoGui.Stage01/Revit/Stage03ModelScanService.cs"
+    )
+    build_view = method_body(
+        component,
+        "private Stage03ComponentViewState BuildViewStateLocked",
+    )
+
+    for name in [
+        "RuntimeSupportedCount",
+        "RuntimeNotImplementedCount",
+        "RuntimeUnclassifiedRequirementCount",
+        "RuntimeOfficialEvidenceOnlyCount",
+    ]:
+        assert name in component
+    assert "field.RuntimeStatus" in build_view
+    assert "field.Requirement" not in build_view
+    assert "OwnerStrategy" not in build_view
+    assert '"运行支持"' in attributes
+    assert re.search(
+        r"private\s+const\s+float\s+CardHeight\s*=\s*364f\s*;",
+        attributes,
+    )
+    assert "230f" in method_body(attributes, "private void DrawBody")
+    assert "_cardBounds.Y + 326f" in method_body(
+        attributes,
+        "private void DrawFooter",
+    )
+    assert scanner.count("_database.GetRuntimeStatusDecision(property)") == 1
+    assert "runtimeDecisions[property.PropertyId]" in scanner
 
 
 def test_stage03_force_with_business_defects_is_explicitly_orange():

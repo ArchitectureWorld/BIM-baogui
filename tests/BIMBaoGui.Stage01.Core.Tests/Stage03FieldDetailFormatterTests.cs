@@ -75,11 +75,18 @@ namespace BIMBaoGui.Stage01.Core.Tests
         }));
 
       Dictionary<string, object> evidence = ParseRecord(detail.Text);
-      Assert.Equal(35, evidence.Count);
+      Assert.Equal(38, evidence.Count);
       Assert.Equal("HBR.B", evidence["propertyId"]);
       Assert.Equal("OFFICIAL", evidence["contractKind"]);
       Assert.Equal("REQUIRED", evidence["requirement"]);
       Assert.Equal("ACTIVE", evidence["applicability"]);
+      Assert.Equal("NOT_IMPLEMENTED", evidence["runtimeStatus"]);
+      Assert.Equal(
+        "OWNER_STRATEGY_NOT_IMPLEMENTED",
+        evidence["runtimeBlockCode"]);
+      Assert.Equal(
+        "当前 IFC owner strategy 尚未实现：CANONICAL_SPATIAL_ZONE_RECORD。",
+        evidence["runtimeBlockReason"]);
       Assert.Equal("IfcProject", evidence["entity"]);
       Assert.Equal("Pset_申报信息属性集", evidence["propertySet"]);
       Assert.Equal("字段HBR.B", evidence["ifcProperty"]);
@@ -506,6 +513,10 @@ namespace BIMBaoGui.Stage01.Core.Tests
         ContractKind = "OFFICIAL",
         Requirement = "REQUIRED",
         Applicability = "ACTIVE",
+        RuntimeStatus = "NOT_IMPLEMENTED",
+        RuntimeBlockCode = "OWNER_STRATEGY_NOT_IMPLEMENTED",
+        RuntimeBlockReason =
+          "当前 IFC owner strategy 尚未实现：CANONICAL_SPATIAL_ZONE_RECORD。",
         Entity = entity,
         PropertySet = "Pset_申报信息属性集",
         IfcProperty = "字段" + propertyId,

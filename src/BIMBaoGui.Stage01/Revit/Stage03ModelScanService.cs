@@ -149,6 +149,11 @@ namespace BIMBaoGui.Stage01.Revit
           StringComparer.Ordinal))
         .OrderBy(property => property.PropertyId, StringComparer.Ordinal)
         .ToArray();
+      IReadOnlyDictionary<string, HbrRuntimeStatusDecision> runtimeDecisions =
+        properties.ToDictionary(
+          property => property.PropertyId,
+          property => _database.GetRuntimeStatusDecision(property),
+          StringComparer.Ordinal);
 
       Dictionary<string, List<Element>> elementsByCategory =
         BuildElementIndex(document, roles, technicalCodes, diagnostics);
@@ -222,6 +227,7 @@ namespace BIMBaoGui.Stage01.Revit
                 property,
                 role,
                 context,
+                runtimeDecisions[property.PropertyId],
                 decision.Status,
                 rejected));
             }
@@ -262,6 +268,7 @@ namespace BIMBaoGui.Stage01.Revit
               property,
               role,
               context,
+              runtimeDecisions[property.PropertyId],
               missingStatus));
           }
           continue;
@@ -285,6 +292,7 @@ namespace BIMBaoGui.Stage01.Revit
               property,
               role,
               context,
+              runtimeDecisions[property.PropertyId],
               Stage03FieldStatus.AmbiguousCarrier));
           }
           continue;
@@ -309,6 +317,7 @@ namespace BIMBaoGui.Stage01.Revit
               candidate,
               ownerDecision,
               property,
+              runtimeDecisions[property.PropertyId],
               parametersByGuid[property.Revit.ParameterGuid]);
             fields.Add(fieldDecision.Field);
             if (fieldDecision.EnrichmentValue != null)
@@ -622,6 +631,7 @@ namespace BIMBaoGui.Stage01.Revit
       HbrRuleProperty property,
       HbrCarrierRole role,
       HBRFileContext context,
+      HbrRuntimeStatusDecision runtimeDecision,
       Stage03FieldStatus carrierStatus,
       Element owner = null)
     {
@@ -633,7 +643,8 @@ namespace BIMBaoGui.Stage01.Revit
         property,
         role,
         owner,
-        applicability);
+        applicability,
+        runtimeDecision);
       field.CarrierStatus = carrierStatus;
       field.ParameterStatus = Stage03FieldStatus.NotEvaluated;
       field.RevitStatus = Stage03FieldStatus.NotEvaluated;
@@ -657,6 +668,7 @@ namespace BIMBaoGui.Stage01.Revit
       Element owner,
       OwnerDecision ownerDecision,
       HbrRuleProperty property,
+      HbrRuntimeStatusDecision runtimeDecision,
       SharedParameterEvidence evidence)
     {
       Stage03RequirementApplicabilityDecision applicability =
@@ -667,7 +679,8 @@ namespace BIMBaoGui.Stage01.Revit
         property,
         role,
         owner,
-        applicability);
+        applicability,
+        runtimeDecision);
       var messages = new List<string>(applicability.Messages);
       if (!applicability.Active)
       {
@@ -864,7 +877,8 @@ namespace BIMBaoGui.Stage01.Revit
       HbrRuleProperty property,
       HbrCarrierRole role,
       Element owner,
-      Stage03RequirementApplicabilityDecision applicability)
+      Stage03RequirementApplicabilityDecision applicability,
+      HbrRuntimeStatusDecision runtimeDecision)
     {
       return new Stage03FieldResult
       {
@@ -872,6 +886,9 @@ namespace BIMBaoGui.Stage01.Revit
         ContractKind = property.ContractKind,
         Requirement = property.Requirement.Level,
         Applicability = applicability.Applicability,
+        RuntimeStatus = runtimeDecision.Status,
+        RuntimeBlockCode = runtimeDecision.ReasonCode,
+        RuntimeBlockReason = runtimeDecision.Reason,
         Entity = property.Ifc.Entity,
         PropertySet = property.Ifc.PropertySet,
         IfcProperty = property.Ifc.Property,

@@ -610,6 +610,14 @@ namespace BIMBaoGui.Stage01.Core.Tests
             new UTF8Encoding(false, true).GetString(second)));
         object[] fields = Assert.IsType<object[]>(root["fields"]);
         Assert.Equal(4, fields.Length);
+        var firstField = Assert.IsType<Dictionary<string, object>>(fields[0]);
+        Assert.Equal("NOT_IMPLEMENTED", firstField["runtimeStatus"]);
+        Assert.Equal(
+          "OWNER_STRATEGY_NOT_IMPLEMENTED",
+          firstField["runtimeBlockCode"]);
+        Assert.Equal(
+          "当前 IFC owner strategy 尚未实现：CANONICAL_SPATIAL_ZONE_RECORD。",
+          firstField["runtimeBlockReason"]);
         Assert.Equal(
           new[]
           {
@@ -816,6 +824,12 @@ namespace BIMBaoGui.Stage01.Core.Tests
           item.ParameterStatus = Stage03FieldStatus.MissingParameter);
         AddFieldTiePair(fields, "revit-status", item =>
           item.RevitStatus = Stage03FieldStatus.InvalidValue);
+        AddFieldTiePair(fields, "runtime-status", item =>
+          item.RuntimeStatus = "SUPPORTED");
+        AddFieldTiePair(fields, "runtime-block-code", item =>
+          item.RuntimeBlockCode = "Z_RUNTIME_BLOCK");
+        AddFieldTiePair(fields, "runtime-block-reason", item =>
+          item.RuntimeBlockReason = "z runtime block reason");
         AddFieldTiePair(fields, "raw-ifc-status", item =>
           item.RawIfcStatus = Stage03FieldStatus.IfcOwnerNotFound);
         AddFieldTiePair(fields, "final-ifc-status", item =>
@@ -2147,6 +2161,10 @@ namespace BIMBaoGui.Stage01.Core.Tests
         ContractKind = "TEXT",
         Requirement = requirement,
         Applicability = "APPLICABLE",
+        RuntimeStatus = "NOT_IMPLEMENTED",
+        RuntimeBlockCode = "OWNER_STRATEGY_NOT_IMPLEMENTED",
+        RuntimeBlockReason =
+          "当前 IFC owner strategy 尚未实现：CANONICAL_SPATIAL_ZONE_RECORD。",
         Entity = entity,
         PropertySet = entity == "IfcWall" ? "Pset_HBR" : "Pset_Building",
         IfcProperty = "HBR_Property",

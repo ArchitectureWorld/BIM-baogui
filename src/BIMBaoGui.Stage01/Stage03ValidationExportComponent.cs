@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using BIMBaoGui.Stage01.Context;
 using BIMBaoGui.Stage01.GrasshopperTypes;
 using BIMBaoGui.Stage01.Revit;
+using BIMBaoGui.Stage01.Rules;
 using BIMBaoGui.Stage01.Stage03;
 using BIMBaoGui.Stage01.UI;
 using Grasshopper.Kernel;
@@ -33,7 +34,11 @@ namespace BIMBaoGui.Stage01
       int passedFields,
       int blockedFields,
       bool forcedWithBusinessDefects,
-      int businessBlockerCount)
+      int businessBlockerCount,
+      int runtimeSupportedCount,
+      int runtimeNotImplementedCount,
+      int runtimeUnclassifiedRequirementCount,
+      int runtimeOfficialEvidenceOnlyCount)
     {
       Mode = mode;
       Pending = pending;
@@ -49,6 +54,11 @@ namespace BIMBaoGui.Stage01
       BlockedFields = blockedFields;
       ForcedWithBusinessDefects = forcedWithBusinessDefects;
       BusinessBlockerCount = businessBlockerCount;
+      RuntimeSupportedCount = runtimeSupportedCount;
+      RuntimeNotImplementedCount = runtimeNotImplementedCount;
+      RuntimeUnclassifiedRequirementCount =
+        runtimeUnclassifiedRequirementCount;
+      RuntimeOfficialEvidenceOnlyCount = runtimeOfficialEvidenceOnlyCount;
     }
 
     internal Stage03GateMode Mode { get; }
@@ -66,6 +76,10 @@ namespace BIMBaoGui.Stage01
     internal int BlockedFields { get; }
     internal bool ForcedWithBusinessDefects { get; }
     internal int BusinessBlockerCount { get; }
+    internal int RuntimeSupportedCount { get; }
+    internal int RuntimeNotImplementedCount { get; }
+    internal int RuntimeUnclassifiedRequirementCount { get; }
+    internal int RuntimeOfficialEvidenceOnlyCount { get; }
   }
 
   public sealed class Stage03ValidationExportComponent : GH_Component
@@ -362,6 +376,24 @@ namespace BIMBaoGui.Stage01
         field.Status == Stage03FieldStatus.Pass
         || field.Status == Stage03FieldStatus.NotApplicable);
       int blocked = fields.Count(field => field.IsBusinessBlocker);
+      int runtimeSupportedCount = fields.Count(field => string.Equals(
+        field.RuntimeStatus,
+        HbrRuntimeStatuses.Supported,
+        StringComparison.Ordinal));
+      int runtimeNotImplementedCount = fields.Count(field => string.Equals(
+        field.RuntimeStatus,
+        HbrRuntimeStatuses.NotImplemented,
+        StringComparison.Ordinal));
+      int runtimeUnclassifiedRequirementCount = fields.Count(field =>
+        string.Equals(
+          field.RuntimeStatus,
+          HbrRuntimeStatuses.UnclassifiedRequirement,
+          StringComparison.Ordinal));
+      int runtimeOfficialEvidenceOnlyCount = fields.Count(field =>
+        string.Equals(
+          field.RuntimeStatus,
+          HbrRuntimeStatuses.OfficialEvidenceOnly,
+          StringComparison.Ordinal));
       int businessBlockerCount =
         _result?.GateDecision?.BusinessBlockers?.Count ?? 0;
       bool forcedWithBusinessDefects =
@@ -382,7 +414,11 @@ namespace BIMBaoGui.Stage01
         passed,
         blocked,
         forcedWithBusinessDefects,
-        businessBlockerCount);
+        businessBlockerCount,
+        runtimeSupportedCount,
+        runtimeNotImplementedCount,
+        runtimeUnclassifiedRequirementCount,
+        runtimeOfficialEvidenceOnlyCount);
     }
 
     private static bool TryCreateRequest(
