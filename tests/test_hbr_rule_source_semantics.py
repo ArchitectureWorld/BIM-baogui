@@ -980,7 +980,14 @@ def test_mvd_source_evidence_and_canonical_fields_remain_workbook_faithful():
         assert rule["ifc"]["entity"] == raw["rawEntityId"]
         assert rule["ifc"]["propertySet"] == raw["rawPropertySetId"]
         assert rule["ifc"]["property"] == raw["rawProperty"]
-        assert rule["ifc"]["sourceUnit"] == (None if raw["rawUnit"] in {"", "14"} else raw["rawUnit"])
+        expected_source_unit = None if raw["rawUnit"] in {"", "14"} else raw["rawUnit"]
+        accepted_source_units = {expected_source_unit}
+        legacy_projection = rule["officialPlugin"].get("legacyProjection")
+        if expected_source_unit is None and legacy_projection is not None:
+            official_unit = legacy_projection.get("officialUnit")
+            if official_unit:
+                accepted_source_units.add(official_unit)
+        assert rule["ifc"]["sourceUnit"] in accepted_source_units
     by_row = {rule["source"]["row"]: rule for rule in mvd}
     assert by_row[47]["ifc"]["property"] == "基点坐标 X"
     assert by_row[297]["ifc"]["propertySet"] == "Pset_Manifest"
@@ -1036,6 +1043,23 @@ def test_mvd_raw_blanks_are_real_empty_cells_not_style_sentinel_values():
     assert re.fullmatch(r"[0-9a-f]{64}", workbook["sha256"])
 
 
+def test_stage01_xy_keep_blank_workbook_evidence_but_use_meter_length_contract():
+    source = _load(SOURCE_PATH)
+    xy = [
+        rule
+        for rule in source["properties"]
+        if rule["propertyId"]
+        in {
+            "6b407894-09d4-529a-9f9f-a031219cdeaa",
+            "1a64ef8d-e97c-5fa1-b53f-52b969b6198a",
+        }
+    ]
+    assert len(xy) == 2
+    for rule in xy:
+        assert rule["source"]["rawUnit"] == ""
+        assert rule["ifc"]["sourceUnit"] == "m"
+        assert rule["ifc"]["canonicalUnit"] == "m"
+        assert rule["revit"]["parameterType"] == "Length"
 def test_reference_collections_are_unique_and_task_dependencies_form_profile_dags():
     source = _load(SOURCE_PATH)
     for collection, key in (("carrierRoles","roleId"),("conditions","conditionId"),("tasks","taskId"),("modelProfiles","profileId")):

@@ -3553,11 +3553,12 @@
         "entity": "IfcProject",
         "propertySet": "Pset_申报信息属性集",
         "property": "基点坐标 X",
-        "sourceUnit": null,
+        "sourceUnit": "m",
         "declaredType": "IfcReal",
-        "canonicalUnit": null,
+        "canonicalUnit": "m",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -3571,7 +3572,7 @@
         "userModifiable": true,
         "bindingScope": "INSTANCE",
         "storageType": "Double",
-        "parameterType": "Number"
+        "parameterType": "Length"
       },
       "officialPlugin": {
         "inExtracted166": true,
@@ -3632,11 +3633,12 @@
         "entity": "IfcProject",
         "propertySet": "Pset_申报信息属性集",
         "property": "基点坐标 Y",
-        "sourceUnit": null,
+        "sourceUnit": "m",
         "declaredType": "IfcReal",
-        "canonicalUnit": null,
+        "canonicalUnit": "m",
         "allowedRuntimeTypes": [
-          "IfcReal"
+          "IfcReal",
+          "IfcLengthMeasure"
         ]
       },
       "revit": {
@@ -3650,7 +3652,7 @@
         "userModifiable": true,
         "bindingScope": "INSTANCE",
         "storageType": "Double",
-        "parameterType": "Number"
+        "parameterType": "Length"
       },
       "officialPlugin": {
         "inExtracted166": true,

@@ -1350,9 +1350,15 @@ def validate_semantics(source):
         )
         _require(ifc["property"] == raw["rawProperty"], f"{label}.ifc.property must match source.rawProperty")
         expected_source_unit = None if raw["rawUnit"] in {"", "14"} else raw["rawUnit"]
+        accepted_source_units = {expected_source_unit}
+        legacy_projection = rule["officialPlugin"].get("legacyProjection")
+        if expected_source_unit is None and legacy_projection is not None:
+            official_unit = legacy_projection.get("officialUnit")
+            if official_unit:
+                accepted_source_units.add(official_unit)
         _require(
-            ifc["sourceUnit"] == expected_source_unit,
-            f"{label}.ifc.sourceUnit must match normalized source.rawUnit",
+            ifc["sourceUnit"] in accepted_source_units,
+            f"{label}.ifc.sourceUnit must match normalized source.rawUnit or official projection unit",
         )
         if raw["rawDeclaredType"].casefold() == "ifctext":
             _require(ifc["declaredType"] == "IfcText", f"{label}.ifc.declaredType must normalize IfcText spelling")

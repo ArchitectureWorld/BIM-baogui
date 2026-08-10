@@ -231,8 +231,8 @@ namespace BIMBaoGui.Stage01.Core.Tests
       HbrRuleProperty elevation = Assert.Single(
         official,
         item => item.PropertyId == "50164757-c346-5005-a1b8-7b423c6b8de5");
-      Assert.Null(x.Ifc.SourceUnit);
-      Assert.Null(y.Ifc.SourceUnit);
+      Assert.Equal("m", x.Ifc.SourceUnit);
+      Assert.Equal("m", y.Ifc.SourceUnit);
       Assert.Equal("m", x.OfficialPlugin.LegacyProjection.OfficialUnit);
       Assert.Equal("m", y.OfficialPlugin.LegacyProjection.OfficialUnit);
       Assert.Equal("m", elevation.OfficialPlugin.LegacyProjection.OfficialUnit);
