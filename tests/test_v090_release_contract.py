@@ -1868,10 +1868,10 @@ def test_task12_stage03_locks_coordinate_values_and_source_integrity_evidence():
         end = checklist.index(f"### `{next_scenario}`", start)
         section = checklist[start:end]
         assert field_header in section
-        for raw_property_name, _, parameter_guid in coordinates:
+        for raw_property_name, output_property_name, parameter_guid in coordinates:
             assert (
                 f"| {raw_property_name} | `{parameter_guid}` |  |  | "
-                f"`IfcProject` | `Pset_申报信息属性集` | `{raw_property_name}` | "
+                f"`IfcProject` | `Pset_申报信息属性集` | `{output_property_name}` | "
                 "`IfcReal` |  |  |"
             ) in section
 

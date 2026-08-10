@@ -174,8 +174,8 @@ Stage03 failure report 证据槽只接受本场景同一 `runId` 的报告。Sta
 
 | 字段 | Revit 参数 GUID | Revit 显示值 | Revit 显示单位 | final IFC 实体 | final IFC Pset | final IFC 属性 | final IFC 类型 | final IFC 值 | 对照结论 |
 |---|---|---|---|---|---|---|---|---|---|
-| 基点坐标 X | `6b407894-09d4-529a-9f9f-a031219cdeaa` |  |  | `IfcProject` | `Pset_申报信息属性集` | `基点坐标 X` | `IfcReal` |  |  |
-| 基点坐标 Y | `1a64ef8d-e97c-5fa1-b53f-52b969b6198a` |  |  | `IfcProject` | `Pset_申报信息属性集` | `基点坐标 Y` | `IfcReal` |  |  |
+| 基点坐标 X | `6b407894-09d4-529a-9f9f-a031219cdeaa` |  |  | `IfcProject` | `Pset_申报信息属性集` | `基点坐标X` | `IfcReal` |  |  |
+| 基点坐标 Y | `1a64ef8d-e97c-5fa1-b53f-52b969b6198a` |  |  | `IfcProject` | `Pset_申报信息属性集` | `基点坐标Y` | `IfcReal` |  |  |
 | 基点高程 | `50164757-c346-5005-a1b8-7b423c6b8de5` |  |  | `IfcProject` | `Pset_申报信息属性集` | `基点高程` | `IfcReal` |  |  |
 
 | Stage03FieldStatus | 实际数量 |
@@ -265,8 +265,8 @@ Stage03 failure report 证据槽只接受本场景同一 `runId` 的报告。Sta
 
 | 字段 | Revit 参数 GUID | Revit 显示值 | Revit 显示单位 | final IFC 实体 | final IFC Pset | final IFC 属性 | final IFC 类型 | final IFC 值 | 对照结论 |
 |---|---|---|---|---|---|---|---|---|---|
-| 基点坐标 X | `6b407894-09d4-529a-9f9f-a031219cdeaa` |  |  | `IfcProject` | `Pset_申报信息属性集` | `基点坐标 X` | `IfcReal` |  |  |
-| 基点坐标 Y | `1a64ef8d-e97c-5fa1-b53f-52b969b6198a` |  |  | `IfcProject` | `Pset_申报信息属性集` | `基点坐标 Y` | `IfcReal` |  |  |
+| 基点坐标 X | `6b407894-09d4-529a-9f9f-a031219cdeaa` |  |  | `IfcProject` | `Pset_申报信息属性集` | `基点坐标X` | `IfcReal` |  |  |
+| 基点坐标 Y | `1a64ef8d-e97c-5fa1-b53f-52b969b6198a` |  |  | `IfcProject` | `Pset_申报信息属性集` | `基点坐标Y` | `IfcReal` |  |  |
 | 基点高程 | `50164757-c346-5005-a1b8-7b423c6b8de5` |  |  | `IfcProject` | `Pset_申报信息属性集` | `基点高程` | `IfcReal` |  |  |
 
 | Stage03FieldStatus | 实际数量 |
