@@ -62,9 +62,27 @@ namespace BIMBaoGui.Stage01.Core
         workflowVersion,
         currentWorkflowVersion ?? string.Empty,
         StringComparison.Ordinal);
+      if (requiresWorkflowMigration)
+      {
+        return new Stage01StorageDecision(
+          Stage01StorageState.ValidInitialization,
+          true);
+      }
+
+      Stage01StoredPayloadIntegrityDecision payloadIntegrity =
+        Stage01StoredPayloadIntegrityPolicy.Evaluate(
+          payloadJson,
+          payloadHash);
+      if (!payloadIntegrity.Success)
+      {
+        return new Stage01StorageDecision(
+          Stage01StorageState.CorruptInitialization,
+          false);
+      }
+
       return new Stage01StorageDecision(
         Stage01StorageState.ValidInitialization,
-        requiresWorkflowMigration);
+        false);
     }
   }
 }
