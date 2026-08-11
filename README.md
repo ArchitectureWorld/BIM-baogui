@@ -75,6 +75,8 @@ Revit 2020
 
 ```powershell
 python -m pip install --disable-pip-version-check pytest==8.3.5 jsonschema==4.23.0
+dotnet restore src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj
+dotnet restore tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj
 $env:PYTEST_DISABLE_PLUGIN_AUTOLOAD='1'
 python -m pytest -q
 dotnet test tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj -c Release

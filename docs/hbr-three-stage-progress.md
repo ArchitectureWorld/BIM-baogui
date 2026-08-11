@@ -1,8 +1,8 @@
 # HBR 三阶段开发总进度
 
-> 当前快照：2026-08-11 11:01（UTC+08:00）
+> 当前快照：2026-08-11 13:34（UTC+08:00）
 > 当前分支：`feat/gh-plugin-hbr-planning-v1.0.0`
-> 开发代码快照：`b6eef878ccf53a17569ac7c5766076a5a0fd852e`
+> 开发代码快照：`b3cf2b821ffcca7bfbe787d5e1c328ce9c3b8d15`
 > 映射基线：`hbr-planning-mapping-v1.0.0` → `0c5d2c1100c9c80c4306354bab553debe8f191ca`
 > 当前权威归档：[`2026-08-11-gh-plugin-development-baseline.md`](archive/2026-08-11-gh-plugin-development-baseline.md)
 
@@ -11,11 +11,12 @@
 | 阶段 | 当前准确结论 | 下一门槛 |
 |---|---|---|
 | Stage01 | 用户指定 RVT 烟测暂无问题；旧坐标键、payload 完整性和 10→14 条件迁移已开发 | 完整验收清单仍需保存重开、逐字段和哈希留证 |
-| Stage02 | 代码与自动化合同已开发；runtime 状态已进入预览、Data Tree 和 UI | 本次用户未执行；下一重点是指定 RVT 的预览、确认、GUID 回读、持久性与旧预览失效闭环 |
+| Stage02 v0.9.0 | 现有选择、预览、确认写入及 runtime 状态展示已开发 | 指定 RVT 的预览、确认、GUID 回读、持久性与旧预览失效闭环仍未完成 |
+| Stage02 v1.1 | [Stage02 v1.1 已确认设计](superpowers/specs/2026-08-11-stage02-model-wide-attribute-preparation-design.md)规定全模型默认扫描、自定义范围、按构件原子写入和部分成功；当前只是设计已确认，待实现，不是已实现功能 | 先完成实施计划与 TDD，再开发、构建、部署和指定 RVT 实机验收 |
 | Stage03 | 最新 run 已生成 RAW 和 HIFC-MVD 候选 | 同一 run 在 `TRANSLATE-IFC` 以 `INVALID_IFC` 失败且无 fields JSON，不能记为全链路通过 |
 | 规则库 | 359 条唯一规则已由 Tag 冻结；开发分支未改冻结规则 | 保持单一规则源；不得用第二份映射表推进 Stage02 |
 
-当前唯一开发重点是 Stage02 实机闭环。完整依据、提交、哈希、产物和验收边界见上方权威归档及其证据 JSON。
+当前开发重点已从“仅完成 Stage02 v0.9.0 实机闭环”调整为“实施 Stage02 v1.1，并保留 v0.9.0 实机验收债务”。完整历史依据、提交、哈希、产物和验收边界见上方权威归档及其证据 JSON；归档快照不随当前进度覆盖更新。
 
 ## 历史进度流水（截至 2026-08-06）
 

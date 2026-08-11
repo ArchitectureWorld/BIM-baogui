@@ -593,6 +593,14 @@ def test_readme_documents_current_three_stage_runtime_contract():
 def test_readme_python_validation_commands_are_portable_and_version_pinned():
     readme = read("README.md")
     workflow = read(".github/workflows/build-stage01-gha.yml")
+    restore_stage01 = (
+        r"dotnet restore src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj"
+    )
+    restore_tests = (
+        "dotnet restore "
+        r"tests\BIMBaoGui.Stage01.Core.Tests\BIMBaoGui.Stage01.Core.Tests.csproj"
+    )
+    pytest_command = "python -m pytest -q"
 
     assert r"C:\ProgramData\Anaconda3\python.exe" not in readme
     assert "激活项目使用的 Python 环境后" in readme
@@ -601,9 +609,33 @@ def test_readme_python_validation_commands_are_portable_and_version_pinned():
         "python -m pip install --disable-pip-version-check "
         "pytest==8.3.5 jsonschema==4.23.0"
     ) in readme
-    assert "python -m pytest -q" in readme
+    assert restore_stage01 in readme
+    assert restore_tests in readme
+    assert pytest_command in readme
+    assert readme.index(restore_stage01) < readme.index(pytest_command)
+    assert readme.index(restore_tests) < readme.index(pytest_command)
     assert "actions/setup-python" in workflow
     assert 'python-version: "3.13"' in workflow
+
+
+def test_current_progress_distinguishes_stage02_v090_from_v11_design():
+    progress = read("docs/hbr-three-stage-progress.md")
+    current = progress.split("## 历史进度流水", 1)[0]
+    design = read(
+        "docs/superpowers/specs/"
+        "2026-08-11-stage02-model-wide-attribute-preparation-design.md"
+    )
+
+    assert "**状态：** 已确认，待实现" in design
+    assert "Stage02 v0.9.0" in current
+    assert "Stage02 v1.1" in current
+    assert "设计已确认，待实现" in current
+    assert "不是已实现功能" in current
+    assert (
+        "[Stage02 v1.1 已确认设计]"
+        "(superpowers/specs/"
+        "2026-08-11-stage02-model-wide-attribute-preparation-design.md)"
+    ) in current
 
 
 def test_repository_text_eol_policy_is_minimal_and_lf():
@@ -612,6 +644,7 @@ def test_repository_text_eol_policy_is_minimal_and_lf():
     attributes_bytes = attributes_path.read_bytes()
     assert b"\r" not in attributes_bytes
     expected = [
+        ".gitattributes text eol=lf",
         "*.cs text eol=lf",
         "*.csproj text eol=lf",
         "*.csv text eol=lf",
