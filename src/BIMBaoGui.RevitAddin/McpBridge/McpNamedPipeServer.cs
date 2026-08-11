@@ -204,10 +204,9 @@ namespace BIMBaoGui.RevitAddin.McpBridge
       }
     }
 
-    private static NamedPipeServerStream CreateServer()
+    private NamedPipeServerStream CreateServer()
     {
-      WindowsIdentity identity = WindowsIdentity.GetCurrent();
-      SecurityIdentifier sid = identity.User
+      SecurityIdentifier sid = WindowsIdentity.GetCurrent().User
         ?? throw new InvalidOperationException("无法读取当前 Windows 用户 SID。" );
       var security = new PipeSecurity();
       security.SetAccessRuleProtection(true, false);
@@ -216,7 +215,7 @@ namespace BIMBaoGui.RevitAddin.McpBridge
         PipeAccessRights.FullControl,
         AccessControlType.Allow));
       return new NamedPipeServerStream(
-        McpBridgeHost.PipeName,
+        _pipeName,
         PipeDirection.InOut,
         1,
         PipeTransmissionMode.Byte,
