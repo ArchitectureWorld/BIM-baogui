@@ -55,9 +55,9 @@ namespace BIMBaoGui.RevitAddin
           "湖北BIM报规",
           WorkspaceDockablePaneProvider.Instance);
 
-        RevitExternalEventDispatcher.EnsureInitialized();
         try
         {
+          RevitExternalEventDispatcher.EnsureInitialized();
           McpBridgeHost.Start();
         }
         catch (Exception exception)
