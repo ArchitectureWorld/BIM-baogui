@@ -14,10 +14,62 @@ internal static class ProbeCommand
       var bridge = new NamedPipeBridgeService(locator);
       IReadOnlyList<BridgeSessionDescriptor> candidates =
         locator.ListCandidates();
-      string json = await bridge.ListSessionsJsonAsync(cancellationToken)
-        .ConfigureAwait(false);
-      Console.Out.WriteLine(json);
-      return candidates.Count > 0 ? 0 : 2;
+      if (candidates.Count == 0)
+      {
+        Console.Out.WriteLine(JsonSerializer.Serialize(new
+        {
+          connected = false,
+          status = BridgeErrorCodes.RevitNotConnected,
+          sessions = Array.Empty<object>()
+        }));
+        return 2;
+      }
+
+      var sessions = new List<PublicBridgeSession>();
+      foreach (BridgeSessionDescriptor descriptor in candidates)
+      {
+        bool reachable;
+        try
+        {
+          BridgeResponse response = await bridge.SendAsync(
+            descriptor,
+            BridgeMethodNames.Ping,
+            "{}",
+            2000,
+            cancellationToken).ConfigureAwait(false);
+          reachable = response.Success;
+        }
+        catch
+        {
+          reachable = false;
+        }
+        sessions.Add(new PublicBridgeSession
+        {
+          ProcessId = descriptor.ProcessId,
+          RevitVersion = descriptor.RevitVersion,
+          PluginVersion = descriptor.PluginVersion,
+          RulePackageId = descriptor.RulePackageId,
+          RulePackageVersion = descriptor.RulePackageVersion,
+          RulePackageSha256 = descriptor.RulePackageSha256,
+          StartedUtc = descriptor.StartedUtc,
+          PipeReachable = reachable
+        });
+      }
+
+      bool connected = sessions.Any(value => value.PipeReachable);
+      string status = connected
+        ? candidates.Count > 1
+          ? BridgeErrorCodes.MultipleRevitSessions
+          : "OK"
+        : BridgeErrorCodes.RevitNotConnected;
+      Console.Out.WriteLine(JsonSerializer.Serialize(new
+      {
+        connected,
+        status,
+        sessions
+      }));
+      if (!connected) return 2;
+      return candidates.Count > 1 ? 3 : 0;
     }
     catch (BridgeClientException exception)
     {
