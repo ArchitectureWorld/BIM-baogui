@@ -74,9 +74,24 @@ jobs:
         shell: pwsh
         run: |
           $server = "src/BIMBaoGui.McpServer/bin/Release/net8.0/win-x64/publish/BIMBaoGui.McpServer.exe"
-          & $server --probe
-          if ($LASTEXITCODE -ne 2) {
-            throw "Expected REVIT_NOT_CONNECTED exit code 2, got $LASTEXITCODE."
+          $stdout = Join-Path $env:RUNNER_TEMP "bimbaogui-mcp-probe.stdout.json"
+          $stderr = Join-Path $env:RUNNER_TEMP "bimbaogui-mcp-probe.stderr.txt"
+          $process = Start-Process `
+            -FilePath $server `
+            -ArgumentList "--probe" `
+            -NoNewWindow `
+            -Wait `
+            -PassThru `
+            -RedirectStandardOutput $stdout `
+            -RedirectStandardError $stderr
+          $probeJson = Get-Content -LiteralPath $stdout -Raw
+          Write-Host $probeJson
+          if ($process.ExitCode -ne 2) {
+            throw "Expected REVIT_NOT_CONNECTED exit code 2, got $($process.ExitCode)."
+          }
+          $probe = $probeJson | ConvertFrom-Json
+          if ($probe.connected -ne $false -or $probe.status -ne "REVIT_NOT_CONNECTED") {
+            throw "Unexpected no-Revit probe payload: $probeJson"
           }
 
       - name: Verify single-file publish
