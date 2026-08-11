@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using BIMBaoGui.RevitAddin.Stage01;
 
 namespace BIMBaoGui.RevitAddin
 {
@@ -19,8 +20,22 @@ namespace BIMBaoGui.RevitAddin
 
   internal sealed class RevitRequest
   {
-    internal Action<CurrentDocumentSnapshot> Completed { get; set; }
+    internal Action<UIApplication> ExecuteAction { get; set; }
     internal Action<Exception> Failed { get; set; }
+
+    internal void Execute(UIApplication application)
+    {
+      try
+      {
+        if (ExecuteAction == null)
+          throw new InvalidOperationException("Revit request 缺少执行委托。" );
+        ExecuteAction(application);
+      }
+      catch (Exception exception)
+      {
+        Failed?.Invoke(exception);
+      }
+    }
   }
 
   internal sealed class RevitExternalEventHandler : IExternalEventHandler
@@ -35,18 +50,7 @@ namespace BIMBaoGui.RevitAddin
     public void Execute(UIApplication application)
     {
       while (_queue.TryDequeue(out RevitRequest request))
-      {
-        try
-        {
-          CurrentDocumentSnapshot snapshot =
-            RevitDocumentSnapshotService.Capture(application);
-          request.Completed?.Invoke(snapshot);
-        }
-        catch (Exception exception)
-        {
-          request.Failed?.Invoke(exception);
-        }
-      }
+        request.Execute(application);
     }
 
     public string GetName()
@@ -81,10 +85,49 @@ namespace BIMBaoGui.RevitAddin
       Action<CurrentDocumentSnapshot> completed,
       Action<Exception> failed)
     {
+      Enqueue(
+        application => completed?.Invoke(
+          RevitDocumentSnapshotService.Capture(application)),
+        failed);
+    }
+
+    internal static void RequestStage01Read(
+      Action<NativeStage01ReadResult> completed,
+      Action<Exception> failed)
+    {
+      Enqueue(
+        application => completed?.Invoke(
+          NativeStage01RevitReadService.Read(application)),
+        failed);
+    }
+
+    internal static void RequestStage01Write(
+      NativeStage01WriteRequest request,
+      Action<NativeStage01WriteResult> completed,
+      Action<Exception> failed)
+    {
+      if (request == null) throw new ArgumentNullException(nameof(request));
+      NativeStage01WriteRequest snapshot = new NativeStage01WriteRequest
+      {
+        Model = request.Model?.Clone(),
+        ConfirmBlankProject = request.ConfirmBlankProject,
+        AllowReinitialize = request.AllowReinitialize
+      };
+      Enqueue(
+        application => completed?.Invoke(
+          NativeStage01RevitService.Execute(application, snapshot)),
+        failed);
+    }
+
+    private static void Enqueue(
+      Action<UIApplication> execute,
+      Action<Exception> failed)
+    {
+      if (execute == null) throw new ArgumentNullException(nameof(execute));
       EnsureInitialized();
       Queue.Enqueue(new RevitRequest
       {
-        Completed = completed,
+        ExecuteAction = execute,
         Failed = failed
       });
       _externalEvent.Raise();

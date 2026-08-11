@@ -76,6 +76,13 @@ namespace BIMBaoGui.RevitAddin.Stage01
       "^[0-9A-HJ-NPQRTUWXY]{18}$",
       RegexOptions.CultureInvariant);
 
+    internal static bool IsRequired(NativeStage01FieldDefinition field)
+    {
+      return field != null
+        && !field.Deferred
+        && (field.Essential || RequiredFieldKeys.Contains(field.FieldKey));
+    }
+
     internal static NativeStage01ValidationResult Validate(
       NativeStage01Model model,
       NativeRuleCatalog catalog)
@@ -87,8 +94,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
       foreach (NativeStage01FieldDefinition field in catalog.Stage01Fields
         .Where(value => !value.Deferred))
       {
-        bool required = field.Essential
-          || RequiredFieldKeys.Contains(field.FieldKey);
+        bool required = IsRequired(field);
         if (field.IsOrganization)
         {
           if (model.Organizations.Count == 0)

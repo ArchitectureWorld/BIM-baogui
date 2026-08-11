@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using BIMBaoGui.RevitAddin.Stage01;
 
 namespace BIMBaoGui.RevitAddin
 {
@@ -9,10 +10,12 @@ namespace BIMBaoGui.RevitAddin
   {
     private readonly TextBlock _documentText;
     private readonly TextBlock _ruleText;
-    private readonly TextBlock _stageTitle;
-    private readonly TextBlock _stageBody;
     private readonly TextBlock _statusText;
     private readonly Button _refreshButton;
+    private readonly ContentControl _stageHost;
+    private readonly NativeStage01View _stage01View;
+    private readonly FrameworkElement _stage02Placeholder;
+    private readonly FrameworkElement _stage03Placeholder;
 
     internal WorkspaceControl()
     {
@@ -36,22 +39,19 @@ namespace BIMBaoGui.RevitAddin
       navigation.Children.Add(Header("湖北BIM报规"));
       navigation.Children.Add(StageButton(
         "01 文件初始化",
-        "文件初始化",
-        "项目身份、坐标、高程、真北、模型类型与项目条件。"));
+        ShowStage01));
       navigation.Children.Add(StageButton(
         "02 构件与属性准备",
-        "构件与属性准备",
-        "全模型识别、H-IFC 角色判断、参数准备和分构件写入。"));
+        () => ShowStage(_stage02Placeholder, "Stage02 等待开发")));
       navigation.Children.Add(StageButton(
         "03 检测与 H-IFC",
-        "检测与 H-IFC",
-        "模型检查、Strict/Force 门禁、IFC4 RAW 与 H-IFC 产物。"));
+        () => ShowStage(_stage03Placeholder, "Stage03 等待开发")));
       Grid.SetColumn(navigation, 0);
       root.Children.Add(navigation);
 
       var content = new Grid
       {
-        Margin = new Thickness(20)
+        Margin = new Thickness(18)
       };
       content.RowDefinitions.Add(new RowDefinition
       {
@@ -82,29 +82,41 @@ namespace BIMBaoGui.RevitAddin
       var actions = new StackPanel
       {
         Orientation = Orientation.Horizontal,
-        Margin = new Thickness(0, 14, 0, 14)
+        Margin = new Thickness(0, 10, 0, 10)
       };
       _refreshButton = new Button
       {
-        Content = "刷新当前文档",
+        Content = "刷新当前文档状态",
         Padding = new Thickness(14, 7, 14, 7),
-        MinWidth = 120
+        MinWidth = 135
       };
       _refreshButton.Click += (_, __) => RequestRefresh();
       actions.Children.Add(_refreshButton);
       Grid.SetRow(actions, 1);
       content.Children.Add(actions);
 
-      var stagePanel = new StackPanel();
-      _stageTitle = Header("01 文件初始化");
-      _stageBody = Body(
-        "项目身份、坐标、高程、真北、模型类型与项目条件。第一批基础架构已接入独立规则数据库与 Revit ExternalEvent 调度。" );
-      stagePanel.Children.Add(_stageTitle);
-      stagePanel.Children.Add(_stageBody);
-      Grid.SetRow(stagePanel, 2);
-      content.Children.Add(stagePanel);
+      _stage01View = new NativeStage01View();
+      _stage01View.StatusChanged += status =>
+      {
+        _statusText.Text = "阶段状态：" + status;
+      };
+      _stage02Placeholder = Placeholder(
+        "02 构件与属性准备",
+        "Stage02 将作为独立原生模块继续开发：默认全模型扫描、确定性角色匹配、参数级准备、构件级原子写入和部分成功。" );
+      _stage03Placeholder = Placeholder(
+        "03 检测与 H-IFC",
+        "Stage03 将作为独立原生模块继续开发：模型检查、Strict/Force、IFC4 RAW、H-IFC exact 回读和证据链。" );
+      _stageHost = new ContentControl
+      {
+        Content = _stage01View
+      };
+      Grid.SetRow(_stageHost, 2);
+      content.Children.Add(_stageHost);
 
-      _statusText = Body("状态：等待刷新当前 Revit 文档");
+      _statusText = Body("阶段状态：等待读取当前文件");
+      _statusText.Padding = new Thickness(8);
+      _statusText.Background = new SolidColorBrush(
+        Color.FromRgb(245, 247, 250));
       Grid.SetRow(_statusText, 3);
       content.Children.Add(_statusText);
 
@@ -118,7 +130,7 @@ namespace BIMBaoGui.RevitAddin
     internal void RequestRefresh()
     {
       _refreshButton.IsEnabled = false;
-      _statusText.Text = "状态：正在读取当前 Revit 文档……";
+      _statusText.Text = "阶段状态：正在读取当前 Revit 文档……";
       try
       {
         RevitExternalEventDispatcher.RequestDocumentSnapshot(
@@ -129,6 +141,17 @@ namespace BIMBaoGui.RevitAddin
       {
         ApplyRefreshFailure(exception);
       }
+    }
+
+    private void ShowStage01()
+    {
+      ShowStage(_stage01View, "Stage01 文件初始化");
+    }
+
+    private void ShowStage(FrameworkElement content, string status)
+    {
+      _stageHost.Content = content;
+      _statusText.Text = "阶段状态：" + status;
     }
 
     private void ReadRuleIdentity()
@@ -162,7 +185,7 @@ namespace BIMBaoGui.RevitAddin
       if (snapshot == null || !snapshot.HasDocument)
       {
         _documentText.Text = "当前文档：Revit 中没有活动项目文档";
-        _statusText.Text = "状态：等待打开项目文档";
+        _statusText.Text = "阶段状态：等待打开项目文档";
         return;
       }
 
@@ -178,15 +201,15 @@ namespace BIMBaoGui.RevitAddin
         + (snapshot.IsReadOnly ? "只读" : "可写");
 
       if (!string.Equals(snapshot.RevitVersion, "2020", StringComparison.Ordinal))
-        _statusText.Text = "状态：当前基础版本仅允许 Revit 2020";
+        _statusText.Text = "阶段状态：当前基础版本仅允许 Revit 2020";
       else if (snapshot.IsFamilyDocument)
-        _statusText.Text = "状态：族文档不进入报规工作流";
+        _statusText.Text = "阶段状态：族文档不进入报规工作流";
       else if (!snapshot.IsSaved)
-        _statusText.Text = "状态：请先保存 RVT";
+        _statusText.Text = "阶段状态：请先保存 RVT";
       else if (snapshot.IsReadOnly)
-        _statusText.Text = "状态：当前 RVT 为只读";
+        _statusText.Text = "阶段状态：当前 RVT 为只读";
       else
-        _statusText.Text = "状态：原生插件宿主与规则数据库均已就绪";
+        _statusText.Text = "阶段状态：宿主与规则数据库均已就绪";
     }
 
     private void ApplyRefreshFailure(Exception exception)
@@ -199,11 +222,11 @@ namespace BIMBaoGui.RevitAddin
       }
 
       _refreshButton.IsEnabled = true;
-      _statusText.Text = "状态：读取失败｜"
+      _statusText.Text = "阶段状态：读取失败｜"
         + (exception == null ? "未知错误" : exception.Message);
     }
 
-    private Button StageButton(string label, string title, string body)
+    private static Button StageButton(string label, Action action)
     {
       var button = new Button
       {
@@ -212,14 +235,21 @@ namespace BIMBaoGui.RevitAddin
         Padding = new Thickness(10, 9, 10, 9),
         HorizontalContentAlignment = HorizontalAlignment.Left
       };
-      button.Click += (_, __) => ShowStage(title, body);
+      button.Click += (_, __) => action();
       return button;
     }
 
-    private void ShowStage(string title, string body)
+    private static FrameworkElement Placeholder(string title, string body)
     {
-      _stageTitle.Text = title;
-      _stageBody.Text = body;
+      var panel = new StackPanel
+      {
+        Margin = new Thickness(12)
+      };
+      panel.Children.Add(Header(title));
+      panel.Children.Add(Body(body));
+      panel.Children.Add(Body(
+        "该阶段不会复用 GHA 的 UI 或状态机，只继续消费同一 HBR 参考数据库。" ));
+      return panel;
     }
 
     private static TextBlock Header(string text)

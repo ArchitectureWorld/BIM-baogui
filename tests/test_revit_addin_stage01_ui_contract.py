@@ -35,7 +35,7 @@ def test_external_event_dispatcher_is_the_only_ui_to_revit_write_bridge():
     source = read(PROJECT / "RevitExternalEventDispatcher.cs")
     assert "RequestStage01Read" in source
     assert "RequestStage01Write" in source
-    assert "NativeStage01RevitService.Read" in source
+    assert "NativeStage01RevitReadService.Read" in source
     assert "NativeStage01RevitService.Execute" in source
 
 
