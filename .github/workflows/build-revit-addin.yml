@@ -76,6 +76,10 @@ jobs:
         shell: pwsh
         run: python -m pytest tests/test_revit_addin_stage01_ui_contract.py -q
 
+      - name: Verify native Stage02 Revit contract
+        shell: pwsh
+        run: python -m pytest tests/test_revit_addin_stage02_revit_contract.py -q
+
       - name: Restore shared rule-pack build dependency
         shell: pwsh
         run: dotnet restore src/BIMBaoGui.Stage01/BIMBaoGui.Stage01.csproj
