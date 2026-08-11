@@ -4,7 +4,7 @@ using BIMBaoGui.McpContracts;
 
 namespace BIMBaoGui.McpServer;
 
-internal sealed class NamedPipeBridgeService
+public sealed class NamedPipeBridgeService
 {
   private static readonly JsonSerializerOptions JsonOptions = new()
   {
@@ -13,7 +13,7 @@ internal sealed class NamedPipeBridgeService
   };
   private readonly BridgeSessionLocator _locator;
 
-  internal NamedPipeBridgeService(BridgeSessionLocator locator)
+  public NamedPipeBridgeService(BridgeSessionLocator locator)
   {
     _locator = locator ?? throw new ArgumentNullException(nameof(locator));
   }
