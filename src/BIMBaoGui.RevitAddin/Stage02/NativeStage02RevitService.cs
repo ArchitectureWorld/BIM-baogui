@@ -55,7 +55,9 @@ namespace BIMBaoGui.RevitAddin.Stage02
         uiApplication,
         document);
       if (environmentErrors.Count > 0)
-        return Failure("Stage02 当前不可预览", environmentErrors);
+        return Failure(
+          "Stage02 当前不可预览",
+          environmentErrors.ToArray());
 
       NativeStage01ReadResult stage01 =
         NativeStage01RevitReadService.Read(uiApplication);
