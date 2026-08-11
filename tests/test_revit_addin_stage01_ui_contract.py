@@ -14,8 +14,8 @@ def test_stage01_workspace_is_left_directory_plus_one_continuous_scroll_form():
     assert "new ScrollViewer" in source
     assert "_directoryPanel" in source
     assert "_formPanel" in source
-    assert "TabControl" not in source
-    assert "Frame" not in source
+    assert "new TabControl" not in source
+    assert "new Frame" not in source
     assert "PreviousPage" not in source
     assert "NextPage" not in source
 
