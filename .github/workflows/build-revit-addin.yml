@@ -164,7 +164,9 @@ jobs:
             ForEach-Object {
               $relative = [IO.Path]::GetRelativePath(
                 (Resolve-Path $artifactRoot).Path,
-                $_.FullName).Replace("\\", "/")
+                $_.FullName).Replace(
+                  [IO.Path]::DirectorySeparatorChar,
+                  [IO.Path]::AltDirectorySeparatorChar)
               $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
               "$hash  $relative"
             }
@@ -188,6 +190,12 @@ jobs:
             if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
               throw "Installable artifact is missing: $path"
             }
+          }
+          $checksumText = Get-Content -LiteralPath `
+            "artifacts/SHA256SUMS.txt" `
+            -Raw
+          if ($checksumText.Contains([IO.Path]::DirectorySeparatorChar)) {
+            throw "Checksum manifest contains a backslash path."
           }
 
       - name: Upload native add-in
