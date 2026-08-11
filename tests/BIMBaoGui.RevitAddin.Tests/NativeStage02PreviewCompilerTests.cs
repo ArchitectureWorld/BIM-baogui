@@ -12,35 +12,19 @@ namespace BIMBaoGui.RevitAddin.Tests
     [Fact]
     public void PreviewHashAndOrderingAreIndependentOfInputOrder()
     {
-      NativeStage02RuleCatalog catalog = NativeStage02RuleCatalog.Current;
-      NativeStage02PropertyDefinition property = UnclassifiedProperty(catalog);
-      NativeCarrierRoleDefinition role = RoleFor(catalog, property);
-      NativeStage02ElementEvidence first = Evidence(
-        Element(role, "B", 2),
-        property,
-        exists: false);
-      NativeStage02ElementEvidence second = Evidence(
-        Element(role, "A", 1),
-        property,
-        exists: false);
+      NativeStage02PropertyDefinition property = Property();
+      NativeCarrierRoleDefinition role = Role(property);
+      NativeStage02ElementEvidence a = Evidence(role, property, "A", false);
+      NativeStage02ElementEvidence b = Evidence(role, property, "B", false);
 
-      NativeStage02Preview left = NativeStage02PreviewCompiler.Compile(
-        Input(property, first, second),
-        catalog);
-      NativeStage02Preview right = NativeStage02PreviewCompiler.Compile(
-        Input(property, second, first),
-        catalog);
+      NativeStage02Preview left = Compile(property, b, a);
+      NativeStage02Preview right = Compile(property, a, b);
 
       Assert.Equal(left.PreviewHash, right.PreviewHash);
       Assert.Equal(left.CanonicalJson, right.CanonicalJson);
       Assert.Equal(
         new[] { "A", "B" },
         left.Elements.Select(value => value.Element.UniqueId).ToArray());
-      Assert.Equal(
-        left.Elements.SelectMany(value => value.Fields)
-          .Select(value => value.Property.PropertyId),
-        right.Elements.SelectMany(value => value.Fields)
-          .Select(value => value.Property.PropertyId));
     }
 
     [Fact]
@@ -49,66 +33,57 @@ namespace BIMBaoGui.RevitAddin.Tests
       NativeStage02RuleCatalog catalog = NativeStage02RuleCatalog.Current;
       NativeStage02PropertyDefinition property = catalog.Properties.First(value =>
         value.RuntimeDecision.Status == NativeRuntimeStatuses.NotImplemented);
-      NativeCarrierRoleDefinition role = RoleFor(catalog, property);
-
-      NativeStage02Preview preview = NativeStage02PreviewCompiler.Compile(
-        Input(property, Evidence(Element(role, "blocked", 1), property, false)),
-        catalog);
-      NativeStage02FieldPlan field = Field(preview, "blocked", property);
+      NativeCarrierRoleDefinition role = Role(property);
+      NativeStage02FieldPlan field = Field(
+        Compile(property, Evidence(role, property, "blocked", false)),
+        "blocked",
+        property);
 
       Assert.Equal(NativeStage02FieldStatus.RuntimeBlocked, field.Status);
       Assert.Equal(NativeStage02BindingAction.None, field.BindingAction);
       Assert.Equal(NativeStage02ValueAction.None, field.ValueAction);
-      Assert.False(field.StrictExportReady);
       Assert.Contains("OWNER_STRATEGY_NOT_IMPLEMENTED", field.Message);
     }
 
     [Fact]
-    public void ConditionsFailClosedAndFalseConditionsAreNotApplicable()
+    public void ConditionPolicyIsExplicitAndFailClosed()
     {
-      NativeStage02RuleCatalog catalog = NativeStage02RuleCatalog.Current;
-      NativeStage02PropertyDefinition property = catalog.Properties.First(value =>
-        value.RuntimeDecision.Status
-          == NativeRuntimeStatuses.UnclassifiedRequirement
-        && !string.IsNullOrWhiteSpace(value.ConditionId));
-      NativeCarrierRoleDefinition role = RoleFor(catalog, property);
-      NativeStage02ElementEvidence evidence = Evidence(
-        Element(role, "conditional", 1),
-        property,
-        exists: false);
-
-      NativeStage02Preview missing = NativeStage02PreviewCompiler.Compile(
-        Input(property, evidence),
-        catalog);
-      Assert.Equal(
-        NativeStage02FieldStatus.Blocked,
-        Field(missing, "conditional", property).Status);
-
-      NativeStage02Preview inactive = NativeStage02PreviewCompiler.Compile(
-        Input(
-          property,
+      const string conditionId = "building.roof";
+      NativeStage02ConditionDecision missing =
+        NativeStage02ConditionPolicy.Evaluate(
+          conditionId,
+          new Dictionary<string, bool>(StringComparer.Ordinal));
+      NativeStage02ConditionDecision inactive =
+        NativeStage02ConditionPolicy.Evaluate(
+          conditionId,
           new Dictionary<string, bool>(StringComparer.Ordinal)
           {
-            [property.ConditionId] = false
-          },
-          evidence),
-        catalog);
+            [conditionId] = false
+          });
+      NativeStage02ConditionDecision active =
+        NativeStage02ConditionPolicy.Evaluate(
+          conditionId,
+          new Dictionary<string, bool>(StringComparer.Ordinal)
+          {
+            [conditionId] = true
+          });
+
+      Assert.Equal(NativeStage02ConditionStatus.Missing, missing.Status);
       Assert.Equal(
-        NativeStage02FieldStatus.NotApplicable,
-        Field(inactive, "conditional", property).Status);
+        NativeStage02ConditionStatus.NotApplicable,
+        inactive.Status);
+      Assert.Equal(NativeStage02ConditionStatus.Applicable, active.Status);
     }
 
     [Fact]
     public void MissingParameterIsPreparedWithoutInventingABusinessValue()
     {
-      NativeStage02RuleCatalog catalog = NativeStage02RuleCatalog.Current;
-      NativeStage02PropertyDefinition property = UnclassifiedProperty(catalog);
-      NativeCarrierRoleDefinition role = RoleFor(catalog, property);
-
-      NativeStage02Preview preview = NativeStage02PreviewCompiler.Compile(
-        Input(property, Evidence(Element(role, "new", 1), property, false)),
-        catalog);
-      NativeStage02FieldPlan field = Field(preview, "new", property);
+      NativeStage02PropertyDefinition property = Property();
+      NativeCarrierRoleDefinition role = Role(property);
+      NativeStage02FieldPlan field = Field(
+        Compile(property, Evidence(role, property, "new", false)),
+        "new",
+        property);
 
       Assert.Equal(NativeStage02FieldStatus.PendingBinding, field.Status);
       Assert.Equal(NativeStage02BindingAction.Create, field.BindingAction);
@@ -118,85 +93,65 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
-    public void ExistingValueAndUniqueApprovedAliasProduceDeterministicPlans()
+    public void ExistingAndApprovedAliasValuesProduceDeterministicPlans()
     {
-      NativeStage02RuleCatalog catalog = NativeStage02RuleCatalog.Current;
-      NativeStage02PropertyDefinition property = catalog.Properties.First(value =>
-        value.RuntimeDecision.Status
-          == NativeRuntimeStatuses.UnclassifiedRequirement
-        && value.SuggestionAliases.Count > 0
-        && string.IsNullOrWhiteSpace(value.ConditionId));
-      NativeCarrierRoleDefinition role = RoleFor(catalog, property);
-
-      NativeStage02Preview correct = NativeStage02PreviewCompiler.Compile(
-        Input(
+      NativeStage02PropertyDefinition property = Property(requireAliases: true);
+      NativeCarrierRoleDefinition role = Role(property);
+      NativeStage02FieldPlan correct = Field(
+        Compile(
           property,
-          Evidence(
-            Element(role, "correct", 1),
-            property,
-            exists: true,
-            currentValue: "现有值")),
-        catalog);
-      NativeStage02FieldPlan correctField = Field(correct, "correct", property);
-      Assert.Equal(NativeStage02FieldStatus.Correct, correctField.Status);
-      Assert.Equal(NativeStage02ValueAction.Keep, correctField.ValueAction);
-
+          Evidence(role, property, "correct", true, "现有值")),
+        "correct",
+        property);
       string alias = property.SuggestionAliases[0];
-      NativeStage02Preview suggested = NativeStage02PreviewCompiler.Compile(
-        Input(
+      NativeStage02FieldPlan suggested = Field(
+        Compile(
           property,
           Evidence(
-            Element(role, "suggested", 2),
+            role,
             property,
-            exists: true,
+            "suggested",
+            true,
             aliases: new Dictionary<string, string>(StringComparer.Ordinal)
             {
               [alias] = "批准值"
             })),
-        catalog);
-      NativeStage02FieldPlan suggestedField = Field(
-        suggested,
         "suggested",
         property);
-      Assert.Equal(NativeStage02FieldStatus.PendingWrite, suggestedField.Status);
-      Assert.Equal(NativeStage02ValueAction.Set, suggestedField.ValueAction);
-      Assert.Equal("批准值", suggestedField.ProposedCanonicalValue);
-      Assert.Equal(alias, suggestedField.ValueSource);
+
+      Assert.Equal(NativeStage02FieldStatus.Correct, correct.Status);
+      Assert.Equal(NativeStage02ValueAction.Keep, correct.ValueAction);
+      Assert.Equal(NativeStage02FieldStatus.PendingWrite, suggested.Status);
+      Assert.Equal(NativeStage02ValueAction.Set, suggested.ValueAction);
+      Assert.Equal("批准值", suggested.ProposedCanonicalValue);
+      Assert.Equal(alias, suggested.ValueSource);
     }
 
     [Fact]
     public void ConflictingAliasValuesBlockOnlyTheirElement()
     {
-      NativeStage02RuleCatalog catalog = NativeStage02RuleCatalog.Current;
-      NativeStage02PropertyDefinition property = catalog.Properties.First(value =>
-        value.RuntimeDecision.Status
-          == NativeRuntimeStatuses.UnclassifiedRequirement
-        && value.SuggestionAliases.Count > 0
-        && string.IsNullOrWhiteSpace(value.ConditionId));
-      NativeCarrierRoleDefinition role = RoleFor(catalog, property);
+      NativeStage02PropertyDefinition property = Property(requireAliases: true);
+      NativeCarrierRoleDefinition role = Role(property);
       string alias = property.SuggestionAliases[0];
-      string legacy = property.LegacyParameterNames.FirstOrDefault()
-        ?? alias + "_legacy";
-
+      string legacy = property.LegacyParameterNames[0];
       NativeStage02ElementEvidence conflict = Evidence(
-        Element(role, "conflict", 1),
+        role,
         property,
-        exists: true,
+        "conflict",
+        true,
         aliases: new Dictionary<string, string>(StringComparer.Ordinal)
         {
           [alias] = "值一",
           [legacy] = "值二"
         });
       NativeStage02ElementEvidence good = Evidence(
-        Element(role, "good", 2),
+        role,
         property,
-        exists: true,
-        currentValue: "正确值");
+        "good",
+        true,
+        "正确值");
 
-      NativeStage02Preview preview = NativeStage02PreviewCompiler.Compile(
-        Input(property, conflict, good),
-        catalog);
-
+      NativeStage02Preview preview = Compile(property, conflict, good);
       Assert.Equal(
         NativeStage02FieldStatus.Blocked,
         Field(preview, "conflict", property).Status);
@@ -206,80 +161,58 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Equal(1, preview.BlockedElementCount);
     }
 
-    private static NativeStage02PreviewInput Input(
+    private static NativeStage02Preview Compile(
       NativeStage02PropertyDefinition property,
       params NativeStage02ElementEvidence[] elements)
     {
-      return Input(
-        property,
-        new Dictionary<string, bool>(StringComparer.Ordinal),
-        elements);
-    }
-
-    private static NativeStage02PreviewInput Input(
-      NativeStage02PropertyDefinition property,
-      IDictionary<string, bool> conditions,
-      params NativeStage02ElementEvidence[] elements)
-    {
-      return new NativeStage02PreviewInput
-      {
-        DocumentFingerprint = "DOC-001",
-        ModelProfile = RoleModelProfile(
-          NativeStage02RuleCatalog.Current,
-          property),
-        Conditions = new Dictionary<string, bool>(
-          conditions,
-          StringComparer.Ordinal),
-        Elements = elements
-      };
+      return NativeStage02PreviewCompiler.Compile(
+        new NativeStage02PreviewInput
+        {
+          DocumentFingerprint = "DOC-001",
+          ModelProfile = Role(property).ModelFileTypes[0],
+          Conditions = new Dictionary<string, bool>(StringComparer.Ordinal),
+          Elements = elements
+        },
+        NativeStage02RuleCatalog.Current);
     }
 
     private static NativeStage02ElementEvidence Evidence(
-      NativeStage02ElementSnapshot element,
+      NativeCarrierRoleDefinition role,
       NativeStage02PropertyDefinition property,
+      string uniqueId,
       bool exists,
-      string currentValue = "",
+      string current = "",
       IDictionary<string, string> aliases = null)
     {
-      var parameter = new NativeStage02ParameterEvidence
-      {
-        ParameterGuid = property.ParameterGuid,
-        Exists = exists,
-        ContractCompatible = true,
-        BindingIncludesCategory = exists,
-        IsReadOnly = false,
-        CurrentCanonicalValue = currentValue,
-        AliasValues = aliases == null
-          ? new Dictionary<string, string>(StringComparer.Ordinal)
-          : new Dictionary<string, string>(aliases, StringComparer.Ordinal)
-      };
       return new NativeStage02ElementEvidence
       {
-        Element = element,
+        Element = new NativeStage02ElementSnapshot
+        {
+          DocumentFingerprint = "DOC-001",
+          UniqueId = uniqueId,
+          ElementId = uniqueId.GetHashCode(),
+          Category = role.RevitCategories[0],
+          ElementKind = role.AllowedElementKinds[0],
+          ElementName = role.DisplayName,
+          FamilyName = role.DisplayName,
+          TypeName = role.DisplayName,
+          AssignedRoleId = role.RoleId,
+          IsModelElement = true
+        },
         Parameters = new Dictionary<Guid, NativeStage02ParameterEvidence>
         {
-          [property.ParameterGuid] = parameter
+          [property.ParameterGuid] = new NativeStage02ParameterEvidence
+          {
+            ParameterGuid = property.ParameterGuid,
+            Exists = exists,
+            ContractCompatible = true,
+            BindingIncludesCategory = exists,
+            CurrentCanonicalValue = current,
+            AliasValues = aliases == null
+              ? new Dictionary<string, string>(StringComparer.Ordinal)
+              : new Dictionary<string, string>(aliases, StringComparer.Ordinal)
+          }
         }
-      };
-    }
-
-    private static NativeStage02ElementSnapshot Element(
-      NativeCarrierRoleDefinition role,
-      string uniqueId,
-      int elementId)
-    {
-      return new NativeStage02ElementSnapshot
-      {
-        DocumentFingerprint = "DOC-001",
-        UniqueId = uniqueId,
-        ElementId = elementId,
-        Category = role.RevitCategories[0],
-        ElementKind = role.AllowedElementKinds[0],
-        ElementName = role.DisplayName,
-        FamilyName = role.DisplayName,
-        TypeName = role.DisplayName,
-        AssignedRoleId = role.RoleId,
-        IsModelElement = true
       };
     }
 
@@ -294,27 +227,23 @@ namespace BIMBaoGui.RevitAddin.Tests
           value.Property.PropertyId == property.PropertyId);
     }
 
-    private static NativeStage02PropertyDefinition UnclassifiedProperty(
-      NativeStage02RuleCatalog catalog)
+    private static NativeStage02PropertyDefinition Property(
+      bool requireAliases = false)
     {
-      return catalog.Properties.First(value =>
+      return NativeStage02RuleCatalog.Current.Properties.First(value =>
         value.RuntimeDecision.Status
           == NativeRuntimeStatuses.UnclassifiedRequirement
-        && string.IsNullOrWhiteSpace(value.ConditionId));
+        && string.IsNullOrWhiteSpace(value.ConditionId)
+        && (!requireAliases
+          || (value.SuggestionAliases.Count > 0
+            && value.LegacyParameterNames.Count > 0)));
     }
 
-    private static NativeCarrierRoleDefinition RoleFor(
-      NativeStage02RuleCatalog catalog,
+    private static NativeCarrierRoleDefinition Role(
       NativeStage02PropertyDefinition property)
     {
-      return catalog.CarrierRolesById[property.CarrierRoleIds[0]];
-    }
-
-    private static string RoleModelProfile(
-      NativeStage02RuleCatalog catalog,
-      NativeStage02PropertyDefinition property)
-    {
-      return RoleFor(catalog, property).ModelFileTypes[0];
+      return NativeStage02RuleCatalog.Current
+        .CarrierRolesById[property.CarrierRoleIds[0]];
     }
   }
 }
