@@ -6,6 +6,7 @@ on:
       - feat/revit-native-addin-v1
     paths:
       - "src/BIMBaoGui.RevitAddin/**"
+      - "tests/BIMBaoGui.RevitAddin.Tests/**"
       - "installer/**"
       - "docs/revit-addin/README.md"
       - "specs/hbr-rules/**"
@@ -17,6 +18,7 @@ on:
       - main
     paths:
       - "src/BIMBaoGui.RevitAddin/**"
+      - "tests/BIMBaoGui.RevitAddin.Tests/**"
       - "installer/**"
       - "docs/revit-addin/README.md"
       - "specs/hbr-rules/**"
@@ -70,9 +72,15 @@ jobs:
         shell: pwsh
         run: python -m pytest tests/test_hbr_rulepack_compiler.py tests/test_hbr_rules_manifest.py -q
 
-      - name: Restore native add-in
+      - name: Restore native projects
         shell: pwsh
-        run: dotnet restore src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj
+        run: |
+          dotnet restore src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj
+          dotnet restore tests/BIMBaoGui.RevitAddin.Tests/BIMBaoGui.RevitAddin.Tests.csproj
+
+      - name: Run native domain tests
+        shell: pwsh
+        run: dotnet test tests/BIMBaoGui.RevitAddin.Tests/BIMBaoGui.RevitAddin.Tests.csproj -c Release --no-restore --logger "console;verbosity=normal"
 
       - name: Build native add-in
         shell: pwsh
