@@ -14,6 +14,12 @@ namespace BIMBaoGui.RevitAddin
     internal string RulePackageSha256 { get; set; } = string.Empty;
   }
 
+  internal sealed class RulePackageEnvelope
+  {
+    internal RulePackageIdentity Identity { get; set; }
+    internal string PayloadJson { get; set; } = string.Empty;
+  }
+
   internal static class RulePackageIdentityReader
   {
     internal const string ResourceName =
@@ -26,17 +32,27 @@ namespace BIMBaoGui.RevitAddin
 
     internal static RulePackageIdentity ReadEmbedded()
     {
+      return ReadEmbeddedEnvelope().Identity;
+    }
+
+    internal static RulePackageEnvelope ReadEmbeddedEnvelope()
+    {
       Assembly assembly = typeof(RulePackageIdentityReader).Assembly;
       using (Stream stream = assembly.GetManifestResourceStream(ResourceName))
       {
         if (stream == null)
           throw new InvalidDataException(
             "缺少嵌入式 HBR 规则包：" + ResourceName);
-        return Read(stream);
+        return ReadEnvelope(stream);
       }
     }
 
     internal static RulePackageIdentity Read(Stream stream)
+    {
+      return ReadEnvelope(stream).Identity;
+    }
+
+    internal static RulePackageEnvelope ReadEnvelope(Stream stream)
     {
       if (stream == null || !stream.CanRead)
         throw new InvalidDataException("HBR 规则包不可读。");
@@ -65,14 +81,36 @@ namespace BIMBaoGui.RevitAddin
       if (!EqualBytes(expectedHash, actualHash))
         throw new InvalidDataException("HBR 规则包 SHA-256 校验失败。");
 
-      string json = new UTF8Encoding(false, true).GetString(payload);
+      string json;
+      try
+      {
+        json = new UTF8Encoding(false, true).GetString(payload);
+      }
+      catch (DecoderFallbackException exception)
+      {
+        throw new InvalidDataException(
+          "HBR 规则包 payload 不是严格 UTF-8。",
+          exception);
+      }
+
       var serializer = new JavaScriptSerializer
       {
         MaxJsonLength = int.MaxValue,
         RecursionLimit = 512
       };
-      RulePackageIdentityDto dto =
-        serializer.Deserialize<RulePackageIdentityDto>(json);
+      RulePackageIdentityDto dto;
+      try
+      {
+        dto = serializer.Deserialize<RulePackageIdentityDto>(json);
+      }
+      catch (Exception exception) when (
+        exception is ArgumentException
+        || exception is InvalidOperationException)
+      {
+        throw new InvalidDataException(
+          "HBR 规则包 payload JSON 无法反序列化。",
+          exception);
+      }
       if (dto == null
         || string.IsNullOrWhiteSpace(dto.packageId)
         || string.IsNullOrWhiteSpace(dto.packageVersion))
@@ -80,11 +118,15 @@ namespace BIMBaoGui.RevitAddin
         throw new InvalidDataException("HBR 规则包缺少 package identity。");
       }
 
-      return new RulePackageIdentity
+      return new RulePackageEnvelope
       {
-        PackageId = dto.packageId.Trim(),
-        PackageVersion = dto.packageVersion.Trim(),
-        RulePackageSha256 = ToLowerHex(actualHash)
+        Identity = new RulePackageIdentity
+        {
+          PackageId = dto.packageId.Trim(),
+          PackageVersion = dto.packageVersion.Trim(),
+          RulePackageSha256 = ToLowerHex(actualHash)
+        },
+        PayloadJson = json
       };
     }
 
