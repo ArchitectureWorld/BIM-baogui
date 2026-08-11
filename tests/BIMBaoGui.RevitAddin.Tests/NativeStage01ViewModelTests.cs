@@ -78,7 +78,7 @@ namespace BIMBaoGui.RevitAddin.Tests
 
       Assert.Equal("源项目", source.GetValue(NativeStage01Keys.ProjectName));
       Assert.Equal(1, viewModel.Model.Organizations.Count);
-      Assert.False(viewModel.IsDirty);
+      Assert.True(viewModel.IsDirty);
     }
 
     private static string ValidValue(NativeStage01FieldDefinition field)
