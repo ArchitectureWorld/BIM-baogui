@@ -50,3 +50,12 @@ def test_native_workflow_packages_installer_and_tracks_all_installer_changes():
     workflow = read(WORKFLOW)
     assert '- "installer/**"' in workflow
     assert "Copy-Item installer/Install-Revit2020.ps1 artifacts/" in workflow
+
+
+def test_native_workflow_smoke_tests_install_and_uninstall_on_windows():
+    workflow = read(WORKFLOW)
+    assert "Smoke-test native installer" in workflow
+    assert "& installer/Install-Revit2020.ps1" in workflow
+    assert "-Uninstall -Force" in workflow
+    assert "install-evidence.json" in workflow
+    assert "IsPathRooted" in workflow
