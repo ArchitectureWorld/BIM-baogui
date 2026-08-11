@@ -145,20 +145,55 @@ jobs:
             Remove-Item -LiteralPath $smokeRoot -Recurse -Force -ErrorAction SilentlyContinue
           }
 
-      - name: Prepare artifact
+      - name: Prepare installable artifact
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path artifacts/BIMBaoGui.RevitAddin | Out-Null
-          Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.RevitAddin.dll artifacts/BIMBaoGui.RevitAddin/
-          Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.RevitAddin.pdb artifacts/BIMBaoGui.RevitAddin/ -ErrorAction SilentlyContinue
-          Copy-Item installer/BIMBaoGui.RevitAddin.addin artifacts/
-          Copy-Item installer/Install-Revit2020.ps1 artifacts/
-          Copy-Item docs/revit-addin/README.md artifacts/README.md
+          $artifactRoot = "artifacts"
+          $binaryRoot = Join-Path $artifactRoot "BIMBaoGui.RevitAddin"
+          New-Item -ItemType Directory -Force -Path $binaryRoot | Out-Null
+          Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.RevitAddin.dll $binaryRoot/
+          Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.RevitAddin.pdb $binaryRoot/ -ErrorAction SilentlyContinue
+          Copy-Item installer/BIMBaoGui.RevitAddin.addin $artifactRoot/
+          Copy-Item installer/Install-Revit2020.ps1 $artifactRoot/
+          Copy-Item installer/Install.cmd $artifactRoot/
+          Copy-Item installer/Uninstall.cmd $artifactRoot/
+          Copy-Item docs/revit-addin/README.md $artifactRoot/README.md
+          $hashLines = Get-ChildItem -LiteralPath $artifactRoot -Recurse -File |
+            Where-Object { $_.Name -ne "SHA256SUMS.txt" } |
+            Sort-Object FullName |
+            ForEach-Object {
+              $relative = [IO.Path]::GetRelativePath(
+                (Resolve-Path $artifactRoot).Path,
+                $_.FullName).Replace("\\", "/")
+              $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+              "$hash  $relative"
+            }
+          Set-Content -LiteralPath (Join-Path $artifactRoot "SHA256SUMS.txt") `
+            -Value $hashLines `
+            -Encoding utf8NoBOM
+
+      - name: Verify installable artifact layout
+        shell: pwsh
+        run: |
+          $required = @(
+            "artifacts/Install.cmd",
+            "artifacts/Uninstall.cmd",
+            "artifacts/Install-Revit2020.ps1",
+            "artifacts/BIMBaoGui.RevitAddin.addin",
+            "artifacts/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.dll",
+            "artifacts/README.md",
+            "artifacts/SHA256SUMS.txt"
+          )
+          foreach ($path in $required) {
+            if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+              throw "Installable artifact is missing: $path"
+            }
+          }
 
       - name: Upload native add-in
         uses: actions/upload-artifact@v7
         with:
-          name: BIMBaoGui-Revit2020-Native-v0.1.0
+          name: BIMBaoGui-Revit2020-Native-Stage01-Stage02-v0.2.0
           path: artifacts
           if-no-files-found: error
           retention-days: 30

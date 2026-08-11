@@ -57,8 +57,10 @@ def test_double_click_wrappers_use_their_own_extracted_directory():
         assert "-NoProfile" in source
         assert "-ExecutionPolicy Bypass" in source
         assert "Install-Revit2020.ps1" in source
-        assert "exit /b %errorlevel%" in source.lower()
+        assert 'set "BIMBAOGUI_EXIT_CODE=%ERRORLEVEL%"' in source
+        assert "exit /b %BIMBAOGUI_EXIT_CODE%" in source
     assert "-SourceRoot" in install
+    assert "BIMBaoGui.RevitAddin" in install
     assert "-Uninstall" in uninstall
 
 
