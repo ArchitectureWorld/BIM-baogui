@@ -67,9 +67,9 @@ def test_double_click_wrappers_use_their_own_extracted_directory():
 def test_native_workflow_packages_complete_double_click_installer():
     workflow = read(WORKFLOW)
     assert '- "installer/**"' in workflow
-    assert "Copy-Item installer/Install-Revit2020.ps1 artifacts/" in workflow
-    assert "Copy-Item installer/Install.cmd artifacts/" in workflow
-    assert "Copy-Item installer/Uninstall.cmd artifacts/" in workflow
+    assert "Copy-Item installer/Install-Revit2020.ps1 $artifactRoot/" in workflow
+    assert "Copy-Item installer/Install.cmd $artifactRoot/" in workflow
+    assert "Copy-Item installer/Uninstall.cmd $artifactRoot/" in workflow
     assert "SHA256SUMS.txt" in workflow
 
 
