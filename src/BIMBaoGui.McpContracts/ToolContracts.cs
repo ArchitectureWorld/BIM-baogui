@@ -34,7 +34,7 @@ namespace BIMBaoGui.McpContracts
       }.OrderBy(value => value, StringComparer.Ordinal).ToArray());
   }
 
-  public sealed class RevitSessionSelector
+  public class RevitSessionSelector
   {
     public int? RevitProcessId { get; set; }
   }
