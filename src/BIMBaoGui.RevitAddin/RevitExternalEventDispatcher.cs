@@ -4,6 +4,7 @@ using System.Threading;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using BIMBaoGui.RevitAddin.Stage01;
+using BIMBaoGui.RevitAddin.Stage02;
 
 namespace BIMBaoGui.RevitAddin
 {
@@ -72,7 +73,6 @@ namespace BIMBaoGui.RevitAddin
       if (Volatile.Read(ref _disposed) != 0)
         throw new ObjectDisposedException(nameof(RevitExternalEventDispatcher));
       if (_externalEvent != null) return;
-
       lock (SyncRoot)
       {
         if (_externalEvent != null) return;
@@ -116,6 +116,32 @@ namespace BIMBaoGui.RevitAddin
       Enqueue(
         application => completed?.Invoke(
           NativeStage01RevitService.Execute(application, snapshot)),
+        failed);
+    }
+
+    internal static void RequestStage02Preview(
+      NativeStage02PreviewRequest request,
+      Action<NativeStage02RevitPreviewResult> completed,
+      Action<Exception> failed)
+    {
+      NativeStage02PreviewRequest snapshot = request?.Clone()
+        ?? new NativeStage02PreviewRequest();
+      Enqueue(
+        application => completed?.Invoke(
+          NativeStage02RevitService.CreatePreview(application, snapshot)),
+        failed);
+    }
+
+    internal static void RequestStage02Write(
+      NativeStage02WriteRequest request,
+      Action<NativeStage02WriteResult> completed,
+      Action<Exception> failed)
+    {
+      if (request == null) throw new ArgumentNullException(nameof(request));
+      NativeStage02WriteRequest snapshot = request.Clone();
+      Enqueue(
+        application => completed?.Invoke(
+          NativeStage02RevitWriteService.Execute(application, snapshot)),
         failed);
     }
 
@@ -163,7 +189,6 @@ namespace BIMBaoGui.RevitAddin
             ?? string.Empty
         };
       }
-
       string path = document.PathName ?? string.Empty;
       return new CurrentDocumentSnapshot
       {

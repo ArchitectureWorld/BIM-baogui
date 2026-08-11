@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using BIMBaoGui.RevitAddin.Stage01;
+using BIMBaoGui.RevitAddin.Stage02;
 
 namespace BIMBaoGui.RevitAddin
 {
@@ -14,13 +15,12 @@ namespace BIMBaoGui.RevitAddin
     private readonly Button _refreshButton;
     private readonly ContentControl _stageHost;
     private readonly NativeStage01View _stage01View;
-    private readonly FrameworkElement _stage02Placeholder;
+    private readonly NativeStage02View _stage02View;
     private readonly FrameworkElement _stage03Placeholder;
 
     internal WorkspaceControl()
     {
       Background = Brushes.White;
-
       var root = new Grid();
       root.ColumnDefinitions.Add(new ColumnDefinition
       {
@@ -37,22 +37,15 @@ namespace BIMBaoGui.RevitAddin
         Background = new SolidColorBrush(Color.FromRgb(246, 247, 249))
       };
       navigation.Children.Add(Header("湖北BIM报规"));
-      navigation.Children.Add(StageButton(
-        "01 文件初始化",
-        ShowStage01));
-      navigation.Children.Add(StageButton(
-        "02 构件与属性准备",
-        () => ShowStage(_stage02Placeholder, "Stage02 等待开发")));
+      navigation.Children.Add(StageButton("01 文件初始化", ShowStage01));
+      navigation.Children.Add(StageButton("02 构件与属性准备", ShowStage02));
       navigation.Children.Add(StageButton(
         "03 检测与 H-IFC",
         () => ShowStage(_stage03Placeholder, "Stage03 等待开发")));
       Grid.SetColumn(navigation, 0);
       root.Children.Add(navigation);
 
-      var content = new Grid
-      {
-        Margin = new Thickness(18)
-      };
+      var content = new Grid { Margin = new Thickness(18) };
       content.RowDefinitions.Add(new RowDefinition
       {
         Height = GridLength.Auto
@@ -95,35 +88,29 @@ namespace BIMBaoGui.RevitAddin
       Grid.SetRow(actions, 1);
       content.Children.Add(actions);
 
-      _stage01View = new NativeStage01View();
-      _stage01View.StatusChanged += status =>
-      {
-        _statusText.Text = "阶段状态：" + status;
-      };
-      _stage02Placeholder = Placeholder(
-        "02 构件与属性准备",
-        "Stage02 将作为独立原生模块继续开发：默认全模型扫描、确定性角色匹配、参数级准备、构件级原子写入和部分成功。" );
-      _stage03Placeholder = Placeholder(
-        "03 检测与 H-IFC",
-        "Stage03 将作为独立原生模块继续开发：模型检查、Strict/Force、IFC4 RAW、H-IFC exact 回读和证据链。" );
-      _stageHost = new ContentControl
-      {
-        Content = _stage01View
-      };
-      Grid.SetRow(_stageHost, 2);
-      content.Children.Add(_stageHost);
-
       _statusText = Body("阶段状态：等待读取当前文件");
       _statusText.Padding = new Thickness(8);
       _statusText.Background = new SolidColorBrush(
         Color.FromRgb(245, 247, 250));
+
+      _stage01View = new NativeStage01View();
+      _stage01View.StatusChanged += status =>
+        _statusText.Text = "阶段状态：" + status;
+      _stage02View = new NativeStage02View();
+      _stage02View.StatusChanged += status =>
+        _statusText.Text = "阶段状态：" + status;
+      _stage03Placeholder = Placeholder(
+        "03 检测与 H-IFC",
+        "Stage03 将作为独立原生模块继续开发：模型检查、Strict/Force、IFC4 RAW、H-IFC exact 回读和证据链。" );
+      _stageHost = new ContentControl { Content = _stage01View };
+      Grid.SetRow(_stageHost, 2);
+      content.Children.Add(_stageHost);
+
       Grid.SetRow(_statusText, 3);
       content.Children.Add(_statusText);
-
       Grid.SetColumn(content, 1);
       root.Children.Add(content);
       Content = root;
-
       ReadRuleIdentity();
     }
 
@@ -146,6 +133,11 @@ namespace BIMBaoGui.RevitAddin
     private void ShowStage01()
     {
       ShowStage(_stage01View, "Stage01 文件初始化");
+    }
+
+    private void ShowStage02()
+    {
+      ShowStage(_stage02View, "Stage02 构件与属性准备");
     }
 
     private void ShowStage(FrameworkElement content, string status)
@@ -180,7 +172,6 @@ namespace BIMBaoGui.RevitAddin
           ApplyDocumentSnapshot), snapshot);
         return;
       }
-
       _refreshButton.IsEnabled = true;
       if (snapshot == null || !snapshot.HasDocument)
       {
@@ -188,7 +179,6 @@ namespace BIMBaoGui.RevitAddin
         _statusText.Text = "阶段状态：等待打开项目文档";
         return;
       }
-
       _documentText.Text = "当前文档："
         + snapshot.DocumentTitle
         + "｜Revit "
@@ -199,7 +189,6 @@ namespace BIMBaoGui.RevitAddin
         + (snapshot.IsFamilyDocument ? "族文档" : "项目文档")
         + "｜"
         + (snapshot.IsReadOnly ? "只读" : "可写");
-
       if (!string.Equals(snapshot.RevitVersion, "2020", StringComparison.Ordinal))
         _statusText.Text = "阶段状态：当前基础版本仅允许 Revit 2020";
       else if (snapshot.IsFamilyDocument)
@@ -220,7 +209,6 @@ namespace BIMBaoGui.RevitAddin
           ApplyRefreshFailure), exception);
         return;
       }
-
       _refreshButton.IsEnabled = true;
       _statusText.Text = "阶段状态：读取失败｜"
         + (exception == null ? "未知错误" : exception.Message);
@@ -241,10 +229,7 @@ namespace BIMBaoGui.RevitAddin
 
     private static FrameworkElement Placeholder(string title, string body)
     {
-      var panel = new StackPanel
-      {
-        Margin = new Thickness(12)
-      };
+      var panel = new StackPanel { Margin = new Thickness(12) };
       panel.Children.Add(Header(title));
       panel.Children.Add(Body(body));
       panel.Children.Add(Body(
