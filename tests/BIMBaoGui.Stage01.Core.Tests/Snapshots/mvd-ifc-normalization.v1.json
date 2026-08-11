@@ -1,0 +1,3051 @@
+{
+  "schemaVersion": "1.0",
+  "frozenFromCommit": "91a2db05ed57ae2335e63ff532b4bf5fe6109dfb",
+  "rules": [
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_报建信息属性集",
+      "propertySetAliases": [
+        "Pset_报建信息属性集",
+        "报建信息属性集"
+      ],
+      "canonicalProperty": "手机号码",
+      "propertyAliases": [
+        "手机号码"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.报建信息属性集.手机号码"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_报建信息属性集",
+      "propertySetAliases": [
+        "Pset_报建信息属性集",
+        "报建信息属性集"
+      ],
+      "canonicalProperty": "编号",
+      "propertyAliases": [
+        "编号"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.报建信息属性集.编号"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_报建信息属性集",
+      "propertySetAliases": [
+        "Pset_报建信息属性集",
+        "报建信息属性集"
+      ],
+      "canonicalProperty": "姓",
+      "propertyAliases": [
+        "姓"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.报建信息属性集.姓"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_报建信息属性集",
+      "propertySetAliases": [
+        "Pset_报建信息属性集",
+        "报建信息属性集"
+      ],
+      "canonicalProperty": "名",
+      "propertyAliases": [
+        "名"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.报建信息属性集.名"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_报建信息属性集",
+      "propertySetAliases": [
+        "Pset_报建信息属性集",
+        "报建信息属性集"
+      ],
+      "canonicalProperty": "邮箱地址",
+      "propertyAliases": [
+        "邮箱地址"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.报建信息属性集.邮箱地址"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_报建信息属性集",
+      "propertySetAliases": [
+        "Pset_报建信息属性集",
+        "报建信息属性集"
+      ],
+      "canonicalProperty": "公司",
+      "propertyAliases": [
+        "公司"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.报建信息属性集.公司"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_报建信息属性集",
+      "propertySetAliases": [
+        "Pset_报建信息属性集",
+        "报建信息属性集"
+      ],
+      "canonicalProperty": "公司性质",
+      "propertyAliases": [
+        "公司性质"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.报建信息属性集.公司性质"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_报建信息属性集",
+      "propertySetAliases": [
+        "Pset_报建信息属性集",
+        "报建信息属性集"
+      ],
+      "canonicalProperty": "部门",
+      "propertyAliases": [
+        "部门"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.报建信息属性集.部门"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_报建信息属性集",
+      "propertySetAliases": [
+        "Pset_报建信息属性集",
+        "报建信息属性集"
+      ],
+      "canonicalProperty": "国家",
+      "propertyAliases": [
+        "国家"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.报建信息属性集.国家"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_报建信息属性集",
+      "propertySetAliases": [
+        "Pset_报建信息属性集",
+        "报建信息属性集"
+      ],
+      "canonicalProperty": "城镇",
+      "propertyAliases": [
+        "城镇"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.报建信息属性集.城镇"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_报建信息属性集",
+      "propertySetAliases": [
+        "Pset_报建信息属性集",
+        "报建信息属性集"
+      ],
+      "canonicalProperty": "街道",
+      "propertyAliases": [
+        "街道"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.报建信息属性集.街道"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_报建信息属性集",
+      "propertySetAliases": [
+        "Pset_报建信息属性集",
+        "报建信息属性集"
+      ],
+      "canonicalProperty": "通信地址",
+      "propertyAliases": [
+        "通信地址"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.报建信息属性集.通信地址"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_报建信息属性集",
+      "propertySetAliases": [
+        "Pset_报建信息属性集",
+        "报建信息属性集"
+      ],
+      "canonicalProperty": "国家编码",
+      "propertyAliases": [
+        "国家编码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.报建信息属性集.国家编码"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_报建信息属性集",
+      "propertySetAliases": [
+        "Pset_报建信息属性集",
+        "报建信息属性集"
+      ],
+      "canonicalProperty": "邮政编码",
+      "propertyAliases": [
+        "邮政编码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.报建信息属性集.邮政编码"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_地籍信息属性集",
+      "propertySetAliases": [
+        "Pset_地籍信息属性集",
+        "地籍信息属性集"
+      ],
+      "canonicalProperty": "宗地数量",
+      "propertyAliases": [
+        "宗地数量"
+      ],
+      "targetType": "IfcInteger",
+      "unit": "个",
+      "internalAliases": [
+        "HIFC.地籍信息属性集.宗地数量"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_地籍信息属性集",
+      "propertySetAliases": [
+        "Pset_地籍信息属性集",
+        "地籍信息属性集"
+      ],
+      "canonicalProperty": "宗地用途",
+      "propertyAliases": [
+        "宗地用途"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.地籍信息属性集.宗地用途"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_地籍信息属性集",
+      "propertySetAliases": [
+        "Pset_地籍信息属性集",
+        "地籍信息属性集"
+      ],
+      "canonicalProperty": "宗地编号",
+      "propertyAliases": [
+        "宗地编号"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.地籍信息属性集.宗地编号"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_地籍信息属性集",
+      "propertySetAliases": [
+        "Pset_地籍信息属性集",
+        "地籍信息属性集"
+      ],
+      "canonicalProperty": "宗地信息",
+      "propertyAliases": [
+        "宗地信息"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.地籍信息属性集.宗地信息"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_地籍信息属性集",
+      "propertySetAliases": [
+        "Pset_地籍信息属性集",
+        "地籍信息属性集"
+      ],
+      "canonicalProperty": "宗地质量等级",
+      "propertyAliases": [
+        "宗地质量等级"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.地籍信息属性集.宗地质量等级"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_地籍信息属性集",
+      "propertySetAliases": [
+        "Pset_地籍信息属性集",
+        "地籍信息属性集"
+      ],
+      "canonicalProperty": "宗地权力",
+      "propertyAliases": [
+        "宗地权力"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.地籍信息属性集.宗地权力"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_地籍信息属性集",
+      "propertySetAliases": [
+        "Pset_地籍信息属性集",
+        "地籍信息属性集"
+      ],
+      "canonicalProperty": "宗地权利人",
+      "propertyAliases": [
+        "宗地权利人"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.地籍信息属性集.宗地权利人"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_地籍信息属性集",
+      "propertySetAliases": [
+        "Pset_地籍信息属性集",
+        "地籍信息属性集"
+      ],
+      "canonicalProperty": "建筑物编码",
+      "propertyAliases": [
+        "建筑物编码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.地籍信息属性集.建筑物编码"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_登记信息属性集",
+      "propertySetAliases": [
+        "Pset_登记信息属性集",
+        "登记信息属性集"
+      ],
+      "canonicalProperty": "建设性质",
+      "propertyAliases": [
+        "建设性质"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.登记信息属性集.建设性质"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_登记信息属性集",
+      "propertySetAliases": [
+        "Pset_登记信息属性集",
+        "登记信息属性集"
+      ],
+      "canonicalProperty": "总建筑面积",
+      "propertyAliases": [
+        "总建筑面积"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m²",
+      "internalAliases": [
+        "HIFC.登记信息属性集.总建筑面积"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_登记信息属性集",
+      "propertySetAliases": [
+        "Pset_登记信息属性集",
+        "登记信息属性集"
+      ],
+      "canonicalProperty": "建筑物编码",
+      "propertyAliases": [
+        "建筑物编码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.登记信息属性集.建筑物编码"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_登记信息属性集",
+      "propertySetAliases": [
+        "Pset_登记信息属性集",
+        "登记信息属性集"
+      ],
+      "canonicalProperty": "现状名称",
+      "propertyAliases": [
+        "现状名称"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.登记信息属性集.现状名称"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_登记信息属性集",
+      "propertySetAliases": [
+        "Pset_登记信息属性集",
+        "登记信息属性集"
+      ],
+      "canonicalProperty": "审批名称",
+      "propertyAliases": [
+        "审批名称"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.登记信息属性集.审批名称"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_登记信息属性集",
+      "propertySetAliases": [
+        "Pset_登记信息属性集",
+        "登记信息属性集"
+      ],
+      "canonicalProperty": "详细地址",
+      "propertyAliases": [
+        "详细地址"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.登记信息属性集.详细地址"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_登记信息属性集",
+      "propertySetAliases": [
+        "Pset_登记信息属性集",
+        "登记信息属性集"
+      ],
+      "canonicalProperty": "不动产地址",
+      "propertyAliases": [
+        "不动产地址"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.登记信息属性集.不动产地址"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_登记信息属性集",
+      "propertySetAliases": [
+        "Pset_登记信息属性集",
+        "登记信息属性集"
+      ],
+      "canonicalProperty": "建成时间",
+      "propertyAliases": [
+        "建成时间"
+      ],
+      "targetType": "IfcDateTime",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.登记信息属性集.建成时间"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_登记信息属性集",
+      "propertySetAliases": [
+        "Pset_登记信息属性集",
+        "登记信息属性集"
+      ],
+      "canonicalProperty": "建筑状态",
+      "propertyAliases": [
+        "建筑状态"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.登记信息属性集.建筑状态"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_登记信息属性集",
+      "propertySetAliases": [
+        "Pset_登记信息属性集",
+        "登记信息属性集"
+      ],
+      "canonicalProperty": "建设性质代码",
+      "propertyAliases": [
+        "建设性质代码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.登记信息属性集.建设性质代码"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_区划信息属性集",
+      "propertySetAliases": [
+        "Pset_区划信息属性集",
+        "区划信息属性集"
+      ],
+      "canonicalProperty": "所属省级行政区",
+      "propertyAliases": [
+        "所属省级行政区"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.区划信息属性集.所属省级行政区"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_区划信息属性集",
+      "propertySetAliases": [
+        "Pset_区划信息属性集",
+        "区划信息属性集"
+      ],
+      "canonicalProperty": "省级行政区代码",
+      "propertyAliases": [
+        "省级行政区代码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.区划信息属性集.省级行政区代码"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_区划信息属性集",
+      "propertySetAliases": [
+        "Pset_区划信息属性集",
+        "区划信息属性集"
+      ],
+      "canonicalProperty": "所属地级行政区",
+      "propertyAliases": [
+        "所属地级行政区"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.区划信息属性集.所属地级行政区"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_区划信息属性集",
+      "propertySetAliases": [
+        "Pset_区划信息属性集",
+        "区划信息属性集"
+      ],
+      "canonicalProperty": "地级行政区代码",
+      "propertyAliases": [
+        "地级行政区代码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.区划信息属性集.地级行政区代码"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_区划信息属性集",
+      "propertySetAliases": [
+        "Pset_区划信息属性集",
+        "区划信息属性集"
+      ],
+      "canonicalProperty": "所属县级行政区",
+      "propertyAliases": [
+        "所属县级行政区"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.区划信息属性集.所属县级行政区"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_区划信息属性集",
+      "propertySetAliases": [
+        "Pset_区划信息属性集",
+        "区划信息属性集"
+      ],
+      "canonicalProperty": "县级行政区代码",
+      "propertyAliases": [
+        "县级行政区代码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.区划信息属性集.县级行政区代码"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_区划信息属性集",
+      "propertySetAliases": [
+        "Pset_区划信息属性集",
+        "区划信息属性集"
+      ],
+      "canonicalProperty": "所属乡级行政区",
+      "propertyAliases": [
+        "所属乡级行政区"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.区划信息属性集.所属乡级行政区"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_区划信息属性集",
+      "propertySetAliases": [
+        "Pset_区划信息属性集",
+        "区划信息属性集"
+      ],
+      "canonicalProperty": "乡级行政区代码",
+      "propertyAliases": [
+        "乡级行政区代码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.区划信息属性集.乡级行政区代码"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_区划信息属性集",
+      "propertySetAliases": [
+        "Pset_区划信息属性集",
+        "区划信息属性集"
+      ],
+      "canonicalProperty": "所属村（社区）",
+      "propertyAliases": [
+        "所属村（社区）"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.区划信息属性集.所属村（社区）"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_区划信息属性集",
+      "propertySetAliases": [
+        "Pset_区划信息属性集",
+        "区划信息属性集"
+      ],
+      "canonicalProperty": "村（社区）代码",
+      "propertyAliases": [
+        "村（社区）代码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.区划信息属性集.村（社区）代码"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_区划信息属性集",
+      "propertySetAliases": [
+        "Pset_区划信息属性集",
+        "区划信息属性集"
+      ],
+      "canonicalProperty": "网格编码",
+      "propertyAliases": [
+        "网格编码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.区划信息属性集.网格编码"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_区划信息属性集",
+      "propertySetAliases": [
+        "Pset_区划信息属性集",
+        "区划信息属性集"
+      ],
+      "canonicalProperty": "所属小区",
+      "propertyAliases": [
+        "所属小区"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.区划信息属性集.所属小区"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_区划信息属性集",
+      "propertySetAliases": [
+        "Pset_区划信息属性集",
+        "区划信息属性集"
+      ],
+      "canonicalProperty": "备注",
+      "propertyAliases": [
+        "备注"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.区划信息属性集.备注"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "基点坐标X",
+      "propertyAliases": [
+        "基点坐标X",
+        "基点坐标 X"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m",
+      "internalAliases": [
+        "HIFC.申报信息属性集.基点坐标X"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "基点坐标Y",
+      "propertyAliases": [
+        "基点坐标Y",
+        "基点坐标 Y"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m",
+      "internalAliases": [
+        "HIFC.申报信息属性集.基点坐标Y"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "基点高程",
+      "propertyAliases": [
+        "基点高程"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m",
+      "internalAliases": [
+        "HIFC.申报信息属性集.基点高程"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "备注",
+      "propertyAliases": [
+        "备注"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.申报信息属性集.备注"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "项目编号",
+      "propertyAliases": [
+        "项目编号"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.申报信息属性集.项目编号"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "项目名称",
+      "propertyAliases": [
+        "项目名称"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.申报信息属性集.项目名称"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "建设单位",
+      "propertyAliases": [
+        "建设单位"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.申报信息属性集.建设单位"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "项目地址",
+      "propertyAliases": [
+        "项目地址"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.申报信息属性集.项目地址"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "设计单位",
+      "propertyAliases": [
+        "设计单位"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.申报信息属性集.设计单位"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "设计人",
+      "propertyAliases": [
+        "设计人"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.申报信息属性集.设计人"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "勘察单位",
+      "propertyAliases": [
+        "勘察单位"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.申报信息属性集.勘察单位"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "咨询单位",
+      "propertyAliases": [
+        "咨询单位"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.申报信息属性集.咨询单位"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "施工单位",
+      "propertyAliases": [
+        "施工单位"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.申报信息属性集.施工单位"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "监理单位",
+      "propertyAliases": [
+        "监理单位"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.申报信息属性集.监理单位"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "图审单位",
+      "propertyAliases": [
+        "图审单位"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.申报信息属性集.图审单位"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "坐标系名称",
+      "propertyAliases": [
+        "坐标系名称"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.申报信息属性集.坐标系名称"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "高程系名称",
+      "propertyAliases": [
+        "高程系名称"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.申报信息属性集.高程系名称"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "经度",
+      "propertyAliases": [
+        "经度"
+      ],
+      "targetType": "IfcReal",
+      "unit": "度",
+      "internalAliases": [
+        "HIFC.申报信息属性集.经度"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_申报信息属性集",
+      "propertySetAliases": [
+        "Pset_申报信息属性集",
+        "申报信息属性集"
+      ],
+      "canonicalProperty": "纬度",
+      "propertyAliases": [
+        "纬度"
+      ],
+      "targetType": "IfcReal",
+      "unit": "度",
+      "internalAliases": [
+        "HIFC.申报信息属性集.纬度"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_项目控制指标信息属性集",
+      "propertySetAliases": [
+        "Pset_项目控制指标信息属性集",
+        "项目控制指标信息属性集"
+      ],
+      "canonicalProperty": "建筑密度",
+      "propertyAliases": [
+        "建筑密度"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.项目控制指标信息属性集.建筑密度"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_项目控制指标信息属性集",
+      "propertySetAliases": [
+        "Pset_项目控制指标信息属性集",
+        "项目控制指标信息属性集"
+      ],
+      "canonicalProperty": "容积率",
+      "propertyAliases": [
+        "容积率"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.项目控制指标信息属性集.容积率"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_项目控制指标信息属性集",
+      "propertySetAliases": [
+        "Pset_项目控制指标信息属性集",
+        "项目控制指标信息属性集"
+      ],
+      "canonicalProperty": "绿地率",
+      "propertyAliases": [
+        "绿地率"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.项目控制指标信息属性集.绿地率"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_项目控制指标信息属性集",
+      "propertySetAliases": [
+        "Pset_项目控制指标信息属性集",
+        "项目控制指标信息属性集"
+      ],
+      "canonicalProperty": "建筑限高",
+      "propertyAliases": [
+        "建筑限高"
+      ],
+      "targetType": "IfcReal",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.项目控制指标信息属性集.建筑限高"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_项目控制指标信息属性集",
+      "propertySetAliases": [
+        "Pset_项目控制指标信息属性集",
+        "项目控制指标信息属性集"
+      ],
+      "canonicalProperty": "海拔限高",
+      "propertyAliases": [
+        "海拔限高"
+      ],
+      "targetType": "IfcReal",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.项目控制指标信息属性集.海拔限高"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_项目控制指标信息属性集",
+      "propertySetAliases": [
+        "Pset_项目控制指标信息属性集",
+        "项目控制指标信息属性集"
+      ],
+      "canonicalProperty": "机动车位",
+      "propertyAliases": [
+        "机动车位"
+      ],
+      "targetType": "IfcReal",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.项目控制指标信息属性集.机动车位"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_项目控制指标信息属性集",
+      "propertySetAliases": [
+        "Pset_项目控制指标信息属性集",
+        "项目控制指标信息属性集"
+      ],
+      "canonicalProperty": "非机动车车位",
+      "propertyAliases": [
+        "非机动车车位"
+      ],
+      "targetType": "IfcReal",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.项目控制指标信息属性集.非机动车车位"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_项目控制指标信息属性集",
+      "propertySetAliases": [
+        "Pset_项目控制指标信息属性集",
+        "项目控制指标信息属性集"
+      ],
+      "canonicalProperty": "配置套值",
+      "propertyAliases": [
+        "配置套值"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.项目控制指标信息属性集.配置套值"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_项目控制指标信息属性集",
+      "propertySetAliases": [
+        "Pset_项目控制指标信息属性集",
+        "项目控制指标信息属性集"
+      ],
+      "canonicalProperty": "非机动车类型",
+      "propertyAliases": [
+        "非机动车类型"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.项目控制指标信息属性集.非机动车类型"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_项目控制指标信息属性集",
+      "propertySetAliases": [
+        "Pset_项目控制指标信息属性集",
+        "项目控制指标信息属性集"
+      ],
+      "canonicalProperty": "非机动车折算系数",
+      "propertyAliases": [
+        "非机动车折算系数"
+      ],
+      "targetType": "IfcReal",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.项目控制指标信息属性集.非机动车折算系数"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_Manifest",
+      "propertySetAliases": [
+        "Pset_Manifest",
+        "Manifest"
+      ],
+      "canonicalProperty": "阶段",
+      "propertyAliases": [
+        "阶段"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.Manifest.阶段"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_Manifest",
+      "propertySetAliases": [
+        "Pset_Manifest",
+        "Manifest"
+      ],
+      "canonicalProperty": "应用模型精度",
+      "propertyAliases": [
+        "应用模型精度"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.Manifest.应用模型精度"
+      ]
+    },
+    {
+      "entity": "IfcProject",
+      "canonicalPropertySet": "Pset_Manifest",
+      "propertySetAliases": [
+        "Pset_Manifest",
+        "Manifest"
+      ],
+      "canonicalProperty": "实际模型精度",
+      "propertyAliases": [
+        "实际模型精度"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.Manifest.实际模型精度"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "企业名称",
+      "propertyAliases": [
+        "企业名称"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.企业名称"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "单位性质",
+      "propertyAliases": [
+        "单位性质"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.单位性质"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "社会统一信用代码",
+      "propertyAliases": [
+        "社会统一信用代码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.社会统一信用代码"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "注册地区编码",
+      "propertyAliases": [
+        "注册地区编码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.注册地区编码"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "企业营业地址",
+      "propertyAliases": [
+        "企业营业地址"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.企业营业地址"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "邮政编码",
+      "propertyAliases": [
+        "邮政编码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.邮政编码"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "法定代表人姓名",
+      "propertyAliases": [
+        "法定代表人姓名"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.法定代表人姓名"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "法定代表人证件类型",
+      "propertyAliases": [
+        "法定代表人证件类型"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.法定代表人证件类型"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "法定代表人证件号码",
+      "propertyAliases": [
+        "法定代表人证件号码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.法定代表人证件号码"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "注册资本",
+      "propertyAliases": [
+        "注册资本"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.注册资本"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "注册资本币种",
+      "propertyAliases": [
+        "注册资本币种"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.注册资本币种"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "成立日期",
+      "propertyAliases": [
+        "成立日期"
+      ],
+      "targetType": "IfcDate",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.成立日期"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "办公电话",
+      "propertyAliases": [
+        "办公电话"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.办公电话"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "传真号码",
+      "propertyAliases": [
+        "传真号码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.传真号码"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "联系人姓名",
+      "propertyAliases": [
+        "联系人姓名"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.联系人姓名"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "联系人办公电话",
+      "propertyAliases": [
+        "联系人办公电话"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.联系人办公电话"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "联系人手机号码",
+      "propertyAliases": [
+        "联系人手机号码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.联系人手机号码"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "企业联系邮箱",
+      "propertyAliases": [
+        "企业联系邮箱"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.企业联系邮箱"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "企业网址",
+      "propertyAliases": [
+        "企业网址"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.企业网址"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "企业经营状态",
+      "propertyAliases": [
+        "企业经营状态"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.企业经营状态"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "企业备注",
+      "propertyAliases": [
+        "企业备注"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.企业备注"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "企业编码",
+      "propertyAliases": [
+        "企业编码"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.企业编码"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "项目参建类型",
+      "propertyAliases": [
+        "项目参建类型"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.项目参建类型"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "项目进场时间",
+      "propertyAliases": [
+        "项目进场时间"
+      ],
+      "targetType": "IfcDateTime",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.项目进场时间"
+      ]
+    },
+    {
+      "entity": "IfcOrganization",
+      "canonicalPropertySet": "Pset_组织通用属性集",
+      "propertySetAliases": [
+        "Pset_组织通用属性集",
+        "组织通用属性集"
+      ],
+      "canonicalProperty": "项目退场时间",
+      "propertyAliases": [
+        "项目退场时间"
+      ],
+      "targetType": "IfcDateTime",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.组织通用属性集.项目退场时间"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "耐火等级",
+      "propertyAliases": [
+        "耐火等级"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.耐火等级"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "地上建筑层数",
+      "propertyAliases": [
+        "地上建筑层数"
+      ],
+      "targetType": "IfcInteger",
+      "unit": "层",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.地上建筑层数"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "地下建筑层数",
+      "propertyAliases": [
+        "地下建筑层数"
+      ],
+      "targetType": "IfcInteger",
+      "unit": "层",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.地下建筑层数"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "建筑高度",
+      "propertyAliases": [
+        "建筑高度"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.建筑高度"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "建筑占地面积",
+      "propertyAliases": [
+        "建筑占地面积"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m²",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.建筑占地面积"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "建筑面积",
+      "propertyAliases": [
+        "建筑面积"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m²",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.建筑面积"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "抗震性能等级",
+      "propertyAliases": [
+        "抗震性能等级"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.抗震性能等级"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "建筑体积",
+      "propertyAliases": [
+        "建筑体积"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m³",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.建筑体积"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "人数",
+      "propertyAliases": [
+        "人数"
+      ],
+      "targetType": "IfcInteger",
+      "unit": "个",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.人数"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "地下建筑高度",
+      "propertyAliases": [
+        "地下建筑高度"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.地下建筑高度"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "室内外高差最大值",
+      "propertyAliases": [
+        "室内外高差最大值"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.室内外高差最大值"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "建筑名称",
+      "propertyAliases": [
+        "建筑名称"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.建筑名称"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "建筑类型名称",
+      "propertyAliases": [
+        "建筑类型名称"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.建筑类型名称"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "登记用途名称",
+      "propertyAliases": [
+        "登记用途名称"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.登记用途名称"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "建筑用途名称",
+      "propertyAliases": [
+        "建筑用途名称"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.建筑用途名称"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "抗震设防类别",
+      "propertyAliases": [
+        "抗震设防类别"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.抗震设防类别"
+      ]
+    },
+    {
+      "entity": "IfcBuilding",
+      "canonicalPropertySet": "Pset_建筑技术信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑技术信息属性集",
+        "建筑技术信息属性集"
+      ],
+      "canonicalProperty": "安全等级",
+      "propertyAliases": [
+        "安全等级"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑技术信息属性集.安全等级"
+      ]
+    },
+    {
+      "entity": "IfcBuildingStorey",
+      "canonicalPropertySet": "Pset_建筑楼层信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑楼层信息属性集",
+        "建筑楼层信息属性集"
+      ],
+      "canonicalProperty": "底标高",
+      "propertyAliases": [
+        "底标高"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m",
+      "internalAliases": [
+        "HIFC.建筑楼层信息属性集.底标高"
+      ]
+    },
+    {
+      "entity": "IfcBuildingStorey",
+      "canonicalPropertySet": "Pset_建筑楼层信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑楼层信息属性集",
+        "建筑楼层信息属性集"
+      ],
+      "canonicalProperty": "主功能类别",
+      "propertyAliases": [
+        "主功能类别"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑楼层信息属性集.主功能类别"
+      ]
+    },
+    {
+      "entity": "IfcBuildingStorey",
+      "canonicalPropertySet": "Pset_建筑楼层信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑楼层信息属性集",
+        "建筑楼层信息属性集"
+      ],
+      "canonicalProperty": "子功能类别",
+      "propertyAliases": [
+        "子功能类别"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑楼层信息属性集.子功能类别"
+      ]
+    },
+    {
+      "entity": "IfcBuildingStorey",
+      "canonicalPropertySet": "Pset_建筑楼层信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑楼层信息属性集",
+        "建筑楼层信息属性集"
+      ],
+      "canonicalProperty": "楼层类型",
+      "propertyAliases": [
+        "楼层类型"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑楼层信息属性集.楼层类型"
+      ]
+    },
+    {
+      "entity": "IfcBuildingStorey",
+      "canonicalPropertySet": "Pset_建筑楼层信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑楼层信息属性集",
+        "建筑楼层信息属性集"
+      ],
+      "canonicalProperty": "建筑层高",
+      "propertyAliases": [
+        "建筑层高"
+      ],
+      "targetType": "IfcReal",
+      "unit": "mm",
+      "internalAliases": [
+        "HIFC.建筑楼层信息属性集.建筑层高"
+      ]
+    },
+    {
+      "entity": "IfcBuildingStorey",
+      "canonicalPropertySet": "Pset_建筑楼层信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑楼层信息属性集",
+        "建筑楼层信息属性集"
+      ],
+      "canonicalProperty": "人数",
+      "propertyAliases": [
+        "人数"
+      ],
+      "targetType": "IfcInteger",
+      "unit": "个",
+      "internalAliases": [
+        "HIFC.建筑楼层信息属性集.人数"
+      ]
+    },
+    {
+      "entity": "IfcBuildingStorey",
+      "canonicalPropertySet": "Pset_建筑楼层信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑楼层信息属性集",
+        "建筑楼层信息属性集"
+      ],
+      "canonicalProperty": "计算标高",
+      "propertyAliases": [
+        "计算标高"
+      ],
+      "targetType": "IfcReal",
+      "unit": "mm",
+      "internalAliases": [
+        "HIFC.建筑楼层信息属性集.计算标高"
+      ]
+    },
+    {
+      "entity": "IfcBuildingStorey",
+      "canonicalPropertySet": "Pset_建筑楼层信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑楼层信息属性集",
+        "建筑楼层信息属性集"
+      ],
+      "canonicalProperty": "楼层面积",
+      "propertyAliases": [
+        "楼层面积"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m²",
+      "internalAliases": [
+        "HIFC.建筑楼层信息属性集.楼层面积"
+      ]
+    },
+    {
+      "entity": "IfcBuildingStorey",
+      "canonicalPropertySet": "Pset_建筑楼层信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑楼层信息属性集",
+        "建筑楼层信息属性集"
+      ],
+      "canonicalProperty": "是否设置避难层",
+      "propertyAliases": [
+        "是否设置避难层"
+      ],
+      "targetType": "IfcBoolean",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑楼层信息属性集.是否设置避难层"
+      ]
+    },
+    {
+      "entity": "IfcBuildingStorey",
+      "canonicalPropertySet": "Pset_建筑楼层信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑楼层信息属性集",
+        "建筑楼层信息属性集"
+      ],
+      "canonicalProperty": "备注",
+      "propertyAliases": [
+        "备注"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑楼层信息属性集.备注"
+      ]
+    },
+    {
+      "entity": "IfcBuildingStorey",
+      "canonicalPropertySet": "Pset_建筑楼层信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑楼层信息属性集",
+        "建筑楼层信息属性集"
+      ],
+      "canonicalProperty": "楼层名称",
+      "propertyAliases": [
+        "楼层名称"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑楼层信息属性集.楼层名称"
+      ]
+    },
+    {
+      "entity": "IfcBuildingStorey",
+      "canonicalPropertySet": "Pset_建筑楼层信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑楼层信息属性集",
+        "建筑楼层信息属性集"
+      ],
+      "canonicalProperty": "楼层编号",
+      "propertyAliases": [
+        "楼层编号"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑楼层信息属性集.楼层编号"
+      ]
+    },
+    {
+      "entity": "IfcBuildingStorey",
+      "canonicalPropertySet": "Pset_建筑楼层信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑楼层信息属性集",
+        "建筑楼层信息属性集"
+      ],
+      "canonicalProperty": "楼层属性信息",
+      "propertyAliases": [
+        "楼层属性信息"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑楼层信息属性集.楼层属性信息"
+      ]
+    },
+    {
+      "entity": "IfcDoor",
+      "canonicalPropertySet": "Pset_门信息属性集",
+      "propertySetAliases": [
+        "Pset_门信息属性集",
+        "门信息属性集"
+      ],
+      "canonicalProperty": "开启方向",
+      "propertyAliases": [
+        "开启方向"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.门信息属性集.开启方向"
+      ]
+    },
+    {
+      "entity": "IfcDuctSegment",
+      "canonicalPropertySet": "Pset_风管段信息属性集",
+      "propertySetAliases": [
+        "Pset_风管段信息属性集",
+        "风管段信息属性集"
+      ],
+      "canonicalProperty": "隔热层厚度",
+      "propertyAliases": [
+        "隔热层厚度"
+      ],
+      "targetType": "IfcReal",
+      "unit": "mm",
+      "internalAliases": [
+        "HIFC.风管段信息属性集.隔热层厚度"
+      ]
+    },
+    {
+      "entity": "IfcSite",
+      "canonicalPropertySet": "Pset_场地信息属性集",
+      "propertySetAliases": [
+        "Pset_场地信息属性集",
+        "场地信息属性集"
+      ],
+      "canonicalProperty": "长度",
+      "propertyAliases": [
+        "长度"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m",
+      "internalAliases": [
+        "HIFC.场地信息属性集.长度"
+      ]
+    },
+    {
+      "entity": "IfcSite",
+      "canonicalPropertySet": "Pset_场地信息属性集",
+      "propertySetAliases": [
+        "Pset_场地信息属性集",
+        "场地信息属性集"
+      ],
+      "canonicalProperty": "宽度",
+      "propertyAliases": [
+        "宽度"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m",
+      "internalAliases": [
+        "HIFC.场地信息属性集.宽度"
+      ]
+    },
+    {
+      "entity": "IfcSite",
+      "canonicalPropertySet": "Pset_场地信息属性集",
+      "propertySetAliases": [
+        "Pset_场地信息属性集",
+        "场地信息属性集"
+      ],
+      "canonicalProperty": "总用地面积",
+      "propertyAliases": [
+        "总用地面积"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m²",
+      "internalAliases": [
+        "HIFC.场地信息属性集.总用地面积"
+      ]
+    },
+    {
+      "entity": "IfcSite",
+      "canonicalPropertySet": "Pset_场地信息属性集",
+      "propertySetAliases": [
+        "Pset_场地信息属性集",
+        "场地信息属性集"
+      ],
+      "canonicalProperty": "可建设用地面积",
+      "propertyAliases": [
+        "可建设用地面积"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m²",
+      "internalAliases": [
+        "HIFC.场地信息属性集.可建设用地面积"
+      ]
+    },
+    {
+      "entity": "IfcSite",
+      "canonicalPropertySet": "Pset_场地信息属性集",
+      "propertySetAliases": [
+        "Pset_场地信息属性集",
+        "场地信息属性集"
+      ],
+      "canonicalProperty": "建筑密度",
+      "propertyAliases": [
+        "建筑密度"
+      ],
+      "targetType": "IfcReal",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.场地信息属性集.建筑密度"
+      ]
+    },
+    {
+      "entity": "IfcSite",
+      "canonicalPropertySet": "Pset_场地信息属性集",
+      "propertySetAliases": [
+        "Pset_场地信息属性集",
+        "场地信息属性集"
+      ],
+      "canonicalProperty": "建筑比例",
+      "propertyAliases": [
+        "建筑比例"
+      ],
+      "targetType": "IfcReal",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.场地信息属性集.建筑比例"
+      ]
+    },
+    {
+      "entity": "IfcSite",
+      "canonicalPropertySet": "Pset_场地信息属性集",
+      "propertySetAliases": [
+        "Pset_场地信息属性集",
+        "场地信息属性集"
+      ],
+      "canonicalProperty": "混合用地比例",
+      "propertyAliases": [
+        "混合用地比例"
+      ],
+      "targetType": "IfcReal",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.场地信息属性集.混合用地比例"
+      ]
+    },
+    {
+      "entity": "IfcSite",
+      "canonicalPropertySet": "Pset_场地信息属性集",
+      "propertySetAliases": [
+        "Pset_场地信息属性集",
+        "场地信息属性集"
+      ],
+      "canonicalProperty": "容积率",
+      "propertyAliases": [
+        "容积率"
+      ],
+      "targetType": "IfcReal",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.场地信息属性集.容积率"
+      ]
+    },
+    {
+      "entity": "IfcSite",
+      "canonicalPropertySet": "Pset_场地信息属性集",
+      "propertySetAliases": [
+        "Pset_场地信息属性集",
+        "场地信息属性集"
+      ],
+      "canonicalProperty": "绿地率",
+      "propertyAliases": [
+        "绿地率"
+      ],
+      "targetType": "IfcReal",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.场地信息属性集.绿地率"
+      ]
+    },
+    {
+      "entity": "IfcSite",
+      "canonicalPropertySet": "Pset_场地信息属性集",
+      "propertySetAliases": [
+        "Pset_场地信息属性集",
+        "场地信息属性集"
+      ],
+      "canonicalProperty": "地块编号",
+      "propertyAliases": [
+        "地块编号"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.场地信息属性集.地块编号"
+      ]
+    },
+    {
+      "entity": "IfcSite",
+      "canonicalPropertySet": "Pset_场地信息属性集",
+      "propertySetAliases": [
+        "Pset_场地信息属性集",
+        "场地信息属性集"
+      ],
+      "canonicalProperty": "城市用地分类和使用",
+      "propertyAliases": [
+        "城市用地分类和使用"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.场地信息属性集.城市用地分类和使用"
+      ]
+    },
+    {
+      "entity": "IfcSpace",
+      "canonicalPropertySet": "Pset_建筑空间信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑空间信息属性集",
+        "建筑空间信息属性集"
+      ],
+      "canonicalProperty": "空间形成方式",
+      "propertyAliases": [
+        "空间形成方式"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑空间信息属性集.空间形成方式"
+      ]
+    },
+    {
+      "entity": "IfcSpace",
+      "canonicalPropertySet": "Pset_建筑空间信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑空间信息属性集",
+        "建筑空间信息属性集"
+      ],
+      "canonicalProperty": "高度",
+      "propertyAliases": [
+        "高度"
+      ],
+      "targetType": "IfcReal",
+      "unit": "mm",
+      "internalAliases": [
+        "HIFC.建筑空间信息属性集.高度"
+      ]
+    },
+    {
+      "entity": "IfcSpace",
+      "canonicalPropertySet": "Pset_建筑空间信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑空间信息属性集",
+        "建筑空间信息属性集"
+      ],
+      "canonicalProperty": "净面积",
+      "propertyAliases": [
+        "净面积"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m²",
+      "internalAliases": [
+        "HIFC.建筑空间信息属性集.净面积"
+      ]
+    },
+    {
+      "entity": "IfcSpace",
+      "canonicalPropertySet": "Pset_建筑空间信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑空间信息属性集",
+        "建筑空间信息属性集"
+      ],
+      "canonicalProperty": "总建筑面积",
+      "propertyAliases": [
+        "总建筑面积"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m²",
+      "internalAliases": [
+        "HIFC.建筑空间信息属性集.总建筑面积"
+      ]
+    },
+    {
+      "entity": "IfcSpace",
+      "canonicalPropertySet": "Pset_建筑空间信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑空间信息属性集",
+        "建筑空间信息属性集"
+      ],
+      "canonicalProperty": "空间使用特征",
+      "propertyAliases": [
+        "空间使用特征"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑空间信息属性集.空间使用特征"
+      ]
+    },
+    {
+      "entity": "IfcSpace",
+      "canonicalPropertySet": "Pset_停车位信息属性集",
+      "propertySetAliases": [
+        "Pset_停车位信息属性集",
+        "停车位信息属性集"
+      ],
+      "canonicalProperty": "是否为室外停车场",
+      "propertyAliases": [
+        "是否为室外停车场"
+      ],
+      "targetType": "IfcBoolean",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.停车位信息属性集.是否为室外停车场"
+      ]
+    },
+    {
+      "entity": "IfcSpace",
+      "canonicalPropertySet": "Pset_停车位信息属性集",
+      "propertySetAliases": [
+        "Pset_停车位信息属性集",
+        "停车位信息属性集"
+      ],
+      "canonicalProperty": "停车位类别",
+      "propertyAliases": [
+        "停车位类别"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.停车位信息属性集.停车位类别"
+      ]
+    },
+    {
+      "entity": "IfcSpace",
+      "canonicalPropertySet": "Pset_停车位信息属性集",
+      "propertySetAliases": [
+        "Pset_停车位信息属性集",
+        "停车位信息属性集"
+      ],
+      "canonicalProperty": "停车位位置信息",
+      "propertyAliases": [
+        "停车位位置信息"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.停车位信息属性集.停车位位置信息"
+      ]
+    },
+    {
+      "entity": "IfcSpace",
+      "canonicalPropertySet": "Pset_停车位信息属性集",
+      "propertySetAliases": [
+        "Pset_停车位信息属性集",
+        "停车位信息属性集"
+      ],
+      "canonicalProperty": "备注",
+      "propertyAliases": [
+        "备注"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.停车位信息属性集.备注"
+      ]
+    },
+    {
+      "entity": "IfcSpace",
+      "canonicalPropertySet": "Pset_居住建筑空间信息属性集",
+      "propertySetAliases": [
+        "Pset_居住建筑空间信息属性集",
+        "居住建筑空间信息属性集"
+      ],
+      "canonicalProperty": "人数",
+      "propertyAliases": [
+        "人数"
+      ],
+      "targetType": "IfcInteger",
+      "unit": "个",
+      "internalAliases": [
+        "HIFC.居住建筑空间信息属性集.人数"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "主功能类别",
+      "propertyAliases": [
+        "主功能类别"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.主功能类别"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "子功能类别",
+      "propertyAliases": [
+        "子功能类别"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.子功能类别"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "区域类别",
+      "propertyAliases": [
+        "区域类别"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.区域类别"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "区域标记",
+      "propertyAliases": [
+        "区域标记"
+      ],
+      "targetType": "IfcLabel",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.区域标记"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "计容系数",
+      "propertyAliases": [
+        "计容系数"
+      ],
+      "targetType": "IfcReal",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.计容系数"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "计算系数",
+      "propertyAliases": [
+        "计算系数"
+      ],
+      "targetType": "IfcReal",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.计算系数"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "结构净高",
+      "propertyAliases": [
+        "结构净高"
+      ],
+      "targetType": "IfcReal",
+      "unit": "mm",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.结构净高"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "建筑净高",
+      "propertyAliases": [
+        "建筑净高"
+      ],
+      "targetType": "IfcReal",
+      "unit": "mm",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.建筑净高"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "结构层高",
+      "propertyAliases": [
+        "结构层高"
+      ],
+      "targetType": "IfcReal",
+      "unit": "mm",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.结构层高"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "计算标高",
+      "propertyAliases": [
+        "计算标高"
+      ],
+      "targetType": "IfcReal",
+      "unit": "mm",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.计算标高"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "计算标高（埋深）",
+      "propertyAliases": [
+        "计算标高（埋深）"
+      ],
+      "targetType": "IfcReal",
+      "unit": "mm",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.计算标高（埋深）"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "面积",
+      "propertyAliases": [
+        "面积"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m²",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.面积"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "建筑面积",
+      "propertyAliases": [
+        "建筑面积"
+      ],
+      "targetType": "IfcReal",
+      "unit": "m²",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.建筑面积"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "楼层数量",
+      "propertyAliases": [
+        "楼层数量"
+      ],
+      "targetType": "IfcInteger",
+      "unit": "层",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.楼层数量"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "是否为疏散分区",
+      "propertyAliases": [
+        "是否为疏散分区"
+      ],
+      "targetType": "IfcBoolean",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.是否为疏散分区"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "区域人数",
+      "propertyAliases": [
+        "区域人数"
+      ],
+      "targetType": "IfcInteger",
+      "unit": "个",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.区域人数"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "区域长度",
+      "propertyAliases": [
+        "区域长度"
+      ],
+      "targetType": "IfcReal",
+      "unit": "mm",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.区域长度"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "区域宽度",
+      "propertyAliases": [
+        "区域宽度"
+      ],
+      "targetType": "IfcReal",
+      "unit": "mm",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.区域宽度"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "轮廓线",
+      "propertyAliases": [
+        "轮廓线"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.轮廓线"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "疏散区域",
+      "propertyAliases": [
+        "疏散区域"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.疏散区域"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_建筑区域信息属性集",
+      "propertySetAliases": [
+        "Pset_建筑区域信息属性集",
+        "建筑区域信息属性集"
+      ],
+      "canonicalProperty": "区域位置",
+      "propertyAliases": [
+        "区域位置"
+      ],
+      "targetType": "IfcText",
+      "unit": "",
+      "internalAliases": [
+        "HIFC.建筑区域信息属性集.区域位置"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_停车场信息属性集",
+      "propertySetAliases": [
+        "Pset_停车场信息属性集",
+        "停车场信息属性集"
+      ],
+      "canonicalProperty": "机动车位数量",
+      "propertyAliases": [
+        "机动车位数量"
+      ],
+      "targetType": "IfcInteger",
+      "unit": "个",
+      "internalAliases": [
+        "HIFC.停车场信息属性集.机动车位数量"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_停车场信息属性集",
+      "propertySetAliases": [
+        "Pset_停车场信息属性集",
+        "停车场信息属性集"
+      ],
+      "canonicalProperty": "非机动车位数量",
+      "propertyAliases": [
+        "非机动车位数量"
+      ],
+      "targetType": "IfcInteger",
+      "unit": "个",
+      "internalAliases": [
+        "HIFC.停车场信息属性集.非机动车位数量"
+      ]
+    },
+    {
+      "entity": "IfcSpatialZone",
+      "canonicalPropertySet": "Pset_停车场信息属性集",
+      "propertySetAliases": [
+        "Pset_停车场信息属性集",
+        "停车场信息属性集"
+      ],
+      "canonicalProperty": "无障碍车位数量",
+      "propertyAliases": [
+        "无障碍车位数量"
+      ],
+      "targetType": "IfcInteger",
+      "unit": "个",
+      "internalAliases": [
+        "HIFC.停车场信息属性集.无障碍车位数量"
+      ]
+    }
+  ]
+}

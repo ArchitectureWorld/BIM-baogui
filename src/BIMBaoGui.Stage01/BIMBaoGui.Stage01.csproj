@@ -1,0 +1,97 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>BIMBaoGui.Stage01</AssemblyName>
+    <RootNamespace>BIMBaoGui.Stage01</RootNamespace>
+    <Version>0.9.0</Version>
+    <FileVersion>0.9.0.0</FileVersion>
+    <AssemblyVersion>0.9.0.0</AssemblyVersion>
+    <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>1591</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <HbrPythonExe Condition="'$(HbrPythonExe)' == ''">python</HbrPythonExe>
+    <HbrRuleSource Condition="'$(HbrRuleSource)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'specs', 'hbr-rules', 'v1', 'source', 'hbr_rule_source.v1.json'))</HbrRuleSource>
+    <HbrRulePackCompiler Condition="'$(HbrRulePackCompiler)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'tools', 'build_hbr_rulepack.py'))</HbrRulePackCompiler>
+    <HbrCompatibilityBaseline Condition="'$(HbrCompatibilityBaseline)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'specs', 'hbr-rules', 'v1', 'compatibility', 'hbr_rule_compatibility_baseline.v1.json'))</HbrCompatibilityBaseline>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grasshopper" Version="8.0.23304.9001" PrivateAssets="all" ExcludeAssets="runtime" />
+    <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="2020.0.1" PrivateAssets="all" ExcludeAssets="runtime" />
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\stage01_file_initialization_registry_v0.1.json" />
+    <None Include="..\..\specs\hifc-mapping\v1\generated\GH_HIFC_ParameterBindings.json"
+          Link="Resources\GH_HIFC_ParameterBindings.json" />
+    <None Include="..\..\specs\hifc-mapping\v1\generated\GH_HIFC_SharedParameters.txt"
+          Link="Resources\GH_HIFC_SharedParameters.txt" />
+    <None Include="..\..\specs\hifc-mapping\v1\data\wuhan_planning_rules.v1.json"
+          Link="Resources\wuhan_planning_rules.v1.json" />
+    <None Include="..\..\specs\hifc-mapping\v1\data\official_plugin_compatibility_status.v1.json"
+          Link="Resources\official_plugin_compatibility_status.v1.json" />
+  </ItemGroup>
+
+  <Target Name="InitializeHbrRulePackPath">
+    <PropertyGroup>
+      <HbrRulePack Condition="'$(HbrRulePack)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', 'HBR_RulePack.hbrpack'))</HbrRulePack>
+    </PropertyGroup>
+    <ItemGroup>
+      <UpToDateCheckInput Include="$(HbrRuleSource)" />
+      <UpToDateCheckInput Include="$(HbrRulePackCompiler)" />
+      <UpToDateCheckInput Include="$(HbrCompatibilityBaseline)" />
+      <UpToDateCheckBuilt Include="$(HbrRulePack)"
+                          Original="$(HbrRuleSource)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="PrepareHbrRulePackResource"
+          DependsOnTargets="InitializeHbrRulePackPath"
+          BeforeTargets="CollectUpToDateCheckInputDesignTime;CollectUpToDateCheckBuiltDesignTime" />
+
+  <Target Name="CompileHbrRulePack"
+          DependsOnTargets="InitializeHbrRulePackPath"
+          Condition="'$(DesignTimeBuild)' != 'true'"
+          Inputs="$(HbrRuleSource);$(HbrRulePackCompiler);$(HbrCompatibilityBaseline)"
+          Outputs="$(HbrRulePack)">
+    <Error Condition="!Exists('$(HbrRuleSource)')"
+           Text="HBR rule source not found: $(HbrRuleSource)" />
+    <Error Condition="!Exists('$(HbrRulePackCompiler)')"
+           Text="HBR rule-pack compiler not found: $(HbrRulePackCompiler)" />
+    <Error Condition="!Exists('$(HbrCompatibilityBaseline)')"
+           Text="HBR compatibility baseline not found: $(HbrCompatibilityBaseline)" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)"
+          EnvironmentVariables="PYTHONUTF8=1"
+          Command="&quot;$(HbrPythonExe)&quot; &quot;$(HbrRulePackCompiler)&quot; --source &quot;$(HbrRuleSource)&quot; --baseline &quot;$(HbrCompatibilityBaseline)&quot; --output &quot;$(HbrRulePack)&quot;" />
+    <Error Condition="!Exists('$(HbrRulePack)')"
+           Text="HBR rule-pack compiler exited without creating: $(HbrRulePack)" />
+  </Target>
+
+  <Target Name="RegisterHbrRulePackResource"
+          BeforeTargets="AssignTargetPaths"
+          DependsOnTargets="InitializeHbrRulePackPath;CompileHbrRulePack">
+    <ItemGroup>
+      <EmbeddedResource Include="$(HbrRulePack)"
+                        LogicalName="BIMBaoGui.Stage01.Resources.HBR_RulePack.hbrpack" />
+      <FileWrites Include="$(HbrRulePack)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="CopyAsGha" AfterTargets="CopyFilesToOutputDirectory">
+    <PropertyGroup>
+      <HbrGhaOutputPath>$([MSBuild]::NormalizePath('$(TargetDir)', 'BIMBaoGui.Stage01.gha'))</HbrGhaOutputPath>
+    </PropertyGroup>
+    <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(HbrGhaOutputPath)" />
+    <ItemGroup>
+      <FileWrites Include="$(HbrGhaOutputPath)" />
+    </ItemGroup>
+  </Target>
+</Project>

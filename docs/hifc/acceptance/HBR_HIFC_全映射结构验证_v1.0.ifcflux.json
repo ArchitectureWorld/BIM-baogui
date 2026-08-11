@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0.0",
+  "evidenceId": "HBR-HIFC-FULL-MAPPING-V1-IFCFLUX-B",
+  "tool": "IFCFlux",
+  "toolVersionStatus": "NOT_RECORDED",
+  "testedOn": "2026-08-10",
+  "evidenceType": "USER_CONFIRMED_MANUAL_RUN",
+  "fixtureSha256": "570f5a554478535cb13638549b89f596d749be3ca4c66392de22f5617254c632",
+  "result": "PASS",
+  "assertions": {
+    "baseCoordinateXRecognized": true,
+    "baseCoordinateYRecognized": true,
+    "xAxis": "Northing",
+    "yAxis": "Easting",
+    "axisSwapObserved": false
+  },
+  "limitations": [
+    "IFCFlux 版本号未记录",
+    "本次确认没有独立机器导出报告或截图"
+  ]
+}

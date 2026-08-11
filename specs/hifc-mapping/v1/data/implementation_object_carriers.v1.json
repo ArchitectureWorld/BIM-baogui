@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1.0.0",
+  "source": "IMPLEMENTATION_DECISION",
+  "carriers": {
+    "IfcProject": {
+      "canonicalObjectKind": "PROJECT",
+      "revitCarrier": "PROJECT_INFORMATION",
+      "revitCategory": "OST_ProjectInformation",
+      "persistence": "SHARED_PARAMETER_AND_DATASTORE",
+      "selector": "Document.ProjectInformation",
+      "exportStrategy": "POST_EXPORT_ENRICH",
+      "reason": "项目对象并非普通构件，使用统一数据存储并在导出后精确挂接属性集。"
+    },
+    "IfcBuilding": {
+      "canonicalObjectKind": "BUILDING",
+      "revitCarrier": "PROJECT_INFORMATION",
+      "revitCategory": "OST_ProjectInformation",
+      "persistence": "SHARED_PARAMETER_AND_DATASTORE",
+      "selector": "Document.ProjectInformation",
+      "exportStrategy": "POST_EXPORT_ENRICH",
+      "reason": "第一版约束为一个子项文件对应一个主要建筑；官方显式映射也由项目信息生成 IfcBuilding。"
+    },
+    "IfcBuildingStorey": {
+      "canonicalObjectKind": "STOREY",
+      "revitCarrier": "LEVEL",
+      "revitCategory": "OST_Levels",
+      "persistence": "SHARED_PARAMETER_AND_DATASTORE",
+      "selector": "Level.UniqueId",
+      "exportStrategy": "NATIVE_ENTITY_PLUS_ENRICH",
+      "reason": "官方显式映射 Level → IfcBuildingStorey。"
+    },
+    "IfcSpace": {
+      "canonicalObjectKind": "SPACE",
+      "revitCarrier": "ROOM",
+      "revitCategory": "OST_Rooms",
+      "persistence": "SHARED_PARAMETER_AND_DATASTORE",
+      "selector": "Room.UniqueId",
+      "exportStrategy": "NATIVE_ENTITY_PLUS_ENRICH",
+      "reason": "官方显式映射 Room → IfcSpace。"
+    },
+    "IfcDoor": {
+      "canonicalObjectKind": "DOOR",
+      "revitCarrier": "FAMILY_INSTANCE",
+      "revitCategory": "OST_Doors",
+      "persistence": "SHARED_PARAMETER_AND_DATASTORE",
+      "selector": "FamilyInstance.UniqueId",
+      "exportStrategy": "NATIVE_ENTITY_PLUS_ENRICH",
+      "reason": "使用 Revit 门实例作为原生承载对象。"
+    },
+    "IfcDuctSegment": {
+      "canonicalObjectKind": "DUCT_SEGMENT",
+      "revitCarrier": "MEP_CURVE",
+      "revitCategory": "OST_DuctCurves",
+      "persistence": "SHARED_PARAMETER_AND_DATASTORE",
+      "selector": "Duct.UniqueId",
+      "exportStrategy": "NATIVE_ENTITY_PLUS_ENRICH",
+      "reason": "使用 Revit 风管实例作为原生承载对象。"
+    },
+    "IfcSite": {
+      "canonicalObjectKind": "SITE",
+      "revitCarrier": "PROJECT_LOCATION_AND_DATASTORE",
+      "revitCategory": "OST_ProjectInformation",
+      "persistence": "SHARED_PARAMETER_AND_DATASTORE",
+      "selector": "ProjectLocation + SiteLocation + canonical SITE object",
+      "exportStrategy": "POST_EXPORT_ENRICH",
+      "reason": "Revit 没有与全部场地业务数据一一对应的普通 Element；位置来自 ProjectLocation，业务属性来自统一数据存储。"
+    },
+    "IfcOrganization": {
+      "canonicalObjectKind": "ORGANIZATION",
+      "revitCarrier": "CANONICAL_DATASTORE",
+      "revitCategory": null,
+      "persistence": "DATASTORE_ONLY",
+      "selector": "Organization.objectId",
+      "exportStrategy": "POST_EXPORT_CREATE_OR_ENRICH",
+      "reason": "一个项目存在多个参建组织，不能稳定绑定到单一 Revit 参数宿主。"
+    },
+    "IfcSpatialZone": {
+      "canonicalObjectKind": "SPATIAL_ZONE",
+      "revitCarrier": "AREA_OR_CANONICAL_DATASTORE",
+      "revitCategory": "OST_Areas",
+      "persistence": "HYBRID_AREA_AND_DATASTORE",
+      "selector": "Area.UniqueId or SpatialZone.objectId",
+      "exportStrategy": "POST_EXPORT_CREATE_OR_ENRICH",
+      "reason": "Revit 无稳定原生 IfcSpatialZone 对象；以 Area/房间成员关系表达区划，再由 IFC 后处理创建。"
+    }
+  }
+}

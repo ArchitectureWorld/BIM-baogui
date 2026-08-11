@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "1.1.0",
+  "baselineId": "gh-hifc-mapping-v1",
+  "branch": "feat/hifc-mapping-gh-baseline-v1",
+  "upstreamBranch": "feat/stage01-stage02-context-pipeline",
+  "sourceArchiveSha256": "341db436faa8410fb19695a727810dba262e3ab73c11b0c54566d502f3c759b9",
+  "fileCount": 13,
+  "files": [
+    {
+      "path": "README.md",
+      "size": 1539,
+      "sha256": "24fc99e33d36b1dcb5ba5d8d7888f09e649e9e5acc6c71ad2f0223ceed81e70c"
+    },
+    {
+      "path": "data/gh_command_contracts.v1.json",
+      "size": 1743,
+      "sha256": "316e6f65f9f990fa33c0b42161a4ad249a79766dc4c58c1140322c0f2ae469ae"
+    },
+    {
+      "path": "data/implementation_object_carriers.v1.json",
+      "size": 3740,
+      "sha256": "fa5b7d8218e109ea1e64d74a40341af6d9de259bd2afd720608d73a8cb4aab0c"
+    },
+    {
+      "path": "data/official_object_mappings.v1.json",
+      "size": 1959,
+      "sha256": "3f3cc53e7ba5d7c5faafa6c2b9adbefc386f9a138e1fd28b3ced4407bd380df4"
+    },
+    {
+      "path": "data/wuhan_planning_properties.v1.csv",
+      "size": 62501,
+      "sha256": "a243463a8df48aa49bdbc12adb70051af7a927cc5bce428588d602231dd8e6e1"
+    },
+    {
+      "path": "data/wuhan_planning_rules.v1.json",
+      "size": 296480,
+      "sha256": "8f2657f7f6421071796fea23f67f9977dd4e4be2d5fd563f4d21659e4e9f288f"
+    },
+    {
+      "path": "docs/01_稳定架构与开发逻辑.md",
+      "size": 6446,
+      "sha256": "805e655082826daf42b8f83b11afe47680f88c1c7490707e6ff4fb8d3374fdbf"
+    },
+    {
+      "path": "docs/02_官方数据基线说明.md",
+      "size": 1884,
+      "sha256": "4650199fe48c7e9645818690471e4f9173253884cf5ea997a9af55de0c009b2d"
+    },
+    {
+      "path": "docs/03_实施顺序与验收门槛.md",
+      "size": 2451,
+      "sha256": "aa866c478466ff2f3eea77184f701f36c4cd49256e7eac67b64449cb0b5af97c"
+    },
+    {
+      "path": "generated/GH_HIFC_ParameterBindings.json",
+      "size": 98009,
+      "sha256": "f6ec2d2fac5d2a260a559c5e4efa1db88575ba4cdb598b8c5160832d31b9ca33"
+    },
+    {
+      "path": "generated/GH_HIFC_SharedParameters.txt",
+      "size": 23856,
+      "sha256": "58432b33e72821da9d0334d946e81049fd5c4980df2004dc116081f18b0ff373"
+    },
+    {
+      "path": "generated/GH_HIFC_UserDefinedPsets.txt",
+      "size": 11764,
+      "sha256": "446b469f74465590d95151d7558e6023ca928852ed5d1dd59250fca21a8c944c"
+    },
+    {
+      "path": "schemas/gh_hifc_rule_package.schema.json",
+      "size": 5824,
+      "sha256": "cb6f9c3ce1af502c58a9a755dd5afdd62d3611e2c6676fd63eb91946d560ffe9"
+    }
+  ]
+}

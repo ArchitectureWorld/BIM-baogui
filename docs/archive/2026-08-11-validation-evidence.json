@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "1.0.0",
+  "capturedAtLocal": "2026-08-11T11:01:06+08:00",
+  "repository": {
+    "branch": "feat/gh-plugin-hbr-planning-v1.0.0",
+    "implementationCommit": "b6eef878ccf53a17569ac7c5766076a5a0fd852e",
+    "remoteTrackingCommit": "b6eef878ccf53a17569ac7c5766076a5a0fd852e",
+    "ahead": 0,
+    "behind": 0,
+    "workingTreeAtCapture": "CLEAN"
+  },
+  "mappingBaseline": {
+    "tag": "hbr-planning-mapping-v1.0.0",
+    "commit": "0c5d2c1100c9c80c4306354bab553debe8f191ca",
+    "packageId": "HBR-WUHAN-PLANNING",
+    "packageVersion": "1.0.0",
+    "manifestId": "HBR-WUHAN-PLANNING-1.0.0-BASELINE",
+    "ruleSource": {
+      "path": "specs/hbr-rules/v1/source/hbr_rule_source.v1.json",
+      "sizeBytes": 932695,
+      "sha256": "78a95f16548d6ec43b9a6a4a019f3eafdad2be2467abd2c3e41b6518aec9f3a4",
+      "canonicalSha256": "e3dfd079a8bc10862c154471084ab6585a312fda7c0eb3a2920d7dc823c372de"
+    },
+    "counts": {
+      "properties": 359,
+      "propertySets": 52,
+      "carrierRoles": 14,
+      "modelProfiles": 3,
+      "conditions": 14,
+      "tasks": 28,
+      "officialIdentityMatches": 166,
+      "runtimeStatus": {
+        "NOT_IMPLEMENTED": 57,
+        "UNCLASSIFIED_REQUIREMENT": 302
+      }
+    },
+    "changedFromTagAtCapture": false
+  },
+  "deployedArtifact": {
+    "fileName": "BIMBaoGui.Stage01.gha",
+    "assemblyVersion": "0.9.0.0",
+    "sizeBytes": 1569280,
+    "sha256": "dcff8939bc70ce335a4603e83de46ba4577571841985055cc57b98c68451217e",
+    "activeGhaCount": 1,
+    "backupOrPendingCount": 0
+  },
+  "automatedVerification": {
+    "verifiedAtLocal": "2026-08-11T11:07:08+08:00",
+    "scope": "FULL_PYTHON_FULL_DOTNET_RELEASE_BUILD_AND_DIFF_CHECK",
+    "python": {
+      "passed": 569,
+      "failed": 0
+    },
+    "dotnet": {
+      "passed": 1286,
+      "failed": 0,
+      "skipped": 0
+    },
+    "releaseBuild": {
+      "warnings": 0,
+      "errors": 0
+    },
+    "reviewFindings": {
+      "critical": 0,
+      "important": 0,
+      "minor": 0
+    }
+  },
+  "realMachineStatus": {
+    "stage01": {
+      "status": "USER_CONFIRMED_SMOKE_OK",
+      "scope": "CURRENT_RVT_REACHED_STAGE03",
+      "fullChecklistComplete": false
+    },
+    "stage02": {
+      "status": "NOT_RUN_IN_LATEST_REAL_MACHINE_SEQUENCE",
+      "codeAndAutomatedContractsComplete": true,
+      "fullChecklistComplete": false
+    },
+    "stage03": {
+      "status": "FILES_EXPORTED_TRANSLATION_ACCEPTANCE_FAILED",
+      "runId": "run-20260811024412878-44501703f06f4acb9823e42173156867",
+      "inputModelFileName": "20260731test02-v090-validation.rvt",
+      "rawIfc": {
+        "fileName": "20260731test02-v090-validation-run-20260811024412878-44501703f06f4acb9823e42173156867-RAW.ifc",
+        "status": "EXPORTED",
+        "sizeBytes": 42155,
+        "sha256": "009991aee33d7b27ec56442872a953cb253fe1e51068517a5af05d1727d0b0e1"
+      },
+      "rawExportLog": {
+        "fileName": "20260731test02-v090-validation-run-20260811024412878-44501703f06f4acb9823e42173156867-RAW.ifc.log",
+        "status": "OPERATION_TERMINATED_SUCCESSFULLY",
+        "sizeBytes": 1556,
+        "sha256": "1116eea23c284b7aa4863795c226b94e1927cb59cf997149a9f98febd05b3672"
+      },
+      "hifcMvdIfc": {
+        "fileName": "20260731test02-v090-validation-run-20260811024412878-44501703f06f4acb9823e42173156867-HIFC-MVD.ifc",
+        "status": "CANDIDATE_PRESENT_NOT_ACCEPTED",
+        "sizeBytes": 43045,
+        "sha256": "6607103a26fa575612d746ec2ee39d88cc99316413b5abc0aa7adce77cb4523e"
+      },
+      "fieldsJson": {
+        "status": "NOT_PRODUCED"
+      },
+      "failureReport": {
+        "fileName": "BIMBaoGui.Stage03.failure-20260811-104417-421-763e8084640f4ce08812fcd48c488869.json",
+        "sizeBytes": 546,
+        "sha256": "5fd2a2c1cf020042d5fb9e1c50882cc0e297000e29e7559449fb6da764a006bb",
+        "technicalCode": "INVALID_IFC",
+        "rootCauseStage": "TRANSLATE-IFC",
+        "exceptionType": "System.IO.InvalidDataException"
+      },
+      "fullWorkflowAccepted": false
+    }
+  }
+}

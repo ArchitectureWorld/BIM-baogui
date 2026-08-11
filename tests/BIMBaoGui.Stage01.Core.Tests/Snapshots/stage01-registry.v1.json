@@ -1,0 +1,1920 @@
+{
+  "schemaVersion": "1.0",
+  "frozenFromCommit": "91a2db05ed57ae2335e63ff532b4bf5fe6109dfb",
+  "fields": [
+    {
+      "key": "HBR|FileIdentity|SubitemCode",
+      "label": "子项编号",
+      "group": "01_文件与项目身份",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual",
+      "entity": "Workflow",
+      "pset": "HBR",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "HBR|FileIdentity|SubitemName",
+      "label": "子项名称",
+      "group": "01_文件与项目身份",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual",
+      "entity": "Workflow",
+      "pset": "HBR",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "HBR|FileIdentity|ModelFileType",
+      "label": "模型文件类型",
+      "group": "01_文件与项目身份",
+      "kind": "Enum",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual",
+      "entity": "Workflow",
+      "pset": "HBR",
+      "allowedValues": [
+        "总平模型",
+        "单体建筑—地上",
+        "单体建筑—地下"
+      ]
+    },
+    {
+      "key": "HBR|FileIdentity|ModelScope",
+      "label": "模型范围",
+      "group": "01_文件与项目身份",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual",
+      "entity": "Workflow",
+      "pset": "HBR",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "HBR|FileIdentity|FileGuid",
+      "label": "报规文件唯一ID",
+      "group": "01_文件与阶段",
+      "kind": "Guid",
+      "readOnly": true,
+      "essential": true,
+      "deferred": false,
+      "source": "system_generated",
+      "entity": "Workflow",
+      "pset": "HBR",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "HBR|Workflow|Version",
+      "label": "工作流版本",
+      "group": "01_文件与阶段",
+      "kind": "Text",
+      "readOnly": true,
+      "essential": true,
+      "deferred": false,
+      "source": "system_generated",
+      "entity": "Workflow",
+      "pset": "HBR",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "HBR|Workflow|InitializationStatus",
+      "label": "初始化状态",
+      "group": "09_提交与回读",
+      "kind": "Enum",
+      "readOnly": true,
+      "essential": true,
+      "deferred": false,
+      "source": "system_generated",
+      "entity": "Workflow",
+      "pset": "HBR",
+      "allowedValues": [
+        "未初始化",
+        "输入未完成",
+        "待提交",
+        "提交中",
+        "回读失败",
+        "初始化通过",
+        "已修改待重新提交"
+      ]
+    },
+    {
+      "key": "HBR|SpatialReference|TrueNorthAngle",
+      "label": "真北角度",
+      "group": "02_坐标与高程",
+      "kind": "Number",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_then_Revit_configuration_and_readback",
+      "entity": "Workflow",
+      "pset": "HBR",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "HBR|ProjectUnits|Length",
+      "label": "长度显示单位",
+      "group": "02_坐标与高程",
+      "kind": "Enum",
+      "readOnly": true,
+      "essential": true,
+      "deferred": false,
+      "source": "system_rule",
+      "entity": "Workflow",
+      "pset": "HBR",
+      "allowedValues": [
+        "m"
+      ]
+    },
+    {
+      "key": "HBR|ProjectUnits|Area",
+      "label": "面积显示单位",
+      "group": "02_坐标与高程",
+      "kind": "Enum",
+      "readOnly": true,
+      "essential": true,
+      "deferred": false,
+      "source": "system_rule",
+      "entity": "Workflow",
+      "pset": "HBR",
+      "allowedValues": [
+        "m²"
+      ]
+    },
+    {
+      "key": "HBR|ProjectUnits|Angle",
+      "label": "角度显示单位",
+      "group": "02_坐标与高程",
+      "kind": "Enum",
+      "readOnly": true,
+      "essential": true,
+      "deferred": false,
+      "source": "system_rule",
+      "entity": "Workflow",
+      "pset": "HBR",
+      "allowedValues": [
+        "°"
+      ]
+    },
+    {
+      "key": "HBR|Precheck|BlankProject",
+      "label": "空白/刚拆分文件检查",
+      "group": "00_当前Revit文件",
+      "kind": "Boolean",
+      "readOnly": true,
+      "essential": false,
+      "deferred": false,
+      "source": "Revit_scan",
+      "entity": "Workflow",
+      "pset": "HBR",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_报建信息属性集|手机号码",
+      "label": "手机号码",
+      "group": "05_报建联系人",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_报建信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_报建信息属性集|编号",
+      "label": "编号",
+      "group": "05_报建联系人",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_报建信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_报建信息属性集|姓",
+      "label": "姓",
+      "group": "05_报建联系人",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_报建信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_报建信息属性集|名",
+      "label": "名",
+      "group": "05_报建联系人",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_报建信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_报建信息属性集|邮箱地址",
+      "label": "邮箱地址",
+      "group": "05_报建联系人",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_报建信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_报建信息属性集|公司",
+      "label": "公司",
+      "group": "05_报建联系人",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_报建信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_报建信息属性集|公司性质",
+      "label": "公司性质",
+      "group": "05_报建联系人",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_报建信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_报建信息属性集|部门",
+      "label": "部门",
+      "group": "05_报建联系人",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_报建信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_报建信息属性集|国家",
+      "label": "国家",
+      "group": "05_报建联系人",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_报建信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_报建信息属性集|城镇",
+      "label": "城镇",
+      "group": "05_报建联系人",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_报建信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_报建信息属性集|街道",
+      "label": "街道",
+      "group": "05_报建联系人",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_报建信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_报建信息属性集|通信地址",
+      "label": "通信地址",
+      "group": "05_报建联系人",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_报建信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_报建信息属性集|国家编码",
+      "label": "国家编码",
+      "group": "05_报建联系人",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_报建信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_报建信息属性集|邮政编码",
+      "label": "邮政编码",
+      "group": "05_报建联系人",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_报建信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_地籍信息属性集|宗地数量",
+      "label": "宗地数量",
+      "group": "04_地籍信息",
+      "kind": "Integer",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_地籍信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_地籍信息属性集|宗地用途",
+      "label": "宗地用途",
+      "group": "04_地籍信息",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_地籍信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_地籍信息属性集|宗地编号",
+      "label": "宗地编号",
+      "group": "04_地籍信息",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_地籍信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_地籍信息属性集|宗地信息",
+      "label": "宗地信息",
+      "group": "04_地籍信息",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_地籍信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_地籍信息属性集|宗地质量等级",
+      "label": "宗地质量等级",
+      "group": "04_地籍信息",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_地籍信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_地籍信息属性集|宗地权力",
+      "label": "宗地权力",
+      "group": "04_地籍信息",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_地籍信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_地籍信息属性集|宗地权利人",
+      "label": "宗地权利人",
+      "group": "04_地籍信息",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_地籍信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_地籍信息属性集|建筑物编码",
+      "label": "建筑物编码",
+      "group": "04_地籍信息",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_地籍信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_登记信息属性集|建设性质",
+      "label": "建设性质",
+      "group": "07_登记信息",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_登记信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_登记信息属性集|总建筑面积",
+      "label": "总建筑面积",
+      "group": "07_登记信息",
+      "kind": "Number",
+      "readOnly": true,
+      "essential": false,
+      "deferred": true,
+      "source": "later_model_calculation_or_external_value",
+      "entity": "IfcProject",
+      "pset": "Pset_登记信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_登记信息属性集|建筑物编码",
+      "label": "建筑物编码",
+      "group": "07_登记信息",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_登记信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_登记信息属性集|现状名称",
+      "label": "现状名称",
+      "group": "07_登记信息",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_登记信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_登记信息属性集|审批名称",
+      "label": "审批名称",
+      "group": "07_登记信息",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_登记信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_登记信息属性集|详细地址",
+      "label": "详细地址",
+      "group": "07_登记信息",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_登记信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_登记信息属性集|不动产地址",
+      "label": "不动产地址",
+      "group": "07_登记信息",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_登记信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_登记信息属性集|建成时间",
+      "label": "建成时间",
+      "group": "07_登记信息",
+      "kind": "DateTime",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_登记信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_登记信息属性集|建筑状态",
+      "label": "建筑状态",
+      "group": "07_登记信息",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_登记信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_登记信息属性集|建设性质代码",
+      "label": "建设性质代码",
+      "group": "07_登记信息",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_登记信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_区划信息属性集|所属省级行政区",
+      "label": "所属省级行政区",
+      "group": "03_行政区划",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_区划信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_区划信息属性集|省级行政区代码",
+      "label": "省级行政区代码",
+      "group": "03_行政区划",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_区划信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_区划信息属性集|所属地级行政区",
+      "label": "所属地级行政区",
+      "group": "03_行政区划",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_区划信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_区划信息属性集|地级行政区代码",
+      "label": "地级行政区代码",
+      "group": "03_行政区划",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_区划信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_区划信息属性集|所属县级行政区",
+      "label": "所属县级行政区",
+      "group": "03_行政区划",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_区划信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_区划信息属性集|县级行政区代码",
+      "label": "县级行政区代码",
+      "group": "03_行政区划",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_区划信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_区划信息属性集|所属乡级行政区",
+      "label": "所属乡级行政区",
+      "group": "03_行政区划",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_区划信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_区划信息属性集|乡级行政区代码",
+      "label": "乡级行政区代码",
+      "group": "03_行政区划",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_区划信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_区划信息属性集|所属村（社区）",
+      "label": "所属村（社区）",
+      "group": "03_行政区划",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_区划信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_区划信息属性集|村（社区）代码",
+      "label": "村（社区）代码",
+      "group": "03_行政区划",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_区划信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_区划信息属性集|网格编码",
+      "label": "网格编码",
+      "group": "03_行政区划",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_区划信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_区划信息属性集|所属小区",
+      "label": "所属小区",
+      "group": "03_行政区划",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_区划信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_区划信息属性集|备注",
+      "label": "备注",
+      "group": "03_行政区划",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_区划信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|基点坐标X",
+      "label": "基点坐标X",
+      "group": "02_坐标与高程",
+      "kind": "Number",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_then_Revit_configuration_and_readback",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|基点坐标Y",
+      "label": "基点坐标Y",
+      "group": "02_坐标与高程",
+      "kind": "Number",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_then_Revit_configuration_and_readback",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|基点高程",
+      "label": "基点高程",
+      "group": "02_坐标与高程",
+      "kind": "Number",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_then_Revit_configuration_and_readback",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|备注",
+      "label": "备注",
+      "group": "01_文件与项目身份",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|项目编号",
+      "label": "项目编号",
+      "group": "01_文件与项目身份",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|项目名称",
+      "label": "项目名称",
+      "group": "01_文件与项目身份",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|建设单位",
+      "label": "建设单位",
+      "group": "01_文件与项目身份",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|项目地址",
+      "label": "项目地址",
+      "group": "01_文件与项目身份",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|设计单位",
+      "label": "设计单位",
+      "group": "01_文件与项目身份",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|设计人",
+      "label": "设计人",
+      "group": "01_文件与项目身份",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|勘察单位",
+      "label": "勘察单位",
+      "group": "01_文件与项目身份",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|咨询单位",
+      "label": "咨询单位",
+      "group": "01_文件与项目身份",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|施工单位",
+      "label": "施工单位",
+      "group": "01_文件与项目身份",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|监理单位",
+      "label": "监理单位",
+      "group": "01_文件与项目身份",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|图审单位",
+      "label": "图审单位",
+      "group": "01_文件与项目身份",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|坐标系名称",
+      "label": "坐标系名称",
+      "group": "02_坐标与高程",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_then_Revit_configuration_and_readback",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|高程系名称",
+      "label": "高程系名称",
+      "group": "02_坐标与高程",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_then_Revit_configuration_and_readback",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|经度",
+      "label": "经度",
+      "group": "02_坐标与高程",
+      "kind": "Number",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_then_Revit_configuration_and_readback",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_申报信息属性集|纬度",
+      "label": "纬度",
+      "group": "02_坐标与高程",
+      "kind": "Number",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_then_Revit_configuration_and_readback",
+      "entity": "IfcProject",
+      "pset": "Pset_申报信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_项目控制指标信息属性集|建筑密度",
+      "label": "建筑密度",
+      "group": "08_规划控制指标",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "structured_planning_target",
+      "entity": "IfcProject",
+      "pset": "Pset_项目控制指标信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_项目控制指标信息属性集|容积率",
+      "label": "容积率",
+      "group": "08_规划控制指标",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "structured_planning_target",
+      "entity": "IfcProject",
+      "pset": "Pset_项目控制指标信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_项目控制指标信息属性集|绿地率",
+      "label": "绿地率",
+      "group": "08_规划控制指标",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "structured_planning_target",
+      "entity": "IfcProject",
+      "pset": "Pset_项目控制指标信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_项目控制指标信息属性集|建筑限高",
+      "label": "建筑限高",
+      "group": "08_规划控制指标",
+      "kind": "Number",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_planning_condition_input",
+      "entity": "IfcProject",
+      "pset": "Pset_项目控制指标信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_项目控制指标信息属性集|海拔限高",
+      "label": "海拔限高",
+      "group": "08_规划控制指标",
+      "kind": "Number",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_planning_condition_input",
+      "entity": "IfcProject",
+      "pset": "Pset_项目控制指标信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_项目控制指标信息属性集|机动车位",
+      "label": "机动车位",
+      "group": "08_规划控制指标",
+      "kind": "Number",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_planning_condition_input",
+      "entity": "IfcProject",
+      "pset": "Pset_项目控制指标信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_项目控制指标信息属性集|非机动车车位",
+      "label": "非机动车车位",
+      "group": "08_规划控制指标",
+      "kind": "Number",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_planning_condition_input",
+      "entity": "IfcProject",
+      "pset": "Pset_项目控制指标信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_项目控制指标信息属性集|配置套值",
+      "label": "配置套值",
+      "group": "08_规划控制指标",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_planning_condition_input",
+      "entity": "IfcProject",
+      "pset": "Pset_项目控制指标信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_项目控制指标信息属性集|非机动车类型",
+      "label": "非机动车类型",
+      "group": "08_规划控制指标",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_planning_condition_input",
+      "entity": "IfcProject",
+      "pset": "Pset_项目控制指标信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_项目控制指标信息属性集|非机动车折算系数",
+      "label": "非机动车折算系数",
+      "group": "08_规划控制指标",
+      "kind": "Number",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_planning_condition_input",
+      "entity": "IfcProject",
+      "pset": "Pset_项目控制指标信息属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_Manifest|阶段",
+      "label": "阶段",
+      "group": "01_文件与阶段",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_and_system",
+      "entity": "IfcProject",
+      "pset": "Pset_Manifest",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_Manifest|应用模型精度",
+      "label": "应用模型精度",
+      "group": "01_文件与阶段",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_and_system",
+      "entity": "IfcProject",
+      "pset": "Pset_Manifest",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcProject|Pset_Manifest|实际模型精度",
+      "label": "实际模型精度",
+      "group": "01_文件与阶段",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_and_system",
+      "entity": "IfcProject",
+      "pset": "Pset_Manifest",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|企业名称",
+      "label": "企业名称",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|单位性质",
+      "label": "单位性质",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|社会统一信用代码",
+      "label": "社会统一信用代码",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|注册地区编码",
+      "label": "注册地区编码",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|企业营业地址",
+      "label": "企业营业地址",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|邮政编码",
+      "label": "邮政编码",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|法定代表人姓名",
+      "label": "法定代表人姓名",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|法定代表人证件类型",
+      "label": "法定代表人证件类型",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|法定代表人证件号码",
+      "label": "法定代表人证件号码",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|注册资本",
+      "label": "注册资本",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|注册资本币种",
+      "label": "注册资本币种",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|成立日期",
+      "label": "成立日期",
+      "group": "06_参建组织",
+      "kind": "DateTime",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|办公电话",
+      "label": "办公电话",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|传真号码",
+      "label": "传真号码",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|联系人姓名",
+      "label": "联系人姓名",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|联系人办公电话",
+      "label": "联系人办公电话",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|联系人手机号码",
+      "label": "联系人手机号码",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|企业联系邮箱",
+      "label": "企业联系邮箱",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|企业网址",
+      "label": "企业网址",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|企业经营状态",
+      "label": "企业经营状态",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|企业备注",
+      "label": "企业备注",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|企业编码",
+      "label": "企业编码",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|项目参建类型",
+      "label": "项目参建类型",
+      "group": "06_参建组织",
+      "kind": "Text",
+      "readOnly": false,
+      "essential": true,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|项目进场时间",
+      "label": "项目进场时间",
+      "group": "06_参建组织",
+      "kind": "DateTime",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    },
+    {
+      "key": "IfcOrganization|Pset_组织通用属性集|项目退场时间",
+      "label": "项目退场时间",
+      "group": "06_参建组织",
+      "kind": "DateTime",
+      "readOnly": false,
+      "essential": false,
+      "deferred": false,
+      "source": "GH_manual_or_external",
+      "entity": "IfcOrganization",
+      "pset": "Pset_组织通用属性集",
+      "allowedValues": [
+
+      ]
+    }
+  ],
+  "groups": [
+    "01_文件与项目身份",
+    "01_文件与阶段",
+    "09_提交与回读",
+    "02_坐标与高程",
+    "00_当前Revit文件",
+    "05_报建联系人",
+    "04_地籍信息",
+    "07_登记信息",
+    "03_行政区划",
+    "08_规划控制指标",
+    "06_参建组织"
+  ],
+  "conditions": [
+    {
+      "key": "site.other_land",
+      "label": "其他分类用地",
+      "group": "10_项目条件"
+    },
+    {
+      "key": "site.road_redline",
+      "label": "道路红线",
+      "group": "10_项目条件"
+    },
+    {
+      "key": "site.road_centerline",
+      "label": "道路中心线",
+      "group": "10_项目条件"
+    },
+    {
+      "key": "site.internal_roads",
+      "label": "区内道路",
+      "group": "10_项目条件"
+    },
+    {
+      "key": "site.fire_lane",
+      "label": "消防道路",
+      "group": "10_项目条件"
+    },
+    {
+      "key": "site.fire_field",
+      "label": "消防登高／操作场地",
+      "group": "10_项目条件"
+    },
+    {
+      "key": "site.green",
+      "label": "绿地",
+      "group": "10_项目条件"
+    },
+    {
+      "key": "site.outdoor_parking",
+      "label": "室外停车场／车位",
+      "group": "10_项目条件"
+    },
+    {
+      "key": "site.civil_defense",
+      "label": "人防区域",
+      "group": "10_项目条件"
+    },
+    {
+      "key": "site.structures",
+      "label": "室外构筑物与设施",
+      "group": "10_项目条件"
+    },
+    {
+      "key": "building.roof",
+      "label": "屋顶及屋面构件",
+      "group": "10_项目条件"
+    },
+    {
+      "key": "building.balcony",
+      "label": "阳台",
+      "group": "10_项目条件"
+    },
+    {
+      "key": "building.canopy",
+      "label": "雨篷或挑檐",
+      "group": "10_项目条件"
+    },
+    {
+      "key": "underground.parking",
+      "label": "地下停车空间",
+      "group": "10_项目条件"
+    }
+  ],
+  "defaults": {
+    "values": [
+      {
+        "key": "HBR|FileIdentity|ModelFileType",
+        "value": "总平模型"
+      },
+      {
+        "key": "HBR|FileIdentity|ModelScope",
+        "value": "项目总平面报规模型"
+      },
+      {
+        "key": "HBR|FileIdentity|FileGuid",
+        "value": "\u003cGUID\u003e"
+      },
+      {
+        "key": "HBR|Workflow|Version",
+        "value": "0.1.0"
+      },
+      {
+        "key": "HBR|Workflow|InitializationStatus",
+        "value": "未初始化"
+      },
+      {
+        "key": "HBR|SpatialReference|TrueNorthAngle",
+        "value": "0"
+      },
+      {
+        "key": "HBR|ProjectUnits|Length",
+        "value": "m"
+      },
+      {
+        "key": "HBR|ProjectUnits|Area",
+        "value": "m²"
+      },
+      {
+        "key": "HBR|ProjectUnits|Angle",
+        "value": "°"
+      },
+      {
+        "key": "IfcProject|Pset_申报信息属性集|坐标系名称",
+        "value": "CGCS2000"
+      },
+      {
+        "key": "IfcProject|Pset_申报信息属性集|高程系名称",
+        "value": "1985国家高程基准"
+      },
+      {
+        "key": "IfcProject|Pset_Manifest|阶段",
+        "value": "规划报建"
+      }
+    ],
+    "activeGroup": "01_文件与项目身份",
+    "conditions": [
+      {
+        "key": "site.other_land",
+        "value": false
+      },
+      {
+        "key": "site.road_redline",
+        "value": false
+      },
+      {
+        "key": "site.road_centerline",
+        "value": false
+      },
+      {
+        "key": "site.internal_roads",
+        "value": false
+      },
+      {
+        "key": "site.fire_lane",
+        "value": false
+      },
+      {
+        "key": "site.fire_field",
+        "value": false
+      },
+      {
+        "key": "site.green",
+        "value": false
+      },
+      {
+        "key": "site.outdoor_parking",
+        "value": false
+      },
+      {
+        "key": "site.civil_defense",
+        "value": false
+      },
+      {
+        "key": "site.structures",
+        "value": false
+      },
+      {
+        "key": "building.roof",
+        "value": false
+      },
+      {
+        "key": "building.balcony",
+        "value": false
+      },
+      {
+        "key": "building.canopy",
+        "value": false
+      },
+      {
+        "key": "underground.parking",
+        "value": false
+      }
+    ]
+  }
+}

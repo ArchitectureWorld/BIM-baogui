@@ -1,0 +1,21 @@
+{
+  "capturedUtc": "2026-08-01T15:00:02.8542177Z",
+  "operation": "restore-live-object-map-from-byte-identical-vendor-baseline",
+  "target": "C:\\Users\\2899\\Documents\\HIFCTool\\cnf\\BaseFile\\HIFCToolRvtToIfcConfig.txt",
+  "backup": "C:\\Users\\2899\\Documents\\HIFCTool\\cnf\\BaseFile\\HIFCToolRvtToIfcConfig.pre-bimbaogui-20260801-230002.txt",
+  "before": {
+    "length": 237,
+    "sha256": "BDEA7F4D05537A9880CFDB896A0BEC4883B3038A57CDDE730B2520FBE7D43542"
+  },
+  "baseline": {
+    "liveBackup": "C:\\Users\\2899\\Documents\\HIFCTool\\cnf\\BaseFile\\HIFCToolRvtToIfcConfig_Bak.txt",
+    "installed": "C:\\Program Files\\HIFCTool\\HIFCTool\\cnf\\BaseFile\\HIFCToolRvtToIfcConfig.txt",
+    "length": 738,
+    "sha256": "937B31E3E2F143A9990FF9BA60FA5772429C6FCF36BE90FEBBB5521967171CEC"
+  },
+  "expectedAfter": {
+    "length": 738,
+    "sha256": "937B31E3E2F143A9990FF9BA60FA5772429C6FCF36BE90FEBBB5521967171CEC",
+    "mappingRowCount": 4
+  }
+}

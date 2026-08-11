@@ -1,0 +1,1260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "packageId",
+    "packageVersion",
+    "guidNamespace",
+    "runtimeSupport",
+    "evidenceSources",
+    "properties",
+    "carrierRoles",
+    "modelProfiles",
+    "conditions",
+    "tasks",
+    "legacyAliases",
+    "stage01"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "packageId": {
+      "type": "string"
+    },
+    "packageVersion": {
+      "type": "string"
+    },
+    "guidNamespace": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "runtimeSupport": {
+      "$ref": "#/$defs/runtimeSupportPolicy"
+    },
+    "evidenceSources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidenceSourceContract"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "properties": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/propertyRule"
+      }
+    },
+    "carrierRoles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/carrierRoleContract"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "modelProfiles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/modelProfileContract"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/conditionContract"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/taskContract"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "legacyAliases": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/legacyAliasContract"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "stage01": {
+      "$ref": "#/$defs/stage01Contract"
+    }
+  },
+  "$defs": {
+    "propertyRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "propertyId",
+        "canonicalKey",
+        "contractKind",
+        "source",
+        "ifc",
+        "revit",
+        "officialPlugin",
+        "carrierRoleIds",
+        "requirement",
+        "stageOwnership",
+        "suggestion",
+        "ifcWrite"
+      ],
+      "properties": {
+        "propertyId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "canonicalKey": {
+          "type": "string"
+        },
+        "contractKind": {
+          "enum": [
+            "MVD",
+            "HIFC_EXTENSION"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/sourceContract"
+        },
+        "ifc": {
+          "$ref": "#/$defs/ifcContract"
+        },
+        "revit": {
+          "$ref": "#/$defs/revitContract"
+        },
+        "officialPlugin": {
+          "$ref": "#/$defs/officialPluginContract"
+        },
+        "carrierRoleIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "requirement": {
+          "$ref": "#/$defs/requirementContract"
+        },
+        "stageOwnership": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "STAGE01",
+              "STAGE02",
+              "STAGE03"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "suggestion": {
+          "$ref": "#/$defs/suggestionContract"
+        },
+        "ifcWrite": {
+          "$ref": "#/$defs/ifcWriteContract"
+        },
+        "extensionReason": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "contractKind": {
+                "const": "HIFC_EXTENSION"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "extensionReason"
+            ]
+          }
+        }
+      ]
+    },
+    "sourceContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact",
+        "sheet",
+        "row",
+        "rawEntityCn",
+        "rawEntityId",
+        "rawIfcElementOrType",
+        "rawPropertySetId",
+        "rawPropertySetName",
+        "rawProperty",
+        "rawValueKind",
+        "rawDeclaredType",
+        "rawUnit"
+      ],
+      "properties": {
+        "artifact": {
+          "type": "string"
+        },
+        "sheet": {
+          "type": "string"
+        },
+        "rawEntityCn": {
+          "type": "string"
+        },
+        "rawEntityId": {
+          "type": "string"
+        },
+        "rawIfcElementOrType": {
+          "type": "string"
+        },
+        "rawPropertySetId": {
+          "type": "string"
+        },
+        "rawPropertySetName": {
+          "type": "string"
+        },
+        "rawProperty": {
+          "type": "string"
+        },
+        "rawValueKind": {
+          "type": "string"
+        },
+        "rawDeclaredType": {
+          "type": "string"
+        },
+        "rawUnit": {
+          "type": "string"
+        },
+        "row": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
+    },
+    "ifcContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity",
+        "propertySet",
+        "property",
+        "sourceUnit",
+        "declaredType",
+        "canonicalUnit",
+        "allowedRuntimeTypes"
+      ],
+      "properties": {
+        "entity": {
+          "type": "string"
+        },
+        "propertySet": {
+          "type": "string"
+        },
+        "property": {
+          "type": "string"
+        },
+        "sourceUnit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "declaredType": {
+          "type": "string"
+        },
+        "canonicalUnit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "allowedRuntimeTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      }
+    },
+    "revitContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parameterGuid",
+        "parameterName",
+        "legacyNames",
+        "visible",
+        "userModifiable",
+        "bindingScope",
+        "storageType",
+        "parameterType"
+      ],
+      "properties": {
+        "parameterGuid": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "parameterName": {
+          "type": "string"
+        },
+        "legacyNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "userModifiable": {
+          "type": "boolean"
+        },
+        "bindingScope": {
+          "type": "string"
+        },
+        "storageType": {
+          "type": "string"
+        },
+        "parameterType": {
+          "type": "string"
+        }
+      }
+    },
+    "officialPluginContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inExtracted166",
+        "evidenceStatus",
+        "originalIdentity"
+      ],
+      "properties": {
+        "inExtracted166": {
+          "type": "boolean"
+        },
+        "evidenceStatus": {
+          "type": "string",
+          "minLength": 1
+        },
+        "originalIdentity": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "legacyProjection": {
+          "$ref": "#/$defs/legacyProjectionContract"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "inExtracted166": { "const": true } } },
+          "then": {
+            "required": [
+              "legacyProjection"
+            ],
+            "properties": {
+              "evidenceStatus": { "const": "OFFICIAL_EXTRACTED" },
+              "originalIdentity": { "type": "string", "minLength": 1 }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "legacyProjection"
+              ]
+            },
+            "properties": {
+              "evidenceStatus": { "const": "MVD_WORKBOOK" },
+              "originalIdentity": { "type": "null" }
+            }
+          }
+        }
+      ]
+    },
+    "legacyProjectionContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "carrier",
+        "persistenceMode",
+        "sharedParameterType",
+        "officialSourceParameterGroup",
+        "sourceParameterOverride",
+        "officialUnit"
+      ],
+      "properties": {
+        "category": {
+          "type": "string",
+          "pattern": "^(?!\\s+$)"
+        },
+        "carrier": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "persistenceMode": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "sharedParameterType": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "officialSourceParameterGroup": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "sourceParameterOverride": {
+          "type": "string",
+          "pattern": "^(?!\\s+$)"
+        },
+        "officialUnit": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "\\S"
+        }
+      }
+    },
+    "taskContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "taskId",
+        "modelFileType",
+        "name",
+        "objectCode",
+        "requirement",
+        "conditionId",
+        "sequence",
+        "skeletonTask",
+        "attributeRequirements",
+        "dependencies",
+        "geometryChecks",
+        "propertyChecks",
+        "targetComparisons",
+        "source"
+      ],
+      "properties": {
+        "taskId": {
+          "type": "string"
+        },
+        "modelFileType": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "objectCode": {
+          "type": "string"
+        },
+        "requirement": {
+          "enum": [
+            "REQUIRED",
+            "CONDITIONAL"
+          ]
+        },
+        "conditionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sequence": {
+          "type": "integer"
+        },
+        "skeletonTask": {
+          "type": "boolean"
+        },
+        "attributeRequirements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "geometryChecks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "propertyChecks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "targetComparisons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "requirement": {
+                "const": "CONDITIONAL"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "conditionId": {
+                "type": "string"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "conditionId": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "conditionContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "conditionId",
+        "displayName",
+        "group",
+        "activationRuleId",
+        "evidenceStatus",
+        "source",
+        "defaultActive"
+      ],
+      "properties": {
+        "conditionId": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        },
+        "activationRuleId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evidenceStatus": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "defaultActive": {
+          "type": "boolean"
+        }
+      }
+    },
+    "requirementContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "level",
+        "conditionId"
+      ],
+      "properties": {
+        "level": {
+          "enum": [
+            "REQUIRED",
+            "CONDITIONAL",
+            "OPTIONAL",
+            "NOT_APPLICABLE",
+            "UNCLASSIFIED"
+          ]
+        },
+        "conditionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "level": { "const": "CONDITIONAL" } } },
+          "then": { "properties": { "conditionId": { "type": "string", "minLength": 1 } } },
+          "else": { "properties": { "conditionId": { "type": "null" } } }
+        }
+      ]
+    },
+    "suggestionContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "aliases"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "EXISTING_OR_ALIAS"
+          ]
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      }
+    },
+    "ifcWriteContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "writeStrategy",
+        "ownerStrategy"
+      ],
+      "properties": {
+        "writeStrategy": {
+          "enum": [
+            "CREATE_OR_UPDATE_PSET"
+          ]
+        },
+        "ownerStrategy": {
+          "enum": [
+            "SINGLE_ENTITY_BY_TYPE",
+            "BY_EXPORT_GUID",
+            "USER_SELECTED_EXPORTABLE_GENERIC_MODEL",
+            "CANONICAL_SPATIAL_ZONE_RECORD"
+          ]
+        }
+      }
+    },
+    "evidenceSourceContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source"
+      ],
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "sheet": {
+          "type": "string"
+        },
+        "range": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source": {
+                "const": "《MVD》规划报建.xlsx"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "sha256",
+              "sheet",
+              "range"
+            ]
+          }
+        }
+      ]
+    },
+    "cardinalityContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "min",
+        "max"
+      ],
+      "properties": {
+        "min": {
+          "const": 0
+        },
+        "max": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "carrierRoleContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "roleId",
+        "displayName",
+        "modelFileTypes",
+        "ifcEntity",
+        "revitCategories",
+        "allowedElementKinds",
+        "nameAliases",
+        "familyAliases",
+        "typeAliases",
+        "cardinality",
+        "selectionPolicy",
+        "ifcOwnerStrategy"
+      ],
+      "properties": {
+        "roleId": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "modelFileTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "ifcEntity": {
+          "type": "string"
+        },
+        "revitCategories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "allowedElementKinds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "nameAliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "familyAliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "typeAliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "cardinality": {
+          "$ref": "#/$defs/cardinalityContract"
+        },
+        "selectionPolicy": {
+          "type": "string"
+        },
+        "ifcOwnerStrategy": {
+          "type": "string"
+        }
+      }
+    },
+    "modelProfileContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profileId",
+        "taskIds",
+        "activationRuleIds"
+      ],
+      "properties": {
+        "profileId": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "taskIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "activationRuleIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      }
+    },
+    "legacyAliasContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "propertyId",
+        "alias"
+      ],
+      "properties": {
+        "propertyId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "alias": {
+          "type": "string"
+        }
+      }
+    },
+    "stage01FieldRefContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fieldKey",
+        "propertyId",
+        "sourceRow",
+        "uiGroup",
+        "sourceKind",
+        "writeInStage01",
+        "essential",
+        "defaultStrategy",
+        "defaultValue"
+      ],
+      "properties": {
+        "fieldKey": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "propertyId": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "\\S"
+        },
+        "sourceRow": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "uiGroup": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "sourceKind": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "writeInStage01": {
+          "type": "boolean"
+        },
+        "essential": {
+          "type": "boolean"
+        },
+        "defaultStrategy": {
+          "enum": [
+            "NONE",
+            "STATIC",
+            "NEW_GUID"
+          ]
+        },
+        "defaultValue": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "\\S"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "defaultStrategy": { "const": "NONE" } } },
+          "then": { "properties": { "defaultValue": { "type": "null" } } }
+        },
+        {
+          "if": { "properties": { "defaultStrategy": { "const": "STATIC" } } },
+          "then": {
+            "properties": {
+              "defaultValue": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "defaultStrategy": { "const": "NEW_GUID" } } },
+          "then": {
+            "properties": {
+              "fieldKey": { "const": "HBR|FileIdentity|FileGuid" },
+              "defaultValue": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "fieldKey": { "const": "HBR|FileIdentity|FileGuid" }
+            }
+          },
+          "then": {
+            "properties": { "defaultStrategy": { "const": "NEW_GUID" } }
+          }
+        }
+      ]
+    },
+    "internalWorkflowFieldContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fieldKey",
+        "label",
+        "type",
+        "uiGroup",
+        "sourceKind",
+        "allowedValues",
+        "essential",
+        "defaultStrategy",
+        "defaultValue"
+      ],
+      "properties": {
+        "fieldKey": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "type": {
+          "enum": [
+            "string",
+            "enum",
+            "guid",
+            "number",
+            "boolean"
+          ]
+        },
+        "uiGroup": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "sourceKind": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "allowedValues": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "uniqueItems": true
+        },
+        "essential": {
+          "type": "boolean"
+        },
+        "defaultStrategy": {
+          "enum": [
+            "NONE",
+            "STATIC",
+            "NEW_GUID"
+          ]
+        },
+        "defaultValue": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "\\S"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "defaultStrategy": { "const": "NONE" } } },
+          "then": { "properties": { "defaultValue": { "type": "null" } } }
+        },
+        {
+          "if": { "properties": { "defaultStrategy": { "const": "STATIC" } } },
+          "then": {
+            "properties": {
+              "defaultValue": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "defaultStrategy": { "const": "NEW_GUID" } } },
+          "then": {
+            "properties": {
+              "fieldKey": { "const": "HBR|FileIdentity|FileGuid" },
+              "defaultValue": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "fieldKey": { "const": "HBR|FileIdentity|FileGuid" }
+            }
+          },
+          "then": {
+            "properties": { "defaultStrategy": { "const": "NEW_GUID" } }
+          }
+        }
+      ]
+    },
+    "spatialMappingContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceName",
+        "fieldKey",
+        "targetName",
+        "unit"
+      ],
+      "properties": {
+        "sourceName": {
+          "enum": ["X", "Y", "Elevation"]
+        },
+        "fieldKey": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "targetName": {
+          "enum": ["NorthSouth", "EastWest", "Elevation"]
+        },
+        "unit": {
+          "const": "m"
+        }
+      }
+    },
+    "officialPluginEntityPolicyContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ifcEntity",
+        "officialObjectMappingEvidence",
+        "revitCarrier",
+        "writePolicy",
+        "officialExportVerified"
+      ],
+      "properties": {
+        "ifcEntity": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "officialObjectMappingEvidence": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "revitCarrier": {
+          "type": "string",
+          "pattern": "^(?!\\s+$)"
+        },
+        "writePolicy": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "officialExportVerified": {
+          "type": "boolean"
+        }
+      }
+    },
+    "officialPluginExceptionContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fieldKey",
+        "reason"
+      ],
+      "properties": {
+        "fieldKey": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      }
+    },
+    "officialPluginCompatibilityContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entityPolicies",
+        "exceptions"
+      ],
+      "properties": {
+        "entityPolicies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/officialPluginEntityPolicyContract"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "exceptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/officialPluginExceptionContract"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "runtimeStatus": {
+      "enum": ["SUPPORTED", "NOT_IMPLEMENTED", "UNCLASSIFIED_REQUIREMENT", "OFFICIAL_EVIDENCE_ONLY"]
+    },
+    "ownerStrategySupport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ownerStrategy", "status"],
+      "properties": {
+        "ownerStrategy": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "status": { "$ref": "#/$defs/runtimeStatus" }
+      }
+    },
+    "requirementLevelSupport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "status"],
+      "properties": {
+        "level": { "type": "string", "minLength": 1, "pattern": "\\S" },
+        "status": { "$ref": "#/$defs/runtimeStatus" }
+      }
+    },
+    "runtimeSupportPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["statusPrecedence", "ownerStrategies", "requirementLevels"],
+      "properties": {
+        "statusPrecedence": { "type": "array", "items": { "$ref": "#/$defs/runtimeStatus" }, "uniqueItems": true, "minItems": 1 },
+        "ownerStrategies": { "type": "array", "items": { "$ref": "#/$defs/ownerStrategySupport" }, "uniqueItems": true, "minItems": 1 },
+        "requirementLevels": { "type": "array", "items": { "$ref": "#/$defs/requirementLevelSupport" }, "uniqueItems": true, "minItems": 1 }
+      }
+    },
+    "stage01Contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fieldRefs",
+        "internalWorkflowFields",
+        "spatialMappings",
+        "defaultActiveGroup",
+        "officialPluginCompatibility"
+      ],
+      "properties": {
+        "fieldRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/stage01FieldRefContract"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "internalWorkflowFields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/internalWorkflowFieldContract"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "spatialMappings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/spatialMappingContract"
+          },
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true
+        },
+        "defaultActiveGroup": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "officialPluginCompatibility": {
+          "$ref": "#/$defs/officialPluginCompatibilityContract"
+        }
+      }
+    }
+  }
+}

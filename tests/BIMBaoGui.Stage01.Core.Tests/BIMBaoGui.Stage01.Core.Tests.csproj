@@ -1,0 +1,281 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <PropertyGroup>
+    <HbrPythonExe Condition="'$(HbrPythonExe)' == ''">python</HbrPythonExe>
+    <HbrRuleSource Condition="'$(HbrRuleSource)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'specs', 'hbr-rules', 'v1', 'source', 'hbr_rule_source.v1.json'))</HbrRuleSource>
+    <HbrRulePackCompiler Condition="'$(HbrRulePackCompiler)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'tools', 'build_hbr_rulepack.py'))</HbrRulePackCompiler>
+    <HbrCompatibilityBaseline Condition="'$(HbrCompatibilityBaseline)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'specs', 'hbr-rules', 'v1', 'compatibility', 'hbr_rule_compatibility_baseline.v1.json'))</HbrCompatibilityBaseline>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageReference Include="Grasshopper" Version="8.0.23304.9001" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="RhinoCommon" Version="8.0.23304.9001" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BIMBaoGui.Stage01\BIMBaoGui.Stage01.csproj"
+                      ReferenceOutputAssembly="false"
+                      HbrProductionAssembly="true" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ValidationModels.cs" Link="Stage03\Stage03ValidationModels.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03WorkflowCoordinator.cs"
+             Link="Stage03\Stage03WorkflowCoordinator.cs"
+             Condition="Exists('..\..\src\BIMBaoGui.Stage01\Stage03\Stage03WorkflowCoordinator.cs')" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03IfcTranslationService.cs"
+             Link="Stage03\Stage03IfcTranslationService.cs"
+             Condition="Exists('..\..\src\BIMBaoGui.Stage01\Stage03\Stage03IfcTranslationService.cs')" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ComponentStatePolicy.cs"
+             Link="Stage03\Stage03ComponentStatePolicy.cs"
+             Condition="Exists('..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ComponentStatePolicy.cs')" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03BlockingDiagnosticPolicy.cs"
+             Link="Stage03\Stage03BlockingDiagnosticPolicy.cs"
+             Condition="Exists('..\..\src\BIMBaoGui.Stage01\Stage03\Stage03BlockingDiagnosticPolicy.cs')" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03FieldDetailFormatter.cs"
+             Link="Stage03\Stage03FieldDetailFormatter.cs"
+             Condition="Exists('..\..\src\BIMBaoGui.Stage01\Stage03\Stage03FieldDetailFormatter.cs')" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ContextIdentityPolicy.cs" Link="Stage03\Stage03ContextIdentityPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03CarrierMatchPolicy.cs" Link="Stage03\Stage03CarrierMatchPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\AutodeskIfcExportPolicy.cs" Link="Stage03\AutodeskIfcExportPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03RevitRequestPolicy.cs" Link="Stage03\Stage03RevitRequestPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ActivationStatePolicy.cs" Link="Stage03\Stage03ActivationStatePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03HostCallbackStartGate.cs" Link="Stage03\Stage03HostCallbackStartGate.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\RevitHost.cs" Link="Revit\RevitHost.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\RevitHostCallbackInvoker.cs" Link="Revit\RevitHostCallbackInvoker.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02RevitOperationResults.cs" Link="Revit\Stage02RevitOperationResults.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ScannerFieldPolicy.cs" Link="Stage03\Stage03ScannerFieldPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03SavedRoleAuditPolicy.cs" Link="Stage03\Stage03SavedRoleAuditPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrCanonicalUnitConverter.cs" Link="Revit\Parameters\HbrCanonicalUnitConverter.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03ExportGatePolicy.cs" Link="Stage03\Stage03ExportGatePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage03\Stage03OutputPathPolicy.cs" Link="Stage03\Stage03OutputPathPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\AtomicJsonReportWriter.cs" Link="Diagnostics\AtomicJsonReportWriter.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\Stage03FieldReportWriter.cs" Link="Diagnostics\Stage03FieldReportWriter.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\Stage03FailureReportWriter.cs" Link="Diagnostics\Stage03FailureReportWriter.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\Stage04FailureReportWriter.cs" Link="Diagnostics\Stage04FailureReportWriter.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepDocument.cs" Link="Mvd\IfcStepDocument.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepEntity.cs" Link="Mvd\IfcStepEntity.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcStepSyntax.cs" Link="Mvd\IfcStepSyntax.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\IfcGuidCodec.cs" Link="Mvd\IfcGuidCodec.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\HbrIfcCanonicalValuePolicy.cs" Link="Mvd\HbrIfcCanonicalValuePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\HbrIfcEnrichmentModels.cs" Link="Mvd\HbrIfcEnrichmentModels.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\HbrIfcEnricher.cs" Link="Mvd\HbrIfcEnricher.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\HbrIfcFieldInspector.cs" Link="Mvd\HbrIfcFieldInspector.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\MvdIfcNormalizationCatalog.cs" Link="Mvd\MvdIfcNormalizationCatalog.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\MvdIfcNormalizationRule.cs" Link="Mvd\MvdIfcNormalizationRule.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\MvdIfcNormalizationModels.cs" Link="Mvd\MvdIfcNormalizationModels.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\MvdIfcNormalizer.cs" Link="Mvd\MvdIfcNormalizer.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\MvdIfcFileService.cs" Link="Mvd\MvdIfcFileService.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Mvd\MvdIfcPathPolicy.cs" Link="Mvd\MvdIfcPathPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\Stage01FailureReportWriter.cs" Link="Diagnostics\Stage01FailureReportWriter.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRContextVersions.cs" Link="Context\HBRContextVersions.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRDocumentFingerprint.cs" Link="Context\HBRDocumentFingerprint.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRFileContext.cs" Link="Context\HBRFileContext.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRFileContextFactory.cs" Link="Context\HBRFileContextFactory.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRFileContextCanonicalizer.cs" Link="Context\HBRFileContextCanonicalizer.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRLiveContextPolicy.cs" Link="Context\HBRLiveContextPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\HBRSpatialReference.cs" Link="Context\HBRSpatialReference.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Context\RuleActivationCatalog.cs" Link="Context\RuleActivationCatalog.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\GrasshopperTypes\HBRFileContextGoo.cs" Link="GrasshopperTypes\HBRFileContextGoo.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\GrasshopperTypes\HBRTaskPlanGoo.cs" Link="GrasshopperTypes\HBRTaskPlanGoo.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\BlankGatePolicy.cs" Link="Core\BlankGatePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\CanonicalPayload.cs" Link="Core\CanonicalPayload.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\ExplicitExecutionGate.cs" Link="Core\ExplicitExecutionGate.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\FieldDefinition.cs" Link="Core\FieldDefinition.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\FieldInputRules.cs" Link="Core\FieldInputRules.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\PlanningTargetCatalog.cs" Link="Core\PlanningTargetCatalog.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\PlanningTargetRequirementPolicy.cs" Link="Core\PlanningTargetRequirementPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\PlanningTargetValue.cs" Link="Core\PlanningTargetValue.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Feedback.cs" Link="Core\Stage01Feedback.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Keys.cs" Link="Core\Stage01Keys.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01LegacyFieldKeyMigrationPolicy.cs"
+             Link="Core\Stage01LegacyFieldKeyMigrationPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Model.cs" Link="Core\Stage01Model.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01PayloadCodec.cs" Link="Core\Stage01PayloadCodec.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01StorageStatePolicy.cs" Link="Core\Stage01StorageStatePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01StoredPayloadIntegrityPolicy.cs" Link="Core\Stage01StoredPayloadIntegrityPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01UiPolicy.cs" Link="Core\Stage01UiPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Core\Stage01Validation.cs" Link="Core\Stage01Validation.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\DeterministicGuidV5.cs" Link="Hifc\DeterministicGuidV5.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\HbrSharedParameterTextProjection.cs" Link="Hifc\HbrSharedParameterTextProjection.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialHifcMapping.cs" Link="Hifc\OfficialHifcMapping.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialHifcMappingCatalog.cs" Link="Hifc\OfficialHifcMappingCatalog.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialSourceAliasPolicy.cs" Link="Hifc\OfficialSourceAliasPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialSourceAliasWritePolicy.cs" Link="Hifc\OfficialSourceAliasWritePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialSourceParameterTypePolicy.cs" Link="Hifc\OfficialSourceParameterTypePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialSourceValuePolicy.cs" Link="Hifc\OfficialSourceValuePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialParameterTypeContract.cs" Link="Hifc\OfficialParameterTypeContract.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\Stage01OfficialCompatibilityPolicy.cs" Link="Hifc\Stage01OfficialCompatibilityPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Hifc\OfficialPluginCompatibilityCatalog.cs" Link="Hifc\OfficialPluginCompatibilityCatalog.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Infrastructure\Stage01RegistryProvider.cs" Link="Infrastructure\Stage01RegistryProvider.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\RevitModels.cs" Link="Revit\RevitModels.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\HBRTaskPlan.cs" Link="TaskPlanning\HBRTaskPlan.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\HBRTaskPlanCanonicalizer.cs" Link="TaskPlanning\HBRTaskPlanCanonicalizer.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\TaskPlanCompiler.cs" Link="TaskPlanning\TaskPlanCompiler.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\TaskRuleCatalog.cs" Link="TaskPlanning\TaskRuleCatalog.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\TaskPlanning\TaskRuleDefinition.cs" Link="TaskPlanning\TaskRuleDefinition.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Rules\HbrRulePackage.cs" Link="Rules\HbrRulePackage.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Rules\HbrRulePackageLoader.cs" Link="Rules\HbrRulePackageLoader.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Rules\HbrRuntimeStatusDecision.cs" Link="Rules\HbrRuntimeStatusDecision.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Rules\HbrRuleDatabase.cs" Link="Rules\HbrRuleDatabase.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02Models.cs" Link="Stage02\Stage02Models.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02MatchEngine.cs" Link="Stage02\Stage02MatchEngine.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02PreviewCompiler.cs" Link="Stage02\Stage02PreviewCompiler.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02ConfirmationPolicy.cs" Link="Stage02\Stage02ConfirmationPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02ConfirmationUiPolicy.cs" Link="Stage02\Stage02ConfirmationUiPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02PreConsumptionUiPolicy.cs" Link="Stage02\Stage02PreConsumptionUiPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02RequirementDecisionPolicy.cs" Link="Stage02\Stage02RequirementDecisionPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02Stage01ProjectionPolicy.cs" Link="Stage02\Stage02Stage01ProjectionPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02SelectionSetPolicy.cs" Link="Stage02\Stage02SelectionSetPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02PreparationInputPolicy.cs" Link="Stage02\Stage02PreparationInputPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Stage02\Stage02PreparationFieldDetailFormatter.cs" Link="Stage02\Stage02PreparationFieldDetailFormatter.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02TransactionStatePolicy.cs" Link="Revit\Stage02TransactionStatePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02DeferredTransactionPolicy.cs" Link="Revit\Stage02DeferredTransactionPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02DeferredGroupPolicy.cs" Link="Revit\Stage02DeferredGroupPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02DeferredFailureBudget.cs" Link="Revit\Stage02DeferredFailureBudget.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02TransactionHandoff.cs" Link="Revit\Stage02TransactionHandoff.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02GroupCompletionGate.cs" Link="Revit\Stage02GroupCompletionGate.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02ExecutionCleanupGate.cs" Link="Revit\Stage02ExecutionCleanupGate.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Stage02LateCleanupCoordinator.cs" Link="Revit\Stage02LateCleanupCoordinator.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrBindingPlanPolicy.cs" Link="Revit\Parameters\HbrBindingPlanPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrBindingScopePolicy.cs" Link="Revit\Parameters\HbrBindingScopePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrNamedParameterCompatibilityPolicy.cs" Link="Revit\Parameters\HbrNamedParameterCompatibilityPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrParameterSuggestionPolicy.cs" Link="Revit\Parameters\HbrParameterSuggestionPolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrInvariantValueParser.cs" Link="Revit\Parameters\HbrInvariantValueParser.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrParameterTextValuePolicy.cs" Link="Revit\Parameters\HbrParameterTextValuePolicy.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrSharedParameterDefinitionText.cs" Link="Revit\Parameters\HbrSharedParameterDefinitionText.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Revit\Parameters\HbrTemporaryFileCleanup.cs" Link="Revit\Parameters\HbrTemporaryFileCleanup.cs" />
+    <Compile Include="..\..\src\BIMBaoGui.Stage01\Diagnostics\Stage02FailureReportWriter.cs" Link="Diagnostics\Stage02FailureReportWriter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Snapshots\*.v1.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(PkgGrasshopper)\lib\net48\Grasshopper.dll" Link="TestRuntime\Grasshopper.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(PkgGrasshopper)\lib\net48\GH_IO.dll" Link="TestRuntime\GH_IO.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(PkgRhinoCommon)\lib\net48\RhinoCommon.dll" Link="TestRuntime\RhinoCommon.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(PkgRhinoCommon)\lib\net48\Rhino.UI.dll" Link="TestRuntime\Rhino.UI.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(PkgRhinoCommon)\lib\net48\Eto.dll" Link="TestRuntime\Eto.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(PkgRhinoCommon)\lib\net48\Ed.Eto.dll" Link="TestRuntime\Ed.Eto.dll" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="InitializeHbrRulePackPath">
+    <PropertyGroup>
+      <HbrRulePack Condition="'$(HbrRulePack)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', 'HBR_RulePack.hbrpack'))</HbrRulePack>
+    </PropertyGroup>
+    <ItemGroup>
+      <UpToDateCheckInput Include="$(HbrRuleSource)" />
+      <UpToDateCheckInput Include="$(HbrRulePackCompiler)" />
+      <UpToDateCheckInput Include="$(HbrCompatibilityBaseline)" />
+      <UpToDateCheckBuilt Include="$(HbrRulePack)"
+                          Original="$(HbrRuleSource)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="PrepareHbrRulePackResource"
+          DependsOnTargets="InitializeHbrRulePackPath"
+          BeforeTargets="CollectUpToDateCheckInputDesignTime;CollectUpToDateCheckBuiltDesignTime" />
+
+  <Target Name="CompileHbrRulePack"
+          DependsOnTargets="InitializeHbrRulePackPath"
+          Condition="'$(DesignTimeBuild)' != 'true'"
+          Inputs="$(HbrRuleSource);$(HbrRulePackCompiler);$(HbrCompatibilityBaseline)"
+          Outputs="$(HbrRulePack)">
+    <Error Condition="!Exists('$(HbrRuleSource)')"
+           Text="HBR rule source not found: $(HbrRuleSource)" />
+    <Error Condition="!Exists('$(HbrRulePackCompiler)')"
+           Text="HBR rule-pack compiler not found: $(HbrRulePackCompiler)" />
+    <Error Condition="!Exists('$(HbrCompatibilityBaseline)')"
+           Text="HBR compatibility baseline not found: $(HbrCompatibilityBaseline)" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)"
+          EnvironmentVariables="PYTHONUTF8=1"
+          Command="&quot;$(HbrPythonExe)&quot; &quot;$(HbrRulePackCompiler)&quot; --source &quot;$(HbrRuleSource)&quot; --baseline &quot;$(HbrCompatibilityBaseline)&quot; --output &quot;$(HbrRulePack)&quot;" />
+    <Error Condition="!Exists('$(HbrRulePack)')"
+           Text="HBR rule-pack compiler exited without creating: $(HbrRulePack)" />
+  </Target>
+
+  <Target Name="RegisterHbrRulePackResource"
+          BeforeTargets="AssignTargetPaths"
+          DependsOnTargets="InitializeHbrRulePackPath;CompileHbrRulePack">
+    <ItemGroup>
+      <EmbeddedResource Include="$(HbrRulePack)"
+                        LogicalName="BIMBaoGui.Stage01.Resources.HBR_RulePack.hbrpack" />
+      <FileWrites Include="$(HbrRulePack)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="StageHbrProductionAssemblyForTests"
+          AfterTargets="Build"
+          DependsOnTargets="PrepareProjectReferences">
+    <ItemGroup>
+      <_HbrProductionProjectReference Include="@(_MSBuildProjectReferenceExistent)"
+                                      Condition="'%(_MSBuildProjectReferenceExistent.HbrProductionAssembly)' == 'true'" />
+    </ItemGroup>
+    <Error Condition="'@(_HbrProductionProjectReference->Count())' != '1'"
+           Text="Expected exactly one existing HBR production ProjectReference, but found @(_HbrProductionProjectReference->Count())." />
+    <MSBuild Projects="@(_HbrProductionProjectReference)"
+             Targets="GetTargetPath"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="%(_HbrProductionProjectReference.SetConfiguration); %(_HbrProductionProjectReference.SetPlatform); %(_HbrProductionProjectReference.SetTargetFramework)"
+             RemoveProperties="%(_HbrProductionProjectReference.GlobalPropertiesToRemove)$(_GlobalPropertiesToRemoveFromProjectReferences)">
+      <Output TaskParameter="TargetOutputs" ItemName="_HbrProductionTargetOutputs" />
+    </MSBuild>
+    <ItemGroup>
+      <_HbrProductionAssembly Include="@(_HbrProductionTargetOutputs)"
+                              Condition="'%(_HbrProductionTargetOutputs.Filename)%(_HbrProductionTargetOutputs.Extension)' == 'BIMBaoGui.Stage01.dll'" />
+    </ItemGroup>
+    <Error Condition="'@(_HbrProductionAssembly->Count())' != '1'"
+           Text="Expected exactly one BIMBaoGui.Stage01.dll TargetOutput, but found @(_HbrProductionAssembly->Count()): @(_HbrProductionTargetOutputs)." />
+    <PropertyGroup>
+      <HbrProductionAssemblyPath>@(_HbrProductionAssembly->'%(FullPath)')</HbrProductionAssemblyPath>
+      <HbrProductionGhaPath>$([System.IO.Path]::ChangeExtension('$(HbrProductionAssemblyPath)', '.gha'))</HbrProductionGhaPath>
+      <HbrProductionAssemblyFixture>$([MSBuild]::NormalizePath('$(TargetDir)', 'BIMBaoGui.Stage01.production.dll'))</HbrProductionAssemblyFixture>
+      <HbrProductionGhaFixture>$([MSBuild]::NormalizePath('$(TargetDir)', 'BIMBaoGui.Stage01.gha'))</HbrProductionGhaFixture>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(HbrProductionAssemblyPath)')"
+           Text="Production BIMBaoGui.Stage01 TargetOutput does not exist: $(HbrProductionAssemblyPath)" />
+    <Error Condition="!Exists('$(HbrProductionGhaPath)')"
+           Text="Production BIMBaoGui.Stage01.gha does not exist: $(HbrProductionGhaPath)" />
+    <GetFileHash Files="$(HbrProductionAssemblyPath)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_HbrProductionAssemblyHash" />
+    </GetFileHash>
+    <GetFileHash Files="$(HbrProductionGhaPath)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_HbrProductionGhaHash" />
+    </GetFileHash>
+    <Error Condition="'@(_HbrProductionAssemblyHash->'%(FileHash)')' != '@(_HbrProductionGhaHash->'%(FileHash)')'"
+           Text="HBR production DLL/GHA content mismatch: $(HbrProductionAssemblyPath) -> $(HbrProductionGhaPath)." />
+    <Copy SourceFiles="$(HbrProductionAssemblyPath)"
+          DestinationFiles="$(HbrProductionAssemblyFixture)"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(HbrProductionGhaPath)"
+          DestinationFiles="$(HbrProductionGhaFixture)"
+          SkipUnchangedFiles="true" />
+    <GetFileHash Files="$(HbrProductionAssemblyFixture)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_HbrProductionAssemblyFixtureHash" />
+    </GetFileHash>
+    <Error Condition="'@(_HbrProductionAssemblyHash->'%(FileHash)')' != '@(_HbrProductionAssemblyFixtureHash->'%(FileHash)')'"
+           Text="Staged HBR production assembly hash does not match TargetOutput: $(HbrProductionAssemblyPath) -> $(HbrProductionAssemblyFixture)." />
+    <GetFileHash Files="$(HbrProductionGhaFixture)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_HbrProductionGhaFixtureHash" />
+    </GetFileHash>
+    <Error Condition="'@(_HbrProductionGhaHash->'%(FileHash)')' != '@(_HbrProductionGhaFixtureHash->'%(FileHash)')'"
+           Text="Staged HBR production GHA hash does not match: $(HbrProductionGhaPath) -> $(HbrProductionGhaFixture)." />
+  </Target>
+
+  <Target Name="CleanHbrProductionAssemblyFixture" AfterTargets="Clean">
+    <PropertyGroup>
+      <HbrProductionAssemblyFixture>$([MSBuild]::NormalizePath('$(TargetDir)', 'BIMBaoGui.Stage01.production.dll'))</HbrProductionAssemblyFixture>
+      <HbrProductionGhaFixture>$([MSBuild]::NormalizePath('$(TargetDir)', 'BIMBaoGui.Stage01.gha'))</HbrProductionGhaFixture>
+    </PropertyGroup>
+    <Delete Files="$(HbrProductionAssemblyFixture);$(HbrProductionGhaFixture)" />
+  </Target>
+</Project>

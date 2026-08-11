@@ -1,0 +1,166 @@
+{
+  "schemaVersion": "1.1.0",
+  "objective": "GH 写入 Revit 后，由官方 H-IFC 插件导出 IFC，并由官方检查软件正确识别",
+  "activeExportPath": "OFFICIAL_HIFC_PLUGIN_ONLY",
+  "activeWriteProfile": "DUAL_CANONICAL_AND_OFFICIAL_EXACT_SOURCE_NAME_V080",
+  "prohibitedProductPaths": [
+    "SELF_DEVELOPED_IFC_EXPORT",
+    "POST_EXPORT_ENRICH",
+    "POST_EXPORT_CREATE_OR_ENRICH"
+  ],
+  "evidence": {
+    "propertyDefinitions": "OFFICIAL_EXTRACTED",
+    "propertySetDefinitions": "OFFICIAL_EXTRACTED",
+    "explicitObjectMappings": "OFFICIAL_EXTRACTED_4",
+    "sourceParameterOverrideCount": 0,
+    "officialSourceParameterLookup": "EXACT_IFC_PROPERTY_NAME_WHEN_OVERRIDE_IS_ABSENT",
+    "canonicalPrefixedParameterNames": "IMPLEMENTATION_INTERNAL_IDENTITY",
+    "canonicalParameterGuids": "IMPLEMENTATION_DETERMINISTIC_UUIDV5",
+    "officialExactNameAliasGuids": "IMPLEMENTATION_DETERMINISTIC_UUIDV5",
+    "revitParameterReadback": "LOCAL_WRITE_VERIFICATION_ONLY",
+    "officialPluginExport": "TEST02_FAILED_OLD_V020_NO_STANDARD_SOURCE_PARAMETERS; V080_NOT_YET_EXECUTED",
+    "officialCheckerRecognition": "V080_NOT_YET_EXECUTED"
+  },
+  "uploadedTestEvidence": {
+    "testId": "20260731test02",
+    "rvtSha256": "10e589f788ff611edd071ef629aa2effee4f45511d8ceba27fc805d5c25adf17",
+    "ifcSha256": "3c56663b985db2890dd6ec011b9ee55472d2808110203c669a09e10a41b0081a",
+    "storedWorkflowVersion": "0.2.0",
+    "canonicalHifcParametersFoundInRvt": 0,
+    "officialHifcPropertySetsFoundInIfc": 0,
+    "ifcExporter": "IfcExport v1.0.0.0 / GeometryGymIFCcore v25.2.25.0",
+    "ifcProjectName": "Project",
+    "ifcSiteGeoreference": "EMPTY",
+    "diagnosisDocument": "docs/reviews/2026-08-01-test02-rvt-ifc-root-cause.md"
+  },
+  "coordinateSemantics": {
+    "X": "NORTH_SOUTH",
+    "Y": "EAST_WEST",
+    "elevation": "VERTICAL_ELEVATION",
+    "inputUnit": "m"
+  },
+  "writeProjection": {
+    "canonicalInternalParameter": "HIFC.<PropertySet>.<IFCProperty>",
+    "officialSourceParameter": "sourceParameterOverride ?? IFCProperty",
+    "reuseUniqueExistingExactNameParameter": true,
+    "createExactNameSharedParameterWhenMissing": true,
+    "automaticLegacyMigration": true,
+    "ambiguousExactNamePolicy": "BLOCK_WITH_OFFICIAL_SOURCE_NAME_AMBIGUOUS"
+  },
+  "knownExactNameAmbiguities": [
+    {
+      "ifcEntity": "IfcProject",
+      "sourceParameterName": "建筑物编码",
+      "propertySets": [
+        "地籍信息属性集",
+        "登记信息属性集"
+      ]
+    },
+    {
+      "ifcEntity": "IfcProject",
+      "sourceParameterName": "备注",
+      "propertySets": [
+        "区划信息属性集",
+        "申报信息属性集"
+      ]
+    }
+  ],
+  "stage01ProjectFieldExceptions": [
+    "IfcProject|Pset_项目控制指标信息属性集|建筑密度",
+    "IfcProject|Pset_项目控制指标信息属性集|容积率",
+    "IfcProject|Pset_项目控制指标信息属性集|绿地率",
+    "IfcProject|Pset_项目控制指标信息属性集|建筑限高",
+    "IfcProject|Pset_项目控制指标信息属性集|海拔限高",
+    "IfcProject|Pset_项目控制指标信息属性集|机动车位",
+    "IfcProject|Pset_项目控制指标信息属性集|非机动车车位",
+    "IfcProject|Pset_项目控制指标信息属性集|配置套值",
+    "IfcProject|Pset_项目控制指标信息属性集|非机动车类型",
+    "IfcProject|Pset_项目控制指标信息属性集|非机动车折算系数",
+    "IfcProject|Pset_Manifest|阶段",
+    "IfcProject|Pset_Manifest|应用模型精度",
+    "IfcProject|Pset_Manifest|实际模型精度"
+  ],
+  "stage01ProjectFieldExceptionReasons": {
+    "IfcProject|Pset_项目控制指标信息属性集|建筑密度": "规划控制目标，不是模型计算实际建筑密度；保存在 HBR PlanningTargets。",
+    "IfcProject|Pset_项目控制指标信息属性集|容积率": "规划控制目标，不是模型计算实际容积率；保存在 HBR PlanningTargets。",
+    "IfcProject|Pset_项目控制指标信息属性集|绿地率": "规划控制目标，不是模型计算实际绿地率；保存在 HBR PlanningTargets。",
+    "IfcProject|Pset_项目控制指标信息属性集|建筑限高": "规划限值，不得写成建筑实际高度。",
+    "IfcProject|Pset_项目控制指标信息属性集|海拔限高": "规划限值，不得写成模型实际海拔或高程。",
+    "IfcProject|Pset_项目控制指标信息属性集|机动车位": "规划配置要求，不得写成模型实际车位统计。",
+    "IfcProject|Pset_项目控制指标信息属性集|非机动车车位": "规划配置要求，不得写成模型实际车位统计。",
+    "IfcProject|Pset_项目控制指标信息属性集|配置套值": "规划规则元数据，当前官方属性包无同义实际值字段。",
+    "IfcProject|Pset_项目控制指标信息属性集|非机动车类型": "规划条件元数据，保存在 HBR 上下文。",
+    "IfcProject|Pset_项目控制指标信息属性集|非机动车折算系数": "规划计算规则，不得写成模型实际指标。",
+    "IfcProject|Pset_Manifest|阶段": "HBR 文件/工作流 Manifest 元数据，不冒充官方 H-IFC 属性。",
+    "IfcProject|Pset_Manifest|应用模型精度": "HBR 工作流元数据，当前 166 条官方属性中无对应项。",
+    "IfcProject|Pset_Manifest|实际模型精度": "HBR 工作流元数据，当前 166 条官方属性中无对应项。"
+  },
+  "entities": {
+    "IfcProject": {
+      "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+      "revitCarrier": "PROJECT_INFORMATION",
+      "writePolicy": "ALLOW_WITH_EXPORT_VERIFICATION_REQUIRED",
+      "officialExportVerified": false
+    },
+    "IfcBuilding": {
+      "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+      "revitCarrier": "PROJECT_INFORMATION",
+      "writePolicy": "ALLOW_WITH_EXPORT_VERIFICATION_REQUIRED",
+      "officialExportVerified": false
+    },
+    "IfcBuildingStorey": {
+      "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+      "revitCarrier": "LEVEL",
+      "writePolicy": "REQUIRE_EXPLICIT_LEVEL_TARGET",
+      "officialExportVerified": false
+    },
+    "IfcSpace": {
+      "officialObjectMappingEvidence": "OFFICIAL_EXTRACTED",
+      "revitCarrier": "ROOM",
+      "writePolicy": "REQUIRE_EXPLICIT_ROOM_TARGET",
+      "officialExportVerified": false
+    },
+    "IfcOrganization": {
+      "officialObjectMappingEvidence": "UNVERIFIED",
+      "revitCarrier": null,
+      "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+      "officialExportVerified": false
+    },
+    "IfcSite": {
+      "officialObjectMappingEvidence": "UNVERIFIED",
+      "revitCarrier": null,
+      "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+      "officialExportVerified": false
+    },
+    "IfcSpatialZone": {
+      "officialObjectMappingEvidence": "UNVERIFIED",
+      "revitCarrier": null,
+      "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+      "officialExportVerified": false
+    },
+    "IfcDoor": {
+      "officialObjectMappingEvidence": "UNVERIFIED",
+      "revitCarrier": null,
+      "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+      "officialExportVerified": false
+    },
+    "IfcDuctSegment": {
+      "officialObjectMappingEvidence": "UNVERIFIED",
+      "revitCarrier": null,
+      "writePolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+      "officialExportVerified": false
+    }
+  },
+  "completionGate": {
+    "requiredRoundtrip": [
+      "GH_VALUE",
+      "REVIT_CANONICAL_VALUE",
+      "REVIT_OFFICIAL_EXACT_SOURCE_VALUE",
+      "OFFICIAL_PLUGIN_EXPORTED_IFC_VALUE",
+      "OFFICIAL_CHECKER_RECOGNIZED_VALUE"
+    ],
+    "goldenRvtRequired": true,
+    "goldenIfcRequired": true,
+    "parameterReadbackAloneIsSufficient": false
+  }
+}
