@@ -11,7 +11,7 @@ namespace BIMBaoGui.RevitAddin.McpBridge
     internal Task<CurrentDocumentSnapshot> GetDocumentStatusAsync(
       CancellationToken cancellationToken)
     {
-      return Schedule(
+      return Schedule<CurrentDocumentSnapshot>(
         (completed, failed) =>
           RevitExternalEventDispatcher.RequestDocumentSnapshot(
             completed,
@@ -22,7 +22,7 @@ namespace BIMBaoGui.RevitAddin.McpBridge
     internal Task<NativeStage01ReadResult> ReadStage01Async(
       CancellationToken cancellationToken)
     {
-      return Schedule(
+      return Schedule<NativeStage01ReadResult>(
         (completed, failed) =>
           RevitExternalEventDispatcher.RequestStage01Read(
             completed,
@@ -35,7 +35,7 @@ namespace BIMBaoGui.RevitAddin.McpBridge
       CancellationToken cancellationToken)
     {
       if (request == null) throw new ArgumentNullException(nameof(request));
-      return Schedule(
+      return Schedule<NativeStage01WriteResult>(
         (completed, failed) =>
           RevitExternalEventDispatcher.RequestStage01Write(
             request,
@@ -49,7 +49,7 @@ namespace BIMBaoGui.RevitAddin.McpBridge
       CancellationToken cancellationToken)
     {
       if (request == null) throw new ArgumentNullException(nameof(request));
-      return Schedule(
+      return Schedule<NativeStage02RevitPreviewResult>(
         (completed, failed) =>
           RevitExternalEventDispatcher.RequestStage02Preview(
             request,
@@ -63,7 +63,7 @@ namespace BIMBaoGui.RevitAddin.McpBridge
       CancellationToken cancellationToken)
     {
       if (request == null) throw new ArgumentNullException(nameof(request));
-      return Schedule(
+      return Schedule<NativeStage02WriteResult>(
         (completed, failed) =>
           RevitExternalEventDispatcher.RequestStage02Write(
             request,
