@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - feat/revit-native-addin-v1
-      - feat/revit-native-addin-mcp-v0.3
     paths:
       - "src/BIMBaoGui.RevitAddin/**"
       - "src/BIMBaoGui.McpContracts/**"
