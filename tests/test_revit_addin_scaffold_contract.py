@@ -68,3 +68,11 @@ def test_ci_runs_repository_contracts_and_builds_the_native_addin():
     assert "python -m pytest tests/test_revit_addin_scaffold_contract.py -q" in workflow
     assert "dotnet build src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj" in workflow
     assert "TreatWarningsAsErrors=true" in workflow
+
+
+def test_shared_rulepack_real_build_dependency_is_restored_before_rule_tests():
+    workflow = read(ROOT / ".github" / "workflows" / "build-revit-addin.yml")
+    restore = "dotnet restore src/BIMBaoGui.Stage01/BIMBaoGui.Stage01.csproj"
+    rule_tests = "python -m pytest tests/test_hbr_rulepack_compiler.py tests/test_hbr_rules_manifest.py -q"
+    assert restore in workflow
+    assert workflow.index(restore) < workflow.index(rule_tests)
