@@ -568,6 +568,7 @@ namespace BIMBaoGui.Stage01
 
     private void EnsureSystemValues()
     {
+      _registry.ApplyMissingConditionDefaults(_model);
       if (string.IsNullOrWhiteSpace(_model.GetValue(Stage01Keys.FileGuid)))
         _model.SetValue(Stage01Keys.FileGuid, Guid.NewGuid().ToString("D"));
       _model.SetValue(Stage01Keys.WorkflowVersion, HBRContextVersions.FileContextSchema);

@@ -160,6 +160,20 @@ namespace BIMBaoGui.Stage01.Infrastructure
       return model;
     }
 
+    public bool ApplyMissingConditionDefaults(Stage01Model model)
+    {
+      if (model == null) throw new ArgumentNullException(nameof(model));
+
+      bool changed = false;
+      foreach (ConditionDefault condition in _conditionDefaults)
+      {
+        if (model.Conditions.ContainsKey(condition.ConditionId)) continue;
+        model.SetCondition(condition.ConditionId, condition.Value);
+        changed = true;
+      }
+      return changed;
+    }
+
     private static FieldDefinition MapInternal(HbrInternalWorkflowField source)
     {
       return new FieldDefinition
