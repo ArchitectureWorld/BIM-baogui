@@ -73,6 +73,13 @@ def test_native_workflow_packages_complete_double_click_installer():
     assert "SHA256SUMS.txt" in workflow
 
 
+def test_checksum_manifest_uses_portable_forward_slash_paths():
+    workflow = read(WORKFLOW)
+    assert '.Replace("\\", "/")' in workflow
+    assert '.Replace("\\\\", "/")' not in workflow
+    assert "Checksum manifest contains a backslash path" in workflow
+
+
 def test_native_workflow_smoke_tests_install_and_uninstall_on_windows():
     workflow = read(WORKFLOW)
     assert "Smoke-test native installer" in workflow
