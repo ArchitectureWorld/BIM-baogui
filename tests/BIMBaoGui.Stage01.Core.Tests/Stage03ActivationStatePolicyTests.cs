@@ -38,6 +38,33 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void Evaluate_AcceptsSiteContextWithoutNonActivationConditions()
+    {
+      HbrRuleDatabase database = HbrRuleDatabase.Current;
+      RuleActivationProjection projection =
+        RuleActivationCatalog.FromDatabase(database);
+      Dictionary<string, bool> conditions = database.Package.Conditions
+        .Where(value => !string.IsNullOrWhiteSpace(value.ActivationRuleId))
+        .ToDictionary(
+          value => value.ConditionId,
+          value => false,
+          StringComparer.Ordinal);
+      RuleActivationResult expected = projection.Compile(
+        PlanningTargetRequirementPolicy.SiteModel,
+        conditions);
+
+      Stage03ActivationStateDecision decision =
+        Stage03ActivationStatePolicy.Evaluate(
+          database,
+          PlanningTargetRequirementPolicy.SiteModel,
+          conditions,
+          expected.Activated,
+          expected.NotApplicable);
+
+      Assert.True(decision.Success, decision.Message);
+    }
+
+    [Fact]
     public void Evaluate_RejectsMissingEnabledConditionalRule()
     {
       HbrRuleDatabase database = HbrRuleDatabase.Current;
@@ -92,13 +119,13 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
-    public void Evaluate_RejectsMissingKnownProjectCondition()
+    public void Evaluate_RejectsMissingActivationProjectCondition()
     {
       HbrRuleDatabase database = HbrRuleDatabase.Current;
       RuleActivationProjection projection =
         RuleActivationCatalog.FromDatabase(database);
       Dictionary<string, bool> conditions = CompleteConditions(database);
-      string missingCondition = conditions.Keys
+      string missingCondition = projection.ConditionRules.Keys
         .OrderBy(value => value, StringComparer.Ordinal)
         .First();
       conditions.Remove(missingCondition);

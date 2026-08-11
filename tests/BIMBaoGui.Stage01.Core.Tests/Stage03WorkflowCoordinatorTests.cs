@@ -773,20 +773,44 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
-    public async Task Active_pass_field_without_translation_evidence_fails_closed()
+    public async Task Active_optional_empty_field_can_omit_translation_evidence()
     {
+      Stage03FieldResult field = PassingField();
+      field.Requirement = "OPTIONAL";
+      field.RevitRawValue = string.Empty;
+      field.RevitNormalizedValue = string.Empty;
+      field.IsBusinessBlocker = false;
       using (CoordinatorFixture fixture = CoordinatorFixture.Create(
-        fields: new[] { PassingField() },
+        fields: new[] { field },
         enrichmentValues: Array.Empty<HbrIfcEnrichmentValue>()))
       {
         Stage03RunResult result = await fixture.RunAsync(
           Stage03GateMode.Strict,
           string.Empty);
 
-        Assert.False(result.Success);
-        Assert.Contains(
-          Stage03TechnicalFatalCodes.InvalidIfc,
-          result.TechnicalFatalCodes);
+        Assert.True(result.Success);
+      }
+    }
+
+    [Fact]
+    public async Task Active_nonblocking_field_without_enrichment_can_omit_evidence()
+    {
+      Stage03FieldResult field = PassingField();
+      field.Requirement = "UNCLASSIFIED";
+      field.Status = Stage03FieldStatus.InvalidValue;
+      field.RevitStatus = Stage03FieldStatus.InvalidValue;
+      field.RevitRawValue = "source-value";
+      field.RevitNormalizedValue = "source-value";
+      field.IsBusinessBlocker = false;
+      using (CoordinatorFixture fixture = CoordinatorFixture.Create(
+        fields: new[] { field },
+        enrichmentValues: Array.Empty<HbrIfcEnrichmentValue>()))
+      {
+        Stage03RunResult result = await fixture.RunAsync(
+          Stage03GateMode.Strict,
+          string.Empty);
+
+        Assert.True(result.Success);
       }
     }
 

@@ -1,8 +1,63 @@
 using System;
 using System.Collections.Generic;
+using BIMBaoGui.Stage01.Mvd;
 
 namespace BIMBaoGui.Stage01.Stage03
 {
+  internal sealed class Stage03IfcPropertyIdentity
+  {
+    internal Stage03IfcPropertyIdentity(
+      string propertySetName,
+      string propertyName)
+    {
+      PropertySetName = propertySetName ?? string.Empty;
+      PropertyName = propertyName ?? string.Empty;
+    }
+
+    internal string PropertySetName { get; }
+    internal string PropertyName { get; }
+  }
+
+  internal static class Stage03IfcPropertyIdentityPolicy
+  {
+    internal static Stage03IfcPropertyIdentity Resolve(
+      string entity,
+      string propertySetName,
+      string propertyName)
+    {
+      if (MvdIfcNormalizationCatalog.Instance.TryResolve(
+        entity,
+        propertySetName,
+        propertyName,
+        out MvdIfcNormalizationRule rule))
+      {
+        return new Stage03IfcPropertyIdentity(
+          rule.CanonicalPropertySet,
+          rule.CanonicalProperty);
+      }
+      return new Stage03IfcPropertyIdentity(propertySetName, propertyName);
+    }
+  }
+
+  internal static class Stage03CarrierPresencePolicy
+  {
+    internal static bool IsMissingCarrierRequired(
+      int minimumCount,
+      IEnumerable<string> activeRequirementLevels)
+    {
+      if (minimumCount > 0) return true;
+      foreach (string level in activeRequirementLevels ?? Array.Empty<string>())
+      {
+        if (string.Equals(level, "REQUIRED", StringComparison.Ordinal)
+          || string.Equals(level, "CONDITIONAL", StringComparison.Ordinal))
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+
   internal sealed class Stage03IfcOwnerStrategyDecision
   {
     internal Stage03IfcOwnerStrategyDecision(

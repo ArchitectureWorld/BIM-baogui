@@ -6,6 +6,53 @@ namespace BIMBaoGui.Stage01.Core.Tests
 {
   public sealed class Stage03FieldStatusTests
   {
+    [Theory]
+    [InlineData("OPTIONAL")]
+    [InlineData("UNCLASSIFIED")]
+    public void Optional_absent_carrier_is_not_a_hard_requirement(
+      string requirementLevel)
+    {
+      Assert.False(Stage03CarrierPresencePolicy.IsMissingCarrierRequired(
+        0,
+        new[] { requirementLevel }));
+    }
+
+    [Theory]
+    [InlineData("REQUIRED")]
+    [InlineData("CONDITIONAL")]
+    public void Active_required_field_makes_absent_carrier_a_hard_requirement(
+      string requirementLevel)
+    {
+      Assert.True(Stage03CarrierPresencePolicy.IsMissingCarrierRequired(
+        0,
+        new[] { requirementLevel }));
+    }
+
+    [Fact]
+    public void Cardinality_minimum_makes_absent_carrier_a_hard_requirement()
+    {
+      Assert.True(Stage03CarrierPresencePolicy.IsMissingCarrierRequired(
+        1,
+        new[] { "OPTIONAL" }));
+    }
+
+    [Theory]
+    [InlineData("基点坐标 X", "基点坐标X")]
+    [InlineData("基点坐标 Y", "基点坐标Y")]
+    public void Stage03_ifc_identity_uses_official_canonical_property_name(
+      string sourceProperty,
+      string expectedProperty)
+    {
+      Stage03IfcPropertyIdentity identity =
+        Stage03IfcPropertyIdentityPolicy.Resolve(
+          "IfcProject",
+          "Pset_申报信息属性集",
+          sourceProperty);
+
+      Assert.Equal("Pset_申报信息属性集", identity.PropertySetName);
+      Assert.Equal(expectedProperty, identity.PropertyName);
+    }
+
     [Fact]
     public void Not_evaluated_is_distinct_from_pass_for_future_ifc_phases()
     {

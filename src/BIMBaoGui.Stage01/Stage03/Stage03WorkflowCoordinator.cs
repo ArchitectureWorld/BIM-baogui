@@ -1582,6 +1582,7 @@ namespace BIMBaoGui.Stage01.Stage03
       if (field == null || RequiresEnrichment(field)) return false;
       if (!field.Active)
         return field.Status == Stage03FieldStatus.NotApplicable;
+      if (!field.IsBusinessBlocker) return true;
       return (field.IsBusinessBlocker
           || field.Status == Stage03FieldStatus.UnclassifiedRequirement)
         && field.Status != Stage03FieldStatus.Pass

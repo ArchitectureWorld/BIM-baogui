@@ -230,6 +230,12 @@ namespace BIMBaoGui.Stage01.Revit
 
         if (candidates.Count == 0)
         {
+          bool missingCarrierRequired =
+            Stage03CarrierPresencePolicy.IsMissingCarrierRequired(
+              role.Cardinality.Min,
+              roleProperties
+                .Where(property => ResolveApplicability(property, context).Active)
+                .Select(property => property.Requirement.Level));
           Stage03FieldStatus missingStatus = ResolveCarrierFailureStatus(
             categoryCandidates,
             matchDecisions);
@@ -241,7 +247,7 @@ namespace BIMBaoGui.Stage01.Revit
               role,
               mismatch,
               decision.Status,
-              true,
+              missingCarrierRequired,
               decision.Message));
           }
           if (categoryCandidates.Count == 0)
@@ -250,10 +256,17 @@ namespace BIMBaoGui.Stage01.Revit
             {
               Entity = role.IfcEntity,
               Role = role.RoleId,
-              Status = Stage03FieldStatus.MissingCarrier,
-              Active = true,
-              IsBusinessBlocker = true,
-              Messages = Freeze(new[] { "活动载体角色未找到 Revit 元素。" })
+              Status = missingCarrierRequired
+                ? Stage03FieldStatus.MissingCarrier
+                : Stage03FieldStatus.NotApplicable,
+              Active = missingCarrierRequired,
+              IsBusinessBlocker = missingCarrierRequired,
+              Messages = Freeze(new[]
+              {
+                missingCarrierRequired
+                  ? "活动必需载体角色未找到 Revit 元素。"
+                  : "当前模型未包含该可选载体；不作硬性要求。"
+              })
             });
           }
           foreach (HbrRuleProperty property in roleProperties)
@@ -634,13 +647,18 @@ namespace BIMBaoGui.Stage01.Revit
         role,
         owner,
         applicability);
+      bool missingCarrierRequired = applicability.Active
+        && Stage03CarrierPresencePolicy.IsMissingCarrierRequired(
+          role.Cardinality.Min,
+          new[] { property.Requirement.Level });
       field.CarrierStatus = carrierStatus;
       field.ParameterStatus = Stage03FieldStatus.NotEvaluated;
       field.RevitStatus = Stage03FieldStatus.NotEvaluated;
-      field.Status = applicability.Active
+      field.Active = missingCarrierRequired;
+      field.Status = missingCarrierRequired
         ? carrierStatus
         : Stage03FieldStatus.NotApplicable;
-      field.IsBusinessBlocker = applicability.Active;
+      field.IsBusinessBlocker = missingCarrierRequired;
       field.Messages = Freeze(new[]
       {
         carrierStatus == Stage03FieldStatus.AmbiguousCarrier
@@ -822,8 +840,8 @@ namespace BIMBaoGui.Stage01.Revit
         OwnerStrategy = globalId.Length == 0
           ? HbrIfcOwnerStrategies.SingleEntityByType
           : HbrIfcOwnerStrategies.GlobalId,
-        PropertySetName = property.Ifc.PropertySet,
-        PropertyName = property.Ifc.Property,
+        PropertySetName = field.PropertySet,
+        PropertyName = field.IfcProperty,
         DeclaredIfcType = property.Ifc.DeclaredType,
         CanonicalValue = canonical.NormalizedValue,
         PropertyIdentity = propertyIdentity,
@@ -846,6 +864,9 @@ namespace BIMBaoGui.Stage01.Revit
         field.RevitStatus,
         property.Requirement.Level);
       field.IsBusinessBlocker = field.Active
+        && Stage03CarrierPresencePolicy.IsMissingCarrierRequired(
+          0,
+          new[] { property.Requirement.Level })
         && field.Status != Stage03FieldStatus.Pass
         && field.Status != Stage03FieldStatus.NotApplicable;
       field.Messages = Freeze(messages
@@ -866,6 +887,11 @@ namespace BIMBaoGui.Stage01.Revit
       Element owner,
       Stage03RequirementApplicabilityDecision applicability)
     {
+      Stage03IfcPropertyIdentity ifcIdentity =
+        Stage03IfcPropertyIdentityPolicy.Resolve(
+          property.Ifc.Entity,
+          property.Ifc.PropertySet,
+          property.Ifc.Property);
       return new Stage03FieldResult
       {
         PropertyId = property.PropertyId,
@@ -873,8 +899,8 @@ namespace BIMBaoGui.Stage01.Revit
         Requirement = property.Requirement.Level,
         Applicability = applicability.Applicability,
         Entity = property.Ifc.Entity,
-        PropertySet = property.Ifc.PropertySet,
-        IfcProperty = property.Ifc.Property,
+        PropertySet = ifcIdentity.PropertySetName,
+        IfcProperty = ifcIdentity.PropertyName,
         Role = role.RoleId,
         ElementId = owner == null ? 0 : owner.Id.IntegerValue,
         OwnerUniqueId = owner == null ? string.Empty : owner.UniqueId,

@@ -125,8 +125,7 @@ namespace BIMBaoGui.Stage01.Stage03
     private static bool IsActiveBusinessBlocker(Stage03FieldResult field)
     {
       return field.Active
-        && (field.IsBusinessBlocker
-          || field.Status == Stage03FieldStatus.UnclassifiedRequirement)
+        && field.IsBusinessBlocker
         && field.Status != Stage03FieldStatus.Pass
         && field.Status != Stage03FieldStatus.NotApplicable;
     }

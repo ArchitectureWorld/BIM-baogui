@@ -215,6 +215,25 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
+    public void Stage01_xy_coordinates_use_the_same_length_contract_as_projection()
+    {
+      HbrRuleDatabase database = HbrRuleDatabase.Current;
+      OfficialHifcMappingCatalog catalog =
+        OfficialHifcMappingCatalog.FromDatabase(database);
+      foreach (string sourceName in new[] { "X", "Y" })
+      {
+        HbrSpatialMapping spatial = database.Package.Stage01.SpatialMappings
+          .Single(item => item.SourceName == sourceName);
+        Assert.True(catalog.TryResolveStage01FieldKey(
+          spatial.FieldKey,
+          out OfficialHifcMapping mapping));
+        HbrRuleProperty property = database.PropertiesById[mapping.PropertyId];
+        Assert.Equal("LENGTH", mapping.SharedParameterType);
+        Assert.Equal("Length", property.Revit.ParameterType);
+      }
+    }
+
+    [Fact]
     public void Plugin_compatibility_projects_policies_exceptions_and_fallback()
     {
       OfficialPluginCompatibilityCatalog catalog =

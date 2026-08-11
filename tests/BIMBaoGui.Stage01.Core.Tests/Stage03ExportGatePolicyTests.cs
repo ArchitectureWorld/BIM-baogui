@@ -67,7 +67,7 @@ namespace BIMBaoGui.Stage01.Core.Tests
     }
 
     [Fact]
-    public void Strict_fail_closes_active_unclassified_even_if_upstream_did_not_mark_blocker()
+    public void Strict_allows_active_unclassified_when_upstream_marks_nonblocking()
     {
       Stage03GateDecision decision = Stage03ExportGatePolicy.Decide(
         Stage03GateMode.Strict,
@@ -83,10 +83,8 @@ namespace BIMBaoGui.Stage01.Core.Tests
         },
         Array.Empty<string>());
 
-      Assert.False(decision.AllowExport);
-      Assert.Equal(
-        Stage03FieldStatus.UnclassifiedRequirement,
-        Assert.Single(decision.BusinessBlockers).Status);
+      Assert.True(decision.AllowExport);
+      Assert.Empty(decision.BusinessBlockers);
     }
 
     [Fact]

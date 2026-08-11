@@ -34,31 +34,35 @@ namespace BIMBaoGui.Stage01.Stage03
           pair => pair.Key,
           pair => pair.Value,
           StringComparer.Ordinal);
-      string[] expectedConditionIds = database.Package.Conditions
+      RuleActivationProjection projection =
+        RuleActivationCatalog.FromDatabase(database);
+      string[] knownConditionIds = database.Package.Conditions
         .Select(value => value.ConditionId)
         .Distinct(StringComparer.Ordinal)
+        .OrderBy(value => value, StringComparer.Ordinal)
+        .ToArray();
+      string[] requiredActivationConditionIds = projection.ConditionRules.Keys
         .OrderBy(value => value, StringComparer.Ordinal)
         .ToArray();
       string[] actualConditionIds = conditions.Keys
         .OrderBy(value => value, StringComparer.Ordinal)
         .ToArray();
-      if (!actualConditionIds.SequenceEqual(
-        expectedConditionIds,
-        StringComparer.Ordinal))
+      string[] missing = requiredActivationConditionIds.Except(
+        actualConditionIds,
+        StringComparer.Ordinal).ToArray();
+      string[] unknown = actualConditionIds.Except(
+        knownConditionIds,
+        StringComparer.Ordinal).ToArray();
+      if (missing.Length > 0 || unknown.Length > 0)
       {
-        string[] missing = expectedConditionIds.Except(
-          actualConditionIds,
-          StringComparer.Ordinal).ToArray();
-        string[] unknown = actualConditionIds.Except(
-          expectedConditionIds,
-          StringComparer.Ordinal).ToArray();
         return Failed(
-          "HBRFileContext 的项目条件键与当前规则包 Conditions 不完整一致。"
+          "HBRFileContext 的规则激活条件键与当前规则包不一致。"
           + " 缺失：" + string.Join(", ", missing)
           + "；未知：" + string.Join(", ", unknown));
       }
-      RuleActivationResult expected = RuleActivationCatalog.FromDatabase(
-        database).Compile(modelFileType, conditions);
+      RuleActivationResult expected = projection.Compile(
+        modelFileType,
+        conditions);
       string[] activated = Normalize(activatedRuleIds);
       string[] notApplicable = Normalize(notApplicableRuleIds);
       string[] overlap = activated.Intersect(
