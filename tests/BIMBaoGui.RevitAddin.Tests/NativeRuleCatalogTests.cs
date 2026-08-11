@@ -16,8 +16,20 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Equal("HBR-WUHAN-PLANNING", catalog.Identity.PackageId);
       Assert.Equal("1.0.0", catalog.Identity.PackageVersion);
       Assert.Equal(64, catalog.Identity.RulePackageSha256.Length);
-      Assert.Equal(102, catalog.Stage01Fields.Count);
-      Assert.Equal(102, catalog.Stage01FieldsByKey.Count);
+      Assert.Equal(114, catalog.Stage01Fields.Count);
+      Assert.Equal(114, catalog.Stage01FieldsByKey.Count);
+      Assert.Equal(
+        102,
+        catalog.Stage01Fields.Count(value => !string.Equals(
+          value.IfcEntity,
+          "Workflow",
+          StringComparison.Ordinal)));
+      Assert.Equal(
+        12,
+        catalog.Stage01Fields.Count(value => string.Equals(
+          value.IfcEntity,
+          "Workflow",
+          StringComparison.Ordinal)));
       Assert.Equal(14, catalog.Conditions.Count);
       Assert.Equal(3, catalog.ModelProfiles.Count);
       Assert.Equal("01_文件与项目身份", catalog.DefaultActiveGroup);
