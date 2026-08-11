@@ -64,8 +64,10 @@ namespace BIMBaoGui.RevitAddin.Stage02
         var parameterGuids = new HashSet<Guid>(
           (elementEvidence.Parameters
             ?? new Dictionary<Guid, NativeStage02ParameterEvidence>()).Keys);
-        NativeStage02PropertyDefinition[] properties = catalog
-          .PropertiesForRole(role.RoleId)
+        NativeStage02PropertyDefinition[] properties = role.CandidateRoleIds
+          .SelectMany(roleId => catalog.PropertiesForRole(roleId))
+          .GroupBy(value => value.PropertyId, StringComparer.Ordinal)
+          .Select(group => group.First())
           .Where(value => parameterGuids.Contains(value.ParameterGuid))
           .OrderBy(value => value.PropertyId, StringComparer.Ordinal)
           .ToArray();
