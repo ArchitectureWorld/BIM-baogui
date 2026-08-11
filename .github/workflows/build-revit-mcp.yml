@@ -138,7 +138,8 @@ jobs:
             Where-Object {
               $_.Name -notin @(
                 "BIMBaoGui.McpServer.exe",
-                "BIMBaoGui.McpServer.pdb"
+                "BIMBaoGui.McpServer.pdb",
+                "BIMBaoGui.McpContracts.pdb"
               )
             }
           if ($unexpectedRuntimeFiles.Count -gt 0) {
