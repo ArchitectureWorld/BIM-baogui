@@ -4,6 +4,7 @@ using System.Reflection;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using BIMBaoGui.RevitAddin.McpBridge;
 
 namespace BIMBaoGui.RevitAddin
 {
@@ -53,6 +54,17 @@ namespace BIMBaoGui.RevitAddin
           WorkspacePaneId,
           "湖北BIM报规",
           WorkspaceDockablePaneProvider.Instance);
+
+        RevitExternalEventDispatcher.EnsureInitialized();
+        try
+        {
+          McpBridgeHost.Start();
+        }
+        catch (Exception exception)
+        {
+          // MCP is a sidecar. Its failure must not disable the manual workspace.
+          McpBridgeHost.RecordStartupFailure(exception);
+        }
         return Result.Succeeded;
       }
       catch
@@ -63,6 +75,7 @@ namespace BIMBaoGui.RevitAddin
 
     public Result OnShutdown(UIControlledApplication application)
     {
+      McpBridgeHost.Stop();
       RevitExternalEventDispatcher.Dispose();
       return Result.Succeeded;
     }
