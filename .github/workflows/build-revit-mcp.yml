@@ -11,6 +11,8 @@ on:
       - "tests/BIMBaoGui.McpContracts.Tests/**"
       - "tests/BIMBaoGui.McpServer.Tests/**"
       - "tests/test_revit_addin_mcp_contract.py"
+      - "tests/test_revit_addin_mcp_installer_contract.py"
+      - "installer/**"
       - ".github/workflows/build-revit-mcp.yml"
   workflow_dispatch:
 
@@ -45,6 +47,10 @@ jobs:
       - name: Verify MCP sidecar contract
         shell: pwsh
         run: python -m pytest tests/test_revit_addin_mcp_contract.py -q
+
+      - name: Verify MCP installer contract
+        shell: pwsh
+        run: python -m pytest tests/test_revit_addin_mcp_installer_contract.py -q
 
       - name: Restore MCP projects
         shell: pwsh
