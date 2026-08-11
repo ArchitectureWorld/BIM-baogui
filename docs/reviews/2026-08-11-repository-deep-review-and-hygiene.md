@@ -26,6 +26,7 @@
 
 - `.gitattributes` 增加对自身的 LF 约束，避免 Windows fresh checkout 把该文件检出为 CRLF 后触发发布合同失败；
 - README 在 pytest 前补充生产项目和测试项目的 `dotnet restore`，使本地步骤与 CI 的真实前置条件一致；
+- CI 使用官方当前 Node.js 24 Action 主版本：`checkout@v7`、`setup-dotnet@v6`、`setup-python@v7`、`upload-artifact@v7`，消除旧 Node.js 20 Action 的弃用警告；
 - 发布合同增加相应回归测试，锁定 restore 顺序和 Stage02 v0.9.0 / v1.1 状态边界。
 
 ### 2.3 本机逆向证据

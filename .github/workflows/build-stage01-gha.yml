@@ -72,7 +72,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -138,7 +138,7 @@ jobs:
           }
 
       - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "8.0.x"
 
@@ -149,7 +149,7 @@ jobs:
           dotnet restore src/BIMBaoGui.Stage01/BIMBaoGui.Stage01.csproj
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
@@ -300,7 +300,7 @@ jobs:
             --output artifacts/artifact-manifest.json
 
       - name: Upload GHA and manifest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: BIMBaoGui-Revit2020-Rhino8-v0.9.0-validation
           path: |

@@ -822,6 +822,26 @@ def test_ci_pins_all_clean_runner_python_test_dependencies():
     assert "python-version: \"3.13\"" in workflow
 
 
+def test_ci_uses_current_node24_action_majors():
+    workflow = read(".github/workflows/build-stage01-gha.yml")
+    expected = (
+        "actions/checkout@v7",
+        "actions/setup-dotnet@v6",
+        "actions/setup-python@v7",
+        "actions/upload-artifact@v7",
+    )
+
+    for action in expected:
+        assert workflow.count(action) == 1
+    for retired in (
+        "actions/checkout@v4",
+        "actions/setup-dotnet@v4",
+        "actions/setup-python@v5",
+        "actions/upload-artifact@v4",
+    ):
+        assert retired not in workflow
+
+
 def test_ci_release_plugin_build_treats_compiler_warnings_as_errors():
     workflow = read(".github/workflows/build-stage01-gha.yml")
     assert_release_plugin_build_treats_warnings_as_errors(workflow)
