@@ -59,3 +59,8 @@ def test_native_workflow_smoke_tests_install_and_uninstall_on_windows():
     assert "-Uninstall -Force" in workflow
     assert "install-evidence.json" in workflow
     assert "IsPathRooted" in workflow
+
+
+def test_native_workflow_tracks_packaged_readme_as_an_artifact_input():
+    workflow = read(WORKFLOW)
+    assert '- "docs/revit-addin/README.md"' in workflow
