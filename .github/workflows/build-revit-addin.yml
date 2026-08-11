@@ -6,20 +6,20 @@ on:
       - feat/revit-native-addin-v1
     paths:
       - "src/BIMBaoGui.RevitAddin/**"
-      - "installer/BIMBaoGui.RevitAddin.addin"
+      - "installer/**"
       - "specs/hbr-rules/**"
       - "tools/build_hbr_rulepack.py"
-      - "tests/test_revit_addin_scaffold_contract.py"
+      - "tests/test_revit_addin_*.py"
       - ".github/workflows/build-revit-addin.yml"
   pull_request:
     branches:
       - main
     paths:
       - "src/BIMBaoGui.RevitAddin/**"
-      - "installer/BIMBaoGui.RevitAddin.addin"
+      - "installer/**"
       - "specs/hbr-rules/**"
       - "tools/build_hbr_rulepack.py"
-      - "tests/test_revit_addin_scaffold_contract.py"
+      - "tests/test_revit_addin_*.py"
       - ".github/workflows/build-revit-addin.yml"
   workflow_dispatch:
 
@@ -56,6 +56,10 @@ jobs:
         shell: pwsh
         run: python -m pytest tests/test_revit_addin_scaffold_contract.py -q
 
+      - name: Verify native installer contract
+        shell: pwsh
+        run: python -m pytest tests/test_revit_addin_installer_contract.py -q
+
       - name: Restore shared rule-pack build dependency
         shell: pwsh
         run: dotnet restore src/BIMBaoGui.Stage01/BIMBaoGui.Stage01.csproj
@@ -72,6 +76,49 @@ jobs:
         shell: pwsh
         run: dotnet build src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true -p:TreatWarningsAsErrors=true
 
+      - name: Smoke-test native installer
+        shell: pwsh
+        run: |
+          $originalAppData = $env:APPDATA
+          $smokeRoot = Join-Path $env:RUNNER_TEMP "BIMBaoGuiInstallerSmoke"
+          try {
+            $env:APPDATA = Join-Path $smokeRoot "AppData"
+            & installer/Install-Revit2020.ps1 `
+              -SourceRoot "src/BIMBaoGui.RevitAddin/bin/Release/net48" `
+              -Force
+            $addinRoot = Join-Path $env:APPDATA "Autodesk\Revit\Addins\2020"
+            $manifestPath = Join-Path $addinRoot "BIMBaoGui.RevitAddin.addin"
+            $productRoot = Join-Path $addinRoot "BIMBaoGui.RevitAddin"
+            $evidencePath = Join-Path $productRoot "install-evidence.json"
+            if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+              throw "Installer smoke test did not create the manifest."
+            }
+            if (-not (Test-Path -LiteralPath $evidencePath -PathType Leaf)) {
+              throw "Installer smoke test did not create install-evidence.json."
+            }
+            [xml]$manifest = Get-Content -LiteralPath $manifestPath -Raw
+            $assemblyPath = [string]$manifest.RevitAddIns.AddIn.Assembly
+            if (-not [IO.Path]::IsPathRooted($assemblyPath)) {
+              throw "Installed manifest Assembly path is not absolute."
+            }
+            $evidence = Get-Content -LiteralPath $evidencePath -Raw | ConvertFrom-Json
+            $actualHash = (Get-FileHash -LiteralPath $assemblyPath -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actualHash -ne $evidence.installedDllSha256) {
+              throw "Installed DLL hash does not match install evidence."
+            }
+            & installer/Install-Revit2020.ps1 -Uninstall -Force
+            if (Test-Path -LiteralPath $manifestPath) {
+              throw "Installer smoke uninstall left the manifest behind."
+            }
+            if (Test-Path -LiteralPath $productRoot) {
+              throw "Installer smoke uninstall left the product directory behind."
+            }
+          }
+          finally {
+            $env:APPDATA = $originalAppData
+            Remove-Item -LiteralPath $smokeRoot -Recurse -Force -ErrorAction SilentlyContinue
+          }
+
       - name: Prepare artifact
         shell: pwsh
         run: |
@@ -79,6 +126,8 @@ jobs:
           Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.RevitAddin.dll artifacts/BIMBaoGui.RevitAddin/
           Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.RevitAddin.pdb artifacts/BIMBaoGui.RevitAddin/ -ErrorAction SilentlyContinue
           Copy-Item installer/BIMBaoGui.RevitAddin.addin artifacts/
+          Copy-Item installer/Install-Revit2020.ps1 artifacts/
+          Copy-Item docs/revit-addin/README.md artifacts/README.md
 
       - name: Upload native add-in
         uses: actions/upload-artifact@v7
