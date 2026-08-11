@@ -105,6 +105,14 @@ jobs:
         shell: pwsh
         run: python -m pytest tests/test_hbr_rulepack_compiler.py tests/test_hbr_rules_manifest.py -q
 
+      - name: Restore MCP contracts tests
+        shell: pwsh
+        run: dotnet restore tests/BIMBaoGui.McpContracts.Tests/BIMBaoGui.McpContracts.Tests.csproj
+
+      - name: Run MCP contracts tests
+        shell: pwsh
+        run: dotnet test tests/BIMBaoGui.McpContracts.Tests/BIMBaoGui.McpContracts.Tests.csproj -c Release --no-restore --logger "console;verbosity=normal"
+
       - name: Restore native projects
         shell: pwsh
         run: |
