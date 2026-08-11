@@ -86,24 +86,31 @@ namespace BIMBaoGui.RevitAddin.Tests
         model.Conditions.Add("b", true);
       }
 
-      model.PlanningTargets.Add(
-        reverse ? "planning.z" : "planning.a",
-        new NativePlanningTargetValue(
-          "LessOrEqual",
-          "2.00",
-          string.Empty,
-          "Ratio",
-          "测试",
-          "≤2.00"));
-      model.PlanningTargets.Add(
-        reverse ? "planning.a" : "planning.z",
-        new NativePlanningTargetValue(
-          "GreaterOrEqual",
-          "35",
-          string.Empty,
-          "Percent",
-          "测试",
-          "≥35%"));
+      var targets = new[]
+      {
+        new KeyValuePair<string, NativePlanningTargetValue>(
+          "planning.a",
+          new NativePlanningTargetValue(
+            "LessOrEqual",
+            "2.00",
+            string.Empty,
+            "Ratio",
+            "测试",
+            "≤2.00")),
+        new KeyValuePair<string, NativePlanningTargetValue>(
+          "planning.z",
+          new NativePlanningTargetValue(
+            "GreaterOrEqual",
+            "35",
+            string.Empty,
+            "Percent",
+            "测试",
+            "≥35%"))
+      };
+      IEnumerable<KeyValuePair<string, NativePlanningTargetValue>> targetOrder =
+        reverse ? new[] { targets[1], targets[0] } : targets;
+      foreach (KeyValuePair<string, NativePlanningTargetValue> pair in targetOrder)
+        model.PlanningTargets.Add(pair.Key, pair.Value);
 
       var organization = new Dictionary<string, string>(StringComparer.Ordinal);
       if (reverse)
