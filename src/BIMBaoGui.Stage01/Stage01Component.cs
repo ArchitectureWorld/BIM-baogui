@@ -388,6 +388,7 @@ namespace BIMBaoGui.Stage01
     {
       if (_isCommitting) return;
       EnsureSystemValues();
+      Stage01LegacyFieldKeyMigrationPolicy.Apply(_model);
       _snapshot = Stage01RevitService.ReadSnapshot(_model);
       _validation = Stage01Validator.Validate(
         _model,
@@ -476,6 +477,7 @@ namespace BIMBaoGui.Stage01
             _operationMessages = new[] { payloadError };
           ReadLegacyForm(reader, serializer);
         }
+        Stage01LegacyFieldKeyMigrationPolicy.Apply(_model);
 
         if (reader.ItemExists("HBR.Stage01.ConfirmBlank")) _model.ConfirmBlankProject = reader.GetBoolean("HBR.Stage01.ConfirmBlank");
         if (reader.ItemExists("HBR.Stage01.AllowReinitialize")) _model.AllowReinitialize = reader.GetBoolean("HBR.Stage01.AllowReinitialize");
@@ -540,6 +542,7 @@ namespace BIMBaoGui.Stage01
       if (string.Equals(identity, _loadedStoredPayloadIdentity, StringComparison.Ordinal)) return;
       if (Stage01PayloadCodec.TryApply(_snapshot.StoredPayloadJson, _model, out string error))
       {
+        Stage01LegacyFieldKeyMigrationPolicy.Apply(_model);
         _loadedStoredPayloadIdentity = identity;
         _operationMessages = new[] { "已从当前 Revit 文件读取既有初始化记录。" };
         EnsureSystemValues();

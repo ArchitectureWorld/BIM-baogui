@@ -147,6 +147,7 @@ namespace BIMBaoGui.Stage01.Revit
         else
           messages.Add(payloadError);
       }
+      Stage01LegacyFieldKeyMigrationPolicy.Apply(model);
 
       if (string.IsNullOrWhiteSpace(model.GetValue(Stage01Keys.ProjectNumber)))
         model.SetValue(
@@ -238,6 +239,7 @@ namespace BIMBaoGui.Stage01.Revit
       if (string.IsNullOrWhiteSpace(document.PathName))
         return Failure("请先保存当前 RVT 文件。");
 
+      Stage01LegacyFieldKeyMigrationPolicy.Apply(model);
       string operationStage = "VALIDATION";
       StoredInitialization existing = Stage01Storage.Read(document);
       Stage01StorageDecision storageDecision = EvaluateStorage(existing);

@@ -105,6 +105,67 @@ def test_stage01_projection_is_registry_driven_not_ten_field_hardcoding():
     assert "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT" not in compatibility
 
 
+def test_stage01_legacy_coordinate_keys_migrate_before_population_and_commit():
+    service = re.sub(
+        r"\s+", "", read("src/BIMBaoGui.Stage01/Revit/Stage01RevitService.cs")
+    )
+    populate = service[
+        service.index("privatestaticIReadOnlyList<string>PopulateModelFromDocumentCore") :
+        service.index("publicstaticboolEnqueueCommit")
+    ]
+    assert (
+        populate.index("Stage01PayloadCodec.TryApply")
+        < populate.index("Stage01LegacyFieldKeyMigrationPolicy.Apply(model);")
+        < populate.index("Stage01Keys.BaseX")
+    )
+
+    commit = service[
+        service.index("privatestaticCommitResultCommit(") :
+        service.index("privatestaticStage01StorageDecisionEvaluateStorage")
+    ]
+    assert (
+        commit.index("Stage01LegacyFieldKeyMigrationPolicy.Apply(model);")
+        < commit.index("Stage01Validator.Validate")
+        < commit.index("CanonicalPayload.Build(model)")
+    )
+
+
+def test_stage01_component_migrates_working_model_and_all_payload_restore_paths():
+    component = re.sub(
+        r"\s+", "", read("src/BIMBaoGui.Stage01/Stage01Component.cs")
+    )
+    commit = component[
+        component.index("internalvoidCommitInitialization()") :
+        component.index("internalvoidResetForm()")
+    ]
+    assert (
+        commit.index("EnsureSystemValues();")
+        < commit.index("Stage01LegacyFieldKeyMigrationPolicy.Apply(_model);")
+        < commit.index("Stage01RevitService.ReadSnapshot(_model)")
+        < commit.index("Stage01RevitService.EnqueueCommit(_model")
+    )
+
+    restore = component[
+        component.index("publicoverrideboolRead(GH_IReaderreader)") :
+        component.index("privatevoidReadLegacyForm(")
+    ]
+    assert (
+        restore.index("Stage01PayloadCodec.TryApply")
+        < restore.index("ReadLegacyForm(reader,serializer);")
+        < restore.index("Stage01LegacyFieldKeyMigrationPolicy.Apply(_model);")
+    )
+
+    automatic = component[
+        component.index("privatevoidTryAutomaticallyLoadStoredPayload()") :
+        component.index("privatevoidMergeOperationFailureIntoSnapshot()")
+    ]
+    assert (
+        automatic.index("Stage01PayloadCodec.TryApply")
+        < automatic.index("Stage01LegacyFieldKeyMigrationPolicy.Apply(_model);")
+        < automatic.index("_loadedStoredPayloadIdentity=identity;")
+    )
+
+
 def test_mapping_readme_marks_official_plugin_route_as_superseded_history():
     mapping_readme = read("specs/hifc-mapping/v1/README.md")
     assert "历史证据" in mapping_readme
