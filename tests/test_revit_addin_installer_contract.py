@@ -1,0 +1,52 @@
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPT = ROOT / "installer" / "Install-Revit2020.ps1"
+WORKFLOW = ROOT / ".github" / "workflows" / "build-revit-addin.yml"
+
+
+def read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def test_installer_is_user_level_idempotent_and_supports_uninstall():
+    source = read(SCRIPT)
+    assert "[switch]$Uninstall" in source
+    assert "$env:APPDATA" in source
+    assert '"Autodesk\\Revit\\Addins\\2020"' in source
+    assert '"BIMBaoGui.RevitAddin"' in source
+    assert '"BIMBaoGui.RevitAddin.addin"' in source
+    assert "Remove-Item" in source
+    assert "Test-Path" in source
+
+
+def test_installer_refuses_to_replace_loaded_addin_without_force():
+    source = read(SCRIPT)
+    assert "[switch]$Force" in source
+    assert 'Get-Process -Name "Revit"' in source
+    assert "请先关闭 Revit" in source
+
+
+def test_installer_writes_absolute_manifest_and_verifies_dll_hash():
+    source = read(SCRIPT)
+    assert "[IO.Path]::GetFullPath" in source
+    assert "Get-FileHash" in source
+    assert "sourceHash" in source
+    assert "installedHash" in source
+    assert "[System.Security.SecurityElement]::Escape" in source
+    assert "BIMBaoGui.RevitAddin.App" in source
+    assert "6F3EE836-2A54-43C1-8B90-C9D291E9A8F1" in source
+
+
+def test_installer_publishes_machine_readable_install_evidence():
+    source = read(SCRIPT)
+    assert '"install-evidence.json"' in source
+    assert "ConvertTo-Json" in source
+    assert "installedDllSha256" in source
+    assert "installedUtc" in source
+
+
+def test_native_workflow_packages_installer_and_tracks_all_installer_changes():
+    workflow = read(WORKFLOW)
+    assert '- "installer/**"' in workflow
+    assert "Copy-Item installer/Install-Revit2020.ps1 artifacts/" in workflow
