@@ -145,7 +145,11 @@ namespace BIMBaoGui.RevitAddin.Stage02
         }
         var parameters = new Dictionary<Guid, NativeStage02ParameterEvidence>();
         foreach (NativeStage02PropertyDefinition property in
-          catalog.PropertiesForRole(role.RoleId))
+          role.CandidateRoleIds
+            .SelectMany(roleId => catalog.PropertiesForRole(roleId))
+            .GroupBy(value => value.PropertyId, StringComparer.Ordinal)
+            .Select(group => group.First())
+            .OrderBy(value => value.PropertyId, StringComparer.Ordinal))
         {
           parameters[property.ParameterGuid] = ReadParameterEvidence(
             document,
