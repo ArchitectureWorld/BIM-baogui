@@ -75,8 +75,8 @@ def test_native_workflow_packages_complete_double_click_installer():
 
 def test_checksum_manifest_uses_portable_forward_slash_paths():
     workflow = read(WORKFLOW)
-    assert '.Replace("\\", "/")' in workflow
-    assert '.Replace("\\\\", "/")' not in workflow
+    assert "[IO.Path]::DirectorySeparatorChar" in workflow
+    assert "[IO.Path]::AltDirectorySeparatorChar" in workflow
     assert "Checksum manifest contains a backslash path" in workflow
 
 
