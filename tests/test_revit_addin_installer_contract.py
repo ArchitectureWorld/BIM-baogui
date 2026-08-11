@@ -2,6 +2,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "installer" / "Install-Revit2020.ps1"
+INSTALL_CMD = ROOT / "installer" / "Install.cmd"
+UNINSTALL_CMD = ROOT / "installer" / "Uninstall.cmd"
 WORKFLOW = ROOT / ".github" / "workflows" / "build-revit-addin.yml"
 
 
@@ -46,10 +48,27 @@ def test_installer_publishes_machine_readable_install_evidence():
     assert "installedUtc" in source
 
 
-def test_native_workflow_packages_installer_and_tracks_all_installer_changes():
+def test_double_click_wrappers_use_their_own_extracted_directory():
+    install = read(INSTALL_CMD)
+    uninstall = read(UNINSTALL_CMD)
+    for source in (install, uninstall):
+        assert "%~dp0" in source
+        assert "powershell.exe" in source.lower()
+        assert "-NoProfile" in source
+        assert "-ExecutionPolicy Bypass" in source
+        assert "Install-Revit2020.ps1" in source
+        assert "exit /b %errorlevel%" in source.lower()
+    assert "-SourceRoot" in install
+    assert "-Uninstall" in uninstall
+
+
+def test_native_workflow_packages_complete_double_click_installer():
     workflow = read(WORKFLOW)
     assert '- "installer/**"' in workflow
     assert "Copy-Item installer/Install-Revit2020.ps1 artifacts/" in workflow
+    assert "Copy-Item installer/Install.cmd artifacts/" in workflow
+    assert "Copy-Item installer/Uninstall.cmd artifacts/" in workflow
+    assert "SHA256SUMS.txt" in workflow
 
 
 def test_native_workflow_smoke_tests_install_and_uninstall_on_windows():
