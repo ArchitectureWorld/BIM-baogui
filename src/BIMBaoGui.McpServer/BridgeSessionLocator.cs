@@ -15,7 +15,7 @@ internal sealed class BridgeClientException : Exception
   internal string ErrorCode { get; }
 }
 
-internal sealed class BridgeSessionLocator
+public sealed class BridgeSessionLocator
 {
   private static readonly JsonSerializerOptions JsonOptions = new()
   {
