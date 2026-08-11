@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,8 +31,14 @@ def test_stage02_write_rebuilds_preview_and_allows_partial_success():
     assert "RebuildPreview" in source
     assert "PreviewHash" in source
     assert "NativeStage02ParameterBindingService.Ensure" in source
-    assert 'new Transaction(document, "HBR Stage02 参数"' in source
-    assert 'new Transaction(document, "HBR Stage02 构件"' in source
+    assert re.search(
+        r'new\s+Transaction\s*\(\s*document\s*,\s*"HBR Stage02 参数',
+        source,
+    )
+    assert re.search(
+        r'new\s+Transaction\s*\(\s*document\s*,\s*"HBR Stage02 构件',
+        source,
+    )
     assert "NativeStage02ValueCodec.WriteAndVerify" in source
     assert "transaction.RollBack()" in source
     assert "continue;" in source
