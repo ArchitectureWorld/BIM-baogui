@@ -49,6 +49,10 @@ namespace BIMBaoGui.RevitAddin.Stage02
     private static readonly Regex ConsecutiveWhitespace = new Regex(
       @"\s+",
       RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    private static readonly HashSet<string> ProjectInformationRoleIds =
+      new HashSet<string>(
+        new[] { "BUILDING", "PROJECT", "SITE" },
+        StringComparer.Ordinal);
 
     internal static NativeStage02RoleMatchResult Match(
       NativeStage02ElementSnapshot candidate,
@@ -94,7 +98,21 @@ namespace BIMBaoGui.RevitAddin.Stage02
             compatible.Select(role => role.RoleId),
             "显式角色不属于当前元素的兼容角色集合。" );
         }
-        return Matched(assigned.RoleId, "ASSIGNED_ROLE", compatible);
+        return Matched(assigned.RoleId, "ASSIGNED_ROLE");
+      }
+
+      if (IsProjectInformationSingleEntitySet(candidate, compatible))
+      {
+        string[] roleIds = compatible
+          .Select(role => role.RoleId)
+          .OrderBy(value => value, StringComparer.Ordinal)
+          .ToArray();
+        return new NativeStage02RoleMatchResult(
+          NativeStage02RoleMatchStatus.Matched,
+          string.Join("+", roleIds),
+          "SINGLE_ENTITY_BY_TYPE",
+          roleIds,
+          string.Empty);
       }
 
       bool requiresAlias = compatible.Length > 1
@@ -107,13 +125,13 @@ namespace BIMBaoGui.RevitAddin.Stage02
           "USER_SELECTED_EXPORTABLE_GENERIC_MODEL",
           StringComparison.Ordinal));
       if (!requiresAlias)
-        return Matched(compatible[0].RoleId, "CATEGORY_KIND", compatible);
+        return Matched(compatible[0].RoleId, "CATEGORY_KIND");
 
       NativeCarrierRoleDefinition[] aliasMatches = compatible
         .Where(role => MatchesExactAlias(role, candidate))
         .ToArray();
       if (aliasMatches.Length == 1)
-        return Matched(aliasMatches[0].RoleId, "EXACT_ALIAS", compatible);
+        return Matched(aliasMatches[0].RoleId, "EXACT_ALIAS");
       if (aliasMatches.Length > 1)
       {
         return new NativeStage02RoleMatchResult(
@@ -139,6 +157,27 @@ namespace BIMBaoGui.RevitAddin.Stage02
       return ConsecutiveWhitespace.Replace(normalized, " ");
     }
 
+    private static bool IsProjectInformationSingleEntitySet(
+      NativeStage02ElementSnapshot candidate,
+      IReadOnlyCollection<NativeCarrierRoleDefinition> roles)
+    {
+      return string.Equals(
+          candidate.Category,
+          "OST_ProjectInformation",
+          StringComparison.Ordinal)
+        && string.Equals(
+          candidate.ElementKind,
+          "ProjectInformation",
+          StringComparison.Ordinal)
+        && roles.Count > 0
+        && roles.All(role =>
+          ProjectInformationRoleIds.Contains(role.RoleId)
+          && string.Equals(
+            role.IfcOwnerStrategy,
+            "SINGLE_ENTITY_BY_TYPE",
+            StringComparison.Ordinal));
+    }
+
     private static bool MatchesExactAlias(
       NativeCarrierRoleDefinition role,
       NativeStage02ElementSnapshot candidate)
@@ -162,14 +201,13 @@ namespace BIMBaoGui.RevitAddin.Stage02
 
     private static NativeStage02RoleMatchResult Matched(
       string roleId,
-      string source,
-      IEnumerable<NativeCarrierRoleDefinition> compatible)
+      string source)
     {
       return new NativeStage02RoleMatchResult(
         NativeStage02RoleMatchStatus.Matched,
         roleId,
         source,
-        compatible.Select(role => role.RoleId),
+        new[] { roleId },
         string.Empty);
     }
 
