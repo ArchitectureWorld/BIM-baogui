@@ -35,6 +35,15 @@ Stage03 内部使用 **Autodesk Revit 标准 IFC4** 导出 `<RVT名>-<runId>-RAW
 
 单一规则包 `.hbrpack` 是三个阶段的规则源；`packageId / version / hash` 从 FileContext 传播到预览、检测、产物和报告。Stage01、Stage02、Stage03 的失败报告与活动 GHA 同目录。
 
+## 当前开发归档
+
+当前实现快照、开发依据、三阶段已开发能力、实机验收边界和下一步 Stage02 计划，统一记录在：
+
+- [2026-08-11 GH 插件开发基线归档](docs/archive/2026-08-11-gh-plugin-development-baseline.md)
+- [2026-08-11 机器可读验证证据](docs/archive/2026-08-11-validation-evidence.json)
+
+唯一可编辑映射规则仍是 [hbr_rule_source.v1.json](specs/hbr-rules/v1/source/hbr_rule_source.v1.json)。归档文件只记录快照，不是第二份规则源。
+
 ## 安装
 
 固定构建产物：

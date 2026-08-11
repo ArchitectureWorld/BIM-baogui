@@ -1,12 +1,27 @@
 # HBR 三阶段开发总进度
 
-> 最后更新：2026-08-06 15:51（UTC+08:00；Task 11 CI、artifact 核验与无备份部署已完成，Task 12 尚未执行）
-> 计划基线：[`2026-08-02-hbr-three-stage-implementation.md`](superpowers/plans/2026-08-02-hbr-three-stage-implementation.md)
-> 当前分支：`fix/official-hifc-hardening-v090`
-> 更新规则：任务启动、测试结果变化、审查结论、Git 提交、部署或实机验收后，必须同步更新本页。
-> 实时口径：本页与 Codex 计划面板同步；只有实现、验证、审查、提交全部通过的 Task 才计入正式完成度。
+> 当前快照：2026-08-11 11:01（UTC+08:00）
+> 当前分支：`feat/gh-plugin-hbr-planning-v1.0.0`
+> 开发代码快照：`b6eef878ccf53a17569ac7c5766076a5a0fd852e`
+> 映射基线：`hbr-planning-mapping-v1.0.0` → `0c5d2c1100c9c80c4306354bab553debe8f191ca`
+> 当前权威归档：[`2026-08-11-gh-plugin-development-baseline.md`](archive/2026-08-11-gh-plugin-development-baseline.md)
 
-## 一屏看懂
+## 当前状态
+
+| 阶段 | 当前准确结论 | 下一门槛 |
+|---|---|---|
+| Stage01 | 用户指定 RVT 烟测暂无问题；旧坐标键、payload 完整性和 10→14 条件迁移已开发 | 完整验收清单仍需保存重开、逐字段和哈希留证 |
+| Stage02 | 代码与自动化合同已开发；runtime 状态已进入预览、Data Tree 和 UI | 本次用户未执行；下一重点是指定 RVT 的预览、确认、GUID 回读、持久性与旧预览失效闭环 |
+| Stage03 | 最新 run 已生成 RAW 和 HIFC-MVD 候选 | 同一 run 在 `TRANSLATE-IFC` 以 `INVALID_IFC` 失败且无 fields JSON，不能记为全链路通过 |
+| 规则库 | 359 条唯一规则已由 Tag 冻结；开发分支未改冻结规则 | 保持单一规则源；不得用第二份映射表推进 Stage02 |
+
+当前唯一开发重点是 Stage02 实机闭环。完整依据、提交、哈希、产物和验收边界见上方权威归档及其证据 JSON。
+
+## 历史进度流水（截至 2026-08-06）
+
+以下内容保留原 Task 1–12 开发流水以便追溯，但其中“当前”“最新”“下一步”等措辞均以 2026-08-06 当时状态为准，不再代表 2026-08-11 的当前结论。
+
+### 历史一屏看懂
 
 | 你最关心的项目 | 当前结果 |
 |---|---|
