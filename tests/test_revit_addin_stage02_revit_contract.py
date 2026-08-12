@@ -26,6 +26,13 @@ def test_stage02_preview_reads_live_revit_and_exact_parameter_evidence():
     assert "DocumentFingerprint" in source
 
 
+def test_stage02_requires_explicit_project_condition_declaration():
+    source = read_stage02("NativeStage02RevitService.cs")
+    assert "NativeProjectConditionDeclarationPolicy.Evaluate" in source
+    assert "Stage02 等待项目条件声明" in source
+    assert "无上述项目条件（已确认）" in source
+
+
 def test_stage02_write_rebuilds_preview_and_allows_partial_success():
     source = read_stage02("NativeStage02RevitWriteService.cs")
     assert "RebuildPreview" in source
