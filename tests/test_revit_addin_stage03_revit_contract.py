@@ -29,8 +29,10 @@ def test_hifc_core_is_source_independent_from_the_gha_project():
 
 def test_stage03_live_scan_reuses_stage01_stage02_and_fixed_rule_database():
     source = read(STAGE03 / "NativeStage03Scanner.cs")
+    models = read(STAGE03 / "NativeStage03Models.cs")
     assert "NativeStage01RevitReadService.Read" in source
     assert "NativeProjectConditionDeclarationPolicy.Evaluate" in source
+    assert "NativeStage03Stage01ValidationPolicy.Classify" in source
     assert "NativeStage02RevitService.CreatePreview" in source
     assert "NativeStage02ScopeMode.FullModel" in source
     assert "NativeStage02RuleCatalog.Current" in source
@@ -38,6 +40,7 @@ def test_stage03_live_scan_reuses_stage01_stage02_and_fixed_rule_database():
     assert "IfcGlobalId.Encode" in source
     assert "StageOwnership.Contains" in source
     assert "NativeStage03Canonicalizer.ComputeHash" in source
+    assert "Stage01BusinessInvalid" in models
 
 
 def test_stage03_raw_export_is_ifc4_and_rolls_back_revit_transaction():
