@@ -109,7 +109,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
                 messages,
                 NativeStage01ValidationCodes.OrganizationMissing,
                 field.FieldKey,
-                "至少需要一条参建组织记录。");
+                DescribeField(field, string.Empty)
+                  + "：至少需要一条参建组织记录。");
             }
             continue;
           }
@@ -147,7 +148,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
           messages,
           NativeStage01ValidationCodes.UnknownModelProfile,
           NativeStage01Keys.ModelFileType,
-          "模型文件类型不属于当前 HBR 数据库的 model profile。");
+          "模型文件类型（" + NativeStage01Keys.ModelFileType
+            + "）：不属于当前 HBR 数据库的 model profile。");
       }
 
       foreach (NativeConditionDefinition condition in catalog.Conditions)
@@ -158,7 +160,9 @@ namespace BIMBaoGui.RevitAddin.Stage01
             messages,
             NativeStage01ValidationCodes.ConditionMissing,
             condition.ConditionId,
-            "项目条件键缺失；不得按 false 静默补猜。" );
+            (condition.DisplayName ?? condition.ConditionId)
+              + "（" + condition.ConditionId
+              + "）：项目条件键缺失；不得按 false 静默补猜。" );
         }
       }
 
@@ -194,6 +198,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
       string prefix)
     {
       string normalized = (value ?? string.Empty).Trim();
+      string subject = DescribeField(field, prefix);
       if (normalized.Length == 0)
       {
         if (required)
@@ -202,7 +207,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
             messages,
             NativeStage01ValidationCodes.RequiredValueMissing,
             field.FieldKey,
-            prefix + "该字段为必填项。" );
+            subject + "：该字段为必填项。" );
         }
         return;
       }
@@ -214,7 +219,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
           messages,
           NativeStage01ValidationCodes.InvalidPostalCode,
           field.FieldKey,
-          prefix + "邮政编码应为 6 位数字。" );
+          subject + "：邮政编码应为 6 位数字。" );
       }
       if ((label.Contains("手机")
           || label.Contains("电话")
@@ -225,7 +230,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
           messages,
           NativeStage01ValidationCodes.InvalidPhone,
           field.FieldKey,
-          prefix + "电话号码格式不正确。" );
+          subject + "：电话号码格式不正确。" );
       }
       if (label.Contains("邮箱") && !IsValidEmail(normalized))
       {
@@ -233,7 +238,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
           messages,
           NativeStage01ValidationCodes.InvalidEmail,
           field.FieldKey,
-          prefix + "邮箱格式不正确。" );
+          subject + "：邮箱格式不正确。" );
       }
       if ((label.Contains("统一信用代码")
           || label.Contains("社会统一信用代码"))
@@ -243,7 +248,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
           messages,
           NativeStage01ValidationCodes.InvalidCreditCode,
           field.FieldKey,
-          prefix + "统一社会信用代码应为 18 位有效字符。" );
+          subject + "：统一社会信用代码应为 18 位有效字符。" );
       }
 
       switch (field.Kind)
@@ -255,7 +260,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
               messages,
               NativeStage01ValidationCodes.InvalidNumber,
               field.FieldKey,
-              prefix + "应填写有效数值。" );
+              subject + "：应填写有效数值。" );
           }
           else if (string.Equals(
               field.FieldKey,
@@ -267,7 +272,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
               messages,
               NativeStage01ValidationCodes.TrueNorthOutOfRange,
               field.FieldKey,
-              prefix + "真北角度必须位于 -180° 到 180°。" );
+              subject + "：真北角度必须位于 -180° 到 180°。" );
           }
           break;
         case NativeStage01FieldKind.Integer:
@@ -286,7 +291,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
               messages,
               NativeStage01ValidationCodes.InvalidInteger,
               field.FieldKey,
-              prefix + "应填写整数。" );
+              subject + "：应填写整数。" );
           }
           break;
         case NativeStage01FieldKind.Boolean:
@@ -298,7 +303,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
               messages,
               NativeStage01ValidationCodes.InvalidBoolean,
               field.FieldKey,
-              prefix + "应填写 true/false 或 是/否。" );
+              subject + "：应填写 true/false 或 是/否。" );
           }
           break;
         case NativeStage01FieldKind.DateTime:
@@ -317,7 +322,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
               messages,
               NativeStage01ValidationCodes.InvalidDateTime,
               field.FieldKey,
-              prefix + "日期或时间格式不正确。" );
+              subject + "：日期或时间格式不正确。" );
           }
           break;
         case NativeStage01FieldKind.Guid:
@@ -328,7 +333,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
               messages,
               NativeStage01ValidationCodes.InvalidGuid,
               field.FieldKey,
-              prefix + "GUID 格式不正确或为空 GUID。" );
+              subject + "：GUID 格式不正确或为空 GUID。" );
           }
           break;
         case NativeStage01FieldKind.Enum:
@@ -341,10 +346,25 @@ namespace BIMBaoGui.RevitAddin.Stage01
               messages,
               NativeStage01ValidationCodes.InvalidEnum,
               field.FieldKey,
-              prefix + "值不属于数据库批准的枚举集合。" );
+              subject + "：值不属于数据库批准的枚举集合。" );
           }
           break;
       }
+    }
+
+    private static string DescribeField(
+      NativeStage01FieldDefinition field,
+      string prefix)
+    {
+      string label = (field?.Label ?? string.Empty).Trim();
+      string key = (field?.FieldKey ?? string.Empty).Trim();
+      string name = label.Length > 0 ? label : key;
+      if (key.Length > 0
+        && !string.Equals(name, key, StringComparison.Ordinal))
+      {
+        name += "（" + key + "）";
+      }
+      return (prefix ?? string.Empty) + name;
     }
 
     private static bool TryDouble(string value, out double number)
