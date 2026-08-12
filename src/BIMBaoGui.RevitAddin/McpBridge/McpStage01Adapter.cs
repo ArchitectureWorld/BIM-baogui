@@ -59,8 +59,19 @@ namespace BIMBaoGui.RevitAddin.McpBridge
           ["condition_id"] = value.ConditionId,
           ["display_name"] = value.DisplayName,
           ["group"] = value.Group,
-          ["default_active"] = value.DefaultActive
-        }).ToArray();
+          ["default_active"] = value.DefaultActive,
+          ["declaration_option"] = "actual"
+        }).ToList();
+      conditions.Add(new Dictionary<string, object>(StringComparer.Ordinal)
+      {
+        ["condition_id"] =
+          NativeProjectConditionDeclarationPolicy.NoneConditionId,
+        ["display_name"] =
+          NativeProjectConditionDeclarationPolicy.NoneDisplayName,
+        ["group"] = NativeStage01ViewModel.ConditionsGroup,
+        ["default_active"] = false,
+        ["declaration_option"] = "none"
+      });
       return McpBridgeJson.Serialize(new Dictionary<string, object>(
         StringComparer.Ordinal)
       {
@@ -69,7 +80,17 @@ namespace BIMBaoGui.RevitAddin.McpBridge
         ["rule_package_sha256"] = catalog.Identity.RulePackageSha256,
         ["payload_schema_version"] =
           NativeStage01Canonicalizer.PayloadSchemaVersion,
-        ["default_active_group"] = catalog.DefaultActiveGroup,
+        ["default_active_group"] = NativeStage01ViewModel.ConditionsGroup,
+        ["condition_declaration"] = new Dictionary<string, object>(
+          StringComparer.Ordinal)
+        {
+          ["required"] = true,
+          ["none_condition_id"] =
+            NativeProjectConditionDeclarationPolicy.NoneConditionId,
+          ["none_display_name"] =
+            NativeProjectConditionDeclarationPolicy.NoneDisplayName,
+          ["exclusive_with_actual_conditions"] = true
+        },
         ["model_profiles"] = catalog.ModelProfiles
           .Select(value => value.ProfileId)
           .OrderBy(value => value, StringComparer.Ordinal)

@@ -53,7 +53,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
       });
       _summaryText = new TextBlock
       {
-        Text = "依据 HBR 数据库填写项目、子项、坐标、高程、真北、单位、组织和项目条件。",
+        Text = "先明确项目条件，再填写项目、子项、坐标、高程、真北、单位和组织信息。",
         TextWrapping = TextWrapping.Wrap,
         Margin = new Thickness(0, 5, 0, 0)
       };
@@ -177,13 +177,21 @@ namespace BIMBaoGui.RevitAddin.Stage01
       if (!validation.IsValid)
       {
         string firstField = validation.Messages.First().FieldKey;
-        NativeStage01FieldDefinition field =
-          NativeRuleCatalog.Current.Stage01FieldsByKey.TryGetValue(
-            firstField,
-            out NativeStage01FieldDefinition found)
-            ? found
-            : null;
-        if (field != null) _viewModel.SetActiveGroup(field.UiGroup);
+        if (IsConditionValidationField(firstField))
+        {
+          _viewModel.SetActiveGroup(
+            NativeStage01ViewModel.ConditionsGroup);
+        }
+        else
+        {
+          NativeStage01FieldDefinition field =
+            NativeRuleCatalog.Current.Stage01FieldsByKey.TryGetValue(
+              firstField,
+              out NativeStage01FieldDefinition found)
+              ? found
+              : null;
+          if (field != null) _viewModel.SetActiveGroup(field.UiGroup);
+        }
         ExpandOptionalSectionsWithErrors();
         RenderAll();
         SetStatus(
@@ -338,17 +346,19 @@ namespace BIMBaoGui.RevitAddin.Stage01
     {
       _activeOptionalExpander = null;
       _formPanel.Children.Clear();
+      bool isConditionsGroup = string.Equals(
+        _viewModel.ActiveGroup,
+        NativeStage01ViewModel.ConditionsGroup,
+        StringComparison.Ordinal);
       _formPanel.Children.Add(new TextBlock
       {
-        Text = DisplayName(_viewModel.ActiveGroup),
+        Text = DisplayName(_viewModel.ActiveGroup)
+          + (isConditionsGroup ? "（必填）" : string.Empty),
         FontSize = 18,
         FontWeight = FontWeights.SemiBold,
         Margin = new Thickness(0, 0, 0, 10)
       });
-      if (string.Equals(
-        _viewModel.ActiveGroup,
-        NativeStage01ViewModel.ConditionsGroup,
-        StringComparison.Ordinal))
+      if (isConditionsGroup)
       {
         RenderConditions();
         return;
@@ -450,6 +460,45 @@ namespace BIMBaoGui.RevitAddin.Stage01
 
     private void RenderConditions()
     {
+      NativeProjectConditionDeclarationDecision decision =
+        _viewModel.GetConditionDeclarationDecision();
+      _formPanel.Children.Add(new Border
+      {
+        Child = new TextBlock
+        {
+          Text = "项目条件为必填声明：请选择一个或多个实际条件；如果均不适用，请明确勾选“无上述项目条件（已确认）”。",
+          TextWrapping = TextWrapping.Wrap,
+          Foreground = decision.IsValid ? Brushes.DarkGreen : Brushes.DarkRed
+        },
+        Background = new SolidColorBrush(Color.FromRgb(248, 249, 250)),
+        BorderBrush = new SolidColorBrush(Color.FromRgb(224, 227, 232)),
+        BorderThickness = new Thickness(1),
+        CornerRadius = new CornerRadius(4),
+        Padding = new Thickness(10),
+        Margin = new Thickness(0, 0, 0, 10)
+      });
+
+      var noneCheckBox = new CheckBox
+      {
+        Content = "无上述项目条件（已确认）",
+        IsChecked = _viewModel.GetNoConditions(),
+        Margin = new Thickness(0, 5, 0, 12),
+        Padding = new Thickness(8),
+        FontWeight = FontWeights.SemiBold,
+        IsEnabled = !_busy
+      };
+      noneCheckBox.Checked += (_, __) =>
+      {
+        _viewModel.SetNoConditions(true);
+        RenderAll();
+      };
+      noneCheckBox.Unchecked += (_, __) =>
+      {
+        _viewModel.SetNoConditions(false);
+        RenderAll();
+      };
+      _formPanel.Children.Add(noneCheckBox);
+
       foreach (IGrouping<string, NativeConditionDefinition> group in
         _viewModel.Conditions
           .GroupBy(value => value.Group ?? string.Empty)
@@ -458,8 +507,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
         _formPanel.Children.Add(new TextBlock
         {
           Text = string.IsNullOrWhiteSpace(group.Key)
-            ? "项目条件"
-            : group.Key,
+            ? "实际项目条件"
+            : DisplayName(group.Key),
           FontWeight = FontWeights.SemiBold,
           Margin = new Thickness(0, 10, 0, 5)
         });
@@ -475,15 +524,29 @@ namespace BIMBaoGui.RevitAddin.Stage01
           checkBox.Checked += (_, __) =>
           {
             _viewModel.SetCondition(condition.ConditionId, true);
-            RefreshSummaryText();
+            RenderAll();
           };
           checkBox.Unchecked += (_, __) =>
           {
             _viewModel.SetCondition(condition.ConditionId, false);
-            RefreshSummaryText();
+            RenderAll();
           };
           _formPanel.Children.Add(checkBox);
         }
+      }
+
+      foreach (NativeStage01ValidationMessage message in
+        _viewModel.ValidationMessagesForField(
+          NativeProjectConditionDeclarationPolicy.NoneConditionId))
+      {
+        _formPanel.Children.Add(new TextBlock
+        {
+          Text = message.Message,
+          Foreground = Brushes.DarkRed,
+          FontSize = 11,
+          TextWrapping = TextWrapping.Wrap,
+          Margin = new Thickness(0, 8, 0, 0)
+        });
       }
     }
 
@@ -508,7 +571,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
       panel.Children.Add(new TextBlock
       {
         Text = "示例：" + Example(field)
-          + "｜H-IFC：" + field.IfcEntity
+          + "｜H-IFC 映射目标：" + field.IfcEntity
           + " / " + field.IfcPropertySet
           + " / " + field.IfcProperty,
         FontSize = 11,
@@ -631,6 +694,19 @@ namespace BIMBaoGui.RevitAddin.Stage01
     {
       if (_activeOptionalExpander == null) return;
       _activeOptionalExpander.Header = OptionalHeader(_viewModel.ActiveGroup);
+    }
+
+    private static bool IsConditionValidationField(string fieldKey)
+    {
+      return string.Equals(
+          fieldKey,
+          NativeProjectConditionDeclarationPolicy.NoneConditionId,
+          StringComparison.Ordinal)
+        || NativeRuleCatalog.Current.Conditions.Any(condition =>
+          string.Equals(
+            condition.ConditionId,
+            fieldKey,
+            StringComparison.Ordinal));
     }
 
     private void SetBusy(bool busy, string status)

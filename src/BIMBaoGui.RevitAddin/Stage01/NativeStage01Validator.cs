@@ -25,6 +25,10 @@ namespace BIMBaoGui.RevitAddin.Stage01
     internal const string TrueNorthOutOfRange = "TRUE_NORTH_OUT_OF_RANGE";
     internal const string UnknownModelProfile = "UNKNOWN_MODEL_PROFILE";
     internal const string ConditionMissing = "CONDITION_MISSING";
+    internal const string ProjectConditionDeclarationMissing =
+      "PROJECT_CONDITION_DECLARATION_MISSING";
+    internal const string ProjectConditionDeclarationConflict =
+      "PROJECT_CONDITION_DECLARATION_CONFLICT";
     internal const string OrganizationMissing = "ORGANIZATION_MISSING";
   }
 
@@ -156,6 +160,27 @@ namespace BIMBaoGui.RevitAddin.Stage01
             condition.ConditionId,
             "项目条件键缺失；不得按 false 静默补猜。" );
         }
+      }
+
+      NativeProjectConditionDeclarationDecision declaration =
+        NativeProjectConditionDeclarationPolicy.Evaluate(model, catalog);
+      if (declaration.State
+        == NativeProjectConditionDeclarationState.Missing)
+      {
+        Add(
+          messages,
+          NativeStage01ValidationCodes.ProjectConditionDeclarationMissing,
+          NativeProjectConditionDeclarationPolicy.NoneConditionId,
+          "项目条件为必填声明：请选择至少一个实际条件，或勾选“无上述项目条件（已确认）”。" );
+      }
+      else if (declaration.State
+        == NativeProjectConditionDeclarationState.Conflict)
+      {
+        Add(
+          messages,
+          NativeStage01ValidationCodes.ProjectConditionDeclarationConflict,
+          NativeProjectConditionDeclarationPolicy.NoneConditionId,
+          "实际项目条件与“无上述项目条件（已确认）”不能同时选择。" );
       }
 
       return new NativeStage01ValidationResult(messages);

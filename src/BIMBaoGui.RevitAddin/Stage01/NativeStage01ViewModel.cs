@@ -16,17 +16,16 @@ namespace BIMBaoGui.RevitAddin.Stage01
     {
       _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
       _model = catalog.CreateDefaultStage01Model();
-      ActiveGroup = catalog.DefaultActiveGroup;
       var groups = new List<string>();
+      groups.Add(ConditionsGroup);
       foreach (string group in catalog.Stage01Fields
         .Select(value => value.UiGroup)
         .Where(value => !string.IsNullOrWhiteSpace(value)))
       {
         if (!groups.Contains(group, StringComparer.Ordinal)) groups.Add(group);
       }
-      if (!groups.Contains(ConditionsGroup, StringComparer.Ordinal))
-        groups.Add(ConditionsGroup);
       Groups = new ReadOnlyCollection<string>(groups);
+      ActiveGroup = ConditionsGroup;
     }
 
     internal NativeStage01Model Model => _model;
@@ -81,7 +80,11 @@ namespace BIMBaoGui.RevitAddin.Stage01
 
     internal void SetCondition(string conditionId, bool value)
     {
-      _model.SetCondition(conditionId, value);
+      NativeProjectConditionDeclarationPolicy.SetActualCondition(
+        _model,
+        _catalog,
+        conditionId,
+        value);
       MarkEdited();
     }
 
@@ -90,8 +93,33 @@ namespace BIMBaoGui.RevitAddin.Stage01
       return _model.GetCondition(conditionId);
     }
 
+    internal void SetNoConditions(bool value)
+    {
+      NativeProjectConditionDeclarationPolicy.SetNoConditions(
+        _model,
+        _catalog,
+        value);
+      MarkEdited();
+    }
+
+    internal bool GetNoConditions()
+    {
+      return _model.GetCondition(
+        NativeProjectConditionDeclarationPolicy.NoneConditionId);
+    }
+
+    internal NativeProjectConditionDeclarationDecision
+      GetConditionDeclarationDecision()
+    {
+      return NativeProjectConditionDeclarationPolicy.Evaluate(
+        _model,
+        _catalog);
+    }
+
     internal int GetMissingRequiredCount(string group)
     {
+      if (string.Equals(group, ConditionsGroup, StringComparison.Ordinal))
+        return GetConditionDeclarationDecision().IsValid ? 0 : 1;
       return FieldsForGroup(group)
         .Where(NativeStage01Validator.IsRequired)
         .Count(field => string.IsNullOrWhiteSpace(GetFieldValue(field)));
@@ -148,11 +176,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
           new Dictionary<string, string>(StringComparer.Ordinal));
       }
       OrganizationIndex = 0;
-      ActiveGroup = Groups.Contains(
-        _catalog.DefaultActiveGroup,
-        StringComparer.Ordinal)
-        ? _catalog.DefaultActiveGroup
-        : Groups.FirstOrDefault() ?? string.Empty;
+      ActiveGroup = ConditionsGroup;
       Validation = null;
       IsDirty = false;
     }
