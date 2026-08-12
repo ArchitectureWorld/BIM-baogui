@@ -62,6 +62,58 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
+    public void OptionalCountsFollowCurrentFieldValues()
+    {
+      var viewModel = new NativeStage01ViewModel(
+        NativeRuleCatalog.Current);
+      string group = viewModel.Groups.First(value =>
+        viewModel.FieldsForGroup(value).Any(field =>
+          !NativeStage01Validator.IsRequired(field)
+          && !field.ReadOnly
+          && !field.Deferred
+          && string.IsNullOrWhiteSpace(viewModel.GetFieldValue(field))));
+      NativeStage01FieldDefinition optionalField =
+        viewModel.FieldsForGroup(group).First(field =>
+          !NativeStage01Validator.IsRequired(field)
+          && !field.ReadOnly
+          && !field.Deferred
+          && string.IsNullOrWhiteSpace(viewModel.GetFieldValue(field)));
+      int expectedTotal = viewModel.FieldsForGroup(group).Count(field =>
+        !NativeStage01Validator.IsRequired(field));
+      int before = viewModel.FieldsForGroup(group).Count(field =>
+        !NativeStage01Validator.IsRequired(field)
+        && !string.IsNullOrWhiteSpace(viewModel.GetFieldValue(field)));
+
+      Assert.Equal(expectedTotal, viewModel.GetOptionalFieldCount(group));
+      Assert.Equal(before, viewModel.GetFilledOptionalFieldCount(group));
+
+      viewModel.SetFieldValue(optionalField, ValidValue(optionalField));
+
+      Assert.Equal(before + 1, viewModel.GetFilledOptionalFieldCount(group));
+    }
+
+    [Fact]
+    public void OptionalValidationErrorsAreDetectedPerGroup()
+    {
+      var viewModel = new NativeStage01ViewModel(
+        NativeRuleCatalog.Current);
+      NativeStage01FieldDefinition optionalField =
+        NativeRuleCatalog.Current.Stage01Fields.First(field =>
+          !NativeStage01Validator.IsRequired(field)
+          && !field.ReadOnly
+          && !field.Deferred
+          && InvalidValue(field) != null);
+
+      viewModel.SetFieldValue(optionalField, InvalidValue(optionalField));
+      viewModel.Validate();
+
+      Assert.True(viewModel.HasOptionalValidationError(optionalField.UiGroup));
+      Assert.Contains(
+        viewModel.Validation.Messages,
+        message => message.FieldKey == optionalField.FieldKey);
+    }
+
+    [Fact]
     public void LoadingAndOrganizationEditingUseIndependentModelCopies()
     {
       var viewModel = new NativeStage01ViewModel(
@@ -77,8 +129,32 @@ namespace BIMBaoGui.RevitAddin.Tests
       viewModel.RemoveCurrentOrganization();
 
       Assert.Equal("源项目", source.GetValue(NativeStage01Keys.ProjectName));
-      Assert.Equal(1, viewModel.Model.Organizations.Count);
+      Assert.Single(viewModel.Model.Organizations);
       Assert.True(viewModel.IsDirty);
+    }
+
+    private static string InvalidValue(NativeStage01FieldDefinition field)
+    {
+      string label = field.Label ?? string.Empty;
+      if (label.Contains("邮政编码")) return "12";
+      if (label.Contains("手机")
+        || label.Contains("电话")
+        || label.Contains("联系电话"))
+        return "x";
+      if (label.Contains("邮箱")) return "not-an-email";
+      if (label.Contains("统一信用代码")
+        || label.Contains("社会统一信用代码"))
+        return "x";
+      switch (field.Kind)
+      {
+        case NativeStage01FieldKind.Number: return "not-number";
+        case NativeStage01FieldKind.Integer: return "1.5";
+        case NativeStage01FieldKind.Boolean: return "maybe";
+        case NativeStage01FieldKind.Guid: return "not-guid";
+        case NativeStage01FieldKind.DateTime: return "not-date";
+        case NativeStage01FieldKind.Enum: return "__invalid__";
+        default: return null;
+      }
     }
 
     private static string ValidValue(NativeStage01FieldDefinition field)
