@@ -33,6 +33,23 @@ def test_stage01_workspace_exposes_explicit_read_validate_and_write_actions():
     assert "new Transaction(" not in source
 
 
+def test_project_conditions_are_the_first_required_declaration_step():
+    view = read(PROJECT / "Stage01" / "NativeStage01View.cs")
+    view_model = read(PROJECT / "Stage01" / "NativeStage01ViewModel.cs")
+    policy = read(
+        PROJECT / "Stage01" / "NativeProjectConditionDeclarationPolicy.cs"
+    )
+    assert "无上述项目条件（已确认）" in view
+    assert "项目条件为必填声明" in view
+    assert "SetNoConditions" in view
+    assert "NativeProjectConditionDeclarationPolicy.SetActualCondition" in view_model
+    assert "NativeProjectConditionDeclarationPolicy.SetNoConditions" in view_model
+    assert "Groups.First" not in view_model
+    assert "groups.Add(ConditionsGroup)" in view_model
+    assert "NoneConditionId" in policy
+    assert "PROJECT_CONDITION" not in policy
+
+
 def test_stage01_required_fields_precede_one_remembered_optional_expander():
     source = read(PROJECT / "Stage01" / "NativeStage01View.cs")
     assert "new Expander" in source

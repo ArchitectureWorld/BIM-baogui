@@ -9,18 +9,22 @@ namespace BIMBaoGui.RevitAddin.Tests
   public sealed class NativeStage01ViewModelTests
   {
     [Fact]
-    public void BuildsStableDirectoryAndStartsOnDatabaseDefaultGroup()
+    public void BuildsStableDirectoryAndStartsOnRequiredConditionsGroup()
     {
       var viewModel = new NativeStage01ViewModel(
         NativeRuleCatalog.Current);
 
       Assert.NotEmpty(viewModel.Groups);
       Assert.Equal(
-        NativeRuleCatalog.Current.DefaultActiveGroup,
+        NativeStage01ViewModel.ConditionsGroup,
+        viewModel.Groups.First());
+      Assert.Equal(
+        NativeStage01ViewModel.ConditionsGroup,
         viewModel.ActiveGroup);
       Assert.Contains("01_文件与项目身份", viewModel.Groups);
-      Assert.Contains(NativeStage01ViewModel.ConditionsGroup, viewModel.Groups);
-      Assert.NotEmpty(viewModel.ActiveFields);
+      Assert.NotEmpty(viewModel.Conditions);
+      Assert.Equal(1, viewModel.GetMissingRequiredCount(
+        NativeStage01ViewModel.ConditionsGroup));
     }
 
     [Fact]
@@ -28,6 +32,10 @@ namespace BIMBaoGui.RevitAddin.Tests
     {
       var viewModel = new NativeStage01ViewModel(
         NativeRuleCatalog.Current);
+      string fieldGroup = viewModel.Groups.First(group =>
+        viewModel.FieldsForGroup(group).Any(value =>
+          !value.ReadOnly && !value.Deferred));
+      viewModel.SetActiveGroup(fieldGroup);
       NativeStage01FieldDefinition field = viewModel.ActiveFields
         .First(value => !value.ReadOnly && !value.Deferred);
       viewModel.Validate();
@@ -38,6 +46,27 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.True(viewModel.IsDirty);
       Assert.Null(viewModel.Validation);
       Assert.Equal("新值", viewModel.GetFieldValue(field));
+    }
+
+    [Fact]
+    public void ConditionEditingUsesMutualExclusionAndUpdatesRequiredCount()
+    {
+      NativeRuleCatalog catalog = NativeRuleCatalog.Current;
+      var viewModel = new NativeStage01ViewModel(catalog);
+      string actualConditionId = catalog.Conditions.First().ConditionId;
+
+      viewModel.SetNoConditions(true);
+      Assert.True(viewModel.GetNoConditions());
+      Assert.Equal(0, viewModel.GetMissingRequiredCount(
+        NativeStage01ViewModel.ConditionsGroup));
+
+      viewModel.SetCondition(actualConditionId, true);
+      Assert.True(viewModel.GetCondition(actualConditionId));
+      Assert.False(viewModel.GetNoConditions());
+
+      viewModel.SetNoConditions(true);
+      Assert.True(viewModel.GetNoConditions());
+      Assert.False(viewModel.GetCondition(actualConditionId));
     }
 
     [Fact]
@@ -114,7 +143,7 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
-    public void LoadingAndOrganizationEditingUseIndependentModelCopies()
+    public void LoadingStartsAtConditionsAndUsesIndependentModelCopies()
     {
       var viewModel = new NativeStage01ViewModel(
         NativeRuleCatalog.Current);
@@ -128,6 +157,9 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Equal(2, viewModel.Model.Organizations.Count);
       viewModel.RemoveCurrentOrganization();
 
+      Assert.Equal(
+        NativeStage01ViewModel.ConditionsGroup,
+        viewModel.ActiveGroup);
       Assert.Equal("源项目", source.GetValue(NativeStage01Keys.ProjectName));
       Assert.Single(viewModel.Model.Organizations);
       Assert.True(viewModel.IsDirty);

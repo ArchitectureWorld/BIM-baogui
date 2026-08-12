@@ -76,6 +76,18 @@ def test_router_exposes_only_approved_business_methods():
         assert forbidden not in router.lower()
 
 
+def test_stage01_mcp_schema_exposes_required_condition_declaration():
+    adapter = read(ADDIN / "McpBridge" / "McpStage01Adapter.cs")
+    assert '["default_active_group"] = NativeStage01ViewModel.ConditionsGroup' in adapter
+    assert '["condition_declaration"]' in adapter
+    assert '["required"] = true' in adapter
+    assert "NativeProjectConditionDeclarationPolicy.NoneConditionId" in adapter
+    assert "NativeProjectConditionDeclarationPolicy.NoneDisplayName" in adapter
+    assert '["exclusive_with_actual_conditions"] = true' in adapter
+    assert '["declaration_option"] = "actual"' in adapter
+    assert '["declaration_option"] = "none"' in adapter
+
+
 def test_official_sdk_stdio_server_is_self_contained_and_logs_to_stderr():
     project = read(SERVER / "BIMBaoGui.McpServer.csproj")
     program = read(SERVER / "Program.cs")

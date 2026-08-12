@@ -21,6 +21,9 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.False(result.IsValid);
       Assert.Contains(result.Messages, value =>
         value.Code == NativeStage01ValidationCodes.RequiredValueMissing);
+      Assert.Contains(result.Messages, value =>
+        value.Code
+          == NativeStage01ValidationCodes.ProjectConditionDeclarationMissing);
     }
 
     [Fact]
@@ -35,6 +38,49 @@ namespace BIMBaoGui.RevitAddin.Tests
         result.IsValid,
         string.Join(Environment.NewLine, result.Messages.Select(value =>
           value.Code + "｜" + value.FieldKey + "｜" + value.Message)));
+    }
+
+    [Fact]
+    public void ActualConditionSelectionAlsoSatisfiesRequiredDeclaration()
+    {
+      NativeRuleCatalog catalog = NativeRuleCatalog.Current;
+      NativeStage01Model model = CreateValidModel();
+      NativeProjectConditionDeclarationPolicy.SetNoConditions(
+        model,
+        catalog,
+        false);
+      NativeProjectConditionDeclarationPolicy.SetActualCondition(
+        model,
+        catalog,
+        catalog.Conditions.First().ConditionId,
+        true);
+
+      NativeStage01ValidationResult result =
+        NativeStage01Validator.Validate(model, catalog);
+
+      Assert.DoesNotContain(result.Messages, value =>
+        value.Code
+          == NativeStage01ValidationCodes.ProjectConditionDeclarationMissing
+        || value.Code
+          == NativeStage01ValidationCodes.ProjectConditionDeclarationConflict);
+    }
+
+    [Fact]
+    public void ConflictingConditionDeclarationIsRejected()
+    {
+      NativeRuleCatalog catalog = NativeRuleCatalog.Current;
+      NativeStage01Model model = CreateValidModel();
+      model.SetCondition(catalog.Conditions.First().ConditionId, true);
+      model.SetCondition(
+        NativeProjectConditionDeclarationPolicy.NoneConditionId,
+        true);
+
+      NativeStage01ValidationResult result =
+        NativeStage01Validator.Validate(model, catalog);
+
+      Assert.Contains(result.Messages, value =>
+        value.Code
+          == NativeStage01ValidationCodes.ProjectConditionDeclarationConflict);
     }
 
     [Fact]
@@ -57,7 +103,7 @@ namespace BIMBaoGui.RevitAddin.Tests
     public void RejectsMissingConditionKeysAndInvalidTypedValues()
     {
       NativeStage01Model model = CreateValidModel();
-      string condition = model.Conditions.Keys.First();
+      string condition = NativeRuleCatalog.Current.Conditions.First().ConditionId;
       model.Conditions.Remove(condition);
       model.SetValue(NativeStage01Keys.BaseX, "not-a-number");
 
@@ -96,6 +142,10 @@ namespace BIMBaoGui.RevitAddin.Tests
       model.SetValue(NativeStage01Keys.CoordinateSystem, "CGCS2000");
       model.SetValue(NativeStage01Keys.ElevationSystem, "1985国家高程基准");
       model.SetValue(NativeStage01Keys.TrueNorthAngle, "0");
+      NativeProjectConditionDeclarationPolicy.SetNoConditions(
+        model,
+        catalog,
+        true);
       return model;
     }
 
