@@ -2,6 +2,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT = ROOT / "src" / "BIMBaoGui.RevitAddin"
+WORKFLOW = ROOT / ".github" / "workflows" / "build-revit-mcp.yml"
 
 
 def read(path: Path) -> str:
@@ -63,15 +64,16 @@ def test_addin_manifest_registers_the_exact_application_entrypoint():
     assert "<AddInId>6F3EE836-2A54-43C1-8B90-C9D291E9A8F1</AddInId>" in manifest
 
 
-def test_ci_runs_repository_contracts_and_builds_the_native_addin():
-    workflow = read(ROOT / ".github" / "workflows" / "build-revit-addin.yml")
-    assert "python -m pytest tests/test_revit_addin_scaffold_contract.py -q" in workflow
+def test_unified_ci_runs_repository_contracts_and_builds_the_native_addin():
+    workflow = read(WORKFLOW)
+    assert "Verify native and MCP contracts" in workflow
+    assert "tests/test_revit_addin_scaffold_contract.py" in workflow
     assert "dotnet build src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj" in workflow
     assert "TreatWarningsAsErrors=true" in workflow
 
 
 def test_shared_rulepack_real_build_dependency_is_restored_before_rule_tests():
-    workflow = read(ROOT / ".github" / "workflows" / "build-revit-addin.yml")
+    workflow = read(WORKFLOW)
     restore = "dotnet restore src/BIMBaoGui.Stage01/BIMBaoGui.Stage01.csproj"
     rule_tests = "python -m pytest tests/test_hbr_rulepack_compiler.py tests/test_hbr_rules_manifest.py -q"
     assert restore in workflow
