@@ -18,9 +18,10 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Equal("250", identity.BuildNumber);
       Assert.Equal("0123456789abcdef", identity.CommitSha);
       Assert.Equal("01234567", identity.ShortCommitSha);
-      Assert.True(identity.AssemblyPath.EndsWith(
+      Assert.EndsWith(
         "BIMBaoGui.RevitAddin.dll",
-        System.StringComparison.OrdinalIgnoreCase));
+        identity.AssemblyPath,
+        System.StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
