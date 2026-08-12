@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Text.Json;
 using ModelContextProtocol.Server;
 
 namespace BIMBaoGui.McpServer;
@@ -106,7 +105,7 @@ public static class BimBaoGuiTools
     string validation_hash,
     [Description("必须明确为 true 才允许写入。")]
     bool confirm,
-    [Description("首次初始化时确认当前文件尚未正式建模。")]
+    [Description("已废弃兼容字段；首次初始化不再要求空模型。")]
     bool confirm_blank_project,
     [Description("已初始化文件是否明确允许重新初始化。")]
     bool allow_reinitialize,
@@ -161,6 +160,82 @@ public static class BimBaoGuiTools
     return bridge.CallPayloadAsync(
       BIMBaoGui.McpContracts.BridgeMethodNames.Stage02Write,
       new { preview_hash, confirm },
+      revit_process_id,
+      300000,
+      cancellationToken);
+  }
+
+  [McpServerTool(Name = "bimbaogui_stage03_scan"),
+   Description("现场重读 Stage01/Stage02 与模型参数，执行 Stage03 严格或强制测试预检，并返回一次性 scan_hash。")]
+  public static Task<string> Stage03Scan(
+    NamedPipeBridgeService bridge,
+    [Description("strict（默认）或 forced_test。")]
+    string mode,
+    [Description("forced_test 必填；strict 可为空。")]
+    string force_reason,
+    [Description("Revit 进程 ID；只有一个会话时可传 null。")]
+    int? revit_process_id,
+    CancellationToken cancellationToken)
+  {
+    return bridge.CallPayloadAsync(
+      BIMBaoGui.McpContracts.BridgeMethodNames.Stage03Scan,
+      new { mode, force_reason },
+      revit_process_id,
+      300000,
+      cancellationToken);
+  }
+
+  [McpServerTool(Name = "bimbaogui_stage03_export"),
+   Description("消费未过期 scan_hash，导出 Autodesk IFC4 RAW、生成 H-IFC、exact 回读并输出 IFCFlux 人工检查材料。")]
+  public static Task<string> Stage03Export(
+    NamedPipeBridgeService bridge,
+    [Description("stage03_scan 返回的一次性 SHA-256。")]
+    string scan_hash,
+    [Description("必须明确为 true 才允许导出。")]
+    bool confirm,
+    [Description("H-IFC 输出根目录的 Windows 绝对路径。")]
+    string output_directory,
+    [Description("Revit 进程 ID；只有一个会话时可传 null。")]
+    int? revit_process_id,
+    CancellationToken cancellationToken)
+  {
+    return bridge.CallPayloadAsync(
+      BIMBaoGui.McpContracts.BridgeMethodNames.Stage03Export,
+      new { scan_hash, confirm, output_directory },
+      revit_process_id,
+      600000,
+      cancellationToken);
+  }
+
+  [McpServerTool(Name = "bimbaogui_stage03_get_last_result"),
+   Description("读取当前 Revit 文档最近一次 Stage03 结果、输出路径、内部验证和 IFCFlux 待人工状态。")]
+  public static Task<string> Stage03GetLastResult(
+    NamedPipeBridgeService bridge,
+    [Description("Revit 进程 ID；只有一个会话时可传 null。")]
+    int? revit_process_id,
+    CancellationToken cancellationToken)
+  {
+    return bridge.CallPayloadAsync(
+      BIMBaoGui.McpContracts.BridgeMethodNames.Stage03GetLastResult,
+      new { },
+      revit_process_id,
+      30000,
+      cancellationToken);
+  }
+
+  [McpServerTool(Name = "bimbaogui_stage03_revalidate_file"),
+   Description("使用当前文档最近一次 Stage03 字段清单，重新精确读取指定 H-IFC 文件。")]
+  public static Task<string> Stage03RevalidateFile(
+    NamedPipeBridgeService bridge,
+    [Description("待复检 H-IFC 的 Windows 绝对路径。")]
+    string ifc_path,
+    [Description("Revit 进程 ID；只有一个会话时可传 null。")]
+    int? revit_process_id,
+    CancellationToken cancellationToken)
+  {
+    return bridge.CallPayloadAsync(
+      BIMBaoGui.McpContracts.BridgeMethodNames.Stage03RevalidateFile,
+      new { ifc_path },
       revit_process_id,
       300000,
       cancellationToken);
