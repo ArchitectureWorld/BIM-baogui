@@ -6,9 +6,9 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <AssemblyName>BIMBaoGui.McpContracts</AssemblyName>
     <RootNamespace>BIMBaoGui.McpContracts</RootNamespace>
-    <Version>0.3.0</Version>
-    <FileVersion>0.3.0.0</FileVersion>
-    <AssemblyVersion>0.3.0.0</AssemblyVersion>
+    <Version>0.4.0</Version>
+    <FileVersion>0.4.0.0</FileVersion>
+    <AssemblyVersion>0.4.0.0</AssemblyVersion>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
 </Project>
