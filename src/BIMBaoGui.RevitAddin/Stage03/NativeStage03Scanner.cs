@@ -59,21 +59,22 @@ namespace BIMBaoGui.RevitAddin.Stage03
         }
         else
         {
-          if (stage01.Validation == null || !stage01.Validation.IsValid)
-          {
-            technical.Add(NativeStage03Codes.Stage01Invalid);
-            foreach (NativeStage01ValidationMessage validation in
-              stage01.Validation?.Messages
-              ?? Array.Empty<NativeStage01ValidationMessage>())
-            {
-              messages.Add(validation.Code + "：" + validation.Message);
-            }
-          }
+          NativeStage03Stage01ValidationClassification stage01Validation =
+            NativeStage03Stage01ValidationPolicy.Classify(
+              stage01.Validation,
+              NativeRuleCatalog.Current);
+          foreach (string code in stage01Validation.TechnicalFatalCodes)
+            technical.Add(code);
+          foreach (string code in stage01Validation.BusinessBlockers)
+            business.Add(code);
+          messages.AddRange(stage01Validation.Messages);
+
           NativeProjectConditionDeclarationDecision declaration =
             NativeProjectConditionDeclarationPolicy.Evaluate(
               stage01.Model,
               NativeRuleCatalog.Current);
-          if (!declaration.IsValid)
+          if (!declaration.IsValid
+            || stage01Validation.HasProjectConditionError)
           {
             technical.Add(NativeStage03Codes.ProjectConditionsUndeclared);
             messages.Add("项目条件尚未完成必填声明。" );
