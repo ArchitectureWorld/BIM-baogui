@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using BIMBaoGui.McpContracts;
@@ -13,17 +12,20 @@ namespace BIMBaoGui.RevitAddin.McpBridge
     private readonly McpRevitCommandGateway _gateway;
     private readonly McpStage01Adapter _stage01;
     private readonly McpStage02Adapter _stage02;
+    private readonly McpStage03Adapter _stage03;
 
     internal McpBridgeCommandRouter(
       BridgeSessionDescriptor session,
       McpRevitCommandGateway gateway,
       McpStage01Adapter stage01,
-      McpStage02Adapter stage02)
+      McpStage02Adapter stage02,
+      McpStage03Adapter stage03)
     {
       _session = session ?? throw new ArgumentNullException(nameof(session));
       _gateway = gateway ?? throw new ArgumentNullException(nameof(gateway));
       _stage01 = stage01 ?? throw new ArgumentNullException(nameof(stage01));
       _stage02 = stage02 ?? throw new ArgumentNullException(nameof(stage02));
+      _stage03 = stage03 ?? throw new ArgumentNullException(nameof(stage03));
     }
 
     internal async Task<BridgeResponse> RouteAsync(
@@ -73,6 +75,25 @@ namespace BIMBaoGui.RevitAddin.McpBridge
             break;
           case BridgeMethodNames.Stage02Write:
             payload = await RouteStage02Write(
+              request.PayloadJson,
+              cancellationToken).ConfigureAwait(false);
+            break;
+          case BridgeMethodNames.Stage03Scan:
+            payload = await RouteStage03Scan(
+              request.PayloadJson,
+              cancellationToken).ConfigureAwait(false);
+            break;
+          case BridgeMethodNames.Stage03Export:
+            payload = await RouteStage03Export(
+              request.PayloadJson,
+              cancellationToken).ConfigureAwait(false);
+            break;
+          case BridgeMethodNames.Stage03GetLastResult:
+            payload = await _stage03.GetLastResultAsync(cancellationToken)
+              .ConfigureAwait(false);
+            break;
+          case BridgeMethodNames.Stage03RevalidateFile:
+            payload = await RouteStage03Revalidate(
               request.PayloadJson,
               cancellationToken).ConfigureAwait(false);
             break;
@@ -222,6 +243,46 @@ namespace BIMBaoGui.RevitAddin.McpBridge
         cancellationToken);
     }
 
+    private Task<string> RouteStage03Scan(
+      string json,
+      CancellationToken cancellationToken)
+    {
+      Stage03ScanPayload payload = McpBridgeJson
+        .Deserialize<Stage03ScanPayload>(json);
+      return _stage03.ScanAsync(
+        payload.mode,
+        payload.force_reason,
+        cancellationToken);
+    }
+
+    private Task<string> RouteStage03Export(
+      string json,
+      CancellationToken cancellationToken)
+    {
+      Stage03ExportPayload payload = McpBridgeJson
+        .Deserialize<Stage03ExportPayload>(json);
+      if (string.IsNullOrWhiteSpace(payload.scan_hash))
+      {
+        throw new McpCommandException(
+          BridgeErrorCodes.InvalidArgument,
+          "stage03.export 缺少 scan_hash。" );
+      }
+      return _stage03.ExportAsync(
+        payload.scan_hash,
+        payload.confirm,
+        payload.output_directory,
+        cancellationToken);
+    }
+
+    private Task<string> RouteStage03Revalidate(
+      string json,
+      CancellationToken cancellationToken)
+    {
+      Stage03RevalidatePayload payload = McpBridgeJson
+        .Deserialize<Stage03RevalidatePayload>(json);
+      return _stage03.RevalidateAsync(payload.ifc_path, cancellationToken);
+    }
+
     private sealed class Stage01ValidatePayload
     {
       public string payload_json { get; set; }
@@ -244,6 +305,24 @@ namespace BIMBaoGui.RevitAddin.McpBridge
     {
       public string preview_hash { get; set; }
       public bool confirm { get; set; }
+    }
+
+    private sealed class Stage03ScanPayload
+    {
+      public string mode { get; set; } = "strict";
+      public string force_reason { get; set; } = string.Empty;
+    }
+
+    private sealed class Stage03ExportPayload
+    {
+      public string scan_hash { get; set; } = string.Empty;
+      public bool confirm { get; set; }
+      public string output_directory { get; set; } = string.Empty;
+    }
+
+    private sealed class Stage03RevalidatePayload
+    {
+      public string ifc_path { get; set; } = string.Empty;
     }
   }
 }
