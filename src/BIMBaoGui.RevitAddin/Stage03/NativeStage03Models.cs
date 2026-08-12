@@ -19,6 +19,8 @@ namespace BIMBaoGui.RevitAddin.Stage03
     internal const string DocumentUnavailable = "DOCUMENT_UNAVAILABLE";
     internal const string Stage01NotInitialized = "STAGE01_NOT_INITIALIZED";
     internal const string Stage01Invalid = "STAGE01_INVALID";
+    internal const string Stage01BusinessInvalid =
+      "STAGE01_BUSINESS_INVALID";
     internal const string ProjectConditionsUndeclared =
       "PROJECT_CONDITIONS_UNDECLARED";
     internal const string Stage02ScanFailed = "STAGE02_SCAN_FAILED";
