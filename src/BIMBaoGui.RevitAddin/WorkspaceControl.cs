@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using BIMBaoGui.RevitAddin.Stage01;
 using BIMBaoGui.RevitAddin.Stage02;
+using BIMBaoGui.RevitAddin.Stage03;
 
 namespace BIMBaoGui.RevitAddin
 {
@@ -18,7 +19,7 @@ namespace BIMBaoGui.RevitAddin
     private readonly ContentControl _stageHost;
     private readonly NativeStage01View _stage01View;
     private readonly NativeStage02View _stage02View;
-    private readonly FrameworkElement _stage03Placeholder;
+    private readonly NativeStage03View _stage03View;
 
     internal WorkspaceControl()
     {
@@ -41,9 +42,7 @@ namespace BIMBaoGui.RevitAddin
       navigation.Children.Add(Header("湖北BIM报规"));
       navigation.Children.Add(StageButton("01 文件初始化", ShowStage01));
       navigation.Children.Add(StageButton("02 构件与属性准备", ShowStage02));
-      navigation.Children.Add(StageButton(
-        "03 检测与 H-IFC",
-        () => ShowStage(_stage03Placeholder, "Stage03 等待开发")));
+      navigation.Children.Add(StageButton("03 检测与 H-IFC", ShowStage03));
       Grid.SetColumn(navigation, 0);
       root.Children.Add(navigation);
 
@@ -104,9 +103,8 @@ namespace BIMBaoGui.RevitAddin
       _stage01View.StatusChanged += UpdateStageSummary;
       _stage02View = new NativeStage02View();
       _stage02View.StatusChanged += UpdateStageSummary;
-      _stage03Placeholder = Placeholder(
-        "03 检测与 H-IFC",
-        "Stage03 将作为独立原生模块继续开发：模型检查、Strict/Force、IFC4 RAW、H-IFC exact 回读和证据链。" );
+      _stage03View = new NativeStage03View();
+      _stage03View.StatusChanged += UpdateStageSummary;
       _stageHost = new ContentControl { Content = _stage01View };
       Grid.SetRow(_stageHost, 2);
       content.Children.Add(_stageHost);
@@ -143,6 +141,11 @@ namespace BIMBaoGui.RevitAddin
     private void ShowStage02()
     {
       ShowStage(_stage02View, "Stage02 构件与属性准备");
+    }
+
+    private void ShowStage03()
+    {
+      ShowStage(_stage03View, "Stage03 检测、H-IFC 与 IFCFlux 人工验收");
     }
 
     private void ShowStage(FrameworkElement content, string status)
@@ -252,16 +255,6 @@ namespace BIMBaoGui.RevitAddin
       };
       button.Click += (_, __) => action();
       return button;
-    }
-
-    private static FrameworkElement Placeholder(string title, string body)
-    {
-      var panel = new StackPanel { Margin = new Thickness(12) };
-      panel.Children.Add(Header(title));
-      panel.Children.Add(Body(body));
-      panel.Children.Add(Body(
-        "该阶段不会复用 GHA 的 UI 或状态机，只继续消费同一 HBR 参考数据库。" ));
-      return panel;
     }
 
     private static TextBlock Header(string text)
