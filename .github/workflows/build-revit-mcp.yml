@@ -12,6 +12,7 @@ on:
       - "tests/BIMBaoGui.McpContracts.Tests/**"
       - "tests/BIMBaoGui.McpServer.Tests/**"
       - "tests/test_revit_addin_*.py"
+      - "tools/BIMBaoGui.McpSmoke/**"
       - "installer/**"
       - "docs/revit-addin/README.md"
       - "specs/hbr-rules/**"
@@ -81,6 +82,7 @@ jobs:
           dotnet restore src/BIMBaoGui.McpServer/BIMBaoGui.McpServer.csproj
           dotnet restore src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj
           dotnet restore tests/BIMBaoGui.RevitAddin.Tests/BIMBaoGui.RevitAddin.Tests.csproj
+          dotnet restore tools/BIMBaoGui.McpSmoke/BIMBaoGui.McpSmoke.csproj
 
       - name: Run MCP contracts tests
         shell: pwsh
@@ -101,6 +103,20 @@ jobs:
       - name: Publish self-contained MCP server
         shell: pwsh
         run: dotnet publish src/BIMBaoGui.McpServer/BIMBaoGui.McpServer.csproj -c Release -r win-x64 --self-contained true --no-restore -p:PublishSingleFile=true -p:PublishTrimmed=false -p:TreatWarningsAsErrors=true
+
+      - name: Build official SDK smoke client
+        shell: pwsh
+        run: dotnet build tools/BIMBaoGui.McpSmoke/BIMBaoGui.McpSmoke.csproj -c Release --no-restore -p:TreatWarningsAsErrors=true
+
+      - name: Initialize server, list tools and call a read-only tool
+        shell: pwsh
+        run: |
+          $server = "src/BIMBaoGui.McpServer/bin/Release/net8.0/win-x64/publish/BIMBaoGui.McpServer.exe"
+          dotnet run `
+            --project tools/BIMBaoGui.McpSmoke/BIMBaoGui.McpSmoke.csproj `
+            -c Release `
+            --no-build `
+            -- $server
 
       - name: Probe published server without Revit
         shell: pwsh
@@ -195,6 +211,10 @@ jobs:
           try {
             $env:APPDATA = Join-Path $smokeRoot "AppData"
             $env:LOCALAPPDATA = Join-Path $smokeRoot "LocalAppData"
+            $legacyRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.3.0"
+            New-Item -ItemType Directory -Force -Path $legacyRoot | Out-Null
+            Set-Content -LiteralPath (Join-Path $legacyRoot "legacy.marker") -Value "legacy"
+
             & installer/Install-Revit2020.ps1 -SourceRoot "artifacts" -Force
 
             $addinRoot = Join-Path $env:APPDATA "Autodesk\Revit\Addins\2020"
@@ -203,10 +223,13 @@ jobs:
             $installedDll = Join-Path $productRoot "BIMBaoGui.RevitAddin.dll"
             $installedContracts = Join-Path $productRoot "BIMBaoGui.McpContracts.dll"
             $evidencePath = Join-Path $productRoot "install-evidence.json"
-            $mcpRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.3.0"
+            $mcpRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.3.2"
             $mcpExe = Join-Path $mcpRoot "BIMBaoGui.McpServer.exe"
             $mcpConfig = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\mcp-server-config.json"
 
+            if (Test-Path -LiteralPath $legacyRoot) {
+              throw "Installer left the superseded MCP version directory behind."
+            }
             foreach ($path in @(
               $manifestPath,
               $installedDll,
@@ -301,7 +324,7 @@ jobs:
       - name: Upload complete Revit MCP installer
         uses: actions/upload-artifact@v7
         with:
-          name: BIMBaoGui-Revit2020-Native-MCP
+          name: BIMBaoGui-Revit2020-Native-MCP-v0.3.2
           path: artifacts
           if-no-files-found: error
           retention-days: 30

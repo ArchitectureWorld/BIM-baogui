@@ -17,12 +17,12 @@ if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
 
 $productName = "BIMBaoGui.RevitAddin"
 $mcpProductName = "BIMBaoGui.McpServer"
-$mcpVersion = "0.3.0"
+$mcpVersion = "0.3.2"
 $addinRoot = Join-Path $env:APPDATA "Autodesk\Revit\Addins\2020"
 $productRoot = Join-Path $addinRoot "BIMBaoGui.RevitAddin"
 $manifestPath = Join-Path $addinRoot "BIMBaoGui.RevitAddin.addin"
 $mcpBaseRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer"
-$mcpServerRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.3.0"
+$mcpServerRoot = Join-Path $mcpBaseRoot $mcpVersion
 $mcpConfigPath = Join-Path $mcpBaseRoot "mcp-server-config.json"
 $bridgeDiscoveryRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\Revit2020\bridges"
 
@@ -43,6 +43,13 @@ if ($Uninstall) {
   }
   if (Test-Path -LiteralPath $mcpServerRoot) {
     Remove-Item -LiteralPath $mcpServerRoot -Recurse -Force
+  }
+  if (Test-Path -LiteralPath $mcpBaseRoot) {
+    Get-ChildItem -LiteralPath $mcpBaseRoot -Directory -ErrorAction SilentlyContinue |
+      Where-Object { $_.Name -match '^\d+\.\d+\.\d+$' } |
+      ForEach-Object {
+        Remove-Item -LiteralPath $_.FullName -Recurse -Force
+      }
   }
   if (Test-Path -LiteralPath $mcpConfigPath) {
     Remove-Item -LiteralPath $mcpConfigPath -Force
@@ -160,6 +167,13 @@ try {
   }
   if (Test-Path -LiteralPath $mcpServerRoot) {
     Remove-Item -LiteralPath $mcpServerRoot -Recurse -Force
+  }
+  if (Test-Path -LiteralPath $mcpBaseRoot) {
+    Get-ChildItem -LiteralPath $mcpBaseRoot -Directory -ErrorAction SilentlyContinue |
+      Where-Object { $_.Name -match '^\d+\.\d+\.\d+$' } |
+      ForEach-Object {
+        Remove-Item -LiteralPath $_.FullName -Recurse -Force
+      }
   }
   Move-Item -LiteralPath $stagingRoot -Destination $productRoot
   Move-Item -LiteralPath $mcpStagingRoot -Destination $mcpServerRoot

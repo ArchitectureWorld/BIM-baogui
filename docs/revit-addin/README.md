@@ -3,14 +3,14 @@
 ## 唯一 Revit 产品线
 
 ```text
-统一安装版：0.3.0
+产品版本：0.3.2
 唯一开发分支：feat/revit-native-addin-mcp-v0.3
 目标软件：Autodesk Revit 2020
 ```
 
-本安装包同时包含人工工作台与 MCP 入口。没有单独维护的“非 MCP 功能版”；即使不配置任何 MCP Client，Ribbon、DockablePane、Stage01 和 Stage02 仍可独立使用。
+本安装包同时包含人工工作台与 MCP 入口，不再维护单独的“非 MCP 版”。即使不配置任何 MCP Client，Revit Ribbon、DockablePane、Stage01 和 Stage02 仍可独立使用。
 
-原生插件不引用 Grasshopper、RhinoCommon、Rhino.Inside.Revit 或 GHA，只共同消费权威 HBR 规则数据库。
+原生插件不引用 Grasshopper、RhinoCommon、Rhino.Inside.Revit 或 GHA，只共同消费同一份权威 HBR 参考数据库。
 
 ## 两种使用入口
 
@@ -33,26 +33,49 @@ MCP Client
 
 MCP Bridge 启动失败不会阻断 Ribbon、DockablePane 或人工 Stage01/02 操作。
 
-## 已包含功能
+## 01 文件初始化
 
-### 01 文件初始化
+### 项目条件是第一个必填步骤
 
-- 项目身份、子项、模型类型、坐标、高程、真北和项目条件表单；
+打开 Stage01 后，左侧第一个目录固定为：
+
+```text
+项目条件（必填）
+```
+
+必须完成以下二选一声明：
+
+1. 勾选一个或多个实际项目条件；
+2. 勾选“无上述项目条件（已确认）”。
+
+两种状态互斥：
+
+- 勾选任一实际条件，会自动取消“无上述项目条件（已确认）”；
+- 勾选“无上述项目条件（已确认）”，会自动清空全部实际条件；
+- 全部未选择时，Stage01 校验和写入均被阻断；
+- 同时选择实际条件与“无上述项目条件”时，校验拒绝写入；
+- 旧版 RVT 如果所有条件均为 `false` 且没有明确声明，重新写入前必须补做一次声明；
+- 旧版 RVT 已经勾选至少一个实际条件时，可继续按原数据读取。
+
+Stage02 也会执行同一门禁。未完成项目条件声明时，不能生成 Stage02 预览。
+
+### 其他 Stage01 功能
+
+- 项目身份、子项、模型类型、坐标、高程、真北、单位和组织信息；
 - 左侧目录 + 右侧连续滚动表单；
 - 必填字段始终优先、连续显示；
 - 每个目录的选填字段统一放入一个“选填项（共 N 项，已填写 M 项）”折叠区；
 - 选填区默认收起，并在当前 Revit 会话内记住各目录的展开状态；
 - 选填字段存在校验错误时自动展开；
-- 数据库驱动的字段类型、必填项、示例和校验；
-- 已经包含模型构件的 RVT 也可以首次初始化，不再扫描或阻断现有模型；
-- 已经存在 Stage01 初始化记录时，覆盖写入仍必须明确启用“允许重新初始化”；
+- 已经包含模型构件的 RVT 也可以首次初始化；
+- 已经存在 Stage01 初始化记录时，覆盖写入仍必须启用“允许重新初始化”；
 - `X = 南北坐标`、`Y = 东西坐标`；
 - Revit 单位、项目位置、项目信息和固定 GUID 参数写入；
 - canonical JSON、SHA-256、Extensible Storage 和写入后回读；
 - 整体事务回滚与单次 Undo；
-- MCP 只读 schema、读取、校验租约和确认写入。
+- MCP 表单 Schema、读取、校验租约和确认写入。
 
-### 02 构件与属性准备
+## 02 构件与属性准备
 
 - 全模型扫描或读取当前 Revit 选择；
 - 数据库类别、ElementKind、精确别名或显式角色匹配；
@@ -63,23 +86,35 @@ MCP Bridge 启动失败不会阻断 Ribbon、DockablePane 或人工 Stage01/02 �
 - 写入前重新生成预览并阻止过期确认；
 - 参数级事务隔离、构件级原子事务和部分成功；
 - 原生 WPF 构件列表、问题筛选、字段详情和确认写入；
-- MCP preview_hash 一次性租约与确认写入。
+- MCP `preview_hash` 一次性租约与确认写入。
 
-### 状态与报告区域
+## 状态与报告区域
 
 - Stage01 与 Stage02 的详细状态区域固定为 96 px；
-- 超长状态、阻断列表和失败报告在区域内部滚动，不再扩大页面高度；
+- 超长状态、阻断列表和失败报告在区域内部滚动；
 - 工作台底部只显示固定高度的单行摘要；
-- 完整状态保留在阶段内部报告区及摘要条提示中；
 - 长报告不会再把按钮、左侧目录或右侧表单挤出可视区域。
 
-### 03 检测与 H-IFC
+## H-IFC 验证边界
 
-Stage03 仍处于独立开发阶段，本安装包暂不宣称具备正式 H-IFC 导出与检查闭环。
+**Stage01、Stage02 的成功只能证明数据已写入 RVT 并完成回读，不能证明 H-IFC 已识别。**
+
+当前安装包尚未完成 Stage03，因此暂不具备以下闭环：
+
+```text
+Revit 模型检测
+→ Autodesk IFC4 RAW 导出
+→ H-IFC 转译
+→ H-IFC exact 回读
+→ 属性路径与类型核对
+→ 官方检查软件 / IFCFlux 验证
+```
+
+只有上述 Stage03 全流程通过后，才能宣称 H-IFC 可识别或报规检查闭环通过。
 
 ## MCP 工具
 
-只提供以下 9 个受控工具：
+当前只提供以下 9 个受控工具：
 
 ```text
 bimbaogui_list_revit_sessions
@@ -93,15 +128,7 @@ bimbaogui_stage02_preview
 bimbaogui_stage02_write
 ```
 
-不会提供：
-
-```text
-任意 C# 执行
-任意 Revit API 执行
-任意脚本执行
-UI 模拟点击
-任意 Transaction
-```
+不提供任意 C#、任意 Revit API、任意脚本、UI 模拟点击或任意 Transaction 工具。
 
 写操作必须满足：
 
@@ -110,13 +137,13 @@ Stage01：validate → validation_hash → confirm=true → write
 Stage02：preview → preview_hash → confirm=true → write
 ```
 
-租约有效期 30 分钟、一次消费。Stage02 写入时仍会重新扫描并比较预览 SHA-256。
+租约有效期 30 分钟且只能消费一次。Stage02 写入前仍会重新扫描并比较预览 SHA-256。
 
-`stage01_write` 仍兼容旧客户端传入的 `confirm_blank_project` 字段，但该字段已经废弃并被忽略；首次初始化不再要求空模型。
+`stage01_write` 仍兼容旧客户端传入的 `confirm_blank_project` 字段，但该字段已废弃并被忽略；首次初始化不再要求空模型。
 
 ## 安装
 
-1. **关闭 Revit 2020**。
+1. 关闭 Revit 2020。
 2. 将 ZIP 完整解压到普通文件夹，不要直接在压缩包内运行。
 3. 双击：
 
@@ -124,7 +151,9 @@ Stage02：preview → preview_hash → confirm=true → write
 Install.cmd
 ```
 
-安装器使用当前用户目录，不要求管理员权限。重复安装会覆盖同一产品目录，不会逐版本堆叠插件副本。成功后生成：
+安装器使用当前用户目录，不要求管理员权限。覆盖安装 v0.3.2 时，会删除 BIMBaoGui MCP Server 目录中旧的语义版本目录，避免 `0.3.0`、`0.3.1`、`0.3.2` 叠罗汉。
+
+安装位置：
 
 ```text
 %APPDATA%\Autodesk\Revit\Addins\2020\BIMBaoGui.RevitAddin.addin
@@ -132,16 +161,16 @@ Install.cmd
 %APPDATA%\Autodesk\Revit\Addins\2020\BIMBaoGui.RevitAddin\BIMBaoGui.McpContracts.dll
 %APPDATA%\Autodesk\Revit\Addins\2020\BIMBaoGui.RevitAddin\install-evidence.json
 
-%LOCALAPPDATA%\BIMBaoGui\McpServer\0.3.0\BIMBaoGui.McpServer.exe
-%LOCALAPPDATA%\BIMBaoGui\McpServer\0.3.0\install-evidence.json
+%LOCALAPPDATA%\BIMBaoGui\McpServer\0.3.2\BIMBaoGui.McpServer.exe
+%LOCALAPPDATA%\BIMBaoGui\McpServer\0.3.2\install-evidence.json
 %LOCALAPPDATA%\BIMBaoGui\McpServer\mcp-server-config.json
 ```
 
-然后启动 Revit 2020。MCP Bridge 会随插件加载，不要求先打开报规工作台。
+启动 Revit 2020 后，MCP Bridge 会随插件加载，不要求先打开报规工作台。
 
 ## 检查 MCP 连接
 
-Revit 2020 启动并加载插件后，双击安装包中的：
+保持 Revit 2020 开启，双击：
 
 ```text
 McpProbe.cmd
@@ -164,22 +193,9 @@ McpProbe.cmd
 %LOCALAPPDATA%\BIMBaoGui\McpServer\mcp-server-config.json
 ```
 
-其结构为：
+将其中 `bimbaogui-revit` 节点复制到使用的 MCP Client 配置中。安装器不会擅自修改 ChatGPT、Codex、Claude、Hermes 或其他第三方客户端配置。
 
-```json
-{
-  "mcpServers": {
-    "bimbaogui-revit": {
-      "command": "C:\\Users\\<用户名>\\AppData\\Local\\BIMBaoGui\\McpServer\\0.3.0\\BIMBaoGui.McpServer.exe",
-      "args": []
-    }
-  }
-}
-```
-
-将其中 `bimbaogui-revit` 节点复制到所使用 MCP Client 的配置中。安装器不会擅自修改任何第三方客户端配置。
-
-如果同时打开多个 Revit 2020，会话工具会返回多个 `process_id`；后续工具调用必须明确传入 `revit_process_id`，不会静默选错文档。
+如果同时打开多个 Revit 2020，后续工具调用必须明确提供 `revit_process_id`，插件不会静默选择文档。
 
 ## 卸载
 
@@ -189,7 +205,7 @@ McpProbe.cmd
 Uninstall.cmd
 ```
 
-卸载器只删除 BIMBaoGui 的 Revit 插件目录、MCP Server 目录、生成的通用配置和过期 Bridge discovery，不修改第三方 MCP Client 配置。
+卸载器只删除 BIMBaoGui 的 Revit 插件目录、全部 BIMBaoGui MCP 语义版本目录、生成的通用配置和过期 Bridge discovery，不修改第三方 MCP Client 配置。
 
 ## 完整性校验
 
@@ -199,24 +215,18 @@ Uninstall.cmd
 SHA256SUMS.txt
 ```
 
-安装脚本会再次比较：
-
-- Revit 插件 DLL；
-- MCP Contracts DLL；
-- MCP Server EXE。
-
-安装结果写入 `install-evidence.json`。
+安装脚本会再次比较 Revit 插件 DLL、MCP Contracts DLL 和 MCP Server EXE 的 SHA-256，并将安装结果写入 `install-evidence.json`。
 
 ## 注意事项
 
 - 仅支持 Revit 2020；
-- RVT 必须先保存且不能为只读或族文档；
+- RVT 必须先保存，且不能为只读或族文档；
 - 已有模型不影响首次初始化；
 - 已初始化文件重新覆盖时仍需勾选“允许重新初始化”；
 - Stage02 不会伪造没有可靠来源的业务值，只准备参数并标记“待填写”；
-- MCP Server 使用标准输入输出协议，正常运行时不要从命令行向其发送普通文本；
-- 当前二进制未使用商业代码签名证书，Windows 或 Revit 可能显示未知发布者提示；
-- 自动化验证覆盖编译、领域测试、协议分帧、安装、探针、哈希核验和卸载 smoke，但不等同于用户电脑上的 Revit 2020 GUI 与真实 MCP Client 实机验收。
+- 当前二进制未使用商业代码签名证书，Windows 或 Revit 可能显示未知发布者；
+- 自动化验证覆盖编译、领域测试、MCP SDK 握手、安装、探针、哈希核验和卸载 smoke，但不能替代用户电脑上的 Revit 2020 GUI 实机验收；
+- H-IFC 识别必须等待 Stage03 实现并通过真实导出和检查软件验证。
 
 ## 高级命令行方式
 
@@ -229,7 +239,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Install-Revit2020.ps1 -Sou
 探针：
 
 ```powershell
-& "$env:LOCALAPPDATA\BIMBaoGui\McpServer\0.3.0\BIMBaoGui.McpServer.exe" --probe
+& "$env:LOCALAPPDATA\BIMBaoGui\McpServer\0.3.2\BIMBaoGui.McpServer.exe" --probe
 ```
 
 卸载：
