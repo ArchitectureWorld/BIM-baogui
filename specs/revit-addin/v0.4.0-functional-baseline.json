@@ -18,8 +18,7 @@
     "src/BIMBaoGui.RevitAddin/McpBridge/McpStage03Adapter.cs",
     "src/BIMBaoGui.RevitAddin/McpBridge/McpBridgeCommandRouter.cs",
     "src/BIMBaoGui.McpContracts/ToolContracts.cs",
-    "src/BIMBaoGui.McpServer/BimBaoGuiTools.cs",
-    "installer/Install-Revit2020.ps1"
+    "src/BIMBaoGui.McpServer/BimBaoGuiTools.cs"
   ],
   "capabilities": [
     "Stage01 project conditions are the first required declaration step.",
@@ -36,7 +35,8 @@
     "fields.json records expected and actual IFC types, typed tokens and STEP entity identifiers.",
     "IFCFlux has no API; external status remains IFCFLUX_MANUAL_PENDING until user inspection.",
     "Manual Revit UI and MCP use the same Stage01, Stage02 and Stage03 services.",
-    "The MCP surface contains 13 approved business tools and exposes no arbitrary Revit API execution."
+    "The MCP surface contains 13 approved business tools and exposes no arbitrary Revit API execution.",
+    "Installer integrity and layout are guarded by dedicated installer contract and smoke tests rather than source-byte baseline comparison."
   ],
   "delivery": {
     "single_revit_branch": "feat/revit-native-addin-mcp-v0.3",
