@@ -53,6 +53,14 @@ def test_stage01_failure_report_is_atomic_and_records_transaction_truth():
     assert "RulePackageSha256" in source
 
 
+def test_stage01_first_initialization_does_not_scan_or_block_existing_model():
+    service = read("NativeStage01RevitService.cs")
+    preflight = read("NativeStage01WritePreflight.cs")
+    assert "NativeStage01BlankModelGate.FindBlockingElements" not in service
+    assert "BlankConfirmationRequired" not in preflight
+    assert "ModelNotBlank" not in preflight
+
+
 def test_native_ci_runs_stage01_revit_contract():
     workflow = (ROOT / ".github" / "workflows" / "build-revit-addin.yml").read_text(
         encoding="utf-8"
