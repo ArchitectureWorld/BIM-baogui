@@ -5,6 +5,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using BIMBaoGui.RevitAddin.Stage01;
 using BIMBaoGui.RevitAddin.Stage02;
+using BIMBaoGui.RevitAddin.Stage03;
 
 namespace BIMBaoGui.RevitAddin
 {
@@ -142,6 +143,44 @@ namespace BIMBaoGui.RevitAddin
       Enqueue(
         application => completed?.Invoke(
           NativeStage02RevitWriteService.Execute(application, snapshot)),
+        failed);
+    }
+
+    internal static void RequestStage03Scan(
+      NativeStage03ScanRequest request,
+      Action<NativeStage03ScanResult> completed,
+      Action<Exception> failed)
+    {
+      NativeStage03ScanRequest snapshot = request?.Clone()
+        ?? new NativeStage03ScanRequest();
+      Enqueue(
+        application => completed?.Invoke(
+          NativeStage03WorkflowService.Scan(application, snapshot)),
+        failed);
+    }
+
+    internal static void RequestStage03Export(
+      NativeStage03ExportRequest request,
+      Action<NativeStage03ExecutionResult> completed,
+      Action<Exception> failed)
+    {
+      if (request == null) throw new ArgumentNullException(nameof(request));
+      NativeStage03ExportRequest snapshot = request.Clone();
+      Enqueue(
+        application => completed?.Invoke(
+          NativeStage03WorkflowService.Execute(application, snapshot)),
+        failed);
+    }
+
+    internal static void RequestStage03Revalidate(
+      string ifcPath,
+      Action<NativeStage03ExecutionResult> completed,
+      Action<Exception> failed)
+    {
+      string snapshot = ifcPath ?? string.Empty;
+      Enqueue(
+        application => completed?.Invoke(
+          NativeStage03WorkflowService.RevalidateFile(application, snapshot)),
         failed);
     }
 
