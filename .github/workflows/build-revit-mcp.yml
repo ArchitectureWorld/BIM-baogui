@@ -29,7 +29,7 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
     env:
       PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
       PYTHONDONTWRITEBYTECODE: "1"
@@ -65,7 +65,10 @@ jobs:
             tests/test_revit_addin_stage01_revit_contract.py `
             tests/test_revit_addin_stage01_ui_contract.py `
             tests/test_revit_addin_stage02_revit_contract.py `
+            tests/test_revit_addin_stage03_revit_contract.py `
+            tests/test_revit_addin_stage03_ui_contract.py `
             tests/test_revit_addin_mcp_contract.py `
+            tests/test_revit_addin_mcp_stage03_contract.py `
             tests/test_revit_addin_mcp_installer_contract.py `
             -q
 
@@ -187,6 +190,8 @@ jobs:
           Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.RevitAddin.pdb $addinPayload/ -ErrorAction SilentlyContinue
           Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.McpContracts.dll $addinPayload/
           Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.McpContracts.pdb $addinPayload/ -ErrorAction SilentlyContinue
+          Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.HifcCore.dll $addinPayload/
+          Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.HifcCore.pdb $addinPayload/ -ErrorAction SilentlyContinue
           Copy-Item src/BIMBaoGui.McpServer/bin/Release/net8.0/win-x64/publish/BIMBaoGui.McpServer.exe $mcpPayload/
           Copy-Item src/BIMBaoGui.McpServer/bin/Release/net8.0/win-x64/publish/BIMBaoGui.McpServer.pdb $mcpPayload/ -ErrorAction SilentlyContinue
 
@@ -223,7 +228,7 @@ jobs:
           try {
             $env:APPDATA = Join-Path $smokeRoot "AppData"
             $env:LOCALAPPDATA = Join-Path $smokeRoot "LocalAppData"
-            $legacyRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.3.0"
+            $legacyRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.3.2"
             New-Item -ItemType Directory -Force -Path $legacyRoot | Out-Null
             Set-Content -LiteralPath (Join-Path $legacyRoot "legacy.marker") -Value "legacy"
 
@@ -234,8 +239,9 @@ jobs:
             $productRoot = Join-Path $addinRoot "BIMBaoGui.RevitAddin"
             $installedDll = Join-Path $productRoot "BIMBaoGui.RevitAddin.dll"
             $installedContracts = Join-Path $productRoot "BIMBaoGui.McpContracts.dll"
+            $installedHifcCore = Join-Path $productRoot "BIMBaoGui.HifcCore.dll"
             $evidencePath = Join-Path $productRoot "install-evidence.json"
-            $mcpRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.3.2"
+            $mcpRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.4.0"
             $mcpExe = Join-Path $mcpRoot "BIMBaoGui.McpServer.exe"
             $mcpConfig = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\mcp-server-config.json"
 
@@ -246,6 +252,7 @@ jobs:
               $manifestPath,
               $installedDll,
               $installedContracts,
+              $installedHifcCore,
               $evidencePath,
               $mcpExe,
               $mcpConfig
@@ -269,12 +276,16 @@ jobs:
             $evidence = Get-Content -LiteralPath $evidencePath -Raw | ConvertFrom-Json
             $actualRevitHash = (Get-FileHash -LiteralPath $installedDll -Algorithm SHA256).Hash.ToLowerInvariant()
             $actualContractsHash = (Get-FileHash -LiteralPath $installedContracts -Algorithm SHA256).Hash.ToLowerInvariant()
+            $actualHifcCoreHash = (Get-FileHash -LiteralPath $installedHifcCore -Algorithm SHA256).Hash.ToLowerInvariant()
             $actualMcpHash = (Get-FileHash -LiteralPath $mcpExe -Algorithm SHA256).Hash.ToLowerInvariant()
             if ($actualRevitHash -ne $evidence.installedDllSha256) {
               throw "Installed Revit DLL hash does not match evidence."
             }
             if ($actualContractsHash -ne $evidence.contractsDllSha256) {
               throw "Installed contracts DLL hash does not match evidence."
+            }
+            if ($actualHifcCoreHash -ne $evidence.hifcCoreDllSha256) {
+              throw "Installed H-IFC core DLL hash does not match evidence."
             }
             if ($actualMcpHash -ne $evidence.mcpServerExeSha256) {
               throw "Installed MCP EXE hash does not match evidence."
@@ -319,6 +330,7 @@ jobs:
             "artifacts/mcp-server-config.example.json",
             "artifacts/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.dll",
             "artifacts/BIMBaoGui.RevitAddin/BIMBaoGui.McpContracts.dll",
+            "artifacts/BIMBaoGui.RevitAddin/BIMBaoGui.HifcCore.dll",
             "artifacts/BIMBaoGui.McpServer/BIMBaoGui.McpServer.exe",
             "artifacts/README.md",
             "artifacts/SHA256SUMS.txt"
@@ -336,7 +348,7 @@ jobs:
       - name: Upload complete Revit MCP installer
         uses: actions/upload-artifact@v7
         with:
-          name: BIMBaoGui-Revit2020-Native-MCP-v0.3.2
+          name: BIMBaoGui-Revit2020-Native-MCP-v0.4.0
           path: artifacts
           if-no-files-found: error
           retention-days: 30
