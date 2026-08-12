@@ -4,7 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT = ROOT / "src" / "BIMBaoGui.RevitAddin"
 STAGE02 = PROJECT / "Stage02"
-WORKFLOW = ROOT / ".github" / "workflows" / "build-revit-addin.yml"
+WORKFLOW = ROOT / ".github" / "workflows" / "build-revit-mcp.yml"
 
 
 def read_stage02(name: str) -> str:
@@ -87,10 +87,7 @@ def test_stage02_detailed_status_is_fixed_height_and_scrollable():
     assert "HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled" in view
 
 
-def test_native_ci_runs_stage02_revit_contract():
+def test_unified_ci_runs_stage02_revit_contract():
     workflow = WORKFLOW.read_text(encoding="utf-8")
-    assert "Verify native Stage02 Revit contract" in workflow
-    assert (
-        "python -m pytest tests/test_revit_addin_stage02_revit_contract.py -q"
-        in workflow
-    )
+    assert "Verify native and MCP contracts" in workflow
+    assert "tests/test_revit_addin_stage02_revit_contract.py" in workflow
