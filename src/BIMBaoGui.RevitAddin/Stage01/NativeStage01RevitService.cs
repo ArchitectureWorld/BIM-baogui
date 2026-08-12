@@ -97,10 +97,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
         IsSaved = !string.IsNullOrWhiteSpace(document.PathName),
         IsReadOnly = document.IsReadOnly,
         StorageDecision = storageDecision,
-        BlockingElements = storageDecision != null
-            && storageDecision.RequiresBlankModelGate
-          ? NativeStage01BlankModelGate.FindBlockingElements(document)
-          : Array.Empty<string>()
+        BlockingElements = Array.Empty<string>()
       };
       NativeStage01PreflightDecision preflight =
         NativeStage01WritePreflight.Evaluate(
