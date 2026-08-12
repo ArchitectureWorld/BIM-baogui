@@ -35,52 +35,54 @@ jobs:
             > "$RUNNER_TEMP/v041-implementation.patch.gz.b64"
           test "$(wc -c < "$RUNNER_TEMP/v041-implementation.patch.gz.b64")" \
             -eq 52400
-
-          base64_sha="$(
+          test "$(
             sha256sum "$RUNNER_TEMP/v041-implementation.patch.gz.b64" \
               | awk '{print $1}'
-          )"
-          test "$base64_sha" = \
-            "f2362a0761d0e266e6cda5dd2e91327df8a924ba3abb9d55250033d23e8cd354"
+          )" = "f2362a0761d0e266e6cda5dd2e91327df8a924ba3abb9d55250033d23e8cd354"
 
           base64 --decode "$RUNNER_TEMP/v041-implementation.patch.gz.b64" \
             | gzip --decompress > "$RUNNER_TEMP/v041-implementation.patch"
-          patch_sha="$(
+          test "$(
             sha256sum "$RUNNER_TEMP/v041-implementation.patch" \
               | awk '{print $1}'
-          )"
-          test "$patch_sha" = \
-            "ae30a5cd9bea927218c2784516d7c98d87d66812afbff90ca82aece0969291fc"
+          )" = "ae30a5cd9bea927218c2784516d7c98d87d66812afbff90ca82aece0969291fc"
           git apply --check "$RUNNER_TEMP/v041-implementation.patch"
 
-      - name: Apply implementation as one commit
+      - name: Publish non-workflow implementation commit
         shell: bash
         run: |
           set -euo pipefail
           git apply --index "$RUNNER_TEMP/v041-implementation.patch"
 
+          git restore --source=HEAD --staged --worktree -- \
+            .github/workflows/build-revit-mcp.yml \
+            .github/workflows/export-source-snapshot.yml
+
           mapfile -t implementation_changed < <(
             git diff --cached --name-only | sed '/^$/d'
           )
-          test "${#implementation_changed[@]}" -eq 48
+          test "${#implementation_changed[@]}" -eq 46
           if printf '%s\n' "${implementation_changed[@]}" \
-            | grep -E '^(src/BIMBaoGui\.Stage01/|\.github/workflows/build-stage01-gha\.yml$)'; then
-            echo "v0.4.1 patch unexpectedly modifies the GHA product line." >&2
+            | grep -E '^(src/BIMBaoGui\.Stage01/|\.github/workflows/)'; then
+            echo "v0.4.1 non-workflow commit contains a forbidden path." >&2
             exit 1
           fi
 
           git rm -f \
             .github/patches/v041-implementation.patch.gz.b64 \
-            .github/patches/v041-implementation.patch.gz.b64.part-* \
-            .github/workflows/apply-v041-implementation.yml
+            .github/patches/v041-implementation.patch.gz.b64.part-*
 
           mapfile -t all_changed < <(
             git diff --cached --name-only | sed '/^$/d'
           )
-          test "${#all_changed[@]}" -eq 59
+          test "${#all_changed[@]}" -eq 56
+          if printf '%s\n' "${all_changed[@]}" | grep '^.github/workflows/'; then
+            echo "GitHub workflow paths must be published separately." >&2
+            exit 1
+          fi
 
           git config user.name "github-actions[bot]"
           git config user.email \
             "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "feat: implement Revit native v0.4.1"
+          git commit -m "feat: implement Revit native v0.4.1 core"
           git push origin HEAD:feat/revit-native-addin-mcp-v0.3
