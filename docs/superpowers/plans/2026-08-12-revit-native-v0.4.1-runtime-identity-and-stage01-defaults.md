@@ -1,1349 +1,601 @@
-# BIMBaoGui Revit 原生插件 v0.4.1 优化实施计划
+# BIMBaoGui Revit 原生插件 v0.4.1 修正版实施计划
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> 本文替代同名文件的初版方案。修订重点不是扩大功能，而是消除三项会造成业务误判或数据损坏的设计风险：项目条件被默认代选、旧 Payload 在解码阶段被静默改写、不同字段使用同一个全局数据优先级。
 
-**Goal:** 在不改变 Stage02、Stage03、H-IFC 转译和既有 MCP 工具行为的前提下，将统一 Revit 原生产品升级至 `0.4.1`，在工作台顶部显示当前 Revit 进程实际加载 DLL 的版本、构建号、提交号和路径，并为 Stage01 安全必选项提供确定性默认值。
+## 0. 文档状态
 
-**Architecture:** 新增独立的运行时程序集身份读取器，所有版本展示均从当前已加载的 `BIMBaoGui.RevitAddin.dll` 读取；GitHub Actions 只负责将构建号和 Commit SHA 注入程序集元数据。Stage01 新增原生默认策略层，仅补齐可安全确定的初始化基线，不修改共享 HBR 映射数据库，不触碰 GHA 产品线，也不覆盖当前 RVT 或既有 Stage01 Payload 中的真实非空数据。
+| 项目 | 值 |
+|---|---|
+| 唯一 Revit 开发分支 | `feat/revit-native-addin-mcp-v0.3` |
+| 修订基线 | `e57473d813f58e9e528b2afc69d31d4e32b602cf` |
+| 当前已实现产品 | `0.4.0` |
+| 本计划目标产品 | `0.4.1` |
+| 目标宿主 | Autodesk Revit 2020 |
+| Stage01 当前 Payload | `0.9.0` |
+| Stage01 目标 Payload | `0.9.1` |
+| 外部验收 | IFCFlux 人工检查 |
 
-**Tech Stack:** Revit 2020 API、.NET Framework 4.8、WPF、xUnit、Python/pytest 合同测试、GitHub Actions、PowerShell 用户级安装器、MCP .NET SDK。
-
-## Global Constraints
-
-- 唯一开发分支：`feat/revit-native-addin-mcp-v0.3`；本计划直接提交并实施在该分支，不再创建新的 Revit 功能分支。
-- 基线提交：`e57473d813f58e9e528b2afc69d31d4e32b602cf`。
-- 对外统一产品版本：`0.4.1`；Revit Add-in、MCP Server、MCP Contracts、H-IFC Core、安装器目录和安装包名称必须一致。
-- 只允许修改 Revit 原生产品线：`src/BIMBaoGui.RevitAddin/**`、`src/BIMBaoGui.McpServer/**`、`src/BIMBaoGui.McpContracts/**`、`src/BIMBaoGui.HifcCore/**`、对应测试、安装器、Revit 工作流和 Revit 文档。
-- 明确禁止修改：`src/BIMBaoGui.Stage01/**`、`.github/workflows/build-stage01-gha.yml` 以及任何 GHA UI、组件 GUID、Grasshopper 状态机。
-- 本次不修改 `specs/hbr-rules/v1/source/hbr_rule_source.v1.json` 的 H-IFC Entity、Pset、Property、参数 GUID、类型、单位或 Owner 映射；Stage01 便利默认值属于 Revit 原生工作流策略，不建立第二份映射数据库。
-- 不增加“一键自测”按钮、菜单、MCP 工具或隐藏后台流程。
-- 不自动填入项目名称、项目编号、项目地址、建设单位、设计单位、子项名称、企业名称、信用代码、联系人等真实业务事实。
-- X 继续表示南北坐标，Y 继续表示东西坐标；默认 `0` 仅是新表单初始化基线，当前 RVT 的实际项目位置和既有 Payload 值优先。
-- `无上述项目条件（已确认）` 默认选中；它与所有实际项目条件双向互斥。
-- 现有 Stage01 canonical JSON、Payload Schema、Extensible Storage GUID、固定共享参数 GUID、Stage02 确定性预览、Stage03 严格/强制门禁、13 个 MCP 工具名称和请求结构均保持兼容。
-- 没有真实 Revit 2020 进程证据时，不得把 CI 结论描述为“Revit 实机全流程已通过”。
+本文件是实施计划，不是完成证明。只有代码、测试、安装包和 Revit 2020 实机证据全部满足发布门禁后，才可称为 `0.4.1` 可安装测试版。
 
 ---
 
-## 一、v0.4.1 优化目标
+## 1. 修订后的不可变原则
 
-### 1. 运行时身份必须可信
+### 1.1 项目条件必须是显式业务声明
 
-工作台顶部直接显示：
+项目条件决定 Stage02 的有条件构件与属性是否被激活，因此它不是普通界面便利项，而是项目事实。
+
+必须遵守：
+
+- 不得默认勾选“无上述项目条件（已确认）”；
+- 新建表单中所有实际项目条件均为 `false`；
+- 新建表单中 `workflow.project_conditions.none = false`；
+- 用户必须主动选择一个或多个实际条件，或者主动选择“无上述项目条件（已确认）”；
+- 旧 Payload 全部实际条件为 `false` 且缺少 `none` 时，旧 Payload 保持未声明；
+- 未声明状态继续触发 `PROJECT_CONDITION_DECLARATION_MISSING`；
+- 同时选择实际条件与 `none` 时继续触发 `PROJECT_CONDITION_DECLARATION_CONFLICT`；
+- 人工入口与 MCP 入口调用同一套声明校验，不存在绕过路径。
+
+项目条件交互仍保持双向互斥：
 
 ```text
-插件：BIMBaoGui Revit Add-in v0.4.1
-构建：GitHub Actions #<run_number> · Commit <short_sha>
-DLL：C:\Users\...\AppData\Roaming\Autodesk\Revit\Addins\2020\BIMBaoGui.RevitAddin\BIMBaoGui.RevitAddin.dll
+用户勾选任一实际条件
+→ 自动取消 none
+
+用户主动勾选 none
+→ 自动取消全部实际条件
+
+用户取消最后一个实际条件且没有勾选 none
+→ 回到未声明状态
 ```
 
-身份来源固定为当前 Revit 进程已经加载的程序集：
+互斥只处理用户已经作出的选择，不允许把“尚未填写”自动解释为“确认没有”。
 
-- 版本：`AssemblyInformationalVersionAttribute` / `AssemblyFileVersionAttribute` / `AssemblyName.Version`；
-- 构建号：`AssemblyMetadataAttribute("HBR.BuildNumber", ...)`；
-- Commit：`AssemblyMetadataAttribute("HBR.CommitSha", ...)`；
-- 路径：`typeof(WorkspaceControl).Assembly.Location`。
+### 1.2 Payload 迁移必须有版本边界
 
-不得从 README、安装脚本、文件名、预期安装目录或 UI 常量推断。
+`0.4.1` 将 Stage01 Payload 协议从 `0.9.0` 升级到 `0.9.1`：
 
-### 2. Stage01 安全必选项默认完成
+```csharp
+internal const string PayloadSchemaVersion = "0.9.1";
+```
 
-新建表单、重置表单以及旧 Payload 缺失字段迁移时，安全默认值为：
+升级关系固定为：
 
-| 字段 | 默认值 | 说明 |
+```text
+0.9.0 → 0.9.1
+```
+
+`NativeStage01PayloadCodec.TryDecode` 必须保持纯函数边界：
+
+- TryDecode 只负责语法解析和类型校验；
+- 不得在 TryDecode 内补默认值、补条件声明或重写 canonical JSON；
+- 解码成功不代表迁移成功；
+- 解码不得改变输入 Payload 的任何业务含义。
+
+稳定处理顺序为：
+
+```text
+读取原始 Storage
+→ 校验原始 Payload SHA-256
+→ 纯解码原始 Payload
+→ 校验 Storage / envelope / values 的版本与 FileGuid 一致性
+→ 判断 Current / MigratableLegacy / Corrupt / UnsupportedFuture
+→ Current 执行当前版本 canonical 对账
+→ MigratableLegacy 在独立迁移器中生成内存候选
+→ 用户显式确认写入后发布 0.9.1 canonical Payload
+```
+
+必须先验证原始 Payload SHA-256 与 canonical 状态，再执行显式迁移。旧版本数据不得因为当前代码添加了新键而被错误判定为 `NON_CANONICAL_CURRENT_PAYLOAD`。
+
+### 1.3 不使用全局数据优先级
+
+不得使用一个全局的 RVT > Payload > 默认值优先级。不同字段的真实来源不同，必须由逐字段权威来源矩阵决定读取、比较、写入与漂移提示。
+
+### 1.4 验收边界保持严格
+
+- CI 通过不等于 Revit 2020 实机通过；
+- 插件内部 exact 回读通过后，外部状态仍为 `IFCFLUX_MANUAL_PENDING`；
+- 没有用户在 IFCFlux 中打开具体文件并保存证据时，不得宣称 IFCFlux 已通过；
+- Stage02、Stage03、H-IFC 转译和 13 个 MCP 工具保持兼容；
+- 本次不开放任意 C#、任意 Revit API、任意脚本或任意 Transaction 工具。
+
+---
+
+## 2. v0.4.1 目标
+
+### 2.1 运行时身份可信
+
+工作台顶部显示当前 Revit 进程实际加载的程序集身份：
+
+```text
+插件版本：0.4.1
+构建号：GitHub Actions run number 或 local
+Commit：当前构建 SHA 或 unknown
+DLL 路径：当前已加载 BIMBaoGui.RevitAddin.dll 的绝对路径
+```
+
+来源只能是当前程序集：
+
+- `AssemblyInformationalVersionAttribute`；
+- `AssemblyFileVersionAttribute`；
+- `AssemblyName.Version`；
+- `AssemblyMetadataAttribute("HBR.BuildNumber", ...)`；
+- `AssemblyMetadataAttribute("HBR.CommitSha", ...)`；
+- `typeof(WorkspaceControl).Assembly.Location`。
+
+README、安装目录常量和文件名不能作为运行时身份来源。
+
+### 2.2 新文件初始化更易用，但不伪造事实
+
+可确定的工作流配置可以预置：
+
+| 字段 | 初始来源 | 规则 |
 |---|---|---|
-| 模型文件类型 | `总平模型` | 保留当前规则目录默认 |
-| 模型范围 | `项目总平面报规模型` | 保留当前规则目录默认 |
-| 坐标系名称 | `CGCS2000` | 保留当前规则目录默认 |
-| 高程系名称 | `1985国家高程基准` | 保留当前规则目录默认 |
-| X / 南北坐标 | `0` | 新增原生安全基线 |
-| Y / 东西坐标 | `0` | 新增原生安全基线 |
-| 基点高程 | `0` | 新增原生安全基线 |
-| 真北角度 | `0` | 保留当前默认 |
-| 长度单位 | `m` | 保留当前系统默认 |
-| 面积单位 | `m²` | 保留当前系统默认 |
-| 角度单位 | `°` | 保留当前系统默认 |
-| 项目条件声明 | `无上述项目条件（已确认） = true` | 新增默认声明 |
+| 模型文件类型 | 当前规则目录默认 | 仅新建表单使用 |
+| 模型范围 | 当前规则目录默认 | 仅新建表单使用 |
+| 坐标系名称 | 当前规则目录默认 | 仅新建表单使用 |
+| 高程系名称 | 当前规则目录默认 | 仅新建表单使用 |
+| 长度单位 | 工作流目标单位 `m` | 属于标准化配置 |
+| 面积单位 | 工作流目标单位 `m²` | 属于标准化配置 |
+| 角度单位 | 工作流目标单位 `°` | 属于标准化配置 |
 
-优先级固定为：
+不能自动生成或替用户判断：
 
-```text
-当前 RVT 实际值
-> 当前 RVT 已有 Stage01 Payload 非空值
-> Revit 原生安全默认值
-> 空值并显示必填阻断
-```
+- 项目名称、项目编号、项目地址；
+- 子项名称；
+- 建设单位、设计单位及其他参建组织；
+- 企业信用代码、联系人、联系电话；
+- 项目条件声明；
+- 任何需要专业判断的规划目标值。
 
-### 3. 项目条件不再要求重复点击
-
-- 新模型默认：全部实际条件 `false`，`workflow.project_conditions.none = true`；
-- 勾选任一实际条件：自动将 `workflow.project_conditions.none` 设为 `false`；
-- 勾选“无上述项目条件”：自动清空全部实际条件；
-- 读取旧 Payload 且没有任何实际条件、也没有否定声明：自动补为 `none = true`；
-- 读取冲突 Payload：实际条件优先，自动取消 `none`，并返回一条非阻断迁移消息；
-- canonical Payload 必须保存最终互斥后的条件状态。
-
-### 4. 功能不回退
-
-本次不改变：
-
-- Stage01 写入事务、事务内回读、事务后回读和整体回滚；
-- Stage02 全模型/当前选择扫描、精确角色匹配、参数级事务和构件级原子事务；
-- Stage03 RAW IFC 导出、H-IFC 转译、字段回读和 IFCFlux 人工待检状态；
-- MCP Named Pipe、ExternalEvent、确认租约和工具协议。
+X、Y、高程和真北不使用硬编码 `0` 覆盖模型。无 Stage01 记录时，应优先读取当前 Revit `ProjectPosition`；新建 Revit 文件通常会自然读到零值，但这个零值来自当前 RVT，而不是插件猜测。
 
 ---
 
-## 二、文件结构与职责
+## 3. 逐字段权威来源矩阵
 
-### 新建文件
+### 3.1 字段分组
+
+| 字段组 | 权威来源 | Stage01 Payload 的作用 | 固定 GUID 参数的作用 |
+|---|---|---|---|
+| X / 南北坐标 | `ProjectPosition.NorthSouth` | 保存上次确认值，用于漂移对账 | IFC 投影和回读证据 |
+| Y / 东西坐标 | `ProjectPosition.EastWest` | 保存上次确认值，用于漂移对账 | IFC 投影和回读证据 |
+| 基点高程 | `ProjectPosition.Elevation` | 保存上次确认值，用于漂移对账 | IFC 投影和回读证据 |
+| 真北角度 | `ProjectPosition.Angle` | 保存上次确认值，用于漂移对账 | IFC 投影和回读证据 |
+| 项目名称、项目编号 | `ProjectInformation.Name / Number` | 保存上次确认值，用于漂移对账 | IFC 投影和回读证据 |
+| 子项名称、模型文件类型、模型范围 | Stage01 Payload | 业务权威记录 | 导出投影，不反向覆盖 Payload |
+| 项目条件声明 | Stage01 Payload | 唯一业务权威记录 | 不作为反向来源 |
+| 参建组织、规划目标 | Stage01 Payload | 唯一业务权威记录 | 导出投影和回读证据 |
+| Stage02/Stage03 构件属性值 | 固定 GUID 参数 | 记录规则身份和流程上下文 | 实际导出值来源 |
+| FileGuid、WorkflowVersion | 原生工作流内部策略 | 唯一持久记录 | 不作为业务字段 |
+| 长度、面积、角度单位 | 目标工作流配置 + Revit Units 回读 | 保存标准化结果 | 类型与值转换依据 |
+
+### 3.2 不同存储状态下的行为
+
+#### NoRecord
 
 ```text
-src/BIMBaoGui.RevitAddin/Runtime/PluginRuntimeIdentity.cs
-    读取当前实际加载程序集的版本、构建号、Commit 和路径；不依赖 Revit API。
-
-src/BIMBaoGui.RevitAddin/Stage01/NativeStage01DefaultPolicy.cs
-    负责新模型安全默认、旧模型缺失值补齐和项目条件确定性归一。
-
-tests/BIMBaoGui.RevitAddin.Tests/PluginRuntimeIdentityTests.cs
-    覆盖版本/元数据/路径格式与本地构建回退。
-
-tests/BIMBaoGui.RevitAddin.Tests/NativeStage01DefaultPolicyTests.cs
-    覆盖默认值、非覆盖、项目条件互斥和旧 Payload 迁移。
-
-tests/test_revit_addin_v041_contract.py
-    锁定 Revit 产品版本、顶部身份 UI、CI 元数据注入、安装器和产物名称。
+当前 RVT
+→ 读取 ProjectInformation、ProjectPosition、Units
+→ 只把这些 Revit 原生字段作为新表单初值
+→ 业务字段保持规则默认或空值
+→ 项目条件保持未声明
 ```
 
-### 修改文件
+#### Current
 
 ```text
-src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj
-    升级 0.4.1；声明 HbrBuildNumber/HbrCommitSha；生成 AssemblyMetadata。
-
-src/BIMBaoGui.McpServer/BIMBaoGui.McpServer.csproj
-src/BIMBaoGui.McpContracts/BIMBaoGui.McpContracts.csproj
-src/BIMBaoGui.HifcCore/BIMBaoGui.HifcCore.csproj
-    统一产品二进制版本为 0.4.1。
-
-src/BIMBaoGui.RevitAddin/WorkspaceControl.cs
-    在顶部显示实际加载插件身份和 DLL 路径。
-
-src/BIMBaoGui.RevitAddin/Rules/NativeRuleCatalog.cs
-    创建默认模型后调用 NativeStage01DefaultPolicy.ApplyForNewModel。
-
-src/BIMBaoGui.RevitAddin/Stage01/NativeProjectConditionDeclarationPolicy.cs
-    增加 NormalizeLoadedDeclaration，保持实际条件与 none 双向互斥。
-
-src/BIMBaoGui.RevitAddin/Stage01/NativeStage01ConditionSchemaPolicy.cs
-    继续补齐数据库条件键，并将补齐结果交给默认策略统一归一。
-
-src/BIMBaoGui.RevitAddin/Stage01/NativeStage01PayloadCodec.cs
-    Payload 解码后执行缺失默认和项目条件迁移，不改变 Payload Schema。
-
-src/BIMBaoGui.RevitAddin/Stage01/NativeStage01RevitReadService.cs
-    保证文档值覆盖默认基线；返回迁移消息；不以默认 0 覆盖 Revit 实际项目位置。
-
-src/BIMBaoGui.RevitAddin/Stage01/NativeStage01ViewModel.cs
-    LoadModel 时执行防御性归一；默认进入项目条件目录的现有行为保持不变。
-
-installer/Install-Revit2020.ps1
-    MCP 版本目录升级为 0.4.1，清理旧 0.4.0 目录。
-
-.github/workflows/build-revit-mcp.yml
-    注入 Build Number/Commit SHA；执行 v0.4.1 合同；更新安装路径和产物名。
-
-docs/revit-addin/README.md
-    更新版本、顶部身份说明和 Stage01 默认策略。
-
-相关 xUnit / pytest 合同测试
-    更新预期版本和新增行为。
+读取 0.9.1 Payload
+→ 保留 Payload 中的业务输入
+→ 同时读取当前 RVT 现场证据
+→ 对 Revit 原生字段做差异比较
+→ 显示 drift，不静默覆盖任一侧
 ```
+
+用户重新提交 Stage01 时，写入操作才把已确认的表单值应用到 Revit，并执行事务后回读。
+
+#### MigratableLegacy
+
+```text
+原始 0.9.0 数据先完成哈希和版本校验
+→ 在独立迁移器中生成 0.9.1 内存候选
+→ 保留全部非空业务值
+→ 补齐新增条件键为 false
+→ none 缺失时补为 false，保持未声明
+→ 显示“等待用户确认迁移”
+→ 用户提交后才写回 Storage
+```
+
+#### Corrupt / UnsupportedFuture
+
+不创建迁移候选，不写入，不用默认值掩盖错误。
 
 ---
 
-### Task 1: 锁定 v0.4.1 产品版本与分支范围
+## 4. Stage01 Payload 0.9.1 迁移设计
 
-**Files:**
-- Create: `tests/test_revit_addin_v041_contract.py`
-- Modify: `src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj`
-- Modify: `src/BIMBaoGui.McpServer/BIMBaoGui.McpServer.csproj`
-- Modify: `src/BIMBaoGui.McpContracts/BIMBaoGui.McpContracts.csproj`
-- Modify: `src/BIMBaoGui.HifcCore/BIMBaoGui.HifcCore.csproj`
+### 4.1 新增类型
 
-**Interfaces:**
-- Consumes: 四个产品项目文件及唯一 Revit 工作流。
-- Produces: 统一语义版本 `0.4.1`，供安装器、UI、CI 和产物命名使用。
-
-- [ ] **Step 1: 写失败的版本合同测试**
-
-```python
-from pathlib import Path
-import xml.etree.ElementTree as ET
-
-ROOT = Path(__file__).resolve().parents[1]
-PROJECTS = [
-    ROOT / "src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj",
-    ROOT / "src/BIMBaoGui.McpServer/BIMBaoGui.McpServer.csproj",
-    ROOT / "src/BIMBaoGui.McpContracts/BIMBaoGui.McpContracts.csproj",
-    ROOT / "src/BIMBaoGui.HifcCore/BIMBaoGui.HifcCore.csproj",
-]
-
-
-def property_value(path: Path, name: str) -> str:
-    root = ET.parse(path).getroot()
-    node = root.find(f".//{name}")
-    assert node is not None
-    return node.text
-
-
-def test_unified_product_version_is_041():
-    for project in PROJECTS:
-        assert property_value(project, "Version") == "0.4.1"
-        assert property_value(project, "FileVersion") == "0.4.1.0"
-        assert property_value(project, "AssemblyVersion") == "0.4.1.0"
-
-
-def test_plan_does_not_touch_gha_product_paths():
-    workflow = (ROOT / ".github/workflows/build-revit-mcp.yml").read_text(
-        encoding="utf-8"
-    )
-    assert "src/BIMBaoGui.Stage01/**" not in workflow
+```text
+src/BIMBaoGui.RevitAddin/Stage01/NativeStage01MigrationService.cs
 ```
 
-- [ ] **Step 2: 运行测试确认当前版本失败**
-
-Run:
-
-```powershell
-python -m pytest tests/test_revit_addin_v041_contract.py -q
-```
-
-Expected: `0.4.0 != 0.4.1`。
-
-- [ ] **Step 3: 将四个项目版本统一修改为 0.4.1**
-
-```xml
-<Version>0.4.1</Version>
-<FileVersion>0.4.1.0</FileVersion>
-<AssemblyVersion>0.4.1.0</AssemblyVersion>
-```
-
-- [ ] **Step 4: 运行版本合同测试**
-
-Run:
-
-```powershell
-python -m pytest tests/test_revit_addin_v041_contract.py -q
-```
-
-Expected: PASS。
-
-- [ ] **Step 5: 提交**
-
-```bash
-git add tests/test_revit_addin_v041_contract.py \
-  src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj \
-  src/BIMBaoGui.McpServer/BIMBaoGui.McpServer.csproj \
-  src/BIMBaoGui.McpContracts/BIMBaoGui.McpContracts.csproj \
-  src/BIMBaoGui.HifcCore/BIMBaoGui.HifcCore.csproj
-git commit -m "chore: align Revit native product version to 0.4.1"
-```
-
----
-
-### Task 2: 实现当前加载程序集的真实运行身份
-
-**Files:**
-- Create: `src/BIMBaoGui.RevitAddin/Runtime/PluginRuntimeIdentity.cs`
-- Create: `tests/BIMBaoGui.RevitAddin.Tests/PluginRuntimeIdentityTests.cs`
-- Modify: `src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj`
-
-**Interfaces:**
-- Consumes: `System.Reflection.Assembly`。
-- Produces:
+建议接口：
 
 ```csharp
-internal sealed class PluginRuntimeIdentity
+internal sealed class NativeStage01MigrationResult
 {
-  internal string ProductVersion { get; }
-  internal string BuildNumber { get; }
-  internal string CommitSha { get; }
-  internal string ShortCommitSha { get; }
-  internal string AssemblyPath { get; }
+  internal bool Success { get; }
+  internal string SourceVersion { get; }
+  internal string TargetVersion { get; }
+  internal NativeStage01Model Model { get; }
+  internal IReadOnlyList<string> Messages { get; }
+}
 
-  internal static PluginRuntimeIdentity Read(Assembly assembly);
+internal static class NativeStage01MigrationService
+{
+  internal static NativeStage01MigrationResult Migrate(
+    NativeStage01Payload source,
+    NativeRuleCatalog catalog,
+    string targetVersion);
 }
 ```
 
-- [ ] **Step 1: 写失败的运行身份测试**
+### 4.2 迁移允许做的事
 
-```csharp
-using System;
-using BIMBaoGui.RevitAddin.Runtime;
-using Xunit;
+- 把 `workflowVersion` 更新为 `0.9.1`；
+- 补齐规则包新增的实际条件键，值固定为 `false`；
+- 缺少 `workflow.project_conditions.none` 时补为 `false`；
+- 保留未知扩展键，除非其结构违反既有 Payload 合同；
+- 生成确定性迁移消息和迁移前后哈希。
 
-namespace BIMBaoGui.RevitAddin.Tests
-{
-  public sealed class PluginRuntimeIdentityTests
-  {
-    [Fact]
-    public void CreateNormalizesBuildCommitAndPath()
-    {
-      PluginRuntimeIdentity identity = PluginRuntimeIdentity.Create(
-        "0.4.1+build.250",
-        "250",
-        "0123456789abcdef",
-        @"C:\Temp\BIMBaoGui.RevitAddin.dll");
+### 4.3 迁移禁止做的事
 
-      Assert.Equal("0.4.1", identity.ProductVersion);
-      Assert.Equal("250", identity.BuildNumber);
-      Assert.Equal("01234567", identity.ShortCommitSha);
-      Assert.EndsWith(
-        "BIMBaoGui.RevitAddin.dll",
-        identity.AssemblyPath,
-        StringComparison.OrdinalIgnoreCase);
-    }
+- 不得默认确认“无上述项目条件”；
+- 不得把缺失的项目名称、编号、子项或组织信息补成猜测值；
+- 不得用 Revit 当前值直接改写旧 Payload 的业务记录；
+- 不得在读取阶段覆盖原 Storage；
+- 不得跳过用户确认自动发布新版本。
 
-    [Fact]
-    public void LocalBuildUsesExplicitFallbacks()
-    {
-      PluginRuntimeIdentity identity = PluginRuntimeIdentity.Create(
-        "0.4.1",
-        "",
-        "",
-        "");
+### 4.4 StoragePolicy 调整
 
-      Assert.Equal("local", identity.BuildNumber);
-      Assert.Equal("unknown", identity.CommitSha);
-      Assert.Equal("运行时未提供程序集路径", identity.AssemblyPath);
-    }
-  }
-}
-```
+`NativeStage01StoragePolicy.Evaluate` 继续负责原始证据分类：
 
-- [ ] **Step 2: 运行测试确认类型不存在**
+1. 原始 Storage 字段完整性；
+2. 原始 Payload SHA-256；
+3. 纯解码；
+4. FileGuid 与三处版本一致性；
+5. 版本比较；
+6. 当前版本 canonical 对账。
 
-Run:
-
-```powershell
-dotnet test tests/BIMBaoGui.RevitAddin.Tests/BIMBaoGui.RevitAddin.Tests.csproj `
-  -c Release --filter PluginRuntimeIdentityTests
-```
-
-Expected: FAIL，`PluginRuntimeIdentity` 不存在。
-
-- [ ] **Step 3: 实现身份读取器**
-
-```csharp
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-
-namespace BIMBaoGui.RevitAddin.Runtime
-{
-  internal sealed class PluginRuntimeIdentity
-  {
-    private PluginRuntimeIdentity(
-      string productVersion,
-      string buildNumber,
-      string commitSha,
-      string assemblyPath)
-    {
-      ProductVersion = NormalizeVersion(productVersion);
-      BuildNumber = string.IsNullOrWhiteSpace(buildNumber)
-        ? "local"
-        : buildNumber.Trim();
-      CommitSha = string.IsNullOrWhiteSpace(commitSha)
-        ? "unknown"
-        : commitSha.Trim();
-      ShortCommitSha = CommitSha == "unknown"
-        ? CommitSha
-        : CommitSha.Substring(0, Math.Min(8, CommitSha.Length));
-      AssemblyPath = string.IsNullOrWhiteSpace(assemblyPath)
-        ? "运行时未提供程序集路径"
-        : Path.GetFullPath(assemblyPath);
-    }
-
-    internal string ProductVersion { get; }
-    internal string BuildNumber { get; }
-    internal string CommitSha { get; }
-    internal string ShortCommitSha { get; }
-    internal string AssemblyPath { get; }
-
-    internal static PluginRuntimeIdentity Read(Assembly assembly)
-    {
-      if (assembly == null) throw new ArgumentNullException(nameof(assembly));
-      var metadata = assembly
-        .GetCustomAttributes<AssemblyMetadataAttribute>()
-        .GroupBy(value => value.Key, StringComparer.Ordinal)
-        .ToDictionary(
-          group => group.Key,
-          group => group.Last().Value ?? string.Empty,
-          StringComparer.Ordinal);
-      string informational = assembly
-        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-        ?.InformationalVersion;
-      string fileVersion = FileVersionInfo
-        .GetVersionInfo(assembly.Location)
-        .FileVersion;
-      string version = informational
-        ?? fileVersion
-        ?? assembly.GetName().Version?.ToString()
-        ?? "unknown";
-      metadata.TryGetValue("HBR.BuildNumber", out string build);
-      metadata.TryGetValue("HBR.CommitSha", out string commit);
-      return new PluginRuntimeIdentity(
-        version,
-        build,
-        commit,
-        assembly.Location);
-    }
-
-    internal static PluginRuntimeIdentity Create(
-      string productVersion,
-      string buildNumber,
-      string commitSha,
-      string assemblyPath)
-    {
-      return new PluginRuntimeIdentity(
-        productVersion,
-        buildNumber,
-        commitSha,
-        assemblyPath);
-    }
-
-    private static string NormalizeVersion(string value)
-    {
-      string normalized = string.IsNullOrWhiteSpace(value)
-        ? "unknown"
-        : value.Trim();
-      int metadata = normalized.IndexOf('+');
-      return metadata < 0 ? normalized : normalized.Substring(0, metadata);
-    }
-  }
-}
-```
-
-- [ ] **Step 4: 在 Revit Add-in 项目中生成元数据**
-
-```xml
-<PropertyGroup>
-  <HbrBuildNumber Condition="'$(HbrBuildNumber)' == ''">local</HbrBuildNumber>
-  <HbrCommitSha Condition="'$(HbrCommitSha)' == ''">unknown</HbrCommitSha>
-  <InformationalVersion>$(Version)+build.$(HbrBuildNumber).sha.$(HbrCommitSha)</InformationalVersion>
-</PropertyGroup>
-
-<ItemGroup>
-  <AssemblyMetadata Include="HBR.BuildNumber" Value="$(HbrBuildNumber)" />
-  <AssemblyMetadata Include="HBR.CommitSha" Value="$(HbrCommitSha)" />
-</ItemGroup>
-```
-
-- [ ] **Step 5: 运行身份测试**
-
-Run:
-
-```powershell
-dotnet test tests/BIMBaoGui.RevitAddin.Tests/BIMBaoGui.RevitAddin.Tests.csproj `
-  -c Release --filter PluginRuntimeIdentityTests
-```
-
-Expected: PASS。
-
-- [ ] **Step 6: 提交**
-
-```bash
-git add src/BIMBaoGui.RevitAddin/Runtime/PluginRuntimeIdentity.cs \
-  src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj \
-  tests/BIMBaoGui.RevitAddin.Tests/PluginRuntimeIdentityTests.cs
-git commit -m "feat: expose loaded Revit add-in runtime identity"
-```
+只有 `0.9.1` 执行当前 canonical 对账。合法 `0.9.0` 返回 `MigratableLegacy`，不拿迁移后的 JSON 与原始 JSON 比较。
 
 ---
 
-### Task 3: 在工作台顶部显示版本、构建号、Commit 和 DLL 路径
+## 5. Stage01 读取与漂移模型
 
-**Files:**
-- Modify: `src/BIMBaoGui.RevitAddin/WorkspaceControl.cs`
-- Modify: `tests/test_revit_addin_stage01_ui_contract.py`
-- Modify: `tests/test_revit_addin_v041_contract.py`
+### 5.1 新增现场证据模型
 
-**Interfaces:**
-- Consumes: `PluginRuntimeIdentity.Read(typeof(WorkspaceControl).Assembly)`。
-- Produces: 顶部只读身份区；不占用 Stage01/02/03 报告区域。
-
-- [ ] **Step 1: 添加失败的 UI 合同**
-
-```python
-def test_workspace_displays_loaded_plugin_identity_at_top():
-    source = (
-        ROOT / "src/BIMBaoGui.RevitAddin/WorkspaceControl.cs"
-    ).read_text(encoding="utf-8")
-    assert "PluginRuntimeIdentity.Read" in source
-    assert "插件版本" in source
-    assert "构建号" in source
-    assert "Commit" in source
-    assert "DLL 路径" in source
-    assert "Assembly.Location" not in source  # 统一由身份读取器负责
-    assert "一键自测" not in source
+```csharp
+internal sealed class NativeStage01LiveEvidence
+{
+  internal string ProjectName { get; set; }
+  internal string ProjectNumber { get; set; }
+  internal string BaseX { get; set; }
+  internal string BaseY { get; set; }
+  internal string BaseElevation { get; set; }
+  internal string TrueNorthAngle { get; set; }
+  internal string LengthUnit { get; set; }
+  internal string AreaUnit { get; set; }
+  internal string AngleUnit { get; set; }
+}
 ```
 
-- [ ] **Step 2: 运行合同确认失败**
+`NativeStage01ReadResult` 增加：
 
-Run:
+```csharp
+internal NativeStage01LiveEvidence LiveEvidence { get; set; }
+internal IReadOnlyList<NativeStage01Drift> Drifts { get; set; }
+internal bool RequiresMigrationConfirmation { get; set; }
+```
+
+### 5.2 读取顺序
+
+```text
+1. 读取 Storage 原始记录
+2. StoragePolicy 分类
+3. NoRecord 创建新表单；Current 克隆 Payload；Legacy 调用迁移器生成内存候选
+4. 独立读取当前 RVT 现场证据
+5. 按逐字段权威来源矩阵决定“初值”或“漂移对账”
+6. 校验项目条件声明和业务字段
+7. 返回模型、现场证据、漂移、迁移状态和消息
+```
+
+当前 `SetIfBlank` 的一刀切方式需要拆除。对 NoRecord 可以把 Revit 原生字段作为初值；对 Current 和 MigratableLegacy 只能比较，不能静默覆盖。
+
+---
+
+## 6. 人工工作台修订
+
+### 6.1 顶部运行时身份
+
+新增只读区域：
+
+```text
+插件版本｜构建号｜Commit
+DLL 路径
+规则包身份
+当前文档状态
+```
+
+DLL 路径保持单行、可横向滚动，并提供 Tooltip。
+
+### 6.2 项目条件
+
+- 左侧第一项仍为“项目条件（必填）”；
+- 新表单进入时保持未声明；
+- 页面明确显示“必须主动选择”；
+- 不提供默认选中的 `none`；
+- 旧版迁移后未声明时显示迁移提示，但仍阻断写入；
+- 条件互斥继续实时生效。
+
+### 6.3 Revit 原生字段漂移
+
+对项目名称、项目编号、X、Y、高程和真北显示：
+
+```text
+上次确认值
+当前 RVT 值
+状态：一致 / 已变化
+```
+
+不得在用户不知情时自动采用其中任一侧。用户提交 Stage01 即表示确认当前表单值作为下一次写入目标。
+
+---
+
+## 7. MCP 兼容性
+
+13 个工具名称保持不变：
+
+```text
+bimbaogui_list_revit_sessions
+bimbaogui_get_document_status
+bimbaogui_get_rule_package_identity
+bimbaogui_stage01_get_form_schema
+bimbaogui_stage01_read
+bimbaogui_stage01_validate
+bimbaogui_stage01_write
+bimbaogui_stage02_preview
+bimbaogui_stage02_write
+bimbaogui_stage03_scan
+bimbaogui_stage03_export
+bimbaogui_stage03_get_last_result
+bimbaogui_stage03_revalidate_file
+```
+
+允许向响应中追加兼容字段：
+
+```text
+payload_schema_version
+source_payload_version
+requires_migration_confirmation
+live_evidence
+drifts
+```
+
+现有请求字段、确认租约、一次性哈希和工具名称不得改变。
+
+`stage01_validate` 对未声明项目条件继续返回无效；Agent 不得通过省略 `none` 获得自动确认。
+
+---
+
+## 8. CI 稳定性修复
+
+最新 GHA 红灯的实际原因是 Windows Runner 上以下资源探测进程超时：
+
+```text
+powershell.exe
+ReflectionOnlyLoadFrom(...)
+GetManifestResourceNames()
+```
+
+规则包测试结果为 `163 passed / 1 timeout`，不是 HBR 规则漂移。
+
+修复要求：
+
+- 优先使用当前 Runner 已安装的 `pwsh`；
+- 使用 `Assembly.LoadFile` 只读取 manifest resource names；
+- 显式设置错误即停止；
+- 超时提高到能够覆盖 Windows Runner 冷启动，但不得无限等待；
+- 失败信息必须包含 stdout、stderr、命令和 Assembly 路径；
+- 保留“恰好一个 `.hbrpack` 资源”的原始断言。
+
+该修复只提升测试探测稳定性，不修改 GHA 生产程序集、规则包或业务逻辑。
+
+---
+
+## 9. 实施任务
+
+### Task 1：锁定修正版计划合同
+
+**新增：**
+
+```text
+tests/test_revit_addin_v041_plan_contract.py
+```
+
+合同必须阻止以下回退：
+
+- 默认把 `none` 设为 `true`；
+- 在 `TryDecode` 中修改模型；
+- 不升级 Payload 版本却增加 canonical 字段；
+- 使用单一全局数据优先级；
+- 把 CI 结论写成 Revit 或 IFCFlux 实机通过。
+
+### Task 2：修复资源探测超时
+
+**修改：**
+
+```text
+tests/test_hbr_rulepack_compiler.py
+```
+
+执行红绿验证：
 
 ```powershell
 python -m pytest `
-  tests/test_revit_addin_stage01_ui_contract.py `
-  tests/test_revit_addin_v041_contract.py -q
-```
-
-Expected: FAIL，工作台尚未显示插件身份。
-
-- [ ] **Step 3: 修改 WorkspaceControl 顶部结构**
-
-新增成员：
-
-```csharp
-private readonly TextBlock _pluginIdentityText;
-private readonly TextBox _pluginPathText;
-```
-
-构造函数中，在规则数据库和当前文档之前添加：
-
-```csharp
-PluginRuntimeIdentity plugin = PluginRuntimeIdentity.Read(
-  typeof(WorkspaceControl).Assembly);
-_pluginIdentityText = Body(
-  "插件版本：" + plugin.ProductVersion
-  + "｜构建号：" + plugin.BuildNumber
-  + "｜Commit：" + plugin.ShortCommitSha);
-_pluginPathText = new TextBox
-{
-  Text = "DLL 路径：" + plugin.AssemblyPath,
-  IsReadOnly = true,
-  BorderThickness = new Thickness(0),
-  Background = Brushes.Transparent,
-  TextWrapping = TextWrapping.NoWrap,
-  HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
-  ToolTip = plugin.AssemblyPath,
-  Margin = new Thickness(0, 2, 0, 2)
-};
-identityPanel.Children.Add(_pluginIdentityText);
-identityPanel.Children.Add(_pluginPathText);
-identityPanel.Children.Add(_ruleText);
-identityPanel.Children.Add(_documentText);
-```
-
-要求：
-
-- 路径控件固定单行，通过横向滚动和 Tooltip 查看完整路径；
-- 不使用自动增高的多行报告控件；
-- 不在 Stage01、Stage02 或 Stage03 内重复显示第二套版本信息。
-
-- [ ] **Step 4: 运行 UI 合同和 Release 编译**
-
-Run:
-
-```powershell
-python -m pytest `
-  tests/test_revit_addin_stage01_ui_contract.py `
-  tests/test_revit_addin_v041_contract.py -q
-
-dotnet build src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj `
-  -c Release -p:TreatWarningsAsErrors=true
-```
-
-Expected: 全部 PASS，0 warning / 0 error。
-
-- [ ] **Step 5: 提交**
-
-```bash
-git add src/BIMBaoGui.RevitAddin/WorkspaceControl.cs \
-  tests/test_revit_addin_stage01_ui_contract.py \
-  tests/test_revit_addin_v041_contract.py
-git commit -m "feat: show loaded add-in identity in Revit workspace"
-```
-
----
-
-### Task 4: 建立 Revit 原生 Stage01 安全默认策略
-
-**Files:**
-- Create: `src/BIMBaoGui.RevitAddin/Stage01/NativeStage01DefaultPolicy.cs`
-- Create: `tests/BIMBaoGui.RevitAddin.Tests/NativeStage01DefaultPolicyTests.cs`
-- Modify: `src/BIMBaoGui.RevitAddin/Rules/NativeRuleCatalog.cs`
-
-**Interfaces:**
-- Consumes: `NativeStage01Model`、`NativeRuleCatalog`。
-- Produces:
-
-```csharp
-internal sealed class NativeStage01DefaultReconciliation
-{
-  internal IReadOnlyList<string> AddedFieldKeys { get; }
-  internal bool ConditionDeclarationChanged { get; }
-  internal bool Changed { get; }
-}
-
-internal static class NativeStage01DefaultPolicy
-{
-  internal static void ApplyForNewModel(
-    NativeStage01Model model,
-    NativeRuleCatalog catalog);
-
-  internal static NativeStage01DefaultReconciliation ApplyMissingDefaults(
-    NativeStage01Model model,
-    NativeRuleCatalog catalog);
-}
-```
-
-- [ ] **Step 1: 写失败的默认策略测试**
-
-```csharp
-using BIMBaoGui.RevitAddin.Rules;
-using BIMBaoGui.RevitAddin.Stage01;
-using Xunit;
-
-namespace BIMBaoGui.RevitAddin.Tests
-{
-  public sealed class NativeStage01DefaultPolicyTests
-  {
-    [Fact]
-    public void NewModelHasSafeSpatialAndConditionDefaults()
-    {
-      NativeStage01Model model =
-        NativeRuleCatalog.Current.CreateDefaultStage01Model();
-
-      Assert.Equal("0", model.GetValue(NativeStage01Keys.BaseX));
-      Assert.Equal("0", model.GetValue(NativeStage01Keys.BaseY));
-      Assert.Equal("0", model.GetValue(NativeStage01Keys.BaseElevation));
-      Assert.Equal("0", model.GetValue(NativeStage01Keys.TrueNorthAngle));
-      Assert.True(model.GetCondition(
-        NativeProjectConditionDeclarationPolicy.NoneConditionId));
-      Assert.All(
-        NativeRuleCatalog.Current.Conditions,
-        condition => Assert.False(model.GetCondition(condition.ConditionId)));
-    }
-
-    [Fact]
-    public void MissingDefaultsNeverOverwriteRealValues()
-    {
-      NativeStage01Model model =
-        NativeRuleCatalog.Current.CreateDefaultStage01Model();
-      model.SetValue(NativeStage01Keys.BaseX, "123.45");
-      model.SetValue(NativeStage01Keys.ProjectName, "真实项目");
-
-      NativeStage01DefaultPolicy.ApplyMissingDefaults(
-        model,
-        NativeRuleCatalog.Current);
-
-      Assert.Equal("123.45", model.GetValue(NativeStage01Keys.BaseX));
-      Assert.Equal("真实项目", model.GetValue(NativeStage01Keys.ProjectName));
-    }
-
-    [Fact]
-    public void BusinessFactsRemainEmpty()
-    {
-      NativeStage01Model model =
-        NativeRuleCatalog.Current.CreateDefaultStage01Model();
-
-      Assert.Equal(string.Empty, model.GetValue(NativeStage01Keys.ProjectName));
-      Assert.Equal(string.Empty, model.GetValue(NativeStage01Keys.ProjectNumber));
-      Assert.Equal(string.Empty, model.GetValue(NativeStage01Keys.SubitemName));
-    }
-  }
-}
-```
-
-- [ ] **Step 2: 运行测试确认 X/Y/高程和 none 默认尚未满足**
-
-Run:
-
-```powershell
-dotnet test tests/BIMBaoGui.RevitAddin.Tests/BIMBaoGui.RevitAddin.Tests.csproj `
-  -c Release --filter NativeStage01DefaultPolicyTests
-```
-
-Expected: FAIL。
-
-- [ ] **Step 3: 实现最小默认策略**
-
-```csharp
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using BIMBaoGui.RevitAddin.Rules;
-
-namespace BIMBaoGui.RevitAddin.Stage01
-{
-  internal sealed class NativeStage01DefaultReconciliation
-  {
-    internal NativeStage01DefaultReconciliation(
-      IEnumerable<string> addedFieldKeys,
-      bool conditionDeclarationChanged)
-    {
-      AddedFieldKeys = new ReadOnlyCollection<string>(
-        new List<string>(addedFieldKeys ?? Array.Empty<string>()));
-      ConditionDeclarationChanged = conditionDeclarationChanged;
-    }
-
-    internal IReadOnlyList<string> AddedFieldKeys { get; }
-    internal bool ConditionDeclarationChanged { get; }
-    internal bool Changed =>
-      AddedFieldKeys.Count > 0 || ConditionDeclarationChanged;
-  }
-
-  internal static class NativeStage01DefaultPolicy
-  {
-    private static readonly KeyValuePair<string, string>[] SafeDefaults =
-    {
-      new KeyValuePair<string, string>(NativeStage01Keys.BaseX, "0"),
-      new KeyValuePair<string, string>(NativeStage01Keys.BaseY, "0"),
-      new KeyValuePair<string, string>(NativeStage01Keys.BaseElevation, "0"),
-      new KeyValuePair<string, string>(NativeStage01Keys.TrueNorthAngle, "0"),
-      new KeyValuePair<string, string>(NativeStage01Keys.LengthUnit, "m"),
-      new KeyValuePair<string, string>(NativeStage01Keys.AreaUnit, "m²"),
-      new KeyValuePair<string, string>(NativeStage01Keys.AngleUnit, "°")
-    };
-
-    internal static void ApplyForNewModel(
-      NativeStage01Model model,
-      NativeRuleCatalog catalog)
-    {
-      ApplyMissingDefaults(model, catalog);
-    }
-
-    internal static NativeStage01DefaultReconciliation ApplyMissingDefaults(
-      NativeStage01Model model,
-      NativeRuleCatalog catalog)
-    {
-      if (model == null) throw new ArgumentNullException(nameof(model));
-      if (catalog == null) throw new ArgumentNullException(nameof(catalog));
-      var added = new List<string>();
-      foreach (KeyValuePair<string, string> pair in SafeDefaults)
-      {
-        if (!string.IsNullOrWhiteSpace(model.GetValue(pair.Key))) continue;
-        model.SetValue(pair.Key, pair.Value);
-        added.Add(pair.Key);
-      }
-      bool conditionChanged =
-        NativeProjectConditionDeclarationPolicy.NormalizeLoadedDeclaration(
-          model,
-          catalog,
-          defaultToNoneWhenEmpty: true);
-      return new NativeStage01DefaultReconciliation(
-        added,
-        conditionChanged);
-    }
-  }
-}
-```
-
-- [ ] **Step 4: 在 NativeRuleCatalog 创建模型后调用策略**
-
-在 `CreateDefaultStage01Model()` 完成数据库默认和条件默认后、返回前加入：
-
-```csharp
-NativeStage01DefaultPolicy.ApplyForNewModel(model, this);
-```
-
-- [ ] **Step 5: 运行默认策略和既有规则目录测试**
-
-Run:
-
-```powershell
-dotnet test tests/BIMBaoGui.RevitAddin.Tests/BIMBaoGui.RevitAddin.Tests.csproj `
-  -c Release `
-  --filter "NativeStage01DefaultPolicyTests|NativeRuleCatalogTests"
-```
-
-Expected: PASS。
-
-- [ ] **Step 6: 提交**
-
-```bash
-git add src/BIMBaoGui.RevitAddin/Stage01/NativeStage01DefaultPolicy.cs \
-  src/BIMBaoGui.RevitAddin/Rules/NativeRuleCatalog.cs \
-  tests/BIMBaoGui.RevitAddin.Tests/NativeStage01DefaultPolicyTests.cs
-git commit -m "feat: add safe native Stage01 defaults"
-```
-
----
-
-### Task 5: 归一项目条件声明并兼容旧 Payload
-
-**Files:**
-- Modify: `src/BIMBaoGui.RevitAddin/Stage01/NativeProjectConditionDeclarationPolicy.cs`
-- Modify: `src/BIMBaoGui.RevitAddin/Stage01/NativeStage01ConditionSchemaPolicy.cs`
-- Modify: `src/BIMBaoGui.RevitAddin/Stage01/NativeStage01PayloadCodec.cs`
-- Modify: `tests/BIMBaoGui.RevitAddin.Tests/NativeProjectConditionDeclarationPolicyTests.cs`
-- Modify: `tests/BIMBaoGui.RevitAddin.Tests/NativeStage01ConditionSchemaPolicyTests.cs`
-- Modify: `tests/BIMBaoGui.RevitAddin.Tests/NativeStage01PayloadCodecTests.cs`
-
-**Interfaces:**
-- Consumes: 已解码或旧版本的 `NativeStage01Model`。
-- Produces:
-
-```csharp
-internal static bool NormalizeLoadedDeclaration(
-  NativeStage01Model model,
-  NativeRuleCatalog catalog,
-  bool defaultToNoneWhenEmpty);
-```
-
-- [ ] **Step 1: 添加失败的互斥和迁移测试**
-
-```csharp
-[Fact]
-public void EmptyLegacyDeclarationDefaultsToConfirmedNone()
-{
-  NativeStage01Model model = new NativeStage01Model();
-  foreach (NativeConditionDefinition condition in
-    NativeRuleCatalog.Current.Conditions)
-  {
-    model.SetCondition(condition.ConditionId, false);
-  }
-
-  bool changed = NativeProjectConditionDeclarationPolicy
-    .NormalizeLoadedDeclaration(
-      model,
-      NativeRuleCatalog.Current,
-      defaultToNoneWhenEmpty: true);
-
-  Assert.True(changed);
-  Assert.True(model.GetCondition(
-    NativeProjectConditionDeclarationPolicy.NoneConditionId));
-}
-
-[Fact]
-public void ActualConditionsWinWhenLegacyPayloadConflicts()
-{
-  NativeStage01Model model = new NativeStage01Model();
-  string actual = NativeRuleCatalog.Current.Conditions[0].ConditionId;
-  model.SetCondition(actual, true);
-  model.SetCondition(
-    NativeProjectConditionDeclarationPolicy.NoneConditionId,
-    true);
-
-  bool changed = NativeProjectConditionDeclarationPolicy
-    .NormalizeLoadedDeclaration(
-      model,
-      NativeRuleCatalog.Current,
-      defaultToNoneWhenEmpty: true);
-
-  Assert.True(changed);
-  Assert.True(model.GetCondition(actual));
-  Assert.False(model.GetCondition(
-    NativeProjectConditionDeclarationPolicy.NoneConditionId));
-}
-```
-
-- [ ] **Step 2: 运行测试确认 NormalizeLoadedDeclaration 不存在**
-
-Run:
-
-```powershell
-dotnet test tests/BIMBaoGui.RevitAddin.Tests/BIMBaoGui.RevitAddin.Tests.csproj `
-  -c Release `
-  --filter "NativeProjectConditionDeclarationPolicyTests|NativeStage01PayloadCodecTests"
-```
-
-Expected: FAIL。
-
-- [ ] **Step 3: 实现确定性归一**
-
-```csharp
-internal static bool NormalizeLoadedDeclaration(
-  NativeStage01Model model,
-  NativeRuleCatalog catalog,
-  bool defaultToNoneWhenEmpty)
-{
-  if (model == null) throw new ArgumentNullException(nameof(model));
-  if (catalog == null) throw new ArgumentNullException(nameof(catalog));
-  bool changed = false;
-  bool hasActual = catalog.Conditions.Any(condition =>
-    model.GetCondition(condition.ConditionId));
-  bool none = model.GetCondition(NoneConditionId);
-
-  if (hasActual && none)
-  {
-    model.SetCondition(NoneConditionId, false);
-    changed = true;
-  }
-  else if (!hasActual && !none && defaultToNoneWhenEmpty)
-  {
-    model.SetCondition(NoneConditionId, true);
-    changed = true;
-  }
-  return changed;
-}
-```
-
-- [ ] **Step 4: 在 Payload 解码和条件 Schema 补齐后调用默认策略**
-
-`NativeStage01PayloadCodec.TryApply(...)` 在字段、组织、条件和 PlanningTargets 全部解码完成后调用：
-
-```csharp
-NativeStage01ConditionSchemaPolicy.Reconcile(model, catalog);
-NativeStage01DefaultPolicy.ApplyMissingDefaults(model, catalog);
-```
-
-要求：
-
-- 不改变 `NativeStage01Canonicalizer.PayloadSchemaVersion`；
-- 不删除未知键；
-- 不覆盖非空字段；
-- 重新编码后的 canonical JSON 保存 `workflow.project_conditions.none`。
-
-- [ ] **Step 5: 运行条件、Payload 和 canonical 测试**
-
-Run:
-
-```powershell
-dotnet test tests/BIMBaoGui.RevitAddin.Tests/BIMBaoGui.RevitAddin.Tests.csproj `
-  -c Release `
-  --filter "NativeProjectConditionDeclarationPolicyTests|NativeStage01ConditionSchemaPolicyTests|NativeStage01PayloadCodecTests|NativeStage01CanonicalizerTests"
-```
-
-Expected: PASS。
-
-- [ ] **Step 6: 提交**
-
-```bash
-git add src/BIMBaoGui.RevitAddin/Stage01/NativeProjectConditionDeclarationPolicy.cs \
-  src/BIMBaoGui.RevitAddin/Stage01/NativeStage01ConditionSchemaPolicy.cs \
-  src/BIMBaoGui.RevitAddin/Stage01/NativeStage01PayloadCodec.cs \
-  tests/BIMBaoGui.RevitAddin.Tests/NativeProjectConditionDeclarationPolicyTests.cs \
-  tests/BIMBaoGui.RevitAddin.Tests/NativeStage01ConditionSchemaPolicyTests.cs \
-  tests/BIMBaoGui.RevitAddin.Tests/NativeStage01PayloadCodecTests.cs
-git commit -m "fix: normalize native project condition declarations"
-```
-
----
-
-### Task 6: 保证 Revit 实际值和既有 Payload 优先于默认值
-
-**Files:**
-- Modify: `src/BIMBaoGui.RevitAddin/Stage01/NativeStage01RevitReadService.cs`
-- Modify: `src/BIMBaoGui.RevitAddin/Stage01/NativeStage01ViewModel.cs`
-- Modify: `tests/BIMBaoGui.RevitAddin.Tests/NativeStage01DefaultPolicyTests.cs`
-- Modify: `tests/test_revit_addin_stage01_revit_contract.py`
-
-**Interfaces:**
-- Consumes: 当前 RVT 的 `ProjectInformation`、`ProjectPosition`、Storage Payload。
-- Produces: 已归一但不伪造业务事实的 `NativeStage01ReadResult.Model`。
-
-- [ ] **Step 1: 添加读取优先级合同**
-
-```python
-def test_stage01_read_applies_defaults_without_overwriting_document_values():
-    source = read_stage01("NativeStage01RevitReadService.cs")
-    assert "PopulateMissingDocumentValues" in source
-    assert "NativeStage01DefaultPolicy.ApplyMissingDefaults" in source
-    assert source.index("PopulateMissingDocumentValues") < source.index(
-        "NativeStage01DefaultPolicy.ApplyMissingDefaults"
-    )
-    assert "SetIfBlank" in source
-```
-
-同时在 xUnit 中增加：
-
-```csharp
-[Fact]
-public void ApplyMissingDefaultsPreservesDocumentSpatialValues()
-{
-  NativeStage01Model model = new NativeStage01Model();
-  model.SetValue(NativeStage01Keys.BaseX, "998.25");
-  model.SetValue(NativeStage01Keys.BaseY, "112.5");
-  model.SetValue(NativeStage01Keys.BaseElevation, "35.8");
-
-  NativeStage01DefaultPolicy.ApplyMissingDefaults(
-    model,
-    NativeRuleCatalog.Current);
-
-  Assert.Equal("998.25", model.GetValue(NativeStage01Keys.BaseX));
-  Assert.Equal("112.5", model.GetValue(NativeStage01Keys.BaseY));
-  Assert.Equal("35.8", model.GetValue(NativeStage01Keys.BaseElevation));
-}
-```
-
-- [ ] **Step 2: 修改读取顺序**
-
-`NativeStage01RevitReadService.Read` 的稳定顺序固定为：
-
-```text
-1. 读取并判定 Storage
-2. Storage 可用则克隆 Payload，否则创建默认模型
-3. 补齐数据库新增实际条件键
-4. 从当前 RVT 读取项目名称、编号、X、Y、高程、真北和单位；只写入空字段
-5. ApplyMissingDefaults：只补仍为空的安全基线，并归一 none 声明
-6. 执行 Stage01 校验
-```
-
-在 `PopulateMissingDocumentValues(...)` 后加入：
-
-```csharp
-NativeStage01DefaultReconciliation defaults =
-  NativeStage01DefaultPolicy.ApplyMissingDefaults(model, catalog);
-if (defaults.Changed)
-{
-  messages.Add(
-    "已补齐 Revit 原生 Stage01 安全默认值；"
-    + "未覆盖当前 RVT 或既有初始化记录中的非空真实值。" );
-}
-```
-
-`NativeStage01ViewModel.LoadModel` 增加防御性归一：
-
-```csharp
-_model = (model ?? _catalog.CreateDefaultStage01Model()).Clone();
-NativeStage01DefaultPolicy.ApplyMissingDefaults(_model, _catalog);
-```
-
-- [ ] **Step 3: 运行读取合同和 Stage01 领域测试**
-
-Run:
-
-```powershell
-python -m pytest tests/test_revit_addin_stage01_revit_contract.py -q
-
-dotnet test tests/BIMBaoGui.RevitAddin.Tests/BIMBaoGui.RevitAddin.Tests.csproj `
-  -c Release `
-  --filter "NativeStage01DefaultPolicyTests|NativeStage01ValidatorTests|NativeStage01PayloadCodecTests"
-```
-
-Expected: PASS。
-
-- [ ] **Step 4: 提交**
-
-```bash
-git add src/BIMBaoGui.RevitAddin/Stage01/NativeStage01RevitReadService.cs \
-  src/BIMBaoGui.RevitAddin/Stage01/NativeStage01ViewModel.cs \
-  tests/BIMBaoGui.RevitAddin.Tests/NativeStage01DefaultPolicyTests.cs \
-  tests/test_revit_addin_stage01_revit_contract.py
-git commit -m "fix: preserve Revit values while applying Stage01 defaults"
-```
-
----
-
-### Task 7: 注入 CI 构建身份并统一安装器和安装包版本
-
-**Files:**
-- Modify: `.github/workflows/build-revit-mcp.yml`
-- Modify: `installer/Install-Revit2020.ps1`
-- Modify: `tests/test_revit_addin_installer_contract.py`
-- Modify: `tests/test_revit_addin_mcp_installer_contract.py`
-- Modify: `tests/test_revit_addin_v041_contract.py`
-- Modify: `docs/revit-addin/README.md`
-
-**Interfaces:**
-- Consumes: `github.run_number`、`github.sha`、0.4.1 产品项目。
-- Produces: 带真实程序集元数据的 DLL、`0.4.1` MCP 安装目录和统一 ZIP Artifact。
-
-- [ ] **Step 1: 扩展 v0.4.1 CI 合同测试**
-
-```python
-def test_ci_injects_build_number_and_commit_sha():
-    workflow = (
-        ROOT / ".github/workflows/build-revit-mcp.yml"
-    ).read_text(encoding="utf-8")
-    assert "HbrBuildNumber=${{ github.run_number }}" in workflow
-    assert "HbrCommitSha=${{ github.sha }}" in workflow
-    assert "BIMBaoGui-Revit2020-Native-MCP-v0.4.1" in workflow
-
-
-def test_installer_uses_041_mcp_directory():
-    installer = (
-        ROOT / "installer/Install-Revit2020.ps1"
-    ).read_text(encoding="utf-8")
-    assert '$mcpVersion = "0.4.1"' in installer
-```
-
-- [ ] **Step 2: 运行合同确认当前仍为 0.4.0**
-
-Run:
-
-```powershell
-python -m pytest `
-  tests/test_revit_addin_v041_contract.py `
-  tests/test_revit_addin_installer_contract.py `
-  tests/test_revit_addin_mcp_installer_contract.py -q
-```
-
-Expected: FAIL。
-
-- [ ] **Step 3: 修改 dotnet test/build 命令注入元数据**
-
-对 Revit Add-in 的测试和正式构建均传入：
-
-```powershell
--p:HbrBuildNumber=${{ github.run_number }} `
--p:HbrCommitSha=${{ github.sha }}
-```
-
-正式构建命令示例：
-
-```powershell
-dotnet build src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj `
-  -c Release `
-  --no-restore `
-  -p:ContinuousIntegrationBuild=true `
-  -p:TreatWarningsAsErrors=true `
-  -p:HbrBuildNumber=${{ github.run_number }} `
-  -p:HbrCommitSha=${{ github.sha }}
-```
-
-- [ ] **Step 4: 增加程序集元数据验证步骤**
-
-在构建后增加 PowerShell：
-
-```powershell
-$dll = Resolve-Path "src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.RevitAddin.dll"
-$assembly = [Reflection.Assembly]::LoadFile($dll.Path)
-$metadata = @{}
-foreach ($attribute in $assembly.GetCustomAttributesData()) {
-  if ($attribute.AttributeType.FullName -ne "System.Reflection.AssemblyMetadataAttribute") { continue }
-  $metadata[[string]$attribute.ConstructorArguments[0].Value] =
-    [string]$attribute.ConstructorArguments[1].Value
-}
-if ($metadata["HBR.BuildNumber"] -ne "${{ github.run_number }}") {
-  throw "Revit DLL build number metadata mismatch."
-}
-if ($metadata["HBR.CommitSha"] -ne "${{ github.sha }}") {
-  throw "Revit DLL commit metadata mismatch."
-}
-if ($assembly.GetName().Version.ToString() -ne "0.4.1.0") {
-  throw "Revit DLL assembly version mismatch."
-}
-```
-
-- [ ] **Step 5: 更新安装器和工作流中的 0.4.1 路径**
-
-固定修改：
-
-```text
-$mcpVersion = "0.4.1"
-MCP 安装目录：%LOCALAPPDATA%\BIMBaoGui\McpServer\0.4.1
-Artifact：BIMBaoGui-Revit2020-Native-MCP-v0.4.1
-```
-
-Smoke Test 必须：
-
-- 预先创建 `0.4.0` 旧目录；
-- 安装后确认 `0.4.0` 已清理、`0.4.1` 存在；
-- 验证 Revit DLL、Contracts DLL、HifcCore DLL、MCP EXE 哈希；
-- 验证卸载后当前版本目录和 `.addin` 全部删除。
-
-- [ ] **Step 6: 更新 README**
-
-README 明确说明：
-
-```text
-版本：0.4.1
-顶部身份信息来自当前 Revit 实际加载 DLL
-Build/Commit 由 CI 写入程序集元数据
-本地开发构建显示 Build local / Commit unknown
-Stage01 默认 0 坐标是初始化基线，RVT 实际值优先
-无上述项目条件默认确认，可由实际条件自动取消
-```
-
-- [ ] **Step 7: 运行合同测试**
-
-Run:
-
-```powershell
-python -m pytest `
-  tests/test_revit_addin_v041_contract.py `
-  tests/test_revit_addin_installer_contract.py `
-  tests/test_revit_addin_mcp_installer_contract.py -q
-```
-
-Expected: PASS。
-
-- [ ] **Step 8: 提交**
-
-```bash
-git add .github/workflows/build-revit-mcp.yml \
-  installer/Install-Revit2020.ps1 \
-  tests/test_revit_addin_installer_contract.py \
-  tests/test_revit_addin_mcp_installer_contract.py \
-  tests/test_revit_addin_v041_contract.py \
-  docs/revit-addin/README.md
-git commit -m "build: package Revit native product v0.4.1"
-```
-
----
-
-### Task 8: 完整回归、代码审查和可安装包验收
-
-**Files:**
-- Review: all v0.4.1 changed files
-- Verify: `.github/workflows/build-revit-mcp.yml`
-- Artifact: `BIMBaoGui-Revit2020-Native-MCP-v0.4.1.zip`
-
-**Interfaces:**
-- Consumes: Tasks 1–7 的全部实现。
-- Produces: 可覆盖安装的统一 v0.4.1 包及可追溯构建证据。
-
-- [ ] **Step 1: 确认未修改 GHA 产品线**
-
-Run:
-
-```bash
-git diff --name-only e57473d813f58e9e528b2afc69d31d4e32b602cf...HEAD
-```
-
-Expected: 不出现：
-
-```text
-src/BIMBaoGui.Stage01/
-.github/workflows/build-stage01-gha.yml
-```
-
-- [ ] **Step 2: 运行全部 Python 合同**
-
-Run:
-
-```powershell
-python -m pytest `
-  tests/test_revit_addin_mcp_non_regression.py `
-  tests/test_revit_addin_scaffold_contract.py `
-  tests/test_revit_addin_installer_contract.py `
-  tests/test_revit_addin_stage01_storage_contract.py `
-  tests/test_revit_addin_stage01_revit_contract.py `
-  tests/test_revit_addin_stage01_ui_contract.py `
-  tests/test_revit_addin_stage02_revit_contract.py `
-  tests/test_revit_addin_stage03_revit_contract.py `
-  tests/test_revit_addin_stage03_ui_contract.py `
-  tests/test_revit_addin_mcp_contract.py `
-  tests/test_revit_addin_mcp_stage03_contract.py `
-  tests/test_revit_addin_mcp_installer_contract.py `
-  tests/test_revit_addin_v041_contract.py `
+  tests/test_hbr_rulepack_compiler.py::test_stage01_real_build_is_incremental_and_embeds_only_the_generated_pack `
   -q
 ```
 
-Expected: 全部 PASS。
+### Task 3：统一产品版本与运行时身份
 
-- [ ] **Step 3: 验证共享 HBR 数据库未漂移**
-
-Run:
-
-```powershell
-python -m pytest `
-  tests/test_hbr_rulepack_compiler.py `
-  tests/test_hbr_rules_manifest.py -q
-```
-
-Expected: PASS；规则包 Entity/Pset/Property/GUID/类型/单位不变。
-
-- [ ] **Step 4: 运行全部 .NET 测试**
-
-Run:
-
-```powershell
-dotnet test tests/BIMBaoGui.HifcCore.Tests/BIMBaoGui.HifcCore.Tests.csproj `
-  -c Release
-
-dotnet test tests/BIMBaoGui.McpContracts.Tests/BIMBaoGui.McpContracts.Tests.csproj `
-  -c Release
-
-dotnet test tests/BIMBaoGui.RevitAddin.Tests/BIMBaoGui.RevitAddin.Tests.csproj `
-  -c Release `
-  -p:HbrBuildNumber=local-test `
-  -p:HbrCommitSha=0123456789abcdef
-```
-
-Expected: 全部 PASS。
-
-- [ ] **Step 5: Release 编译**
-
-Run:
-
-```powershell
-dotnet build src/BIMBaoGui.HifcCore/BIMBaoGui.HifcCore.csproj `
-  -c Release -p:TreatWarningsAsErrors=true
-
-dotnet build src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj `
-  -c Release `
-  -p:TreatWarningsAsErrors=true `
-  -p:HbrBuildNumber=local-test `
-  -p:HbrCommitSha=0123456789abcdef
-
-dotnet build src/BIMBaoGui.McpServer/BIMBaoGui.McpServer.csproj `
-  -c Release -p:TreatWarningsAsErrors=true
-```
-
-Expected: 0 warning / 0 error。
-
-- [ ] **Step 6: 运行 Windows 安装/卸载 Smoke**
-
-必须验证：
+**修改：**
 
 ```text
-安装 v0.4.1
-→ 生成绝对路径 .addin
-→ 安装四类二进制
-→ SHA-256 与 install-evidence 一致
-→ MCP 配置指向 0.4.1 绝对路径
-→ 清理旧 0.4.0 目录
-→ 卸载后无残留
+src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj
+src/BIMBaoGui.HifcCore/BIMBaoGui.HifcCore.csproj
+src/BIMBaoGui.McpContracts/BIMBaoGui.McpContracts.csproj
+src/BIMBaoGui.McpServer/BIMBaoGui.McpServer.csproj
+src/BIMBaoGui.RevitAddin/WorkspaceControl.cs
+.github/workflows/build-revit-mcp.yml
+installer/Install-Revit2020.ps1
 ```
 
-- [ ] **Step 7: GitHub Actions 构建最终 Artifact**
+四个程序集、安装目录和 Artifact 统一为 `0.4.1`。CI 注入 Build Number 与 Commit SHA，并在构建后反射校验。
 
-Expected Artifact：
+### Task 4：建立 0.9.1 迁移通道
+
+**新增：**
+
+```text
+src/BIMBaoGui.RevitAddin/Stage01/NativeStage01MigrationService.cs
+tests/BIMBaoGui.RevitAddin.Tests/NativeStage01MigrationServiceTests.cs
+```
+
+**修改：**
+
+```text
+NativeStage01Canonicalizer.cs
+NativeStage01StoragePolicy.cs
+NativeStage01RevitReadService.cs
+NativeStage01RevitService.cs
+```
+
+必须覆盖：
+
+- 合法 0.9.0 被分类为 `MigratableLegacy`；
+- 迁移候选为 0.9.1；
+- `none` 缺失后为 `false`；
+- 非空业务值不变；
+- 未确认写入时原 Storage 不变；
+- 迁移后回读达到 `Current`。
+
+### Task 5：建立逐字段权威与漂移对账
+
+**新增：**
+
+```text
+src/BIMBaoGui.RevitAddin/Stage01/NativeStage01FieldAuthorityPolicy.cs
+src/BIMBaoGui.RevitAddin/Stage01/NativeStage01LiveEvidence.cs
+```
+
+**修改：**
+
+```text
+NativeStage01RevitReadService.cs
+NativeStage01ViewModel.cs
+NativeStage01View.cs
+McpStage01Adapter.cs
+```
+
+必须覆盖：
+
+- NoRecord 使用当前 Revit 原生值作为表单初值；
+- Current 不静默覆盖 Payload；
+- Revit 现场值变化生成 drift；
+- 业务字段只来自 Payload/用户输入；
+- X 仍表示南北坐标，Y 仍表示东西坐标。
+
+### Task 6：保持项目条件显式声明
+
+**修改：**
+
+```text
+NativeProjectConditionDeclarationPolicy.cs
+NativeStage01ConditionSchemaPolicy.cs
+NativeStage01ViewModel.cs
+NativeStage01View.cs
+McpStage01Adapter.cs
+```
+
+必须覆盖：
+
+- 新表单为 Missing；
+- 旧版缺少 none 仍为 Missing；
+- 实际条件与 none 双向互斥；
+- 冲突数据不被静默修正为“无条件”；
+- 人工与 MCP 校验结果一致。
+
+### Task 7：完整回归与安装包
+
+执行：
+
+```powershell
+python -m pytest tests -q
+
+dotnet test tests/BIMBaoGui.HifcCore.Tests/BIMBaoGui.HifcCore.Tests.csproj -c Release
+dotnet test tests/BIMBaoGui.McpContracts.Tests/BIMBaoGui.McpContracts.Tests.csproj -c Release
+dotnet test tests/BIMBaoGui.RevitAddin.Tests/BIMBaoGui.RevitAddin.Tests.csproj -c Release
+
+dotnet build src/BIMBaoGui.HifcCore/BIMBaoGui.HifcCore.csproj -c Release -p:TreatWarningsAsErrors=true
+dotnet build src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj -c Release -p:TreatWarningsAsErrors=true
+dotnet build src/BIMBaoGui.McpServer/BIMBaoGui.McpServer.csproj -c Release -p:TreatWarningsAsErrors=true
+
+git diff --check
+```
+
+最终 Artifact：
 
 ```text
 BIMBaoGui-Revit2020-Native-MCP-v0.4.1.zip
 ```
 
-- [ ] **Step 8: 解压后复核安装包**
+---
 
-```powershell
-Get-FileHash .\BIMBaoGui-Revit2020-Native-MCP-v0.4.1.zip -Algorithm SHA256
-```
+## 10. Revit 2020 实机验收
 
-并逐项核对 `SHA256SUMS.txt`。
+安装最终 Artifact 后逐项留证：
 
-- [ ] **Step 9: Revit 2020 人工验收清单**
-
-在关闭 Revit 后覆盖安装，再启动 Revit 2020：
-
-```text
-1. 工作台顶部显示 v0.4.1。
-2. Build 不为 local，Commit 不为 unknown。
-3. DLL 路径与 %APPDATA%\Autodesk\Revit\Addins\2020\... 实际安装路径一致。
-4. 新建/无记录文件打开 Stage01：X=0、Y=0、高程=0、真北=0。
-5. “无上述项目条件（已确认）”默认勾选。
-6. 勾选任一实际条件后 none 自动取消；反向操作清空实际条件。
-7. 点击“读取当前文件”后，RVT 实际坐标与项目名称覆盖默认基线。
-8. 既有非空 Stage01 Payload 不被默认值覆盖。
-9. Stage02、Stage03 和 MCP 工具行为与 v0.4.0 保持一致。
-```
-
-- [ ] **Step 10: 提交最终验证记录**
-
-```bash
-git add docs/revit-addin/README.md
-git commit -m "docs: record Revit native v0.4.1 verification"
-```
+1. 工作台显示 `0.4.1`、非 `local` Build、非 `unknown` Commit；
+2. DLL 路径与实际安装文件一致；
+3. 无记录 RVT 能读出当前项目名称、编号、X、Y、高程和真北；
+4. 项目条件初始为未声明，不能直接通过 Stage01；
+5. 用户主动选择实际条件或 `none` 后通过声明门禁；
+6. 合法 0.9.0 文件显示“等待迁移确认”，但原 Storage 未被读取动作改写；
+7. 用户确认后写入 0.9.1，并完成事务后回读；
+8. 修改 Revit 项目位置后，工作台显示 drift，而不是静默覆盖 Payload；
+9. Stage02 全模型与当前选择预览保持兼容；
+10. Stage03 严格/强制门禁、RAW IFC、H-IFC exact 回读保持兼容；
+11. MCP 13 个工具均可发现且原请求结构继续可用；
+12. 最终 H-IFC 在 IFCFlux 中由用户人工检查并保存证据。
 
 ---
 
-## 三、发布判定
+## 11. 发布门禁
 
-只有同时满足以下条件，才能称为 **v0.4.1 可安装测试版**：
+只有同时满足以下条件，才能发布 `0.4.1`：
 
-1. 所有 Python 合同和 .NET 测试通过；
-2. Revit Add-in、HifcCore、MCP Contracts、MCP Server 均为 `0.4.1`；
-3. CI 反射读取到真实 Build Number 和 Commit SHA；
-4. 安装/卸载 smoke 通过；
-5. 安装包哈希清单完整；
-6. 未修改 GHA 产品线；
-7. 用户在真实 Revit 2020 中看到的顶部版本、构建号和 DLL 路径与安装证据一致。
+- 修正版计划合同通过；
+- Python 全量测试通过；
+- .NET 全量测试通过；
+- Release 编译 0 warning / 0 error；
+- 四个产品程序集版本一致；
+- 0.9.0 → 0.9.1 迁移测试通过；
+- 项目条件未被默认代选；
+- 逐字段权威来源和 drift 测试通过；
+- 安装、覆盖安装和卸载 smoke 通过；
+- Revit 2020 实机加载身份与安装证据一致；
+- IFCFlux 状态在人工验收前始终保持 `IFCFLUX_MANUAL_PENDING`。
 
-CI 只能证明代码、协议、编译和安装结构；Revit 2020 中的实际加载身份仍以工作台顶部显示为最终依据。
+任何一项缺失，都只能描述为“代码或安装结构已验证”，不得描述为完整报规闭环通过。
