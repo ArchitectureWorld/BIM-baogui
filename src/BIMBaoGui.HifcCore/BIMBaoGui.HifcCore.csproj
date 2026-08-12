@@ -13,16 +13,4 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>1591</NoWarn>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="..\BIMBaoGui.Stage01\Hifc\DeterministicGuidV5.cs" Link="LegacyCore\DeterministicGuidV5.cs" />
-    <Compile Include="..\BIMBaoGui.Stage01\Mvd\IfcStepDocument.cs" Link="LegacyCore\IfcStepDocument.cs" />
-    <Compile Include="..\BIMBaoGui.Stage01\Mvd\IfcStepEntity.cs" Link="LegacyCore\IfcStepEntity.cs" />
-    <Compile Include="..\BIMBaoGui.Stage01\Mvd\IfcStepSyntax.cs" Link="LegacyCore\IfcStepSyntax.cs" />
-    <Compile Include="..\BIMBaoGui.Stage01\Mvd\IfcGuidCodec.cs" Link="LegacyCore\IfcGuidCodec.cs" />
-    <Compile Include="..\BIMBaoGui.Stage01\Mvd\HbrIfcCanonicalValuePolicy.cs" Link="LegacyCore\HbrIfcCanonicalValuePolicy.cs" />
-    <Compile Include="..\BIMBaoGui.Stage01\Mvd\HbrIfcEnrichmentModels.cs" Link="LegacyCore\HbrIfcEnrichmentModels.cs" />
-    <Compile Include="..\BIMBaoGui.Stage01\Mvd\HbrIfcEnricher.cs" Link="LegacyCore\HbrIfcEnricher.cs" />
-    <Compile Include="..\BIMBaoGui.Stage01\Mvd\HbrIfcFieldInspector.cs" Link="LegacyCore\HbrIfcFieldInspector.cs" />
-  </ItemGroup>
 </Project>
