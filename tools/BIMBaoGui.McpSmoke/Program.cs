@@ -25,7 +25,11 @@ string[] expectedTools =
   "bimbaogui_stage01_validate",
   "bimbaogui_stage01_write",
   "bimbaogui_stage02_preview",
-  "bimbaogui_stage02_write"
+  "bimbaogui_stage02_write",
+  "bimbaogui_stage03_export",
+  "bimbaogui_stage03_get_last_result",
+  "bimbaogui_stage03_revalidate_file",
+  "bimbaogui_stage03_scan"
 };
 
 using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
