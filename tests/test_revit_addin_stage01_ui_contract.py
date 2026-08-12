@@ -26,9 +26,37 @@ def test_stage01_workspace_exposes_explicit_read_validate_and_write_actions():
         assert label in source
     assert "RequestStage01Read" in source
     assert "RequestStage01Write" in source
-    assert "ConfirmBlankProject" in source
+    assert "确认当前文件尚未开始正式建模" not in source
+    assert "_confirmBlankProject" not in source
+    assert "ConfirmBlankProject = false" in source
     assert "AllowReinitialize" in source
     assert "new Transaction(" not in source
+
+
+def test_stage01_required_fields_precede_one_remembered_optional_expander():
+    source = read(PROJECT / "Stage01" / "NativeStage01View.cs")
+    assert "new Expander" in source
+    assert "选填项（共 " in source
+    assert "_optionalExpansionByGroup" in source
+    assert "GetOptionalFieldCount" in source
+    assert "GetFilledOptionalFieldCount" in source
+    assert "HasOptionalValidationError" in source
+    assert ".Where(NativeStage01Validator.IsRequired)" in source
+    assert "!NativeStage01Validator.IsRequired" in source
+    assert "NativeStage01ViewModel.ConditionsGroup" in source
+
+
+def test_stage_status_regions_cannot_grow_and_displace_the_workspace():
+    stage01 = read(PROJECT / "Stage01" / "NativeStage01View.cs")
+    workspace = read(PROJECT / "WorkspaceControl.cs")
+    assert "Height = new GridLength(96)" in stage01
+    assert "Content = _statusText" in stage01
+    assert "VerticalScrollBarVisibility = ScrollBarVisibility.Auto" in stage01
+    assert "HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled" in stage01
+    assert "Height = new GridLength(32)" in workspace
+    assert "TextWrapping = TextWrapping.NoWrap" in workspace
+    assert "TextTrimming = TextTrimming.CharacterEllipsis" in workspace
+    assert "ToolTip = fullStatus" in workspace
 
 
 def test_external_event_dispatcher_is_the_only_ui_to_revit_write_bridge():
