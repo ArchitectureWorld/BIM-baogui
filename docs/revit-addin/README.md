@@ -1,16 +1,16 @@
 # BIMBaoGui Revit 2020 原生插件 + MCP
 
-## 可直接安装版本
+## 唯一 Revit 产品线
 
 ```text
-产品版本：0.3.0
-开发分支：feat/revit-native-addin-mcp-v0.3
+统一安装版：0.3.0
+唯一开发分支：feat/revit-native-addin-mcp-v0.3
 目标软件：Autodesk Revit 2020
 ```
 
-该版本在 **不改变 v0.2.0 Stage01、Stage02 和人工工作台行为** 的基础上增加 MCP 入口。
+本安装包同时包含人工工作台与 MCP 入口。没有单独维护的“非 MCP 功能版”；即使不配置任何 MCP Client，Ribbon、DockablePane、Stage01 和 Stage02 仍可独立使用。
 
-原生插件仍不引用 Grasshopper、RhinoCommon、Rhino.Inside.Revit 或 GHA，只共同消费权威 HBR 规则数据库。
+原生插件不引用 Grasshopper、RhinoCommon、Rhino.Inside.Revit 或 GHA，只共同消费权威 HBR 规则数据库。
 
 ## 两种使用入口
 
@@ -27,8 +27,8 @@ MCP Client
   → BIMBaoGui.McpServer.exe（stdio）
   → 当前用户 Named Pipe
   → Revit 内 MCP Bridge
-  → 原有 RevitExternalEventDispatcher
-  → 原有 Stage01 / Stage02 服务
+  → RevitExternalEventDispatcher
+  → 同一套 Stage01 / Stage02 服务
 ```
 
 MCP Bridge 启动失败不会阻断 Ribbon、DockablePane 或人工 Stage01/02 操作。
@@ -39,7 +39,13 @@ MCP Bridge 启动失败不会阻断 Ribbon、DockablePane 或人工 Stage01/02 �
 
 - 项目身份、子项、模型类型、坐标、高程、真北和项目条件表单；
 - 左侧目录 + 右侧连续滚动表单；
+- 必填字段始终优先、连续显示；
+- 每个目录的选填字段统一放入一个“选填项（共 N 项，已填写 M 项）”折叠区；
+- 选填区默认收起，并在当前 Revit 会话内记住各目录的展开状态；
+- 选填字段存在校验错误时自动展开；
 - 数据库驱动的字段类型、必填项、示例和校验；
+- 已经包含模型构件的 RVT 也可以首次初始化，不再扫描或阻断现有模型；
+- 已经存在 Stage01 初始化记录时，覆盖写入仍必须明确启用“允许重新初始化”；
 - `X = 南北坐标`、`Y = 东西坐标`；
 - Revit 单位、项目位置、项目信息和固定 GUID 参数写入；
 - canonical JSON、SHA-256、Extensible Storage 和写入后回读；
@@ -58,6 +64,14 @@ MCP Bridge 启动失败不会阻断 Ribbon、DockablePane 或人工 Stage01/02 �
 - 参数级事务隔离、构件级原子事务和部分成功；
 - 原生 WPF 构件列表、问题筛选、字段详情和确认写入；
 - MCP preview_hash 一次性租约与确认写入。
+
+### 状态与报告区域
+
+- Stage01 与 Stage02 的详细状态区域固定为 96 px；
+- 超长状态、阻断列表和失败报告在区域内部滚动，不再扩大页面高度；
+- 工作台底部只显示固定高度的单行摘要；
+- 完整状态保留在阶段内部报告区及摘要条提示中；
+- 长报告不会再把按钮、左侧目录或右侧表单挤出可视区域。
 
 ### 03 检测与 H-IFC
 
@@ -98,6 +112,8 @@ Stage02：preview → preview_hash → confirm=true → write
 
 租约有效期 30 分钟、一次消费。Stage02 写入时仍会重新扫描并比较预览 SHA-256。
 
+`stage01_write` 仍兼容旧客户端传入的 `confirm_blank_project` 字段，但该字段已经废弃并被忽略；首次初始化不再要求空模型。
+
 ## 安装
 
 1. **关闭 Revit 2020**。
@@ -108,7 +124,7 @@ Stage02：preview → preview_hash → confirm=true → write
 Install.cmd
 ```
 
-安装器使用当前用户目录，不要求管理员权限。成功后生成：
+安装器使用当前用户目录，不要求管理员权限。重复安装会覆盖同一产品目录，不会逐版本堆叠插件副本。成功后生成：
 
 ```text
 %APPDATA%\Autodesk\Revit\Addins\2020\BIMBaoGui.RevitAddin.addin
@@ -195,7 +211,8 @@ SHA256SUMS.txt
 
 - 仅支持 Revit 2020；
 - RVT 必须先保存且不能为只读或族文档；
-- 首次初始化要求确认文件尚未正式建模；
+- 已有模型不影响首次初始化；
+- 已初始化文件重新覆盖时仍需勾选“允许重新初始化”；
 - Stage02 不会伪造没有可靠来源的业务值，只准备参数并标记“待填写”；
 - MCP Server 使用标准输入输出协议，正常运行时不要从命令行向其发送普通文本；
 - 当前二进制未使用商业代码签名证书，Windows 或 Revit 可能显示未知发布者提示；
