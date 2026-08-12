@@ -79,6 +79,14 @@ def test_stage02_workspace_is_real_and_not_a_placeholder():
     assert "Stage02 等待开发" not in workspace
 
 
+def test_stage02_detailed_status_is_fixed_height_and_scrollable():
+    view = read_stage02("NativeStage02View.cs")
+    assert "Height = new GridLength(96)" in view
+    assert "Content = _statusText" in view
+    assert "VerticalScrollBarVisibility = ScrollBarVisibility.Auto" in view
+    assert "HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled" in view
+
+
 def test_native_ci_runs_stage02_revit_contract():
     workflow = WORKFLOW.read_text(encoding="utf-8")
     assert "Verify native Stage02 Revit contract" in workflow
