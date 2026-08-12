@@ -44,6 +44,13 @@ def test_installer_keeps_revit_user_addin_and_adds_versioned_mcp_server():
     assert '"mcp-server-config.json"' in source
 
 
+def test_installer_removes_superseded_mcp_version_directories():
+    source = read(INSTALLER)
+    assert 'Get-ChildItem -LiteralPath $mcpBaseRoot -Directory' in source
+    assert "'^\\d+\\.\\d+\\.\\d+$'" in source
+    assert 'Remove-Item -LiteralPath $_.FullName -Recurse -Force' in source
+
+
 def test_installer_generates_absolute_mcp_client_configuration():
     source = read(INSTALLER)
     assert '[IO.Path]::GetFullPath' in source
