@@ -69,6 +69,16 @@ namespace BIMBaoGui.RevitAddin.Stage01
           == NativeStage01StorageState.UnsupportedFuture)
         messages.Add(storageDecision.Message);
 
+      NativeStage01ConditionSchemaReconciliation conditionSchema =
+        NativeStage01ConditionSchemaPolicy.Reconcile(model, catalog);
+      if (conditionSchema.Changed)
+      {
+        messages.Add(
+          "已补齐当前规则库新增的项目条件键："
+          + string.Join("、", conditionSchema.AddedConditionIds)
+          + "；新增键仅设为未勾选，未替用户选择或声明项目条件。" );
+      }
+
       PopulateMissingDocumentValues(document, model, messages);
       NativeStage01ValidationResult validation =
         NativeStage01Validator.Validate(model, catalog);
