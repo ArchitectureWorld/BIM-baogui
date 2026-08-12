@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -9,6 +10,7 @@ namespace BIMBaoGui.RevitAddin
 {
   internal sealed class WorkspaceControl : Page
   {
+    private const int MaximumStatusSummaryLength = 120;
     private readonly TextBlock _documentText;
     private readonly TextBlock _ruleText;
     private readonly TextBlock _statusText;
@@ -60,7 +62,7 @@ namespace BIMBaoGui.RevitAddin
       });
       content.RowDefinitions.Add(new RowDefinition
       {
-        Height = GridLength.Auto
+        Height = new GridLength(32)
       });
 
       var identityPanel = new StackPanel();
@@ -88,17 +90,20 @@ namespace BIMBaoGui.RevitAddin
       Grid.SetRow(actions, 1);
       content.Children.Add(actions);
 
-      _statusText = Body("阶段状态：等待读取当前文件");
-      _statusText.Padding = new Thickness(8);
-      _statusText.Background = new SolidColorBrush(
-        Color.FromRgb(245, 247, 250));
+      _statusText = new TextBlock
+      {
+        Text = "阶段状态：等待读取当前文件",
+        TextWrapping = TextWrapping.NoWrap,
+        TextTrimming = TextTrimming.CharacterEllipsis,
+        VerticalAlignment = VerticalAlignment.Center,
+        Padding = new Thickness(8, 4, 8, 4),
+        Background = new SolidColorBrush(Color.FromRgb(245, 247, 250))
+      };
 
       _stage01View = new NativeStage01View();
-      _stage01View.StatusChanged += status =>
-        _statusText.Text = "阶段状态：" + status;
+      _stage01View.StatusChanged += UpdateStageSummary;
       _stage02View = new NativeStage02View();
-      _stage02View.StatusChanged += status =>
-        _statusText.Text = "阶段状态：" + status;
+      _stage02View.StatusChanged += UpdateStageSummary;
       _stage03Placeholder = Placeholder(
         "03 检测与 H-IFC",
         "Stage03 将作为独立原生模块继续开发：模型检查、Strict/Force、IFC4 RAW、H-IFC exact 回读和证据链。" );
@@ -117,7 +122,7 @@ namespace BIMBaoGui.RevitAddin
     internal void RequestRefresh()
     {
       _refreshButton.IsEnabled = false;
-      _statusText.Text = "阶段状态：正在读取当前 Revit 文档……";
+      UpdateStageSummary("正在读取当前 Revit 文档……");
       try
       {
         RevitExternalEventDispatcher.RequestDocumentSnapshot(
@@ -143,7 +148,7 @@ namespace BIMBaoGui.RevitAddin
     private void ShowStage(FrameworkElement content, string status)
     {
       _stageHost.Content = content;
-      _statusText.Text = "阶段状态：" + status;
+      UpdateStageSummary(status);
     }
 
     private void ReadRuleIdentity()
@@ -176,7 +181,7 @@ namespace BIMBaoGui.RevitAddin
       if (snapshot == null || !snapshot.HasDocument)
       {
         _documentText.Text = "当前文档：Revit 中没有活动项目文档";
-        _statusText.Text = "阶段状态：等待打开项目文档";
+        UpdateStageSummary("等待打开项目文档");
         return;
       }
       _documentText.Text = "当前文档："
@@ -190,15 +195,15 @@ namespace BIMBaoGui.RevitAddin
         + "｜"
         + (snapshot.IsReadOnly ? "只读" : "可写");
       if (!string.Equals(snapshot.RevitVersion, "2020", StringComparison.Ordinal))
-        _statusText.Text = "阶段状态：当前基础版本仅允许 Revit 2020";
+        UpdateStageSummary("当前基础版本仅允许 Revit 2020");
       else if (snapshot.IsFamilyDocument)
-        _statusText.Text = "阶段状态：族文档不进入报规工作流";
+        UpdateStageSummary("族文档不进入报规工作流");
       else if (!snapshot.IsSaved)
-        _statusText.Text = "阶段状态：请先保存 RVT";
+        UpdateStageSummary("请先保存 RVT");
       else if (snapshot.IsReadOnly)
-        _statusText.Text = "阶段状态：当前 RVT 为只读";
+        UpdateStageSummary("当前 RVT 为只读");
       else
-        _statusText.Text = "阶段状态：宿主与规则数据库均已就绪";
+        UpdateStageSummary("宿主与规则数据库均已就绪");
     }
 
     private void ApplyRefreshFailure(Exception exception)
@@ -210,8 +215,30 @@ namespace BIMBaoGui.RevitAddin
         return;
       }
       _refreshButton.IsEnabled = true;
-      _statusText.Text = "阶段状态：读取失败｜"
-        + (exception == null ? "未知错误" : exception.Message);
+      UpdateStageSummary(
+        "读取失败｜" + (exception == null ? "未知错误" : exception.Message));
+    }
+
+    private void UpdateStageSummary(string fullStatus)
+    {
+      string normalized = NormalizeWhitespace(fullStatus);
+      string summary = normalized.Split(new[] { '｜' }, 2)[0].Trim();
+      if (summary.Length > MaximumStatusSummaryLength)
+      {
+        summary = summary.Substring(0, MaximumStatusSummaryLength - 1)
+          + "…";
+      }
+      _statusText.Text = "阶段状态："
+        + (summary.Length == 0 ? "—" : summary);
+      _statusText.ToolTip = fullStatus;
+    }
+
+    private static string NormalizeWhitespace(string value)
+    {
+      return string.Join(
+        " ",
+        (value ?? string.Empty)
+          .Split((char[])null, StringSplitOptions.RemoveEmptyEntries));
     }
 
     private static Button StageButton(string label, Action action)
