@@ -25,8 +25,24 @@ namespace BIMBaoGui.RevitAddin.Stage03
       if (raw == null) throw new ArgumentNullException(nameof(raw));
       if (translation == null) throw new ArgumentNullException(nameof(translation));
 
+      var exactByIdentity = (translation.Fields
+          ?? Array.Empty<HifcFieldEvidence>())
+        .Where(value => value != null
+          && !string.IsNullOrWhiteSpace(value.PropertyIdentity))
+        .GroupBy(value => value.PropertyIdentity, StringComparer.Ordinal)
+        .ToDictionary(
+          group => group.Key,
+          group => group.First(),
+          StringComparer.Ordinal);
       var fieldRows = (fields ?? Array.Empty<NativeStage03FieldEvidence>())
-        .Select(FieldRow)
+        .Select(field => FieldRow(
+          field,
+          field.HifcField != null
+            && exactByIdentity.TryGetValue(
+              field.HifcField.PropertyIdentity,
+              out HifcFieldEvidence exact)
+                ? exact
+                : null))
         .ToArray();
       WriteJson(paths.FieldsReportPath, new Dictionary<string, object>
       {
@@ -37,6 +53,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
         ["forced"] = scan.Forced,
         ["force_reason"] = scan.ForceReason,
         ["field_count"] = fieldRows.Length,
+        ["exact_field_count"] = exactByIdentity.Count,
         ["fields"] = fieldRows
       });
 
@@ -80,6 +97,10 @@ namespace BIMBaoGui.RevitAddin.Stage03
         {
           ["scanned_fields"] = scan.Fields.Count,
           ["exported_fields"] = translation.Fields.Count,
+          ["exact_pass_fields"] = translation.Fields.Count(value =>
+            value != null && value.Success),
+          ["exact_failed_fields"] = translation.Fields.Count(value =>
+            value == null || !value.Success),
           ["business_blockers"] = scan.BusinessBlockers.Count,
           ["technical_fatals"] = scan.TechnicalFatalCodes.Count
         },
@@ -136,16 +157,21 @@ namespace BIMBaoGui.RevitAddin.Stage03
     }
 
     private static IDictionary<string, object> FieldRow(
-      NativeStage03FieldEvidence field)
+      NativeStage03FieldEvidence field,
+      HifcFieldEvidence exact)
     {
       return new Dictionary<string, object>
       {
         ["property_id"] = field.PropertyId,
+        ["property_identity"] = field.HifcField?.PropertyIdentity
+          ?? string.Empty,
         ["role_id"] = field.RoleId,
         ["entity"] = field.Entity,
         ["property_set"] = field.PropertySet,
         ["property"] = field.IfcProperty,
         ["declared_ifc_type"] = field.DeclaredIfcType,
+        ["actual_ifc_type"] = exact?.ActualIfcType ?? string.Empty,
+        ["typed_token"] = exact?.TypedToken ?? string.Empty,
         ["canonical_unit"] = field.CanonicalUnit,
         ["requirement"] = field.Requirement,
         ["runtime_status"] = field.RuntimeStatus,
@@ -153,11 +179,18 @@ namespace BIMBaoGui.RevitAddin.Stage03
         ["owner_unique_id"] = field.OwnerUniqueId,
         ["owner_strategy"] = field.OwnerStrategy,
         ["owner_global_id"] = field.OwnerGlobalId,
+        ["owner_step_id"] = exact?.OwnerId,
+        ["property_set_step_id"] = exact?.PropertySetId,
+        ["property_step_id"] = exact?.PropertyId,
+        ["relationship_step_id"] = exact?.RelationshipId,
         ["canonical_value"] = field.CanonicalValue,
         ["status"] = field.Status,
         ["active"] = field.Active,
         ["strict_export_ready"] = field.StrictExportReady,
         ["forced_export_ready"] = field.ExportableInForcedMode,
+        ["exact_success"] = exact?.Success,
+        ["exact_error_code"] = exact?.ErrorCode ?? string.Empty,
+        ["exact_message"] = exact?.Message ?? string.Empty,
         ["message"] = field.Message
       };
     }
@@ -205,7 +238,8 @@ namespace BIMBaoGui.RevitAddin.Stage03
       builder.AppendLine("- [ ] 文件能够完整打开，未提示 STEP/IFC4 结构错误");
       builder.AppendLine("- [ ] IfcProject、IfcSite、IfcBuilding 等预期对象存在");
       builder.AppendLine("- [ ] 抽查 `fields.json` 中的 Entity / Pset / Property 路径");
-      builder.AppendLine("- [ ] 抽查属性值、IFC 数据类型和单位语义");
+      builder.AppendLine("- [ ] 抽查 expected/actual IFC 类型、typed token 和 canonical value");
+      builder.AppendLine("- [ ] 检查 Owner/Pset/Property/Relationship STEP ID 与对象路径");
       builder.AppendLine("- [ ] 检查同一 Owner/Pset 没有重复关系或重复属性");
       builder.AppendLine("- [ ] 将异常截图、对象路径和字段名反馈给开发侧");
       builder.AppendLine();
