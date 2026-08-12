@@ -1,8 +1,0 @@
-{
-  "schema_version": "BIMBAOGUI_REVIT_FUNCTIONAL_BASELINE_V1",
-  "source_commit": "35fa0ca6a8b07ba86231ee8305020fb23dcdb7c2",
-  "roots": [
-    "src/BIMBaoGui.RevitAddin/Stage01",
-    "src/BIMBaoGui.RevitAddin/Stage02"
-  ]
-}
