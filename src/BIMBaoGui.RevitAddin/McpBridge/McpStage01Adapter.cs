@@ -59,7 +59,8 @@ namespace BIMBaoGui.RevitAddin.McpBridge
           ["condition_id"] = value.ConditionId,
           ["display_name"] = value.DisplayName,
           ["group"] = value.Group,
-          ["default_active"] = value.DefaultActive,
+          ["default_active"] = false,
+          ["catalog_default_active"] = value.DefaultActive,
           ["declaration_option"] = "actual"
         }).ToList();
       conditions.Add(new Dictionary<string, object>(StringComparer.Ordinal)
@@ -104,9 +105,7 @@ namespace BIMBaoGui.RevitAddin.McpBridge
     {
       NativeStage01ReadResult result = await _gateway
         .ReadStage01Async(cancellationToken).ConfigureAwait(false);
-      string payloadJson = result?.Model == null
-        ? string.Empty
-        : NativeStage01Canonicalizer.ToJson(result.Model);
+      string payloadJson = TryProjectPayload(result);
       string payloadHash = payloadJson.Length == 0
         ? string.Empty
         : NativeStage01Canonicalizer.Sha256(payloadJson);
@@ -124,6 +123,14 @@ namespace BIMBaoGui.RevitAddin.McpBridge
           result?.StorageDecision?.ErrorCode ?? string.Empty,
         ["payload_json"] = payloadJson,
         ["payload_sha256"] = payloadHash,
+        ["payload_schema_version"] =
+          NativeStage01Canonicalizer.PayloadSchemaVersion,
+        ["source_payload_version"] =
+          result?.SourcePayloadVersion ?? string.Empty,
+        ["requires_migration_confirmation"] =
+          result != null && result.RequiresMigrationConfirmation,
+        ["live_evidence"] = ProjectLiveEvidence(result?.LiveEvidence),
+        ["drifts"] = ProjectDrifts(result?.Drifts),
         ["file_guid"] = result?.Model?.GetValue(
           NativeStage01Keys.FileGuid) ?? string.Empty,
         ["workflow_version"] = result?.Model?.GetValue(
@@ -150,6 +157,25 @@ namespace BIMBaoGui.RevitAddin.McpBridge
         throw new McpCommandException(
           BridgeErrorCodes.InvalidArgument,
           "Stage01 Payload 没有可验证模型。" );
+      }
+      string modelVersion = payload.Model.GetValue(
+        NativeStage01Keys.WorkflowVersion);
+      if (!string.Equals(
+          payload.SchemaVersion,
+          NativeStage01Canonicalizer.PayloadSchemaVersion,
+          StringComparison.Ordinal)
+        || !string.Equals(
+          payload.WorkflowVersion,
+          NativeStage01Canonicalizer.PayloadSchemaVersion,
+          StringComparison.Ordinal)
+        || !string.Equals(
+          modelVersion,
+          NativeStage01Canonicalizer.PayloadSchemaVersion,
+          StringComparison.Ordinal))
+      {
+        throw new McpCommandException(
+          BridgeErrorCodes.InvalidArgument,
+          "Stage01 校验只接受当前 Payload 0.9.1；旧版文件请先调用 stage01_read 获取内存迁移候选。" );
       }
       NativeStage01ValidationResult validation = NativeStage01Validator
         .Validate(payload.Model, NativeRuleCatalog.Current);
@@ -213,6 +239,93 @@ namespace BIMBaoGui.RevitAddin.McpBridge
           }).ToArray(),
         ["messages"] = result?.Messages ?? Array.Empty<string>()
       });
+    }
+
+    private static string TryProjectPayload(
+      NativeStage01ReadResult result)
+    {
+      if (result?.Model == null || result.StorageDecision == null)
+        return string.Empty;
+      NativeStage01Model model = result.Model;
+      NativeStage01StorageDecision storage = result.StorageDecision;
+
+      switch (storage.State)
+      {
+        case NativeStage01StorageState.NoRecord:
+        case NativeStage01StorageState.Current:
+          break;
+        case NativeStage01StorageState.MigratableLegacy:
+          if (!result.RequiresMigrationConfirmation)
+            return string.Empty;
+          break;
+        case NativeStage01StorageState.Corrupt:
+        case NativeStage01StorageState.UnsupportedFuture:
+        default:
+          return string.Empty;
+      }
+
+      string modelVersion = model.GetValue(
+        NativeStage01Keys.WorkflowVersion);
+      if (!string.Equals(
+          modelVersion,
+          NativeStage01Canonicalizer.PayloadSchemaVersion,
+          StringComparison.Ordinal))
+      {
+        return string.Empty;
+      }
+      try
+      {
+        return NativeStage01Canonicalizer.ToJson(model, modelVersion);
+      }
+      catch (InvalidOperationException)
+      {
+        return string.Empty;
+      }
+      catch (ArgumentException)
+      {
+        return string.Empty;
+      }
+    }
+
+    private static object ProjectLiveEvidence(
+      NativeStage01LiveEvidence evidence)
+    {
+      NativeStage01LiveEvidence value = evidence
+        ?? new NativeStage01LiveEvidence();
+      return new Dictionary<string, object>(StringComparer.Ordinal)
+      {
+        ["project_information_available"] =
+          value.ProjectInformationAvailable,
+        ["project_position_available"] = value.ProjectPositionAvailable,
+        ["units_available"] = value.UnitsAvailable,
+        ["project_name"] = value.ProjectName,
+        ["project_number"] = value.ProjectNumber,
+        ["base_x_north_south"] = value.BaseX,
+        ["base_y_east_west"] = value.BaseY,
+        ["base_elevation"] = value.BaseElevation,
+        ["true_north_angle"] = value.TrueNorthAngle,
+        ["length_unit"] = value.LengthUnit,
+        ["area_unit"] = value.AreaUnit,
+        ["angle_unit"] = value.AngleUnit
+      };
+    }
+
+    private static object[] ProjectDrifts(
+      IReadOnlyList<NativeStage01Drift> drifts)
+    {
+      return (drifts ?? Array.Empty<NativeStage01Drift>())
+        .Select(value => new Dictionary<string, object>(StringComparer.Ordinal)
+        {
+          ["field_key"] = value.FieldKey,
+          ["label"] = value.Label,
+          ["stored_value"] = value.StoredValue,
+          ["live_value"] = value.LiveValue,
+          ["code"] = value.Code,
+          ["authority_source"] = value.AuthoritySource,
+          ["stored_authority"] = value.StoredAuthority,
+          ["message"] = value.Message,
+          ["different"] = value.IsDifferent
+        }).Cast<object>().ToArray();
     }
 
     private static object[] ProjectValidation(

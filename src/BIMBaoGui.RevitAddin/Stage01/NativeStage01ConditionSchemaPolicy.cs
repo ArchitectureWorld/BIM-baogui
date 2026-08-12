@@ -36,11 +36,34 @@ namespace BIMBaoGui.RevitAddin.Stage01
       foreach (NativeConditionDefinition condition in catalog.Conditions
         .OrderBy(value => value.ConditionId, StringComparer.Ordinal))
       {
-        if (model.Conditions.ContainsKey(condition.ConditionId)) continue;
-        model.SetCondition(condition.ConditionId, false);
-        added.Add(condition.ConditionId);
+        AddMissingAsFalse(model, condition.ConditionId, added);
       }
+      AddMissingAsFalse(
+        model,
+        NativeProjectConditionDeclarationPolicy.NoneConditionId,
+        added);
       return new NativeStage01ConditionSchemaReconciliation(added);
+    }
+
+    internal static bool IsComplete(
+      NativeStage01Model model,
+      NativeRuleCatalog catalog)
+    {
+      if (model == null || catalog == null) return false;
+      return catalog.Conditions.All(condition =>
+          model.Conditions.ContainsKey(condition.ConditionId))
+        && model.Conditions.ContainsKey(
+          NativeProjectConditionDeclarationPolicy.NoneConditionId);
+    }
+
+    private static void AddMissingAsFalse(
+      NativeStage01Model model,
+      string conditionId,
+      ICollection<string> added)
+    {
+      if (model.Conditions.ContainsKey(conditionId)) return;
+      model.SetCondition(conditionId, false);
+      added.Add(conditionId);
     }
   }
 }

@@ -81,6 +81,22 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
+    public void DecodePreservesAnExplicitlyEmptyOrganizationArray()
+    {
+      NativeStage01Model model = CreateModel();
+      model.Organizations.Clear();
+      string json = NativeStage01Canonicalizer.ToJson(model);
+
+      Assert.True(NativeStage01PayloadCodec.TryDecode(
+        json,
+        out NativeStage01Payload payload,
+        out string error), error);
+
+      Assert.Empty(payload.Model.Organizations);
+      Assert.Equal(json, NativeStage01Canonicalizer.ToJson(payload.Model));
+    }
+
+    [Fact]
     public void RejectsMalformedOrIncompletePayloads()
     {
       Assert.False(NativeStage01PayloadCodec.TryDecode(

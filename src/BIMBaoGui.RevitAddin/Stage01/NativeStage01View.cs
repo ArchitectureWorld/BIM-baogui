@@ -234,7 +234,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
         SetStatus("读取失败：Stage01 未返回结果。" );
         return;
       }
-      _viewModel.LoadModel(result.Model);
+      _viewModel.LoadReadResult(result);
       _viewModel.Validate();
       ExpandOptionalSectionsWithErrors();
       _allowReinitialize.IsChecked = false;
@@ -302,8 +302,12 @@ namespace BIMBaoGui.RevitAddin.Stage01
         + DisplayName(_viewModel.ActiveGroup)
         + "｜未填必填项："
         + _viewModel.GetMissingRequiredCount(_viewModel.ActiveGroup)
+        + "｜现场差异："
+        + _viewModel.Drifts.Count
         + "｜"
-        + (_viewModel.IsDirty ? "有未写入修改" : "已加载状态");
+        + (_viewModel.RequiresMigrationConfirmation
+          ? "等待迁移确认"
+          : _viewModel.IsDirty ? "有未写入修改" : "已加载状态");
     }
 
     private void RenderDirectory()
@@ -358,6 +362,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
         FontWeight = FontWeights.SemiBold,
         Margin = new Thickness(0, 0, 0, 10)
       });
+      RenderReadEvidence();
       if (isConditionsGroup)
       {
         RenderConditions();
@@ -421,6 +426,101 @@ namespace BIMBaoGui.RevitAddin.Stage01
       }
     }
 
+    private void RenderReadEvidence()
+    {
+      if (_viewModel.StorageState != NativeStage01StorageState.Current
+        && _viewModel.StorageState
+          != NativeStage01StorageState.MigratableLegacy)
+      {
+        return;
+      }
+      if (!_viewModel.RequiresMigrationConfirmation
+        && _viewModel.Drifts.Count == 0
+        && string.IsNullOrWhiteSpace(_viewModel.SourcePayloadVersion))
+      {
+        return;
+      }
+
+      var panel = new StackPanel();
+      if (_viewModel.RequiresMigrationConfirmation)
+      {
+        panel.Children.Add(new TextBlock
+        {
+          Text = "等待迁移确认：Payload "
+            + _viewModel.SourcePayloadVersion
+            + " 已生成 "
+            + NativeStage01Canonicalizer.PayloadSchemaVersion
+            + " 内存候选；点击“写入并回读”才会确认迁移。",
+          Foreground = Brushes.DarkOrange,
+          FontWeight = FontWeights.SemiBold,
+          TextWrapping = TextWrapping.Wrap,
+          Margin = new Thickness(0, 0, 0, 7)
+        });
+      }
+      if (_viewModel.Drifts.Count == 0)
+      {
+        panel.Children.Add(new TextBlock
+        {
+          Text = "Revit 原生字段与上次确认值一致。",
+          Foreground = Brushes.DarkGreen,
+          TextWrapping = TextWrapping.Wrap
+        });
+      }
+      if (_viewModel.Drifts.Count > 0)
+      {
+        panel.Children.Add(new TextBlock
+        {
+          Text = "现场值漂移",
+          FontWeight = FontWeights.SemiBold,
+          Foreground = Brushes.DarkOrange,
+          Margin = new Thickness(0, 7, 0, 3)
+        });
+      }
+      foreach (NativeStage01Drift drift in _viewModel.Drifts)
+      {
+        var driftPanel = new StackPanel
+        {
+          Margin = new Thickness(0, 5, 0, 5)
+        };
+        driftPanel.Children.Add(new TextBlock
+        {
+          Text = drift.Label,
+          FontWeight = FontWeights.SemiBold
+        });
+        driftPanel.Children.Add(new TextBlock
+        {
+          Text = "上次确认值：" + DisplayEvidenceValue(drift.StoredValue),
+          TextWrapping = TextWrapping.Wrap
+        });
+        driftPanel.Children.Add(new TextBlock
+        {
+          Text = "当前 RVT 值：" + DisplayEvidenceValue(drift.LiveValue),
+          TextWrapping = TextWrapping.Wrap
+        });
+        driftPanel.Children.Add(new TextBlock
+        {
+          Text = "状态：已变化（未自动覆盖）",
+          Foreground = Brushes.DarkOrange
+        });
+        panel.Children.Add(driftPanel);
+      }
+      _formPanel.Children.Add(new Border
+      {
+        Child = panel,
+        Background = new SolidColorBrush(Color.FromRgb(252, 249, 240)),
+        BorderBrush = new SolidColorBrush(Color.FromRgb(222, 190, 120)),
+        BorderThickness = new Thickness(1),
+        CornerRadius = new CornerRadius(4),
+        Padding = new Thickness(10),
+        Margin = new Thickness(0, 0, 0, 12)
+      });
+    }
+
+    private static string DisplayEvidenceValue(string value)
+    {
+      return string.IsNullOrEmpty(value) ? "（空）" : value;
+    }
+
     private void RenderOrganizationToolbar()
     {
       var toolbar = new WrapPanel
@@ -429,7 +529,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
       };
       toolbar.Children.Add(new TextBlock
       {
-        Text = "组织 " + (_viewModel.OrganizationIndex + 1)
+        Text = "组织 " + _viewModel.OrganizationDisplayIndex
           + " / " + _viewModel.Model.Organizations.Count,
         VerticalAlignment = VerticalAlignment.Center,
         Margin = new Thickness(0, 8, 12, 0),

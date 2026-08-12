@@ -6,12 +6,15 @@ using System.Linq;
 using System.Text;
 using System.Web.Script.Serialization;
 using BIMBaoGui.HifcCore;
+using BIMBaoGui.RevitAddin.Runtime;
 
 namespace BIMBaoGui.RevitAddin.Stage03
 {
   internal static class NativeStage03ReportWriter
   {
     private static readonly UTF8Encoding Utf8 = new UTF8Encoding(false);
+    private static readonly PluginRuntimeIdentity RuntimeIdentity =
+      PluginRuntimeIdentity.Read(typeof(NativeStage03ReportWriter).Assembly);
 
     internal static void WriteSuccess(
       NativeStage03RunPaths paths,
@@ -60,7 +63,9 @@ namespace BIMBaoGui.RevitAddin.Stage03
       WriteJson(paths.ValidationReportPath, new Dictionary<string, object>
       {
         ["schema"] = "HBR_NATIVE_STAGE03_VALIDATION_V1",
-        ["product_version"] = "0.4.0",
+        ["product_version"] = RuntimeIdentity.ProductVersion,
+        ["build_number"] = RuntimeIdentity.BuildNumber,
+        ["commit_sha"] = RuntimeIdentity.CommitSha,
         ["run_id"] = paths.RunId,
         ["created_utc"] = DateTimeOffset.UtcNow.ToString("O"),
         ["internal_status"] = translation.InternalStatus,
@@ -130,7 +135,9 @@ namespace BIMBaoGui.RevitAddin.Stage03
       WriteJson(paths.FailureReportPath, new Dictionary<string, object>
       {
         ["schema"] = "HBR_NATIVE_STAGE03_FAILURE_V1",
-        ["product_version"] = "0.4.0",
+        ["product_version"] = RuntimeIdentity.ProductVersion,
+        ["build_number"] = RuntimeIdentity.BuildNumber,
+        ["commit_sha"] = RuntimeIdentity.CommitSha,
         ["run_id"] = paths.RunId,
         ["created_utc"] = DateTimeOffset.UtcNow.ToString("O"),
         ["internal_status"] = HifcCoreStatus.InternalFailed,

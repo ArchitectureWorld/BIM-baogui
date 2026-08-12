@@ -50,12 +50,23 @@ namespace BIMBaoGui.RevitAddin.Stage03
       if (document != null)
       {
         stage01 = NativeStage01RevitReadService.Read(uiApplication);
-        if (stage01?.StorageDecision == null
-          || !stage01.StorageDecision.IsInitialized
-          || stage01.Model == null)
+        if (stage01?.StorageDecision == null || stage01.Model == null)
         {
           technical.Add(NativeStage03Codes.Stage01NotInitialized);
           messages.Add("Stage03 要求当前 RVT 已完成 Stage01 初始化。" );
+        }
+        else if (stage01.StorageDecision.State
+          == NativeStage01StorageState.MigratableLegacy)
+        {
+          technical.Add(NativeStage03Codes.Stage01NotInitialized);
+          messages.Add(
+            "Stage01 数据迁移尚未确认；请先在 01 文件初始化中确认迁移并完成写入回读。" );
+        }
+        else if (stage01.StorageDecision.State
+          != NativeStage01StorageState.Current)
+        {
+          technical.Add(NativeStage03Codes.Stage01NotInitialized);
+          messages.Add("Stage01 Storage 未达到可检测的 Current 状态。" );
         }
         else
         {

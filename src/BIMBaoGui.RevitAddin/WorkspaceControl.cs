@@ -3,6 +3,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using BIMBaoGui.RevitAddin.Runtime;
 using BIMBaoGui.RevitAddin.Stage01;
 using BIMBaoGui.RevitAddin.Stage02;
 using BIMBaoGui.RevitAddin.Stage03;
@@ -14,6 +15,8 @@ namespace BIMBaoGui.RevitAddin
     private const int MaximumStatusSummaryLength = 120;
     private readonly TextBlock _documentText;
     private readonly TextBlock _ruleText;
+    private readonly TextBlock _pluginIdentityText;
+    private readonly TextBox _pluginPathText;
     private readonly TextBlock _statusText;
     private readonly Button _refreshButton;
     private readonly ContentControl _stageHost;
@@ -66,8 +69,28 @@ namespace BIMBaoGui.RevitAddin
 
       var identityPanel = new StackPanel();
       identityPanel.Children.Add(Header("Revit 原生插件工作台"));
+      PluginRuntimeIdentity plugin = PluginRuntimeIdentity.Read(
+        typeof(WorkspaceControl).Assembly);
+      _pluginIdentityText = Body(
+        "插件版本：" + plugin.ProductVersion
+        + "｜构建号：" + plugin.BuildNumber
+        + "｜Commit：" + plugin.ShortCommitSha);
+      _pluginPathText = new TextBox
+      {
+        Text = "DLL 路径：" + plugin.AssemblyPath,
+        IsReadOnly = true,
+        BorderThickness = new Thickness(0),
+        Background = Brushes.Transparent,
+        TextWrapping = TextWrapping.NoWrap,
+        HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+        VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+        ToolTip = plugin.AssemblyPath,
+        Margin = new Thickness(0, 2, 0, 2)
+      };
       _ruleText = Body("规则数据库：正在读取……");
       _documentText = Body("当前文档：尚未读取");
+      identityPanel.Children.Add(_pluginIdentityText);
+      identityPanel.Children.Add(_pluginPathText);
       identityPanel.Children.Add(_ruleText);
       identityPanel.Children.Add(_documentText);
       Grid.SetRow(identityPanel, 0);

@@ -61,13 +61,24 @@ namespace BIMBaoGui.RevitAddin.Stage02
 
       NativeStage01ReadResult stage01 =
         NativeStage01RevitReadService.Read(uiApplication);
-      if (stage01?.StorageDecision == null
-        || !stage01.StorageDecision.IsInitialized
-        || stage01.Model == null)
+      if (stage01?.StorageDecision == null || stage01.Model == null)
       {
         return Failure(
           "Stage02 等待文件初始化",
           "请先在 01 文件初始化中完成写入并回读。" );
+      }
+      if (stage01.StorageDecision.State
+        == NativeStage01StorageState.MigratableLegacy)
+      {
+        return Failure(
+          "Stage02 等待 Stage01 数据迁移确认",
+          "检测到旧版 Stage01 Payload；请先在 01 文件初始化中确认迁移并完成写入回读。" );
+      }
+      if (stage01.StorageDecision.State != NativeStage01StorageState.Current)
+      {
+        return Failure(
+          "Stage02 等待文件初始化",
+          "当前 Stage01 Storage 未达到可消费的 Current 状态。" );
       }
       NativeProjectConditionDeclarationDecision declaration =
         NativeProjectConditionDeclarationPolicy.Evaluate(

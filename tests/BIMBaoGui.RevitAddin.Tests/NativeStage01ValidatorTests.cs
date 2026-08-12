@@ -84,6 +84,25 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
+    public void RejectsWrongPayloadVersionAndMissingNoneDeclarationKey()
+    {
+      NativeStage01Model model = CreateValidModel();
+      model.SetValue(NativeStage01Keys.WorkflowVersion, "0.9.0");
+      model.Conditions.Remove(
+        NativeProjectConditionDeclarationPolicy.NoneConditionId);
+
+      NativeStage01ValidationResult result =
+        NativeStage01Validator.Validate(model, NativeRuleCatalog.Current);
+
+      Assert.Contains(result.Messages, value =>
+        value.Code == NativeStage01ValidationCodes.PayloadVersionMismatch);
+      Assert.Contains(result.Messages, value =>
+        value.Code == NativeStage01ValidationCodes.ConditionMissing
+        && value.FieldKey
+          == NativeProjectConditionDeclarationPolicy.NoneConditionId);
+    }
+
+    [Fact]
     public void RejectsUnknownModelProfileAndOutOfRangeTrueNorth()
     {
       NativeStage01Model model = CreateValidModel();

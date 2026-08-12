@@ -47,5 +47,24 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.False(result.Changed);
       Assert.Empty(result.AddedConditionIds);
     }
+    [Fact]
+    public void ReconciliationDoesNotResolveConflictingBusinessDeclaration()
+    {
+      NativeRuleCatalog catalog = NativeRuleCatalog.Current;
+      NativeStage01Model model = catalog.CreateDefaultStage01Model();
+      model.SetCondition(catalog.Conditions.First().ConditionId, true);
+      model.SetCondition(
+        NativeProjectConditionDeclarationPolicy.NoneConditionId,
+        true);
+
+      NativeStage01ConditionSchemaPolicy.Reconcile(model, catalog);
+
+      Assert.Equal(
+        NativeProjectConditionDeclarationState.Conflict,
+        NativeProjectConditionDeclarationPolicy.Evaluate(
+          model,
+          catalog).State);
+    }
+
   }
 }

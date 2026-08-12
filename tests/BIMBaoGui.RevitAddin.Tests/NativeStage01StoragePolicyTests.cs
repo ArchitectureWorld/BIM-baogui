@@ -27,10 +27,10 @@ namespace BIMBaoGui.RevitAddin.Tests
     [Fact]
     public void AcceptsCurrentCanonicalRecordWithMatchingHashAndIdentity()
     {
-      NativeStoredInitialization record = CreateRecord("0.9.0");
+      NativeStoredInitialization record = CreateRecord("0.9.1");
 
       NativeStage01StorageDecision decision =
-        NativeStage01StoragePolicy.Evaluate(record, "0.9.0");
+        NativeStage01StoragePolicy.Evaluate(record, "0.9.1");
 
       Assert.Equal(NativeStage01StorageState.Current, decision.State);
       Assert.True(decision.IsInitialized);
@@ -40,12 +40,12 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
-    public void AcceptsHashVerifiedOlderPayloadAsMigratable()
+    public void AcceptsCanonical090PayloadAsMigratable()
     {
-      NativeStoredInitialization record = CreateRecord("0.8.0");
+      NativeStoredInitialization record = CreateRecord("0.9.0");
 
       NativeStage01StorageDecision decision =
-        NativeStage01StoragePolicy.Evaluate(record, "0.9.0");
+        NativeStage01StoragePolicy.Evaluate(record, "0.9.1");
 
       Assert.Equal(
         NativeStage01StorageState.MigratableLegacy,
@@ -56,31 +56,45 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
+    public void RejectsUnsupportedOlderPayloadInsteadOfGuessingMigration()
+    {
+      NativeStoredInitialization record = CreateRecord("0.8.0");
+
+      NativeStage01StorageDecision decision =
+        NativeStage01StoragePolicy.Evaluate(record, "0.9.1");
+
+      Assert.Equal(NativeStage01StorageState.Corrupt, decision.State);
+      Assert.Equal(
+        NativeStage01StorageCodes.UnsupportedLegacyVersion,
+        decision.ErrorCode);
+    }
+
+    [Fact]
     public void RejectsIncompleteHashMismatchAndNonCanonicalCurrentRecords()
     {
-      NativeStoredInitialization incomplete = CreateRecord("0.9.0");
+      NativeStoredInitialization incomplete = CreateRecord("0.9.1");
       incomplete.FileGuid = string.Empty;
       Assert.Equal(
         NativeStage01StorageState.Corrupt,
         NativeStage01StoragePolicy.Evaluate(
           incomplete,
-          "0.9.0").State);
+          "0.9.1").State);
 
-      NativeStoredInitialization mismatch = CreateRecord("0.9.0");
+      NativeStoredInitialization mismatch = CreateRecord("0.9.1");
       mismatch.PayloadHash = new string('0', 64);
       NativeStage01StorageDecision mismatchDecision =
-        NativeStage01StoragePolicy.Evaluate(mismatch, "0.9.0");
+        NativeStage01StoragePolicy.Evaluate(mismatch, "0.9.1");
       Assert.Equal(NativeStage01StorageState.Corrupt, mismatchDecision.State);
       Assert.Equal(
         NativeStage01StorageCodes.PayloadHashMismatch,
         mismatchDecision.ErrorCode);
 
-      NativeStoredInitialization nonCanonical = CreateRecord("0.9.0");
+      NativeStoredInitialization nonCanonical = CreateRecord("0.9.1");
       nonCanonical.PayloadJson += Environment.NewLine;
       nonCanonical.PayloadHash = NativeStage01Canonicalizer.Sha256(
         nonCanonical.PayloadJson);
       NativeStage01StorageDecision canonicalDecision =
-        NativeStage01StoragePolicy.Evaluate(nonCanonical, "0.9.0");
+        NativeStage01StoragePolicy.Evaluate(nonCanonical, "0.9.1");
       Assert.Equal(NativeStage01StorageState.Corrupt, canonicalDecision.State);
       Assert.Equal(
         NativeStage01StorageCodes.NonCanonicalCurrentPayload,
@@ -88,22 +102,64 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
+    public void RejectsCurrentPayloadWithIncompleteConditionSchema()
+    {
+      NativeStoredInitialization record = CreateRecord("0.9.1");
+      NativeStage01PayloadCodec.TryDecode(
+        record.PayloadJson,
+        out NativeStage01Payload payload,
+        out _);
+      payload.Model.Conditions.Remove(
+        NativeProjectConditionDeclarationPolicy.NoneConditionId);
+      record.PayloadJson = NativeStage01Canonicalizer.ToJson(
+        payload.Model,
+        "0.9.1");
+      record.PayloadHash = NativeStage01Canonicalizer.Sha256(
+        record.PayloadJson);
+
+      NativeStage01StorageDecision decision =
+        NativeStage01StoragePolicy.Evaluate(record, "0.9.1");
+
+      Assert.Equal(NativeStage01StorageState.Corrupt, decision.State);
+      Assert.Equal(
+        NativeStage01StorageCodes.ConditionSchemaMismatch,
+        decision.ErrorCode);
+    }
+
+    [Fact]
+    public void RejectsNonCanonicalLegacyPayloadBeforeMigration()
+    {
+      NativeStoredInitialization record = CreateRecord("0.9.0");
+      record.PayloadJson += Environment.NewLine;
+      record.PayloadHash = NativeStage01Canonicalizer.Sha256(
+        record.PayloadJson);
+
+      NativeStage01StorageDecision decision =
+        NativeStage01StoragePolicy.Evaluate(record, "0.9.1");
+
+      Assert.Equal(NativeStage01StorageState.Corrupt, decision.State);
+      Assert.Equal(
+        NativeStage01StorageCodes.NonCanonicalLegacyPayload,
+        decision.ErrorCode);
+    }
+
+    [Fact]
     public void RejectsFileGuidAndWorkflowVersionDrift()
     {
-      NativeStoredInitialization fileGuidMismatch = CreateRecord("0.9.0");
+      NativeStoredInitialization fileGuidMismatch = CreateRecord("0.9.1");
       fileGuidMismatch.FileGuid =
         "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
       NativeStage01StorageDecision fileDecision =
-        NativeStage01StoragePolicy.Evaluate(fileGuidMismatch, "0.9.0");
+        NativeStage01StoragePolicy.Evaluate(fileGuidMismatch, "0.9.1");
       Assert.Equal(NativeStage01StorageState.Corrupt, fileDecision.State);
       Assert.Equal(
         NativeStage01StorageCodes.FileGuidMismatch,
         fileDecision.ErrorCode);
 
-      NativeStoredInitialization workflowMismatch = CreateRecord("0.8.0");
-      workflowMismatch.WorkflowVersion = "0.7.0";
+      NativeStoredInitialization workflowMismatch = CreateRecord("0.9.0");
+      workflowMismatch.WorkflowVersion = "0.8.0";
       NativeStage01StorageDecision workflowDecision =
-        NativeStage01StoragePolicy.Evaluate(workflowMismatch, "0.9.0");
+        NativeStage01StoragePolicy.Evaluate(workflowMismatch, "0.9.1");
       Assert.Equal(NativeStage01StorageState.Corrupt, workflowDecision.State);
       Assert.Equal(
         NativeStage01StorageCodes.WorkflowVersionMismatch,
@@ -116,7 +172,7 @@ namespace BIMBaoGui.RevitAddin.Tests
       NativeStoredInitialization record = CreateRecord("9.0.0");
 
       NativeStage01StorageDecision decision =
-        NativeStage01StoragePolicy.Evaluate(record, "0.9.0");
+        NativeStage01StoragePolicy.Evaluate(record, "0.9.1");
 
       Assert.Equal(
         NativeStage01StorageState.UnsupportedFuture,
@@ -133,18 +189,7 @@ namespace BIMBaoGui.RevitAddin.Tests
         NativeRuleCatalog.Current.CreateDefaultStage01Model();
       model.SetValue(NativeStage01Keys.FileGuid, FileGuid);
       model.SetValue(NativeStage01Keys.WorkflowVersion, version);
-      string payload = NativeStage01Canonicalizer.ToJson(model);
-      if (!string.Equals(
-        version,
-        NativeStage01Canonicalizer.PayloadSchemaVersion,
-        StringComparison.Ordinal))
-      {
-        payload = payload.Replace(
-          "\"schemaVersion\":\""
-            + NativeStage01Canonicalizer.PayloadSchemaVersion
-            + "\"",
-          "\"schemaVersion\":\"" + version + "\"");
-      }
+      string payload = NativeStage01Canonicalizer.ToJson(model, version);
       return new NativeStoredInitialization
       {
         HasRecord = true,

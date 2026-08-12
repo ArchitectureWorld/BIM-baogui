@@ -69,7 +69,14 @@ namespace BIMBaoGui.RevitAddin.Tests
         model.GetValue(NativeStage01Keys.FileGuid),
         out Guid fileGuid));
       Assert.NotEqual(Guid.Empty, fileGuid);
-      Assert.Equal(14, model.Conditions.Count);
+      Assert.Equal(15, model.Conditions.Count);
+      Assert.True(model.Conditions.ContainsKey(
+        NativeProjectConditionDeclarationPolicy.NoneConditionId));
+      Assert.False(model.GetCondition(
+        NativeProjectConditionDeclarationPolicy.NoneConditionId));
+      Assert.All(
+        NativeRuleCatalog.Current.Conditions,
+        condition => Assert.False(model.GetCondition(condition.ConditionId)));
       Assert.Single(model.Organizations);
     }
   }

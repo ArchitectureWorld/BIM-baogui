@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using BIMBaoGui.RevitAddin.Rules;
@@ -14,6 +16,12 @@ namespace BIMBaoGui.RevitAddin.Stage01
     internal NativeStage01Model Model { get; set; }
     internal NativeStage01StorageDecision StorageDecision { get; set; }
     internal NativeStage01ValidationResult Validation { get; set; }
+    internal NativeStage01LiveEvidence LiveEvidence { get; set; } =
+      new NativeStage01LiveEvidence();
+    internal IReadOnlyList<NativeStage01Drift> Drifts { get; set; } =
+      Array.Empty<NativeStage01Drift>();
+    internal bool RequiresMigrationConfirmation { get; set; }
+    internal string SourcePayloadVersion { get; set; } = string.Empty;
     internal IReadOnlyList<string> Messages { get; set; } =
       Array.Empty<string>();
   }
@@ -57,29 +65,75 @@ namespace BIMBaoGui.RevitAddin.Stage01
         };
       }
 
-      NativeStage01Model model = storageDecision.Payload?.Model?.Clone()
-        ?? catalog.CreateDefaultStage01Model();
-      if (storageDecision.State == NativeStage01StorageState.Current)
-        messages.Add("已读取当前 RVT 的 Stage01 初始化记录。" );
-      else if (storageDecision.State
-        == NativeStage01StorageState.MigratableLegacy)
-        messages.Add("已读取旧版 Stage01 记录；再次提交时自动升级。" );
-      else if (storageDecision.State == NativeStage01StorageState.Corrupt
-        || storageDecision.State
-          == NativeStage01StorageState.UnsupportedFuture)
-        messages.Add(storageDecision.Message);
+      NativeStage01LiveEvidence liveEvidence = CaptureLiveEvidence(
+        document,
+        messages);
+      NativeStage01Model model;
+      IReadOnlyList<NativeStage01Drift> drifts =
+        Array.Empty<NativeStage01Drift>();
+      bool requiresMigrationConfirmation = false;
+      bool migrationFailed = false;
+      string sourcePayloadVersion = storageDecision.Payload?.SchemaVersion
+        ?? stored?.WorkflowVersion
+        ?? string.Empty;
 
-      NativeStage01ConditionSchemaReconciliation conditionSchema =
-        NativeStage01ConditionSchemaPolicy.Reconcile(model, catalog);
-      if (conditionSchema.Changed)
+      switch (storageDecision.State)
       {
-        messages.Add(
-          "已补齐当前规则库新增的项目条件键："
-          + string.Join("、", conditionSchema.AddedConditionIds)
-          + "；新增键仅设为未勾选，未替用户选择或声明项目条件。" );
+        case NativeStage01StorageState.NoRecord:
+          model = catalog.CreateDefaultStage01Model();
+          NativeStage01FieldAuthorityPolicy.ApplyInitialValues(
+            model,
+            liveEvidence);
+          messages.Add(
+            "当前 RVT 没有 Stage01 记录；已将 Revit 项目信息、X（南北）、Y（东西）、高程和真北作为新表单初值；单位保持工作流目标 m / m² / °，当前 RVT 单位仅用于差异对账。" );
+          break;
+
+        case NativeStage01StorageState.Current:
+          model = storageDecision.Payload.Model.Clone();
+          drifts = NativeStage01FieldAuthorityPolicy.Compare(
+            model,
+            liveEvidence);
+          messages.Add("已读取当前 RVT 的 Stage01 0.9.1 初始化记录。" );
+          AddDriftMessage(drifts, messages);
+          break;
+
+        case NativeStage01StorageState.MigratableLegacy:
+          NativeStage01MigrationResult migration =
+            NativeStage01MigrationService.Migrate(
+              storageDecision.Payload,
+              catalog,
+              NativeStage01Canonicalizer.PayloadSchemaVersion);
+          if (migration.Success)
+          {
+            model = migration.Model;
+            requiresMigrationConfirmation = true;
+            messages.AddRange(migration.Messages);
+            messages.Add(
+              "已生成 0.9.1 内存迁移候选；等待用户确认迁移，读取动作未改写原 Storage。" );
+            drifts = NativeStage01FieldAuthorityPolicy.Compare(
+              model,
+              liveEvidence);
+            AddDriftMessage(drifts, messages);
+          }
+          else
+          {
+            model = storageDecision.Payload?.Model?.Clone()
+              ?? CreateBlockedModel(catalog);
+            migrationFailed = true;
+            messages.AddRange(migration.Messages);
+            messages.Add("Stage01 旧版记录无法生成安全迁移候选，已阻断写入。" );
+          }
+          break;
+
+        case NativeStage01StorageState.Corrupt:
+        case NativeStage01StorageState.UnsupportedFuture:
+        default:
+          model = storageDecision.Payload?.Model?.Clone()
+            ?? CreateBlockedModel(catalog);
+          messages.Add(storageDecision.Message);
+          break;
       }
 
-      PopulateMissingDocumentValues(document, model, messages);
       NativeStage01ValidationResult validation =
         NativeStage01Validator.Validate(model, catalog);
       bool environmentReady = string.Equals(
@@ -89,95 +143,122 @@ namespace BIMBaoGui.RevitAddin.Stage01
         && !document.IsFamilyDocument
         && !document.IsReadOnly
         && !string.IsNullOrWhiteSpace(document.PathName);
-      bool storageUsable = storageDecision.State
-        != NativeStage01StorageState.Corrupt
+      bool storageUsable = !migrationFailed
+        && storageDecision.State != NativeStage01StorageState.Corrupt
         && storageDecision.State
           != NativeStage01StorageState.UnsupportedFuture;
+      string status;
+      if (!environmentReady)
+        status = "当前文档环境不可写";
+      else if (!storageUsable)
+        status = "Stage01 存储阻断";
+      else if (requiresMigrationConfirmation)
+        status = "Stage01 等待迁移确认";
+      else
+        status = "Stage01 已读取";
       return new NativeStage01ReadResult
       {
         Success = environmentReady && storageUsable,
-        Status = !environmentReady
-          ? "当前文档环境不可写"
-          : storageUsable ? "Stage01 已读取" : "Stage01 存储阻断",
+        Status = status,
         Model = model,
         StorageDecision = storageDecision,
         Validation = validation,
-        Messages = messages
+        LiveEvidence = liveEvidence,
+        Drifts = drifts,
+        RequiresMigrationConfirmation = requiresMigrationConfirmation,
+        SourcePayloadVersion = sourcePayloadVersion,
+        Messages = new ReadOnlyCollection<string>(messages)
       };
     }
 
-    private static void PopulateMissingDocumentValues(
-      Document document,
-      NativeStage01Model model,
+    private static void AddDriftMessage(
+      IReadOnlyList<NativeStage01Drift> drifts,
       ICollection<string> messages)
     {
+      if (drifts == null || drifts.Count == 0)
+      {
+        messages.Add("Stage01 上次确认的 Revit 原生字段与当前 RVT 一致。" );
+        return;
+      }
+      messages.Add(
+        "检测到 "
+        + drifts.Count
+        + " 项 Revit 现场值变化；仅显示 drift，未静默覆盖 Stage01 Payload。" );
+    }
+
+    private static NativeStage01LiveEvidence CaptureLiveEvidence(
+      Document document,
+      ICollection<string> messages)
+    {
+      var evidence = new NativeStage01LiveEvidence();
       ProjectInfo information = document.ProjectInformation;
       if (information != null)
       {
-        SetIfBlank(
-          model,
-          NativeStage01Keys.ProjectNumber,
-          information.Number);
-        SetIfBlank(
-          model,
-          NativeStage01Keys.ProjectName,
-          information.Name);
+        evidence.ProjectInformationAvailable = true;
+        evidence.ProjectNumber = information.Number ?? string.Empty;
+        evidence.ProjectName = information.Name ?? string.Empty;
       }
       try
       {
         ProjectPosition position =
           document.ActiveProjectLocation.GetProjectPosition(XYZ.Zero);
-        SetIfBlank(
-          model,
-          NativeStage01Keys.BaseX,
-          Format(UnitUtils.ConvertFromInternalUnits(
-            position.NorthSouth,
-            DisplayUnitType.DUT_METERS)));
-        SetIfBlank(
-          model,
-          NativeStage01Keys.BaseY,
-          Format(UnitUtils.ConvertFromInternalUnits(
-            position.EastWest,
-            DisplayUnitType.DUT_METERS)));
-        SetIfBlank(
-          model,
-          NativeStage01Keys.BaseElevation,
-          Format(UnitUtils.ConvertFromInternalUnits(
-            position.Elevation,
-            DisplayUnitType.DUT_METERS)));
-        SetIfBlank(
-          model,
-          NativeStage01Keys.TrueNorthAngle,
-          Format(position.Angle * 180.0 / Math.PI));
-        messages.Add("已读取 X（南北）、Y（东西）、高程和真北。" );
+        evidence.BaseX = Format(UnitUtils.ConvertFromInternalUnits(
+          position.NorthSouth,
+          DisplayUnitType.DUT_METERS));
+        evidence.BaseY = Format(UnitUtils.ConvertFromInternalUnits(
+          position.EastWest,
+          DisplayUnitType.DUT_METERS));
+        evidence.BaseElevation = Format(UnitUtils.ConvertFromInternalUnits(
+          position.Elevation,
+          DisplayUnitType.DUT_METERS));
+        evidence.TrueNorthAngle = Format(position.Angle * 180.0 / Math.PI);
+        evidence.ProjectPositionAvailable = true;
+        messages.Add("已读取 X（南北）、Y（东西）、高程和真北现场值。" );
       }
       catch (Exception exception)
       {
-        messages.Add("读取项目位置失败：" + exception.Message);
+        messages.Add("读取项目位置现场证据失败：" + exception.Message);
       }
-      SetIfBlank(model, NativeStage01Keys.LengthUnit, "m");
-      SetIfBlank(model, NativeStage01Keys.AreaUnit, "m²");
-      SetIfBlank(model, NativeStage01Keys.AngleUnit, "°");
-      if (string.IsNullOrWhiteSpace(model.GetValue(NativeStage01Keys.FileGuid)))
-        model.SetValue(
-          NativeStage01Keys.FileGuid,
-          Guid.NewGuid().ToString("D"));
-      if (string.IsNullOrWhiteSpace(
-        model.GetValue(NativeStage01Keys.WorkflowVersion)))
+      try
       {
-        model.SetValue(
-          NativeStage01Keys.WorkflowVersion,
-          NativeStage01Canonicalizer.PayloadSchemaVersion);
+        Units units = document.GetUnits();
+        evidence.LengthUnit = DescribeUnit(
+          units.GetFormatOptions(UnitType.UT_Length).DisplayUnits,
+          DisplayUnitType.DUT_METERS,
+          "m");
+        evidence.AreaUnit = DescribeUnit(
+          units.GetFormatOptions(UnitType.UT_Area).DisplayUnits,
+          DisplayUnitType.DUT_SQUARE_METERS,
+          "m²");
+        evidence.AngleUnit = DescribeUnit(
+          units.GetFormatOptions(UnitType.UT_Angle).DisplayUnits,
+          DisplayUnitType.DUT_DECIMAL_DEGREES,
+          "°");
+        evidence.UnitsAvailable = true;
       }
+      catch (Exception exception)
+      {
+        messages.Add("读取项目单位现场证据失败：" + exception.Message);
+      }
+      return evidence;
     }
 
-    private static void SetIfBlank(
-      NativeStage01Model model,
-      string key,
-      string value)
+    private static NativeStage01Model CreateBlockedModel(
+      NativeRuleCatalog catalog)
     {
-      if (string.IsNullOrWhiteSpace(model.GetValue(key)))
-        model.SetValue(key, value ?? string.Empty);
+      if (catalog == null) throw new ArgumentNullException(nameof(catalog));
+      return new NativeStage01Model
+      {
+        ActiveGroup = catalog.DefaultActiveGroup
+      };
+    }
+
+    private static string DescribeUnit(
+      DisplayUnitType actual,
+      DisplayUnitType canonical,
+      string canonicalText)
+    {
+      return actual == canonical ? canonicalText : actual.ToString();
     }
 
     private static string Format(double value)

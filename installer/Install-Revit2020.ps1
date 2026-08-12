@@ -17,7 +17,7 @@ if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
 
 $productName = "BIMBaoGui.RevitAddin"
 $mcpProductName = "BIMBaoGui.McpServer"
-$mcpVersion = "0.4.0"
+$mcpVersion = "0.4.1"
 $addinRoot = Join-Path $env:APPDATA "Autodesk\Revit\Addins\2020"
 $productRoot = Join-Path $addinRoot "BIMBaoGui.RevitAddin"
 $manifestPath = Join-Path $addinRoot "BIMBaoGui.RevitAddin.addin"
@@ -104,6 +104,56 @@ function Assert-SameHash {
   }
 }
 
+function Get-RevitAssemblyIdentity {
+  param([string]$Path)
+  $fullPath = [IO.Path]::GetFullPath($Path)
+  $assembly = [Reflection.Assembly]::LoadFile($fullPath)
+  $metadata = @{}
+  $informationalVersion = ""
+  foreach ($attribute in $assembly.GetCustomAttributesData()) {
+    if ($attribute.AttributeType.FullName -eq
+      "System.Reflection.AssemblyMetadataAttribute") {
+      $metadata[[string]$attribute.ConstructorArguments[0].Value] =
+        [string]$attribute.ConstructorArguments[1].Value
+      continue
+    }
+    if ($attribute.AttributeType.FullName -eq
+      "System.Reflection.AssemblyInformationalVersionAttribute") {
+      $informationalVersion =
+        [string]$attribute.ConstructorArguments[0].Value
+    }
+  }
+  $assemblyVersion = $assembly.GetName().Version.ToString()
+  $productVersion = if ([string]::IsNullOrWhiteSpace($informationalVersion)) {
+    $assemblyVersion
+  } else {
+    $informationalVersion.Trim()
+  }
+  $metadataSeparator = $productVersion.IndexOf("+")
+  if ($metadataSeparator -ge 0) {
+    $productVersion = $productVersion.Substring(0, $metadataSeparator)
+  }
+  $buildNumber = if ($metadata.ContainsKey("HBR.BuildNumber") -and
+    -not [string]::IsNullOrWhiteSpace($metadata["HBR.BuildNumber"])) {
+    [string]$metadata["HBR.BuildNumber"]
+  } else {
+    "local"
+  }
+  $commitSha = if ($metadata.ContainsKey("HBR.CommitSha") -and
+    -not [string]::IsNullOrWhiteSpace($metadata["HBR.CommitSha"])) {
+    [string]$metadata["HBR.CommitSha"]
+  } else {
+    "unknown"
+  }
+  return [PSCustomObject]@{
+    ProductVersion = $productVersion
+    AssemblyVersion = $assemblyVersion
+    InformationalVersion = $informationalVersion
+    BuildNumber = $buildNumber.Trim()
+    CommitSha = $commitSha.Trim()
+  }
+}
+
 $sourceRootFull = [IO.Path]::GetFullPath($SourceRoot)
 $sourceDll = Find-RequiredFile @(
   (Join-Path $sourceRootFull "BIMBaoGui.RevitAddin\BIMBaoGui.RevitAddin.dll"),
@@ -131,7 +181,8 @@ $sourceMcpServerExe = Find-RequiredFile @(
   (Join-Path $sourceRootFull "BIMBaoGui.McpServer.exe")
 ) "BIMBaoGui.McpServer.exe"
 $sourceMcpServerPdb = [IO.Path]::ChangeExtension($sourceMcpServerExe, ".pdb")
-$productVersion = [Reflection.AssemblyName]::GetAssemblyName($sourceDll).Version.ToString()
+$productIdentity = Get-RevitAssemblyIdentity -Path $sourceDll
+$productVersion = $productIdentity.ProductVersion
 
 if (-not $PSCmdlet.ShouldProcess(
   $productRoot,
@@ -239,9 +290,13 @@ try {
 
   $installedUtc = [DateTimeOffset]::UtcNow.ToString("O")
   $evidence = [ordered]@{
-    schemaVersion = "3.0.0"
+    schemaVersion = "4.0.0"
     productName = $productName
     productVersion = $productVersion
+    assemblyVersion = $productIdentity.AssemblyVersion
+    assemblyInformationalVersion = $productIdentity.InformationalVersion
+    buildNumber = $productIdentity.BuildNumber
+    commitSha = $productIdentity.CommitSha
     mcpProductName = $mcpProductName
     mcpProductVersion = $mcpVersion
     target = "Revit 2020"

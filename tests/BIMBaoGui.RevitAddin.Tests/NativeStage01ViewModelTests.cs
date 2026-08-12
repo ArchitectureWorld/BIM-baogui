@@ -143,6 +143,45 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
+    public void LoadingExplicitlyEmptyOrganizationsPreservesZeroRecords()
+    {
+      var viewModel = new NativeStage01ViewModel(
+        NativeRuleCatalog.Current);
+      NativeStage01Model source =
+        NativeRuleCatalog.Current.CreateDefaultStage01Model();
+      source.Organizations.Clear();
+
+      viewModel.LoadModel(source);
+      viewModel.RemoveCurrentOrganization();
+
+      Assert.Empty(source.Organizations);
+      Assert.Empty(viewModel.Model.Organizations);
+      Assert.Equal(0, viewModel.OrganizationDisplayIndex);
+      Assert.False(viewModel.IsDirty);
+    }
+
+    [Fact]
+    public void EditingOrganizationFieldMaterializesTheFirstRecord()
+    {
+      var viewModel = new NativeStage01ViewModel(
+        NativeRuleCatalog.Current);
+      NativeStage01Model source =
+        NativeRuleCatalog.Current.CreateDefaultStage01Model();
+      source.Organizations.Clear();
+      viewModel.LoadModel(source);
+      NativeStage01FieldDefinition organizationField =
+        NativeRuleCatalog.Current.Stage01Fields.First(value =>
+          value.IsOrganization && !value.ReadOnly && !value.Deferred);
+
+      viewModel.SetFieldValue(organizationField, "设计单位");
+
+      Assert.Single(viewModel.Model.Organizations);
+      Assert.Equal(1, viewModel.OrganizationDisplayIndex);
+      Assert.Equal("设计单位", viewModel.GetFieldValue(organizationField));
+      Assert.True(viewModel.IsDirty);
+    }
+
+    [Fact]
     public void LoadingStartsAtConditionsAndUsesIndependentModelCopies()
     {
       var viewModel = new NativeStage01ViewModel(
@@ -163,6 +202,37 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Equal("源项目", source.GetValue(NativeStage01Keys.ProjectName));
       Assert.Single(viewModel.Model.Organizations);
       Assert.True(viewModel.IsDirty);
+    }
+
+    [Fact]
+    public void ReadResultTracksStorageStateAndSuccessfulSavePromotesCurrent()
+    {
+      var viewModel = new NativeStage01ViewModel(
+        NativeRuleCatalog.Current);
+      NativeStage01Model model =
+        NativeRuleCatalog.Current.CreateDefaultStage01Model();
+      var readResult = new NativeStage01ReadResult
+      {
+        Model = model,
+        StorageDecision = new NativeStage01StorageDecision
+        {
+          State = NativeStage01StorageState.MigratableLegacy
+        },
+        RequiresMigrationConfirmation = true,
+        SourcePayloadVersion = "0.9.0"
+      };
+
+      viewModel.LoadReadResult(readResult);
+
+      Assert.Equal(
+        NativeStage01StorageState.MigratableLegacy,
+        viewModel.StorageState);
+      Assert.True(viewModel.RequiresMigrationConfirmation);
+
+      viewModel.MarkSaved();
+
+      Assert.Equal(NativeStage01StorageState.Current, viewModel.StorageState);
+      Assert.False(viewModel.RequiresMigrationConfirmation);
     }
 
     private static string InvalidValue(NativeStage01FieldDefinition field)

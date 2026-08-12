@@ -1,7 +1,7 @@
 @echo off
 setlocal
 chcp 65001 >nul
-set "MCP_SERVER=%LOCALAPPDATA%\BIMBaoGui\McpServer\0.4.0\BIMBaoGui.McpServer.exe"
+set "MCP_SERVER=%LOCALAPPDATA%\BIMBaoGui\McpServer\0.4.1\BIMBaoGui.McpServer.exe"
 
 if not exist "%MCP_SERVER%" (
   echo 未找到已安装的 BIMBaoGui MCP Server：

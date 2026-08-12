@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using BIMBaoGui.RevitAddin.Rules;
+using BIMBaoGui.RevitAddin.Runtime;
 
 namespace BIMBaoGui.RevitAddin.Stage01
 {
@@ -237,13 +237,13 @@ namespace BIMBaoGui.RevitAddin.Stage01
           {
           }
 
-          Assembly assembly = typeof(NativeStage01RevitService).Assembly;
+          PluginRuntimeIdentity plugin = PluginRuntimeIdentity.Read(
+            typeof(NativeStage01RevitService).Assembly);
           NativeStage01FailureReportResult report =
             NativeStage01FailureReportWriter.TryWrite(
               new NativeStage01FailureReportContext
               {
-                ProductVersion =
-                  assembly.GetName().Version?.ToString() ?? string.Empty,
+                ProductVersion = plugin.ProductVersion,
                 RevitVersion =
                   uiApplication.Application.VersionNumber ?? string.Empty,
                 DocumentTitle = document.Title ?? string.Empty,

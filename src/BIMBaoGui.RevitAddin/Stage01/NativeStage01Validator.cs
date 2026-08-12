@@ -24,6 +24,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
     internal const string InvalidCreditCode = "INVALID_CREDIT_CODE";
     internal const string TrueNorthOutOfRange = "TRUE_NORTH_OUT_OF_RANGE";
     internal const string UnknownModelProfile = "UNKNOWN_MODEL_PROFILE";
+    internal const string PayloadVersionMismatch =
+      "PAYLOAD_VERSION_MISMATCH";
     internal const string ConditionMissing = "CONDITION_MISSING";
     internal const string ProjectConditionDeclarationMissing =
       "PROJECT_CONDITION_DECLARATION_MISSING";
@@ -95,6 +97,21 @@ namespace BIMBaoGui.RevitAddin.Stage01
       if (catalog == null) throw new ArgumentNullException(nameof(catalog));
 
       var messages = new List<NativeStage01ValidationMessage>();
+      string workflowVersion = model.GetValue(
+        NativeStage01Keys.WorkflowVersion).Trim();
+      if (!string.Equals(
+        workflowVersion,
+        NativeStage01Canonicalizer.PayloadSchemaVersion,
+        StringComparison.Ordinal))
+      {
+        Add(
+          messages,
+          NativeStage01ValidationCodes.PayloadVersionMismatch,
+          NativeStage01Keys.WorkflowVersion,
+          "Stage01 模型 WorkflowVersion 必须为当前 Payload 协议 "
+            + NativeStage01Canonicalizer.PayloadSchemaVersion
+            + "。" );
+      }
       foreach (NativeStage01FieldDefinition field in catalog.Stage01Fields
         .Where(value => !value.Deferred))
       {
@@ -164,6 +181,15 @@ namespace BIMBaoGui.RevitAddin.Stage01
               + "（" + condition.ConditionId
               + "）：项目条件键缺失；不得按 false 静默补猜。" );
         }
+      }
+      if (!model.Conditions.ContainsKey(
+        NativeProjectConditionDeclarationPolicy.NoneConditionId))
+      {
+        Add(
+          messages,
+          NativeStage01ValidationCodes.ConditionMissing,
+          NativeProjectConditionDeclarationPolicy.NoneConditionId,
+          "无上述项目条件声明键缺失；不得把未声明解释为 false。" );
       }
 
       NativeProjectConditionDeclarationDecision declaration =

@@ -9,20 +9,28 @@ namespace BIMBaoGui.RevitAddin.Stage01
 {
   internal static class NativeStage01Canonicalizer
   {
-    // Kept compatible with the current HBR Stage01 payload protocol.
-    internal const string PayloadSchemaVersion = "0.9.0";
+    internal const string PayloadSchemaVersion = "0.9.1";
 
     internal static string ToJson(NativeStage01Model model)
     {
+      return ToJson(model, PayloadSchemaVersion);
+    }
+
+    internal static string ToJson(NativeStage01Model model, string schemaVersion)
+    {
       if (model == null) throw new ArgumentNullException(nameof(model));
+      string version = RequireVersion(schemaVersion);
+      string modelVersion = model.GetValue(NativeStage01Keys.WorkflowVersion);
+      if (!string.Equals(modelVersion, version, StringComparison.Ordinal))
+      {
+        throw new InvalidOperationException(
+          "Stage01 canonical schemaVersion 与模型 WorkflowVersion 不一致。" );
+      }
+
       var builder = new StringBuilder(16384);
       builder.Append('{');
-      AppendProperty(builder, "schemaVersion", PayloadSchemaVersion, true);
-      AppendProperty(
-        builder,
-        "workflowVersion",
-        model.GetValue(NativeStage01Keys.WorkflowVersion),
-        false);
+      AppendProperty(builder, "schemaVersion", version, true);
+      AppendProperty(builder, "workflowVersion", modelVersion, false);
       builder.Append(",\"values\":");
       AppendStringDictionary(
         builder,
@@ -60,6 +68,14 @@ namespace BIMBaoGui.RevitAddin.Stage01
           builder.Append(value.ToString("x2", CultureInfo.InvariantCulture));
         return builder.ToString();
       }
+    }
+
+    private static string RequireVersion(string value)
+    {
+      string version = (value ?? string.Empty).Trim();
+      if (version.Length == 0 || !Version.TryParse(version, out _))
+        throw new ArgumentException("Stage01 schemaVersion 无效。", nameof(value));
+      return version;
     }
 
     private static void AppendPlanningTargets(

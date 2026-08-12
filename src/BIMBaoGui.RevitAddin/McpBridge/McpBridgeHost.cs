@@ -2,10 +2,10 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using BIMBaoGui.McpContracts;
+using BIMBaoGui.RevitAddin.Runtime;
 using BIMBaoGui.RevitAddin.Stage01;
 using BIMBaoGui.RevitAddin.Stage02;
 using BIMBaoGui.RevitAddin.Stage03;
@@ -39,8 +39,8 @@ namespace BIMBaoGui.RevitAddin.McpBridge
           + "."
           + CreateRandomHex(8);
         RulePackageIdentity identity = RulePackageIdentityReader.ReadEmbedded();
-        string pluginVersion = Assembly.GetExecutingAssembly()
-          .GetName().Version?.ToString() ?? "0.4.0";
+        string pluginVersion = PluginRuntimeIdentity.Read(
+          typeof(McpBridgeHost).Assembly).ProductVersion;
         Session = new BridgeSessionDescriptor
         {
           BridgeProtocolVersion = BridgeProtocol.Version,

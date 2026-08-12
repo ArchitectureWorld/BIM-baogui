@@ -61,10 +61,16 @@ def test_stage01_first_initialization_does_not_scan_or_block_existing_model():
     assert "ModelNotBlank" not in preflight
 
 
-def test_stage01_read_reconciles_new_rule_condition_keys_without_declaring_for_the_user():
+def test_stage01_current_read_never_silently_reconciles_condition_schema():
     source = read("NativeStage01RevitReadService.cs")
-    assert "NativeStage01ConditionSchemaPolicy.Reconcile" in source
-    assert "未替用户选择或声明项目条件" in source
+    storage = read("NativeStage01StoragePolicy.cs")
+    migration = read("NativeStage01MigrationService.cs")
+
+    assert "NativeStage01ConditionSchemaPolicy.Reconcile" not in source
+    assert "NativeStage01ConditionSchemaPolicy.IsComplete" in storage
+    assert "ConditionSchemaMismatch" in storage
+    assert "NativeStage01ConditionSchemaPolicy.Reconcile" in migration
+    assert "尚未写回 RVT" in migration
 
 
 def test_unified_ci_runs_stage01_revit_contract():

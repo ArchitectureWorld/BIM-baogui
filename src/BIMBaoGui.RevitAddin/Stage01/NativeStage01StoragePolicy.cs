@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using BIMBaoGui.RevitAddin.Rules;
 
 namespace BIMBaoGui.RevitAddin.Stage01
 {
@@ -28,6 +29,12 @@ namespace BIMBaoGui.RevitAddin.Stage01
     internal const string PayloadHashMismatch = "PAYLOAD_HASH_MISMATCH";
     internal const string NonCanonicalCurrentPayload =
       "NON_CANONICAL_CURRENT_PAYLOAD";
+    internal const string NonCanonicalLegacyPayload =
+      "NON_CANONICAL_LEGACY_PAYLOAD";
+    internal const string UnsupportedLegacyVersion =
+      "UNSUPPORTED_LEGACY_VERSION";
+    internal const string ConditionSchemaMismatch =
+      "CONDITION_SCHEMA_MISMATCH";
     internal const string FileGuidMismatch = "FILE_GUID_MISMATCH";
     internal const string WorkflowVersionMismatch =
       "WORKFLOW_VERSION_MISMATCH";
@@ -181,17 +188,102 @@ namespace BIMBaoGui.RevitAddin.Stage01
       }
       if (versionComparison < 0)
       {
+        if (!string.Equals(
+          record.WorkflowVersion,
+          NativeStage01MigrationService.SupportedSourceVersion,
+          StringComparison.Ordinal))
+        {
+          return new NativeStage01StorageDecision
+          {
+            State = NativeStage01StorageState.Corrupt,
+            ErrorCode = NativeStage01StorageCodes.UnsupportedLegacyVersion,
+            Message = "当前原生插件仅支持从 Stage01 Payload "
+              + NativeStage01MigrationService.SupportedSourceVersion
+              + " 迁移到 "
+              + currentWorkflowVersion
+              + "。",
+            Payload = payload,
+            ActualPayloadHash = actualHash
+          };
+        }
+        string canonicalLegacyPayload;
+        try
+        {
+          canonicalLegacyPayload = NativeStage01Canonicalizer.ToJson(
+            payload.Model,
+            payload.SchemaVersion);
+        }
+        catch (Exception exception)
+        {
+          return new NativeStage01StorageDecision
+          {
+            State = NativeStage01StorageState.Corrupt,
+            ErrorCode = NativeStage01StorageCodes.NonCanonicalLegacyPayload,
+            Message = "旧版 Stage01 Payload 无法按原协议确定性规范化："
+              + exception.Message,
+            Payload = payload,
+            ActualPayloadHash = actualHash
+          };
+        }
+        if (!string.Equals(
+          record.PayloadJson,
+          canonicalLegacyPayload,
+          StringComparison.Ordinal))
+        {
+          return new NativeStage01StorageDecision
+          {
+            State = NativeStage01StorageState.Corrupt,
+            ErrorCode = NativeStage01StorageCodes.NonCanonicalLegacyPayload,
+            Message = "旧版 Stage01 Payload 不是其原协议的确定性规范 JSON。",
+            Payload = payload,
+            ActualPayloadHash = actualHash
+          };
+        }
         return new NativeStage01StorageDecision
         {
           State = NativeStage01StorageState.MigratableLegacy,
-          Message = "检测到哈希有效的旧版 Stage01 Payload；再次提交时迁移到当前版本。",
+          Message = "检测到规范且哈希有效的 Stage01 Payload "
+            + record.WorkflowVersion
+            + "；需要用户确认后迁移到 "
+            + currentWorkflowVersion
+            + "。",
           Payload = payload,
           ActualPayloadHash = actualHash
         };
       }
 
-      string canonicalPayload = NativeStage01Canonicalizer.ToJson(
-        payload.Model);
+      if (!NativeStage01ConditionSchemaPolicy.IsComplete(
+        payload.Model,
+        NativeRuleCatalog.Current))
+      {
+        return new NativeStage01StorageDecision
+        {
+          State = NativeStage01StorageState.Corrupt,
+          ErrorCode = NativeStage01StorageCodes.ConditionSchemaMismatch,
+          Message = "当前 0.9.1 Stage01 Payload 缺少项目条件声明键；"
+            + "已拒绝静默补齐。",
+          Payload = payload,
+          ActualPayloadHash = actualHash
+        };
+      }
+
+      string canonicalPayload;
+      try
+      {
+        canonicalPayload = NativeStage01Canonicalizer.ToJson(payload.Model);
+      }
+      catch (Exception exception)
+      {
+        return new NativeStage01StorageDecision
+        {
+          State = NativeStage01StorageState.Corrupt,
+          ErrorCode = NativeStage01StorageCodes.NonCanonicalCurrentPayload,
+          Message = "当前版本 Stage01 Payload 无法确定性规范化："
+            + exception.Message,
+          Payload = payload,
+          ActualPayloadHash = actualHash
+        };
+      }
       if (!string.Equals(
         record.PayloadJson,
         canonicalPayload,

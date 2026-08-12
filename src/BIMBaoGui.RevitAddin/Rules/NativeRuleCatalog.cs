@@ -178,7 +178,10 @@ namespace BIMBaoGui.RevitAddin.Rules
         }
       }
       foreach (NativeConditionDefinition condition in Conditions)
-        model.SetCondition(condition.ConditionId, condition.DefaultActive);
+        model.SetCondition(condition.ConditionId, false);
+      model.SetCondition(
+        NativeProjectConditionDeclarationPolicy.NoneConditionId,
+        false);
 
       // Payload schema is a persistence protocol version, not the product UI version.
       model.SetValue(

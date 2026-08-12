@@ -32,8 +32,18 @@ namespace BIMBaoGui.RevitAddin.Stage01
     internal IReadOnlyList<string> Groups { get; }
     internal string ActiveGroup { get; private set; }
     internal int OrganizationIndex { get; private set; }
+    internal int OrganizationDisplayIndex =>
+      _model.Organizations.Count == 0 ? 0 : OrganizationIndex + 1;
     internal bool IsDirty { get; private set; }
     internal NativeStage01ValidationResult Validation { get; private set; }
+    internal NativeStage01LiveEvidence LiveEvidence { get; private set; } =
+      new NativeStage01LiveEvidence();
+    internal IReadOnlyList<NativeStage01Drift> Drifts { get; private set; } =
+      Array.Empty<NativeStage01Drift>();
+    internal bool RequiresMigrationConfirmation { get; private set; }
+    internal string SourcePayloadVersion { get; private set; } = string.Empty;
+    internal NativeStage01StorageState StorageState { get; private set; } =
+      NativeStage01StorageState.NoRecord;
     internal IReadOnlyList<NativeStage01FieldDefinition> ActiveFields =>
       FieldsForGroup(ActiveGroup);
     internal IReadOnlyList<NativeConditionDefinition> Conditions =>
@@ -169,12 +179,31 @@ namespace BIMBaoGui.RevitAddin.Stage01
 
     internal void LoadModel(NativeStage01Model model)
     {
+      LoadModelCore(model);
+      LiveEvidence = new NativeStage01LiveEvidence();
+      Drifts = Array.Empty<NativeStage01Drift>();
+      RequiresMigrationConfirmation = false;
+      SourcePayloadVersion = string.Empty;
+      StorageState = NativeStage01StorageState.NoRecord;
+    }
+
+    internal void LoadReadResult(NativeStage01ReadResult result)
+    {
+      LoadModelCore(result?.Model);
+      LiveEvidence = result?.LiveEvidence?.Clone()
+        ?? new NativeStage01LiveEvidence();
+      Drifts = new ReadOnlyCollection<NativeStage01Drift>((result?.Drifts
+        ?? Array.Empty<NativeStage01Drift>()).ToArray());
+      RequiresMigrationConfirmation =
+        result != null && result.RequiresMigrationConfirmation;
+      SourcePayloadVersion = result?.SourcePayloadVersion ?? string.Empty;
+      StorageState = result?.StorageDecision?.State
+        ?? NativeStage01StorageState.NoRecord;
+    }
+
+    private void LoadModelCore(NativeStage01Model model)
+    {
       _model = (model ?? _catalog.CreateDefaultStage01Model()).Clone();
-      if (_model.Organizations.Count == 0)
-      {
-        _model.Organizations.Add(
-          new Dictionary<string, string>(StringComparer.Ordinal));
-      }
       OrganizationIndex = 0;
       ActiveGroup = ConditionsGroup;
       Validation = null;
@@ -191,7 +220,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
 
     internal void RemoveCurrentOrganization()
     {
-      if (_model.Organizations.Count <= 1)
+      if (_model.Organizations.Count == 0) return;
+      if (_model.Organizations.Count == 1)
       {
         _model.Organizations[0].Clear();
         OrganizationIndex = 0;
@@ -217,6 +247,25 @@ namespace BIMBaoGui.RevitAddin.Stage01
     internal void MarkSaved()
     {
       IsDirty = false;
+      RequiresMigrationConfirmation = false;
+      SourcePayloadVersion = NativeStage01Canonicalizer.PayloadSchemaVersion;
+      StorageState = NativeStage01StorageState.Current;
+      Drifts = Array.Empty<NativeStage01Drift>();
+      LiveEvidence = new NativeStage01LiveEvidence
+      {
+        ProjectInformationAvailable = true,
+        ProjectName = _model.GetValue(NativeStage01Keys.ProjectName),
+        ProjectNumber = _model.GetValue(NativeStage01Keys.ProjectNumber),
+        ProjectPositionAvailable = true,
+        BaseX = _model.GetValue(NativeStage01Keys.BaseX),
+        BaseY = _model.GetValue(NativeStage01Keys.BaseY),
+        BaseElevation = _model.GetValue(NativeStage01Keys.BaseElevation),
+        TrueNorthAngle = _model.GetValue(NativeStage01Keys.TrueNorthAngle),
+        UnitsAvailable = true,
+        LengthUnit = _model.GetValue(NativeStage01Keys.LengthUnit),
+        AreaUnit = _model.GetValue(NativeStage01Keys.AreaUnit),
+        AngleUnit = _model.GetValue(NativeStage01Keys.AngleUnit)
+      };
       Validation = NativeStage01Validator.Validate(_model, _catalog);
     }
 

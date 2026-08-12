@@ -3,7 +3,7 @@
 ## 唯一 Revit 产品线
 
 ```text
-产品版本：0.4.0
+产品版本：0.4.1
 唯一开发分支：feat/revit-native-addin-mcp-v0.3
 目标软件：Autodesk Revit 2020
 ```
@@ -11,6 +11,8 @@
 本安装包同时包含人工工作台与 MCP 入口，不再维护单独的“非 MCP 版”。即使不配置任何 MCP Client，Revit Ribbon、DockablePane、Stage01、Stage02 和 Stage03 均可独立使用。
 
 原生插件不引用 Grasshopper、RhinoCommon、Rhino.Inside.Revit 或 GHA，只共同消费同一份权威 HBR 参考数据库。
+
+工作台顶部的插件版本、构建号、Commit 和 DLL 路径均来自当前 Revit 进程实际加载的 `BIMBaoGui.RevitAddin.dll`。GitHub Actions 构建写入真实 Build Number 与 Commit SHA；本地开发构建显示 `Build local / Commit unknown`。
 
 ## 两种使用入口
 
@@ -49,6 +51,20 @@ MCP Bridge 启动失败不会阻断 Ribbon、DockablePane 或人工工作流。
 2. 勾选“无上述项目条件（已确认）”。
 
 两种状态互斥。全部未选择时，Stage01 校验和写入均被阻断；旧版 RVT 所有条件均为 `false` 且没有明确声明时，重新写入前必须补做一次声明。Stage02 和 Stage03 也执行同一门禁。
+
+## Payload 0.9.1 与现场值对账
+
+v0.4.1 将 Stage01 Payload 从 `0.9.0 → 0.9.1`。检测到规范且哈希有效的 `0.9.0` 记录时，插件只生成 `0.9.1` 内存候选并显示“等待迁移确认”；读取动作不会改写原 Storage。只有用户点击“写入并回读”，或 MCP 按 `validate → confirm=true → write` 显式提交后，才会发布新的 `0.9.1` canonical Payload。
+
+不同字段采用各自的权威来源：
+
+- 项目名称、项目编号、X（南北）、Y（东西）、高程和真北从当前 Revit 现场读取；
+- 子项、模型类型、项目条件、参建组织和规划目标以 Stage01 Payload 为业务权威；
+- 报规目标单位固定为 `m / m² / °`，当前 RVT 单位只用于现场对账；
+- 已初始化文件读取时同时保留上次确认值与当前 RVT 值，存在差异时显示“现场值漂移”，不会静默覆盖任一侧；
+- `Corrupt`、未来版本以及无法安全迁移的数据保持阻断，不用默认值掩盖错误。
+
+Stage02 与 Stage03 只消费 `Current` 状态；处于“等待迁移确认”的文件不能继续进入后续阶段。
 
 ## 其他 Stage01 功能
 
@@ -176,7 +192,7 @@ Stage01/Stage02/Stage03 租约有效期 30 分钟且只能消费一次。Stage03
 Install.cmd
 ```
 
-安装器使用当前用户目录，不要求管理员权限。覆盖安装 v0.4.0 时，会删除 BIMBaoGui MCP Server 目录中旧的 `0.3.x` 语义版本目录，避免版本叠罗汉。
+安装器使用当前用户目录，不要求管理员权限。覆盖安装旧版本时，会删除 BIMBaoGui MCP Server 目录中的旧语义版本目录，避免版本叠罗汉。
 
 安装位置：
 
@@ -186,7 +202,7 @@ Install.cmd
 %APPDATA%\Autodesk\Revit\Addins\2020\BIMBaoGui.RevitAddin\BIMBaoGui.HifcCore.dll
 %APPDATA%\Autodesk\Revit\Addins\2020\BIMBaoGui.RevitAddin\BIMBaoGui.McpContracts.dll
 
-%LOCALAPPDATA%\BIMBaoGui\McpServer\0.4.0\BIMBaoGui.McpServer.exe
+%LOCALAPPDATA%\BIMBaoGui\McpServer\0.4.1\BIMBaoGui.McpServer.exe
 %LOCALAPPDATA%\BIMBaoGui\McpServer\mcp-server-config.json
 ```
 

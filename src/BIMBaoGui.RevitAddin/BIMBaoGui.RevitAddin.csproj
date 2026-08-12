@@ -8,12 +8,16 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <AssemblyName>BIMBaoGui.RevitAddin</AssemblyName>
     <RootNamespace>BIMBaoGui.RevitAddin</RootNamespace>
-    <Version>0.4.0</Version>
-    <FileVersion>0.4.0.0</FileVersion>
-    <AssemblyVersion>0.4.0.0</AssemblyVersion>
+    <Version>0.4.1</Version>
+    <FileVersion>0.4.1.0</FileVersion>
+    <AssemblyVersion>0.4.1.0</AssemblyVersion>
     <Deterministic>true</Deterministic>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>1591</NoWarn>
+    <HbrBuildNumber Condition="'$(HbrBuildNumber)' == ''">local</HbrBuildNumber>
+    <HbrCommitSha Condition="'$(HbrCommitSha)' == ''">unknown</HbrCommitSha>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <InformationalVersion>$(Version)+build.$(HbrBuildNumber).sha.$(HbrCommitSha)</InformationalVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -22,6 +26,11 @@
     <HbrRulePackCompiler Condition="'$(HbrRulePackCompiler)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'tools', 'build_hbr_rulepack.py'))</HbrRulePackCompiler>
     <HbrCompatibilityBaseline Condition="'$(HbrCompatibilityBaseline)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'specs', 'hbr-rules', 'v1', 'compatibility', 'hbr_rule_compatibility_baseline.v1.json'))</HbrCompatibilityBaseline>
   </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="HBR.BuildNumber" Value="$(HbrBuildNumber)" />
+    <AssemblyMetadata Include="HBR.CommitSha" Value="$(HbrCommitSha)" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="2020.0.1" PrivateAssets="all" ExcludeAssets="runtime" />

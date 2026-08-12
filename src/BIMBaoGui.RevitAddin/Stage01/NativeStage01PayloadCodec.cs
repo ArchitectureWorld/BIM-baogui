@@ -60,12 +60,6 @@ namespace BIMBaoGui.RevitAddin.Stage01
         CopyConditions(conditionsObject, model.Conditions);
         CopyPlanningTargets(planningTargetsObject, model.PlanningTargets);
         CopyOrganizations(organizationsObject, model.Organizations);
-        if (model.Organizations.Count == 0)
-        {
-          model.Organizations.Add(
-            new Dictionary<string, string>(StringComparer.Ordinal));
-        }
-
         payload = new NativeStage01Payload
         {
           SchemaVersion = schemaVersion,
