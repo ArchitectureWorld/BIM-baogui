@@ -10,6 +10,23 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def test_hifc_core_is_source_independent_from_the_gha_project():
+    project = read(HIFC / "BIMBaoGui.HifcCore.csproj")
+    assert "BIMBaoGui.Stage01" not in project
+    for name in (
+        "DeterministicGuidV5.cs",
+        "IfcStepDocument.cs",
+        "IfcStepEntity.cs",
+        "IfcStepSyntax.cs",
+        "IfcGuidCodec.cs",
+        "HbrIfcCanonicalValuePolicy.cs",
+        "HbrIfcEnrichmentModels.cs",
+        "HbrIfcEnricher.cs",
+        "HbrIfcFieldInspector.cs",
+    ):
+        assert (HIFC / "LegacyCore" / name).is_file()
+
+
 def test_stage03_live_scan_reuses_stage01_stage02_and_fixed_rule_database():
     source = read(STAGE03 / "NativeStage03Scanner.cs")
     assert "NativeStage01RevitReadService.Read" in source
@@ -60,6 +77,9 @@ def test_stage03_workflow_writes_all_manual_ifcflux_artifacts():
     assert "FieldsReportPath" in reports
     assert "ValidationReportPath" in reports
     assert "IfcFluxChecklistPath" in reports
+    assert "actual_ifc_type" in reports
+    assert "typed_token" in reports
+    assert "owner_step_id" in reports
     assert "_fields.json" in models
     assert "_validation.json" in models
     assert "_IFCFlux_checklist.md" in models
