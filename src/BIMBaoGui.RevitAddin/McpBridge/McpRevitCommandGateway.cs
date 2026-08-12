@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BIMBaoGui.RevitAddin.Stage01;
 using BIMBaoGui.RevitAddin.Stage02;
+using BIMBaoGui.RevitAddin.Stage03;
 
 namespace BIMBaoGui.RevitAddin.McpBridge
 {
@@ -67,6 +68,47 @@ namespace BIMBaoGui.RevitAddin.McpBridge
         (completed, failed) =>
           RevitExternalEventDispatcher.RequestStage02Write(
             request,
+            completed,
+            failed),
+        cancellationToken);
+    }
+
+    internal Task<NativeStage03ScanResult> ScanStage03Async(
+      NativeStage03ScanRequest request,
+      CancellationToken cancellationToken)
+    {
+      if (request == null) throw new ArgumentNullException(nameof(request));
+      return Schedule<NativeStage03ScanResult>(
+        (completed, failed) =>
+          RevitExternalEventDispatcher.RequestStage03Scan(
+            request,
+            completed,
+            failed),
+        cancellationToken);
+    }
+
+    internal Task<NativeStage03ExecutionResult> ExportStage03Async(
+      NativeStage03ExportRequest request,
+      CancellationToken cancellationToken)
+    {
+      if (request == null) throw new ArgumentNullException(nameof(request));
+      return Schedule<NativeStage03ExecutionResult>(
+        (completed, failed) =>
+          RevitExternalEventDispatcher.RequestStage03Export(
+            request,
+            completed,
+            failed),
+        cancellationToken);
+    }
+
+    internal Task<NativeStage03ExecutionResult> RevalidateStage03Async(
+      string ifcPath,
+      CancellationToken cancellationToken)
+    {
+      return Schedule<NativeStage03ExecutionResult>(
+        (completed, failed) =>
+          RevitExternalEventDispatcher.RequestStage03Revalidate(
+            ifcPath,
             completed,
             failed),
         cancellationToken);
