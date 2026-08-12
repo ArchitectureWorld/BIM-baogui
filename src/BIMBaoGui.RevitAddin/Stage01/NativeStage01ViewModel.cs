@@ -97,6 +97,31 @@ namespace BIMBaoGui.RevitAddin.Stage01
         .Count(field => string.IsNullOrWhiteSpace(GetFieldValue(field)));
     }
 
+    internal int GetOptionalFieldCount(string group)
+    {
+      return FieldsForGroup(group)
+        .Count(field => !NativeStage01Validator.IsRequired(field));
+    }
+
+    internal int GetFilledOptionalFieldCount(string group)
+    {
+      return FieldsForGroup(group)
+        .Where(field => !NativeStage01Validator.IsRequired(field))
+        .Count(field => !string.IsNullOrWhiteSpace(GetFieldValue(field)));
+    }
+
+    internal bool HasOptionalValidationError(string group)
+    {
+      if (Validation == null) return false;
+      var optionalKeys = new HashSet<string>(
+        FieldsForGroup(group)
+          .Where(field => !NativeStage01Validator.IsRequired(field))
+          .Select(field => field.FieldKey),
+        StringComparer.Ordinal);
+      return Validation.Messages.Any(message =>
+        optionalKeys.Contains(message.FieldKey));
+    }
+
     internal NativeStage01ValidationResult Validate()
     {
       Validation = NativeStage01Validator.Validate(_model, _catalog);
