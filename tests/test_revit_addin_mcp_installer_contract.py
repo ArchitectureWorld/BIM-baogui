@@ -80,6 +80,7 @@ def test_mcp_workflow_builds_one_complete_installable_zip():
         'BIMBaoGui.McpServer.exe',
         'Install-Revit2020.ps1',
         'SHA256SUMS.txt',
-        'BIMBaoGui-Revit2020-Native-MCP-v0.3.0',
+        'name: BIMBaoGui-Revit2020-Native-MCP',
     ):
         assert text in workflow
+    assert 'BIMBaoGui-Revit2020-Native-MCP-v0.3.0' not in workflow
