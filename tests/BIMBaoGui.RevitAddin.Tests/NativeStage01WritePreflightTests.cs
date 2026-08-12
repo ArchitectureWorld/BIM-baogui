@@ -94,41 +94,26 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
-    public void FirstInitializationRequiresBlankConfirmationAndNoModelBlockers()
+    public void FirstInitializationAllowsExistingModelWithoutBlankConfirmation()
     {
       NativeStage01DocumentState state = CurrentState();
       state.StorageDecision = new NativeStage01StorageDecision
       {
         State = NativeStage01StorageState.NoRecord
       };
+      state.BlockingElements = new[] { "墙 / Id=42" };
 
-      NativeStage01PreflightDecision noConfirmation =
+      NativeStage01PreflightDecision decision =
         NativeStage01WritePreflight.Evaluate(
           state,
           ValidValidation(),
           confirmBlankProject: false,
           allowReinitialize: false);
-      Assert.Contains(noConfirmation.Blockers, value =>
-        value.Code == NativeStage01PreflightCodes.BlankConfirmationRequired);
 
-      state.BlockingElements = new[] { "墙 / Id=42" };
-      NativeStage01PreflightDecision notBlank =
-        NativeStage01WritePreflight.Evaluate(
-          state,
-          ValidValidation(),
-          confirmBlankProject: true,
-          allowReinitialize: false);
-      Assert.Contains(notBlank.Blockers, value =>
-        value.Code == NativeStage01PreflightCodes.ModelNotBlank);
-
-      state.BlockingElements = Array.Empty<string>();
-      NativeStage01PreflightDecision accepted =
-        NativeStage01WritePreflight.Evaluate(
-          state,
-          ValidValidation(),
-          confirmBlankProject: true,
-          allowReinitialize: false);
-      Assert.True(accepted.Accepted);
+      Assert.True(decision.Accepted);
+      Assert.DoesNotContain(decision.Blockers, value =>
+        value.Code == NativeStage01PreflightCodes.BlankConfirmationRequired
+        || value.Code == NativeStage01PreflightCodes.ModelNotBlank);
     }
 
     [Fact]
