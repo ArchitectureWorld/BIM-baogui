@@ -17,7 +17,7 @@ if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
 
 $productName = "BIMBaoGui.RevitAddin"
 $mcpProductName = "BIMBaoGui.McpServer"
-$mcpVersion = "0.3.2"
+$mcpVersion = "0.4.0"
 $addinRoot = Join-Path $env:APPDATA "Autodesk\Revit\Addins\2020"
 $productRoot = Join-Path $addinRoot "BIMBaoGui.RevitAddin"
 $manifestPath = Join-Path $addinRoot "BIMBaoGui.RevitAddin.addin"
@@ -32,7 +32,9 @@ if (-not $Force -and $runningRevit.Count -gt 0) {
 }
 
 if ($Uninstall) {
-  if (-not $PSCmdlet.ShouldProcess($addinRoot, "卸载 BIMBaoGui Revit 2020 原生插件及 MCP Server")) {
+  if (-not $PSCmdlet.ShouldProcess(
+    $addinRoot,
+    "卸载 BIMBaoGui Revit 2020 原生插件及 MCP Server")) {
     return
   }
   if (Test-Path -LiteralPath $manifestPath) {
@@ -69,50 +71,71 @@ if ($Uninstall) {
   return
 }
 
+function Find-RequiredFile {
+  param(
+    [string[]]$Candidates,
+    [string]$DisplayName
+  )
+  $match = $Candidates |
+    Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } |
+    Select-Object -First 1
+  if ([string]::IsNullOrWhiteSpace($match)) {
+    throw "安装包中未找到 $DisplayName。SourceRoot=$sourceRootFull"
+  }
+  return [IO.Path]::GetFullPath($match)
+}
+
+function Get-LowerSha256 {
+  param([string]$Path)
+  return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
+}
+
+function Assert-SameHash {
+  param(
+    [string]$Expected,
+    [string]$Actual,
+    [string]$Label
+  )
+  if (-not [string]::Equals(
+    $Expected,
+    $Actual,
+    [StringComparison]::OrdinalIgnoreCase)) {
+    throw "$Label 复制后 SHA-256 不一致，拒绝安装。expected=$Expected actual=$Actual"
+  }
+}
+
 $sourceRootFull = [IO.Path]::GetFullPath($SourceRoot)
-$sourceDllCandidates = @(
+$sourceDll = Find-RequiredFile @(
   (Join-Path $sourceRootFull "BIMBaoGui.RevitAddin\BIMBaoGui.RevitAddin.dll"),
   (Join-Path $sourceRootFull "BIMBaoGui.RevitAddin.dll")
-)
-$sourceDll = $sourceDllCandidates |
-  Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } |
-  Select-Object -First 1
-if ([string]::IsNullOrWhiteSpace($sourceDll)) {
-  throw "安装包中未找到 BIMBaoGui.RevitAddin.dll。SourceRoot=$sourceRootFull"
-}
-$sourceDll = [IO.Path]::GetFullPath($sourceDll)
+) "BIMBaoGui.RevitAddin.dll"
 $sourceAddinDirectory = Split-Path -Parent $sourceDll
 $sourcePdb = [IO.Path]::ChangeExtension($sourceDll, ".pdb")
 
-$contractsCandidates = @(
+$sourceContractsDll = Find-RequiredFile @(
   (Join-Path $sourceAddinDirectory "BIMBaoGui.McpContracts.dll"),
   (Join-Path $sourceRootFull "BIMBaoGui.McpContracts.dll"),
   (Join-Path $sourceRootFull "BIMBaoGui.RevitAddin\BIMBaoGui.McpContracts.dll")
-)
-$sourceContractsDll = $contractsCandidates |
-  Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } |
-  Select-Object -First 1
-if ([string]::IsNullOrWhiteSpace($sourceContractsDll)) {
-  throw "安装包中未找到 BIMBaoGui.McpContracts.dll。SourceRoot=$sourceRootFull"
-}
-$sourceContractsDll = [IO.Path]::GetFullPath($sourceContractsDll)
+) "BIMBaoGui.McpContracts.dll"
 $sourceContractsPdb = [IO.Path]::ChangeExtension($sourceContractsDll, ".pdb")
 
-$mcpServerCandidates = @(
+$sourceHifcCoreDll = Find-RequiredFile @(
+  (Join-Path $sourceAddinDirectory "BIMBaoGui.HifcCore.dll"),
+  (Join-Path $sourceRootFull "BIMBaoGui.HifcCore.dll"),
+  (Join-Path $sourceRootFull "BIMBaoGui.RevitAddin\BIMBaoGui.HifcCore.dll")
+) "BIMBaoGui.HifcCore.dll"
+$sourceHifcCorePdb = [IO.Path]::ChangeExtension($sourceHifcCoreDll, ".pdb")
+
+$sourceMcpServerExe = Find-RequiredFile @(
   (Join-Path $sourceRootFull "BIMBaoGui.McpServer\BIMBaoGui.McpServer.exe"),
   (Join-Path $sourceRootFull "BIMBaoGui.McpServer.exe")
-)
-$sourceMcpServerExe = $mcpServerCandidates |
-  Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } |
-  Select-Object -First 1
-if ([string]::IsNullOrWhiteSpace($sourceMcpServerExe)) {
-  throw "安装包中未找到 BIMBaoGui.McpServer.exe。SourceRoot=$sourceRootFull"
-}
-$sourceMcpServerExe = [IO.Path]::GetFullPath($sourceMcpServerExe)
+) "BIMBaoGui.McpServer.exe"
 $sourceMcpServerPdb = [IO.Path]::ChangeExtension($sourceMcpServerExe, ".pdb")
 $productVersion = [Reflection.AssemblyName]::GetAssemblyName($sourceDll).Version.ToString()
 
-if (-not $PSCmdlet.ShouldProcess($productRoot, "安装 BIMBaoGui Revit 2020 原生插件 $productVersion 及 MCP Server $mcpVersion")) {
+if (-not $PSCmdlet.ShouldProcess(
+  $productRoot,
+  "安装 BIMBaoGui Revit 2020 原生插件 $productVersion 及 MCP Server $mcpVersion")) {
   return
 }
 
@@ -130,37 +153,32 @@ try {
 
   $stagedDll = Join-Path $stagingRoot "BIMBaoGui.RevitAddin.dll"
   $stagedContractsDll = Join-Path $stagingRoot "BIMBaoGui.McpContracts.dll"
+  $stagedHifcCoreDll = Join-Path $stagingRoot "BIMBaoGui.HifcCore.dll"
   $stagedMcpServerExe = Join-Path $mcpStagingRoot "BIMBaoGui.McpServer.exe"
   Copy-Item -LiteralPath $sourceDll -Destination $stagedDll -Force
   Copy-Item -LiteralPath $sourceContractsDll -Destination $stagedContractsDll -Force
+  Copy-Item -LiteralPath $sourceHifcCoreDll -Destination $stagedHifcCoreDll -Force
   Copy-Item -LiteralPath $sourceMcpServerExe -Destination $stagedMcpServerExe -Force
 
-  if (Test-Path -LiteralPath $sourcePdb -PathType Leaf) {
-    Copy-Item -LiteralPath $sourcePdb -Destination (Join-Path $stagingRoot "BIMBaoGui.RevitAddin.pdb") -Force
-  }
-  if (Test-Path -LiteralPath $sourceContractsPdb -PathType Leaf) {
-    Copy-Item -LiteralPath $sourceContractsPdb -Destination (Join-Path $stagingRoot "BIMBaoGui.McpContracts.pdb") -Force
-  }
-  if (Test-Path -LiteralPath $sourceMcpServerPdb -PathType Leaf) {
-    Copy-Item -LiteralPath $sourceMcpServerPdb -Destination (Join-Path $mcpStagingRoot "BIMBaoGui.McpServer.pdb") -Force
+  foreach ($copy in @(
+    @($sourcePdb, (Join-Path $stagingRoot "BIMBaoGui.RevitAddin.pdb")),
+    @($sourceContractsPdb, (Join-Path $stagingRoot "BIMBaoGui.McpContracts.pdb")),
+    @($sourceHifcCorePdb, (Join-Path $stagingRoot "BIMBaoGui.HifcCore.pdb")),
+    @($sourceMcpServerPdb, (Join-Path $mcpStagingRoot "BIMBaoGui.McpServer.pdb"))
+  )) {
+    if (Test-Path -LiteralPath $copy[0] -PathType Leaf) {
+      Copy-Item -LiteralPath $copy[0] -Destination $copy[1] -Force
+    }
   }
 
-  $sourceHash = (Get-FileHash -LiteralPath $sourceDll -Algorithm SHA256).Hash.ToLowerInvariant()
-  $installedHash = (Get-FileHash -LiteralPath $stagedDll -Algorithm SHA256).Hash.ToLowerInvariant()
-  $contractsDllSha256 = (Get-FileHash -LiteralPath $sourceContractsDll -Algorithm SHA256).Hash.ToLowerInvariant()
-  $stagedContractsHash = (Get-FileHash -LiteralPath $stagedContractsDll -Algorithm SHA256).Hash.ToLowerInvariant()
-  $mcpServerExeSha256 = (Get-FileHash -LiteralPath $sourceMcpServerExe -Algorithm SHA256).Hash.ToLowerInvariant()
-  $stagedMcpServerHash = (Get-FileHash -LiteralPath $stagedMcpServerExe -Algorithm SHA256).Hash.ToLowerInvariant()
-
-  if (-not [string]::Equals($sourceHash, $installedHash, [StringComparison]::OrdinalIgnoreCase)) {
-    throw "Revit DLL 复制后 SHA-256 不一致，拒绝安装。sourceHash=$sourceHash installedHash=$installedHash"
-  }
-  if (-not [string]::Equals($contractsDllSha256, $stagedContractsHash, [StringComparison]::OrdinalIgnoreCase)) {
-    throw "MCP Contracts DLL 复制后 SHA-256 不一致，拒绝安装。"
-  }
-  if (-not [string]::Equals($mcpServerExeSha256, $stagedMcpServerHash, [StringComparison]::OrdinalIgnoreCase)) {
-    throw "MCP Server EXE 复制后 SHA-256 不一致，拒绝安装。"
-  }
+  $sourceHash = Get-LowerSha256 $sourceDll
+  $contractsDllSha256 = Get-LowerSha256 $sourceContractsDll
+  $hifcCoreDllSha256 = Get-LowerSha256 $sourceHifcCoreDll
+  $mcpServerExeSha256 = Get-LowerSha256 $sourceMcpServerExe
+  Assert-SameHash $sourceHash (Get-LowerSha256 $stagedDll) "Revit DLL"
+  Assert-SameHash $contractsDllSha256 (Get-LowerSha256 $stagedContractsDll) "MCP Contracts DLL"
+  Assert-SameHash $hifcCoreDllSha256 (Get-LowerSha256 $stagedHifcCoreDll) "H-IFC Core DLL"
+  Assert-SameHash $mcpServerExeSha256 (Get-LowerSha256 $stagedMcpServerExe) "MCP Server EXE"
 
   if (Test-Path -LiteralPath $productRoot) {
     Remove-Item -LiteralPath $productRoot -Recurse -Force
@@ -180,6 +198,7 @@ try {
 
   $installedDllPath = [IO.Path]::GetFullPath((Join-Path $productRoot "BIMBaoGui.RevitAddin.dll"))
   $installedContractsPath = [IO.Path]::GetFullPath((Join-Path $productRoot "BIMBaoGui.McpContracts.dll"))
+  $installedHifcCorePath = [IO.Path]::GetFullPath((Join-Path $productRoot "BIMBaoGui.HifcCore.dll"))
   $installedMcpServerPath = [IO.Path]::GetFullPath((Join-Path $mcpServerRoot "BIMBaoGui.McpServer.exe"))
   $escapedAssemblyPath = [System.Security.SecurityElement]::Escape($installedDllPath)
   $manifest = @"
@@ -220,7 +239,7 @@ try {
 
   $installedUtc = [DateTimeOffset]::UtcNow.ToString("O")
   $evidence = [ordered]@{
-    schemaVersion = "2.0.0"
+    schemaVersion = "3.0.0"
     productName = $productName
     productVersion = $productVersion
     mcpProductName = $mcpProductName
@@ -231,31 +250,33 @@ try {
     sourceDll = $sourceDll
     sourceDllSha256 = $sourceHash
     installedDll = $installedDllPath
-    installedDllSha256 = $installedHash
+    installedDllSha256 = $sourceHash
     installedContractsDll = $installedContractsPath
     contractsDllSha256 = $contractsDllSha256
+    installedHifcCoreDll = $installedHifcCorePath
+    hifcCoreDllSha256 = $hifcCoreDllSha256
     installedMcpServerExe = $installedMcpServerPath
     mcpServerExeSha256 = $mcpServerExeSha256
     manifestPath = [IO.Path]::GetFullPath($manifestPath)
     mcpConfigPath = [IO.Path]::GetFullPath($mcpConfigPath)
     bridgeDiscoveryRoot = [IO.Path]::GetFullPath($bridgeDiscoveryRoot)
   }
+  $evidenceJson = $evidence | ConvertTo-Json -Depth 8
   $evidencePath = Join-Path $productRoot "install-evidence.json"
-  [IO.File]::WriteAllText(
-    $evidencePath,
-    ($evidence | ConvertTo-Json -Depth 8),
-    $utf8NoBom)
+  [IO.File]::WriteAllText($evidencePath, $evidenceJson, $utf8NoBom)
   [IO.File]::WriteAllText(
     (Join-Path $mcpServerRoot "install-evidence.json"),
-    ($evidence | ConvertTo-Json -Depth 8),
+    $evidenceJson,
     $utf8NoBom)
 
   foreach ($path in @(
     $installedDllPath,
     $installedContractsPath,
+    $installedHifcCorePath,
     $installedMcpServerPath,
     (Join-Path $productRoot "BIMBaoGui.RevitAddin.pdb"),
     (Join-Path $productRoot "BIMBaoGui.McpContracts.pdb"),
+    (Join-Path $productRoot "BIMBaoGui.HifcCore.pdb"),
     (Join-Path $mcpServerRoot "BIMBaoGui.McpServer.pdb")
   )) {
     if (Test-Path -LiteralPath $path -PathType Leaf) {
@@ -263,26 +284,20 @@ try {
     }
   }
 
-  $finalHash = (Get-FileHash -LiteralPath $installedDllPath -Algorithm SHA256).Hash.ToLowerInvariant()
-  $finalContractsHash = (Get-FileHash -LiteralPath $installedContractsPath -Algorithm SHA256).Hash.ToLowerInvariant()
-  $finalMcpHash = (Get-FileHash -LiteralPath $installedMcpServerPath -Algorithm SHA256).Hash.ToLowerInvariant()
-  if (-not [string]::Equals($installedHash, $finalHash, [StringComparison]::OrdinalIgnoreCase)) {
-    throw "正式安装目录中的 Revit DLL SHA-256 与验证值不一致。"
-  }
-  if (-not [string]::Equals($contractsDllSha256, $finalContractsHash, [StringComparison]::OrdinalIgnoreCase)) {
-    throw "正式安装目录中的 MCP Contracts DLL SHA-256 与验证值不一致。"
-  }
-  if (-not [string]::Equals($mcpServerExeSha256, $finalMcpHash, [StringComparison]::OrdinalIgnoreCase)) {
-    throw "正式安装目录中的 MCP Server EXE SHA-256 与验证值不一致。"
-  }
+  Assert-SameHash $sourceHash (Get-LowerSha256 $installedDllPath) "正式 Revit DLL"
+  Assert-SameHash $contractsDllSha256 (Get-LowerSha256 $installedContractsPath) "正式 MCP Contracts DLL"
+  Assert-SameHash $hifcCoreDllSha256 (Get-LowerSha256 $installedHifcCorePath) "正式 H-IFC Core DLL"
+  Assert-SameHash $mcpServerExeSha256 (Get-LowerSha256 $installedMcpServerPath) "正式 MCP Server EXE"
 
   Write-Host "BIMBaoGui Revit 2020 原生插件及 MCP Server 安装完成。"
   Write-Host "Manifest: $manifestPath"
   Write-Host "Revit Assembly: $installedDllPath"
+  Write-Host "H-IFC Core: $installedHifcCorePath"
   Write-Host "MCP Server: $installedMcpServerPath"
   Write-Host "MCP Config: $mcpConfigPath"
-  Write-Host "Revit SHA-256: $finalHash"
-  Write-Host "MCP SHA-256: $finalMcpHash"
+  Write-Host "Revit SHA-256: $sourceHash"
+  Write-Host "H-IFC Core SHA-256: $hifcCoreDllSha256"
+  Write-Host "MCP SHA-256: $mcpServerExeSha256"
 }
 finally {
   if (Test-Path -LiteralPath $stagingRoot) {
