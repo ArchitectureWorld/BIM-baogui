@@ -2,14 +2,15 @@
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <AssemblyName>BIMBaoGui.RevitAddin</AssemblyName>
     <RootNamespace>BIMBaoGui.RevitAddin</RootNamespace>
-    <Version>0.3.2</Version>
-    <FileVersion>0.3.2.0</FileVersion>
-    <AssemblyVersion>0.3.2.0</AssemblyVersion>
+    <Version>0.4.0</Version>
+    <FileVersion>0.4.0.0</FileVersion>
+    <AssemblyVersion>0.4.0.0</AssemblyVersion>
     <Deterministic>true</Deterministic>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>1591</NoWarn>
@@ -25,6 +26,7 @@
   <ItemGroup>
     <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="2020.0.1" PrivateAssets="all" ExcludeAssets="runtime" />
     <Reference Include="System.Web.Extensions" />
+    <ProjectReference Include="..\BIMBaoGui.HifcCore\BIMBaoGui.HifcCore.csproj" />
     <ProjectReference Include="..\BIMBaoGui.McpContracts\BIMBaoGui.McpContracts.csproj" />
   </ItemGroup>
 
