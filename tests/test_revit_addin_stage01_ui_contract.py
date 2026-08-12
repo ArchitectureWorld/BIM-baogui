@@ -2,7 +2,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT = ROOT / "src" / "BIMBaoGui.RevitAddin"
-WORKFLOW = ROOT / ".github" / "workflows" / "build-revit-addin.yml"
+WORKFLOW = ROOT / ".github" / "workflows" / "build-revit-mcp.yml"
 
 
 def read(path: Path) -> str:
@@ -79,10 +79,7 @@ def test_workspace_hosts_real_stage01_stage02_and_keeps_stage03_independent():
     assert "Stage03 将作为独立原生模块继续开发" in source
 
 
-def test_native_ci_runs_stage01_ui_contract():
+def test_unified_ci_runs_stage01_ui_contract():
     workflow = read(WORKFLOW)
-    assert "Verify native Stage01 UI contract" in workflow
-    assert (
-        "python -m pytest tests/test_revit_addin_stage01_ui_contract.py -q"
-        in workflow
-    )
+    assert "Verify native and MCP contracts" in workflow
+    assert "tests/test_revit_addin_stage01_ui_contract.py" in workflow
