@@ -1,0 +1,34 @@
+name: Export BIMBaoGui source snapshot
+
+on:
+  push:
+    branches:
+      - feat/revit-native-addin-mcp-v0.3
+    paths:
+      - ".github/workflows/export-source-snapshot.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Archive tracked source
+        shell: bash
+        run: git archive --format=zip HEAD -o BIM-baogui-source.zip
+
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v7
+        with:
+          name: BIM-baogui-source-${{ github.sha }}
+          path: BIM-baogui-source.zip
+          if-no-files-found: error
+          retention-days: 1
