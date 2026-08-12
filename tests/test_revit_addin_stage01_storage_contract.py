@@ -2,7 +2,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "src" / "BIMBaoGui.RevitAddin" / "Stage01" / "NativeStage01Storage.cs"
-WORKFLOW = ROOT / ".github" / "workflows" / "build-revit-addin.yml"
+WORKFLOW = ROOT / ".github" / "workflows" / "build-revit-mcp.yml"
 
 
 def read(path: Path) -> str:
@@ -32,10 +32,7 @@ def test_storage_is_a_persistence_adapter_not_a_transaction_owner():
     assert "ParameterBindings" not in source
 
 
-def test_native_ci_runs_stage01_storage_contract():
+def test_unified_ci_runs_stage01_storage_contract():
     workflow = read(WORKFLOW)
-    assert "Verify native Stage01 storage contract" in workflow
-    assert (
-        "python -m pytest tests/test_revit_addin_stage01_storage_contract.py -q"
-        in workflow
-    )
+    assert "Verify native and MCP contracts" in workflow
+    assert "tests/test_revit_addin_stage01_storage_contract.py" in workflow
