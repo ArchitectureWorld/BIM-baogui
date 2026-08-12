@@ -72,7 +72,7 @@
 - MCP 工具输入中的 `confirm_blank_project` 继续允许传入，标记为 deprecated，并被忽略；
 - 既有客户端不会因为字段消失而报错；
 - 新版原生 UI 不再显示该复选框；
-- `NativeStage01BlankModelGate` 不再进入生产调用链，可在实现阶段删除或保留为未引用历史代码，最终以无死代码为目标。
+- 删除 `NativeStage01BlankModelGate.cs`、`NativeStage01DocumentState.BlockingElements`、`BLANK_CONFIRMATION_REQUIRED` 和 `MODEL_NOT_BLANK` 生产逻辑及其旧测试；不保留不可达的空模型门禁代码。
 
 ## 3.2 状态与报告区域改为固定高度
 
@@ -210,11 +210,11 @@ ActiveFields
 
 ### 7.1 门禁测试
 
-- `NoRecord + BlockingElements.Count > 0 + 领域校验通过` 应允许初始化；
+- 已有模型构件且无 Stage01 记录，只要领域与文档状态校验通过，就允许初始化；
 - 首次初始化不再要求 `confirmBlankProject`；
 - `Current + allowReinitialize=false` 仍阻断；
 - Corrupt、UnsupportedFuture、ReadOnly、Unsaved、FamilyDocument 行为保持不变；
-- `NativeStage01RevitService` 不再调用 `NativeStage01BlankModelGate.FindBlockingElements`。
+- `NativeStage01RevitService` 不再调用或引用 `NativeStage01BlankModelGate`。
 
 ### 7.2 UI 合同测试
 
