@@ -10,6 +10,7 @@ CONFIG_EXAMPLE = ROOT / "installer" / "mcp-server-config.example.json"
 WORKFLOW = ROOT / ".github" / "workflows" / "build-revit-mcp.yml"
 STDIO_WORKFLOW = ROOT / ".github" / "workflows" / "verify-revit-mcp-stdio.yml"
 ADDIN_PROJECT = ROOT / "src" / "BIMBaoGui.RevitAddin" / "BIMBaoGui.RevitAddin.csproj"
+HIFC_PROJECT = ROOT / "src" / "BIMBaoGui.HifcCore" / "BIMBaoGui.HifcCore.csproj"
 MCP_PROJECT = ROOT / "src" / "BIMBaoGui.McpServer" / "BIMBaoGui.McpServer.csproj"
 README = ROOT / "docs" / "revit-addin" / "README.md"
 
@@ -18,31 +19,34 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def test_product_and_install_paths_are_uniformly_versioned_032():
+def test_product_and_install_paths_are_uniformly_versioned_040():
     installer = read(INSTALLER)
     addin_project = read(ADDIN_PROJECT)
+    hifc_project = read(HIFC_PROJECT)
     mcp_project = read(MCP_PROJECT)
     probe = read(PROBE_CMD)
     example = read(CONFIG_EXAMPLE)
-    assert "<Version>0.3.2</Version>" in addin_project
-    assert "<AssemblyVersion>0.3.2.0</AssemblyVersion>" in addin_project
-    assert "<Version>0.3.2</Version>" in mcp_project
-    assert '$mcpVersion = "0.3.2"' in installer
+    for project in (addin_project, hifc_project, mcp_project):
+        assert "<Version>0.4.0</Version>" in project
+        assert "<AssemblyVersion>0.4.0.0</AssemblyVersion>" in project
+    assert '$mcpVersion = "0.4.0"' in installer
     assert 'Join-Path $mcpBaseRoot $mcpVersion' in installer
-    assert "McpServer\\0.3.2" in probe
-    assert "McpServer\\\\0.3.2" in example
+    assert "McpServer\\0.4.0" in probe
+    assert "McpServer\\\\0.4.0" in example
 
 
-def test_installer_keeps_revit_user_addin_and_adds_versioned_mcp_server():
+def test_installer_keeps_revit_user_addin_and_adds_stage03_dependencies():
     source = read(INSTALLER)
     assert '$env:APPDATA' in source
     assert '"Autodesk\\Revit\\Addins\\2020"' in source
     assert '$env:LOCALAPPDATA' in source
-    assert '$mcpVersion = "0.3.2"' in source
+    assert '$mcpVersion = "0.4.0"' in source
     assert 'Join-Path $mcpBaseRoot $mcpVersion' in source
     assert '"BIMBaoGui.McpServer.exe"' in source
     assert '"BIMBaoGui.McpContracts.dll"' in source
+    assert '"BIMBaoGui.HifcCore.dll"' in source
     assert '"mcp-server-config.json"' in source
+    assert "hifcCoreDllSha256" in source
 
 
 def test_installer_removes_superseded_mcp_version_directories():
@@ -112,27 +116,33 @@ def test_only_unified_workflow_owns_official_sdk_stdio_verification():
     assert "dotnet run" in workflow
 
 
-def test_mcp_workflow_builds_one_complete_installable_zip():
+def test_mcp_workflow_builds_one_complete_stage03_installable_zip():
     workflow = read(WORKFLOW)
     for text in (
+        'dotnet build src/BIMBaoGui.HifcCore/BIMBaoGui.HifcCore.csproj',
         'dotnet build src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj',
         'dotnet publish src/BIMBaoGui.McpServer/BIMBaoGui.McpServer.csproj',
         'tests/test_revit_addin_mcp_installer_contract.py',
+        'tests/test_revit_addin_stage03_ui_contract.py',
+        'tests/test_revit_addin_mcp_stage03_contract.py',
         'installer/McpProbe.cmd',
         'installer/mcp-server-config.example.json',
+        'BIMBaoGui.HifcCore.dll',
         'BIMBaoGui.McpContracts.dll',
         'BIMBaoGui.McpServer.exe',
         'Install-Revit2020.ps1',
         'SHA256SUMS.txt',
-        'name: BIMBaoGui-Revit2020-Native-MCP-v0.3.2',
+        'name: BIMBaoGui-Revit2020-Native-MCP-v0.4.0',
     ):
         assert text in workflow
 
 
-def test_readme_states_condition_gate_and_hifc_verification_boundary():
+def test_readme_states_stage03_and_ifcflux_manual_boundary():
     source = read(README)
-    assert "产品版本：0.3.2" in source
+    assert "产品版本：0.4.0" in source
     assert "项目条件" in source
     assert "无上述项目条件（已确认）" in source
-    assert "Stage01、Stage02" in source
-    assert "不能证明 H-IFC 已识别" in source
+    assert "Stage03" in source
+    assert "INTERNAL_VALIDATED" in source
+    assert "IFCFLUX_MANUAL_PENDING" in source
+    assert "IFCFlux" in source
