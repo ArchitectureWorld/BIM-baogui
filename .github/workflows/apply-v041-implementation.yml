@@ -5,7 +5,6 @@ on:
     branches:
       - feat/revit-native-addin-mcp-v0.3
     paths:
-      - ".github/patches/v041-implementation.patch.gz.b64"
       - ".github/workflows/apply-v041-implementation.yml"
 
 permissions:
@@ -21,15 +20,37 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Decode and verify atomic patch
+      - name: Reassemble and verify atomic patch
         shell: bash
         run: |
           set -euo pipefail
-          base64 --decode .github/patches/v041-implementation.patch.gz.b64 \
+          mapfile -t parts < <(
+            find .github/patches -maxdepth 1 -type f \
+              -name 'v041-implementation.patch.gz.b64.part-*' \
+              | sort
+          )
+          test "${#parts[@]}" -eq 9
+
+          cat "${parts[@]}" | tr -d '\r\n' \
+            > "$RUNNER_TEMP/v041-implementation.patch.gz.b64"
+          test "$(wc -c < "$RUNNER_TEMP/v041-implementation.patch.gz.b64")" \
+            -eq 52400
+
+          base64_sha="$(
+            sha256sum "$RUNNER_TEMP/v041-implementation.patch.gz.b64" \
+              | awk '{print $1}'
+          )"
+          test "$base64_sha" = \
+            "f2362a0761d0e266e6cda5dd2e91327df8a924ba3abb9d55250033d23e8cd354"
+
+          base64 --decode "$RUNNER_TEMP/v041-implementation.patch.gz.b64" \
             | gzip --decompress > "$RUNNER_TEMP/v041-implementation.patch"
-          actual="$(sha256sum "$RUNNER_TEMP/v041-implementation.patch" | awk '{print $1}')"
-          expected="ae30a5cd9bea927218c2784516d7c98d87d66812afbff90ca82aece0969291fc"
-          test "$actual" = "$expected"
+          patch_sha="$(
+            sha256sum "$RUNNER_TEMP/v041-implementation.patch" \
+              | awk '{print $1}'
+          )"
+          test "$patch_sha" = \
+            "ae30a5cd9bea927218c2784516d7c98d87d66812afbff90ca82aece0969291fc"
           git apply --check "$RUNNER_TEMP/v041-implementation.patch"
 
       - name: Apply implementation as one commit
@@ -37,18 +58,29 @@ jobs:
         run: |
           set -euo pipefail
           git apply --index "$RUNNER_TEMP/v041-implementation.patch"
-          git rm -f \
-            .github/patches/v041-implementation.patch.gz.b64 \
-            .github/workflows/apply-v041-implementation.yml
 
-          changed="$(git diff --cached --name-only)"
-          if printf '%s\n' "$changed" | grep -E '^(src/BIMBaoGui\.Stage01/|\.github/workflows/build-stage01-gha\.yml$)'; then
+          mapfile -t implementation_changed < <(
+            git diff --cached --name-only | sed '/^$/d'
+          )
+          test "${#implementation_changed[@]}" -eq 48
+          if printf '%s\n' "${implementation_changed[@]}" \
+            | grep -E '^(src/BIMBaoGui\.Stage01/|\.github/workflows/build-stage01-gha\.yml$)'; then
             echo "v0.4.1 patch unexpectedly modifies the GHA product line." >&2
             exit 1
           fi
-          test "$(printf '%s\n' "$changed" | sed '/^$/d' | wc -l)" -eq 48
+
+          git rm -f \
+            .github/patches/v041-implementation.patch.gz.b64 \
+            .github/patches/v041-implementation.patch.gz.b64.part-* \
+            .github/workflows/apply-v041-implementation.yml
+
+          mapfile -t all_changed < <(
+            git diff --cached --name-only | sed '/^$/d'
+          )
+          test "${#all_changed[@]}" -eq 59
 
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "feat: implement Revit native v0.4.1"
           git push origin HEAD:feat/revit-native-addin-mcp-v0.3
