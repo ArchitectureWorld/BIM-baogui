@@ -4,7 +4,7 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-BASELINE = ROOT / "specs" / "revit-addin" / "v0.3.2-functional-baseline.json"
+BASELINE = ROOT / "specs" / "revit-addin" / "v0.4.0-functional-baseline.json"
 
 
 def git_bytes(commit: str, path: str) -> bytes:
@@ -32,7 +32,7 @@ def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def test_revit_manual_and_mcp_product_matches_v032_baseline():
+def test_revit_manual_and_mcp_product_matches_current_baseline():
     manifest = json.loads(BASELINE.read_text(encoding="utf-8"))
     assert manifest["schema_version"] == "BIMBAOGUI_REVIT_FUNCTIONAL_BASELINE_V2"
     assert manifest["product_line"] == "BIMBaoGui Revit 2020 Native + MCP"
