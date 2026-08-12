@@ -15,11 +15,13 @@ namespace BIMBaoGui.RevitAddin.Stage01
     private readonly StackPanel _formPanel;
     private readonly TextBlock _summaryText;
     private readonly TextBlock _statusText;
-    private readonly CheckBox _confirmBlankProject;
     private readonly CheckBox _allowReinitialize;
     private readonly Button _readButton;
     private readonly Button _validateButton;
     private readonly Button _writeButton;
+    private readonly Dictionary<string, bool> _optionalExpansionByGroup =
+      new Dictionary<string, bool>(StringComparer.Ordinal);
+    private Expander _activeOptionalExpander;
     private bool _busy;
 
     internal NativeStage01View()
@@ -34,7 +36,10 @@ namespace BIMBaoGui.RevitAddin.Stage01
       {
         Height = new GridLength(1, GridUnitType.Star)
       });
-      root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+      root.RowDefinitions.Add(new RowDefinition
+      {
+        Height = new GridLength(96)
+      });
 
       var heading = new StackPanel
       {
@@ -69,19 +74,12 @@ namespace BIMBaoGui.RevitAddin.Stage01
       actions.Children.Add(_readButton);
       actions.Children.Add(_validateButton);
       actions.Children.Add(_writeButton);
-      _confirmBlankProject = new CheckBox
-      {
-        Content = "确认当前文件尚未开始正式建模",
-        Margin = new Thickness(14, 8, 0, 0),
-        VerticalAlignment = VerticalAlignment.Center
-      };
       _allowReinitialize = new CheckBox
       {
         Content = "允许重新初始化",
         Margin = new Thickness(14, 8, 0, 0),
         VerticalAlignment = VerticalAlignment.Center
       };
-      actions.Children.Add(_confirmBlankProject);
       actions.Children.Add(_allowReinitialize);
       Grid.SetRow(actions, 1);
       root.Children.Add(actions);
@@ -127,12 +125,18 @@ namespace BIMBaoGui.RevitAddin.Stage01
       {
         Text = "状态：等待读取或填写",
         TextWrapping = TextWrapping.Wrap,
+        Padding = new Thickness(10)
+      };
+      var statusScroll = new ScrollViewer
+      {
+        Content = _statusText,
+        VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+        HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
         Margin = new Thickness(0, 8, 0, 0),
-        Padding = new Thickness(10),
         Background = new SolidColorBrush(Color.FromRgb(245, 247, 250))
       };
-      Grid.SetRow(_statusText, 3);
-      root.Children.Add(_statusText);
+      Grid.SetRow(statusScroll, 3);
+      root.Children.Add(statusScroll);
       Content = root;
 
       RenderAll();
@@ -159,6 +163,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
     private void ValidateCurrentModel()
     {
       NativeStage01ValidationResult validation = _viewModel.Validate();
+      ExpandOptionalSectionsWithErrors();
       RenderAll();
       SetStatus(validation.IsValid
         ? "校验通过：当前表单可提交。"
@@ -179,6 +184,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
             ? found
             : null;
         if (field != null) _viewModel.SetActiveGroup(field.UiGroup);
+        ExpandOptionalSectionsWithErrors();
         RenderAll();
         SetStatus(
           "校验未通过：" + validation.Messages.First().Message);
@@ -189,7 +195,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
       var request = new NativeStage01WriteRequest
       {
         Model = _viewModel.Model.Clone(),
-        ConfirmBlankProject = _confirmBlankProject.IsChecked == true,
+        ConfirmBlankProject = false,
         AllowReinitialize = _allowReinitialize.IsChecked == true
       };
       try
@@ -222,8 +228,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
       }
       _viewModel.LoadModel(result.Model);
       _viewModel.Validate();
+      ExpandOptionalSectionsWithErrors();
       _allowReinitialize.IsChecked = false;
-      _confirmBlankProject.IsChecked = false;
       RenderAll();
       SetStatus(
         result.Status
@@ -251,8 +257,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
       {
         _viewModel.MarkSaved();
         _allowReinitialize.IsChecked = false;
-        _confirmBlankProject.IsChecked = false;
       }
+      ExpandOptionalSectionsWithErrors();
       RenderAll();
       string details = result.Messages.Count == 0
         ? string.Empty
@@ -279,6 +285,11 @@ namespace BIMBaoGui.RevitAddin.Stage01
     {
       RenderDirectory();
       RenderForm();
+      RefreshSummaryText();
+    }
+
+    private void RefreshSummaryText()
+    {
       _summaryText.Text = "当前目录："
         + DisplayName(_viewModel.ActiveGroup)
         + "｜未填必填项："
@@ -325,6 +336,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
 
     private void RenderForm()
     {
+      _activeOptionalExpander = null;
       _formPanel.Children.Clear();
       _formPanel.Children.Add(new TextBlock
       {
@@ -346,8 +358,49 @@ namespace BIMBaoGui.RevitAddin.Stage01
         _viewModel.ActiveFields;
       if (fields.Any(value => value.IsOrganization))
         RenderOrganizationToolbar();
-      foreach (NativeStage01FieldDefinition field in fields)
-        RenderField(field);
+
+      NativeStage01FieldDefinition[] requiredFields = fields
+        .Where(NativeStage01Validator.IsRequired)
+        .ToArray();
+      NativeStage01FieldDefinition[] optionalFields = fields
+        .Where(value => !NativeStage01Validator.IsRequired(value))
+        .ToArray();
+
+      foreach (NativeStage01FieldDefinition field in requiredFields)
+        _formPanel.Children.Add(BuildFieldCard(field));
+
+      if (optionalFields.Length > 0)
+      {
+        string group = _viewModel.ActiveGroup;
+        if (_viewModel.HasOptionalValidationError(group))
+          _optionalExpansionByGroup[group] = true;
+        bool isExpanded = _optionalExpansionByGroup.TryGetValue(
+          group,
+          out bool remembered)
+          && remembered;
+        var optionalPanel = new StackPanel
+        {
+          Margin = new Thickness(0, 6, 0, 0)
+        };
+        foreach (NativeStage01FieldDefinition field in optionalFields)
+          optionalPanel.Children.Add(BuildFieldCard(field));
+
+        var expander = new Expander
+        {
+          Header = OptionalHeader(group),
+          IsExpanded = isExpanded,
+          Content = optionalPanel,
+          Margin = new Thickness(0, 4, 0, 12),
+          FontWeight = FontWeights.SemiBold
+        };
+        expander.Expanded += (_, __) =>
+          _optionalExpansionByGroup[group] = true;
+        expander.Collapsed += (_, __) =>
+          _optionalExpansionByGroup[group] = false;
+        _activeOptionalExpander = expander;
+        _formPanel.Children.Add(expander);
+      }
+
       if (fields.Count == 0)
       {
         _formPanel.Children.Add(new TextBlock
@@ -420,15 +473,22 @@ namespace BIMBaoGui.RevitAddin.Stage01
             IsEnabled = !_busy
           };
           checkBox.Checked += (_, __) =>
+          {
             _viewModel.SetCondition(condition.ConditionId, true);
+            RefreshSummaryText();
+          };
           checkBox.Unchecked += (_, __) =>
+          {
             _viewModel.SetCondition(condition.ConditionId, false);
+            RefreshSummaryText();
+          };
           _formPanel.Children.Add(checkBox);
         }
       }
     }
 
-    private void RenderField(NativeStage01FieldDefinition field)
+    private FrameworkElement BuildFieldCard(
+      NativeStage01FieldDefinition field)
     {
       bool required = NativeStage01Validator.IsRequired(field);
       var panel = new StackPanel();
@@ -469,7 +529,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
         });
       }
 
-      _formPanel.Children.Add(new Border
+      return new Border
       {
         Child = panel,
         BorderBrush = new SolidColorBrush(Color.FromRgb(224, 227, 232)),
@@ -480,7 +540,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
         Background = field.ReadOnly || field.Deferred
           ? new SolidColorBrush(Color.FromRgb(248, 249, 250))
           : Brushes.White
-      });
+      };
     }
 
     private FrameworkElement CreateEditor(NativeStage01FieldDefinition field)
@@ -497,9 +557,9 @@ namespace BIMBaoGui.RevitAddin.Stage01
           Margin = new Thickness(0, 7, 0, 0)
         };
         checkBox.Checked += (_, __) =>
-          _viewModel.SetFieldValue(field, "true");
+          SetFieldValueFromEditor(field, "true");
         checkBox.Unchecked += (_, __) =>
-          _viewModel.SetFieldValue(field, "false");
+          SetFieldValueFromEditor(field, "false");
         return checkBox;
       }
       if (field.Kind == NativeStage01FieldKind.Enum
@@ -514,7 +574,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
           MinHeight = 28
         };
         combo.SelectionChanged += (_, __) =>
-          _viewModel.SetFieldValue(
+          SetFieldValueFromEditor(
             field,
             Convert.ToString(combo.SelectedItem) ?? string.Empty);
         return combo;
@@ -530,8 +590,47 @@ namespace BIMBaoGui.RevitAddin.Stage01
         TextWrapping = TextWrapping.Wrap
       };
       textBox.TextChanged += (_, __) =>
-        _viewModel.SetFieldValue(field, textBox.Text);
+        SetFieldValueFromEditor(field, textBox.Text);
       return textBox;
+    }
+
+    private void SetFieldValueFromEditor(
+      NativeStage01FieldDefinition field,
+      string value)
+    {
+      string normalized = value ?? string.Empty;
+      if (string.Equals(
+        _viewModel.GetFieldValue(field),
+        normalized,
+        StringComparison.Ordinal))
+        return;
+      _viewModel.SetFieldValue(field, normalized);
+      RefreshSummaryText();
+      UpdateOptionalHeader();
+    }
+
+    private void ExpandOptionalSectionsWithErrors()
+    {
+      foreach (string group in _viewModel.Groups)
+      {
+        if (_viewModel.HasOptionalValidationError(group))
+          _optionalExpansionByGroup[group] = true;
+      }
+    }
+
+    private string OptionalHeader(string group)
+    {
+      return "选填项（共 "
+        + _viewModel.GetOptionalFieldCount(group)
+        + " 项，已填写 "
+        + _viewModel.GetFilledOptionalFieldCount(group)
+        + " 项）";
+    }
+
+    private void UpdateOptionalHeader()
+    {
+      if (_activeOptionalExpander == null) return;
+      _activeOptionalExpander.Header = OptionalHeader(_viewModel.ActiveGroup);
     }
 
     private void SetBusy(bool busy, string status)
@@ -540,7 +639,6 @@ namespace BIMBaoGui.RevitAddin.Stage01
       _readButton.IsEnabled = !busy;
       _validateButton.IsEnabled = !busy;
       _writeButton.IsEnabled = !busy;
-      _confirmBlankProject.IsEnabled = !busy;
       _allowReinitialize.IsEnabled = !busy;
       if (!string.IsNullOrWhiteSpace(status)) SetStatus(status);
       RenderAll();
