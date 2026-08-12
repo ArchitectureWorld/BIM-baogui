@@ -7,10 +7,29 @@ UNINSTALL_CMD = ROOT / "installer" / "Uninstall.cmd"
 PROBE_CMD = ROOT / "installer" / "McpProbe.cmd"
 CONFIG_EXAMPLE = ROOT / "installer" / "mcp-server-config.example.json"
 WORKFLOW = ROOT / ".github" / "workflows" / "build-revit-mcp.yml"
+STDIO_WORKFLOW = ROOT / ".github" / "workflows" / "verify-revit-mcp-stdio.yml"
+ADDIN_PROJECT = ROOT / "src" / "BIMBaoGui.RevitAddin" / "BIMBaoGui.RevitAddin.csproj"
+MCP_PROJECT = ROOT / "src" / "BIMBaoGui.McpServer" / "BIMBaoGui.McpServer.csproj"
+README = ROOT / "docs" / "revit-addin" / "README.md"
 
 
 def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def test_product_and_install_paths_are_uniformly_versioned_032():
+    installer = read(INSTALLER)
+    addin_project = read(ADDIN_PROJECT)
+    mcp_project = read(MCP_PROJECT)
+    probe = read(PROBE_CMD)
+    example = read(CONFIG_EXAMPLE)
+    assert "<Version>0.3.2</Version>" in addin_project
+    assert "<AssemblyVersion>0.3.2.0</AssemblyVersion>" in addin_project
+    assert "<Version>0.3.2</Version>" in mcp_project
+    assert '$mcpVersion = "0.3.2"' in installer
+    assert 'Join-Path $mcpBaseRoot $mcpVersion' in installer
+    assert "McpServer\\0.3.2" in probe
+    assert "McpServer\\\\0.3.2" in example
 
 
 def test_installer_keeps_revit_user_addin_and_adds_versioned_mcp_server():
@@ -18,7 +37,8 @@ def test_installer_keeps_revit_user_addin_and_adds_versioned_mcp_server():
     assert '$env:APPDATA' in source
     assert '"Autodesk\\Revit\\Addins\\2020"' in source
     assert '$env:LOCALAPPDATA' in source
-    assert '"BIMBaoGui\\McpServer\\0.3.0"' in source
+    assert '$mcpVersion = "0.3.2"' in source
+    assert 'Join-Path $mcpBaseRoot $mcpVersion' in source
     assert '"BIMBaoGui.McpServer.exe"' in source
     assert '"BIMBaoGui.McpContracts.dll"' in source
     assert '"mcp-server-config.json"' in source
@@ -68,6 +88,14 @@ def test_existing_double_click_install_and_uninstall_entrypoints_remain():
     assert '-Uninstall' in uninstall
 
 
+def test_only_unified_workflow_owns_official_sdk_stdio_verification():
+    workflow = read(WORKFLOW)
+    assert not STDIO_WORKFLOW.exists()
+    assert "tools/BIMBaoGui.McpSmoke/BIMBaoGui.McpSmoke.csproj" in workflow
+    assert "Initialize server, list tools and call a read-only tool" in workflow
+    assert "dotnet run" in workflow
+
+
 def test_mcp_workflow_builds_one_complete_installable_zip():
     workflow = read(WORKFLOW)
     for text in (
@@ -80,7 +108,15 @@ def test_mcp_workflow_builds_one_complete_installable_zip():
         'BIMBaoGui.McpServer.exe',
         'Install-Revit2020.ps1',
         'SHA256SUMS.txt',
-        'name: BIMBaoGui-Revit2020-Native-MCP',
+        'name: BIMBaoGui-Revit2020-Native-MCP-v0.3.2',
     ):
         assert text in workflow
-    assert 'BIMBaoGui-Revit2020-Native-MCP-v0.3.0' not in workflow
+
+
+def test_readme_states_condition_gate_and_hifc_verification_boundary():
+    source = read(README)
+    assert "产品版本：0.3.2" in source
+    assert "项目条件" in source
+    assert "无上述项目条件（已确认）" in source
+    assert "Stage01、Stage02" in source
+    assert "不能证明 H-IFC 已识别" in source
