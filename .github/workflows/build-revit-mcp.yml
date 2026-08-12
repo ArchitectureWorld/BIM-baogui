@@ -301,7 +301,7 @@ jobs:
       - name: Upload complete Revit MCP installer
         uses: actions/upload-artifact@v7
         with:
-          name: BIMBaoGui-Revit2020-Native-MCP-v0.3.0
+          name: BIMBaoGui-Revit2020-Native-MCP
           path: artifacts
           if-no-files-found: error
           retention-days: 30
