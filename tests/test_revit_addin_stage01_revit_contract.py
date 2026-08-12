@@ -61,6 +61,12 @@ def test_stage01_first_initialization_does_not_scan_or_block_existing_model():
     assert "ModelNotBlank" not in preflight
 
 
+def test_stage01_read_reconciles_new_rule_condition_keys_without_declaring_for_the_user():
+    source = read("NativeStage01RevitReadService.cs")
+    assert "NativeStage01ConditionSchemaPolicy.Reconcile" in source
+    assert "未替用户选择或声明项目条件" in source
+
+
 def test_unified_ci_runs_stage01_revit_contract():
     workflow = WORKFLOW.read_text(encoding="utf-8")
     assert "Verify native and MCP contracts" in workflow
