@@ -86,6 +86,10 @@ def test_package_contains_double_click_probe_and_generic_config_example():
     assert '"command"' in example
 
 
+def test_probe_script_uses_repository_normalized_line_endings():
+    assert b"\r" not in PROBE_CMD.read_bytes()
+
+
 def test_existing_double_click_install_and_uninstall_entrypoints_remain():
     install = read(INSTALL_CMD)
     uninstall = read(UNINSTALL_CMD)
