@@ -68,5 +68,9 @@ namespace BIMBaoGui.McpContracts
     public const string Stage01Write = "stage01.write";
     public const string Stage02Preview = "stage02.preview";
     public const string Stage02Write = "stage02.write";
+    public const string Stage03Scan = "stage03.scan";
+    public const string Stage03Export = "stage03.export";
+    public const string Stage03GetLastResult = "stage03.last_result";
+    public const string Stage03RevalidateFile = "stage03.revalidate_file";
   }
 }
