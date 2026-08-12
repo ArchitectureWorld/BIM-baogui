@@ -5,6 +5,7 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using BIMBaoGui.RevitAddin.McpBridge;
+using BIMBaoGui.RevitAddin.Stage03;
 
 namespace BIMBaoGui.RevitAddin
 {
@@ -55,6 +56,7 @@ namespace BIMBaoGui.RevitAddin
           "湖北BIM报规",
           WorkspaceDockablePaneProvider.Instance);
 
+        NativeStage03TemporaryFilePolicy.Start();
         try
         {
           RevitExternalEventDispatcher.EnsureInitialized();
@@ -69,6 +71,7 @@ namespace BIMBaoGui.RevitAddin
       }
       catch
       {
+        NativeStage03TemporaryFilePolicy.Stop();
         return Result.Failed;
       }
     }
@@ -77,6 +80,7 @@ namespace BIMBaoGui.RevitAddin
     {
       McpBridgeHost.Stop();
       RevitExternalEventDispatcher.Dispose();
+      NativeStage03TemporaryFilePolicy.Stop();
       return Result.Succeeded;
     }
   }
