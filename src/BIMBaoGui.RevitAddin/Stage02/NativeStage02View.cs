@@ -32,7 +32,10 @@ namespace BIMBaoGui.RevitAddin.Stage02
       {
         Height = new GridLength(1, GridUnitType.Star)
       });
-      root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+      root.RowDefinitions.Add(new RowDefinition
+      {
+        Height = new GridLength(96)
+      });
 
       var heading = new StackPanel { Margin = new Thickness(0, 0, 0, 10) };
       heading.Children.Add(new TextBlock
@@ -120,12 +123,18 @@ namespace BIMBaoGui.RevitAddin.Stage02
       {
         Text = "状态：等待生成预览",
         TextWrapping = TextWrapping.Wrap,
+        Padding = new Thickness(10)
+      };
+      var statusScroll = new ScrollViewer
+      {
+        Content = _statusText,
+        VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+        HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
         Margin = new Thickness(0, 8, 0, 0),
-        Padding = new Thickness(10),
         Background = new SolidColorBrush(Color.FromRgb(245, 247, 250))
       };
-      Grid.SetRow(_statusText, 3);
-      root.Children.Add(_statusText);
+      Grid.SetRow(statusScroll, 3);
+      root.Children.Add(statusScroll);
       Content = root;
       RenderElements();
     }
