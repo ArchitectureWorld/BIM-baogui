@@ -1,3 +1,4 @@
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -86,8 +87,12 @@ def test_package_contains_double_click_probe_and_generic_config_example():
     assert '"command"' in example
 
 
-def test_probe_script_uses_repository_normalized_line_endings():
-    assert b"\r" not in PROBE_CMD.read_bytes()
+def test_probe_script_git_blob_has_no_carriage_returns():
+    raw = subprocess.check_output(
+        ["git", "show", "HEAD:installer/McpProbe.cmd"],
+        cwd=ROOT,
+    )
+    assert b"\r" not in raw
 
 
 def test_existing_double_click_install_and_uninstall_entrypoints_remain():
