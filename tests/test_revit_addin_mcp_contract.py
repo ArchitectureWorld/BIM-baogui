@@ -18,6 +18,7 @@ def test_revit_addin_keeps_existing_business_files_frozen_and_adds_bridge_sideca
     assert "RevitExternalEventDispatcher.EnsureInitialized" in app
     assert "return Result.Succeeded" in app
     assert "BIMBaoGui.McpContracts.csproj" in project
+    assert "BIMBaoGui.HifcCore.csproj" in project
     for forbidden in ("Grasshopper", "RhinoCommon", "RhinoInside"):
         assert forbidden not in project
 
@@ -38,16 +39,19 @@ def test_pipe_bridge_is_current_user_authenticated_and_size_limited():
 
 def test_bridge_routes_revit_work_only_through_existing_external_event_dispatcher():
     gateway = read(ADDIN / "McpBridge" / "McpRevitCommandGateway.cs")
-    assert "TaskCompletionSource" in gateway
-    assert "RunContinuationsAsynchronously" in gateway
     for method in (
         "RequestDocumentSnapshot",
         "RequestStage01Read",
         "RequestStage01Write",
         "RequestStage02Preview",
         "RequestStage02Write",
+        "RequestStage03Scan",
+        "RequestStage03Export",
+        "RequestStage03Revalidate",
     ):
         assert method in gateway
+    assert "TaskCompletionSource" in gateway
+    assert "RunContinuationsAsynchronously" in gateway
     assert "new Transaction(" not in gateway
 
 
@@ -63,6 +67,10 @@ def test_router_exposes_only_approved_business_methods():
         "BridgeMethodNames.Stage01Write",
         "BridgeMethodNames.Stage02Preview",
         "BridgeMethodNames.Stage02Write",
+        "BridgeMethodNames.Stage03Scan",
+        "BridgeMethodNames.Stage03Export",
+        "BridgeMethodNames.Stage03GetLastResult",
+        "BridgeMethodNames.Stage03RevalidateFile",
     ):
         assert method in router
     assert "BridgeErrorCodes.UnknownMethod" in router
@@ -102,7 +110,7 @@ def test_official_sdk_stdio_server_is_self_contained_and_logs_to_stderr():
     assert "WithToolsFromAssembly" in program
     assert "LogToStandardErrorThreshold" in program
     assert "McpServerToolType" in tools
-    assert tools.count("[McpServerTool(") == 9
+    assert tools.count("[McpServerTool(") == 13
     for tool_name in (
         "bimbaogui_list_revit_sessions",
         "bimbaogui_get_document_status",
@@ -113,6 +121,10 @@ def test_official_sdk_stdio_server_is_self_contained_and_logs_to_stderr():
         "bimbaogui_stage01_write",
         "bimbaogui_stage02_preview",
         "bimbaogui_stage02_write",
+        "bimbaogui_stage03_scan",
+        "bimbaogui_stage03_export",
+        "bimbaogui_stage03_get_last_result",
+        "bimbaogui_stage03_revalidate_file",
     ):
         assert tool_name in tools
 
@@ -121,11 +133,16 @@ def test_write_tools_require_confirmation_and_hash_leases():
     tools = read(SERVER / "BimBaoGuiTools.cs")
     stage01 = read(ADDIN / "McpBridge" / "McpStage01Adapter.cs")
     stage02 = read(ADDIN / "McpBridge" / "McpStage02Adapter.cs")
+    stage03 = read(ADDIN / "McpBridge" / "McpStage03Adapter.cs")
     assert "bool confirm" in tools
     assert "validation_hash" in tools
     assert "preview_hash" in tools
+    assert "scan_hash" in tools
     assert "BridgeErrorCodes.ConfirmationRequired" in stage01
     assert "BridgeErrorCodes.ConfirmationRequired" in stage02
+    assert "BridgeErrorCodes.ConfirmationRequired" in stage03
     assert "Consume(validationHash)" in stage01
     assert "Consume(previewHash)" in stage02
+    assert "Consume(scanHash)" in stage03
     assert "NativeStage02RevitWriteService" not in tools
+    assert "NativeStage03WorkflowService" not in tools
