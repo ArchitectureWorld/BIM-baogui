@@ -87,10 +87,13 @@ namespace BIMBaoGui.HifcCore.Tests
     {
       using (var sandbox = new TemporaryDirectory())
       {
+        string source = sandbox.CopyFixture();
         string path = Path.Combine(sandbox.Path, "ifc2x3.ifc");
+        string text = File.ReadAllText(source)
+          .Replace("FILE_SCHEMA(('IFC4'));", "FILE_SCHEMA(('IFC2X3'));");
         File.WriteAllText(
           path,
-          "ISO-10303-21;\r\nHEADER;\r\nFILE_SCHEMA(('IFC2X3'));\r\nENDSEC;\r\nDATA;\r\nENDSEC;\r\nEND-ISO-10303-21;\r\n",
+          text,
           new System.Text.UTF8Encoding(false));
 
         HifcValidationResult result = HifcCoreService.ValidateFile(
