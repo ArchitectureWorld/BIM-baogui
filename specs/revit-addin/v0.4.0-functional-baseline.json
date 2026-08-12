@@ -1,6 +1,6 @@
 {
   "schema_version": "BIMBAOGUI_REVIT_FUNCTIONAL_BASELINE_V2",
-  "source_commit": "285f6ab480feec5dcd31b526314f2350fdfc2e59",
+  "source_commit": "b8378ea51918754a24401901f32d422ffcd73e89",
   "product_line": "BIMBaoGui Revit 2020 Native + MCP",
   "product_version": "0.4.0",
   "roots": [
@@ -27,8 +27,10 @@
     "Stage02 performs deterministic full-model or current-selection preparation.",
     "Stage03 performs live Stage01 and Stage02 evidence reconstruction before export.",
     "Stage03 defaults to strict mode and supports explicitly reasoned forced-test mode.",
+    "The native H-IFC core owns local source files and does not compile code from the GHA project.",
     "Autodesk IFC4 RAW is exported without in-place mutation and is protected by SHA-256.",
     "H-IFC is published only after candidate disk reread and exact Entity, Owner, Pset, Property, IFC type and value validation.",
+    "fields.json records expected and actual IFC types, typed tokens and STEP entity identifiers.",
     "IFCFlux has no API; external status remains IFCFLUX_MANUAL_PENDING until user inspection.",
     "Manual Revit UI and MCP use the same Stage01, Stage02 and Stage03 services.",
     "The MCP surface contains 13 approved business tools and exposes no arbitrary Revit API execution."
