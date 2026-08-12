@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "bimbaogui-revit": {
-      "command": "C:\\Users\\<USERNAME>\\AppData\\Local\\BIMBaoGui\\McpServer\\0.3.2\\BIMBaoGui.McpServer.exe",
+      "command": "C:\\Users\\<USERNAME>\\AppData\\Local\\BIMBaoGui\\McpServer\\0.4.0\\BIMBaoGui.McpServer.exe",
       "args": []
     }
   }
