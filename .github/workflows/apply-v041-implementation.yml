@@ -1,0 +1,54 @@
+name: Apply Revit native v0.4.1 implementation
+
+on:
+  push:
+    branches:
+      - feat/revit-native-addin-mcp-v0.3
+    paths:
+      - ".github/patches/v041-implementation.patch.gz.b64"
+      - ".github/workflows/apply-v041-implementation.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out target branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Decode and verify atomic patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 --decode .github/patches/v041-implementation.patch.gz.b64 \
+            | gzip --decompress > "$RUNNER_TEMP/v041-implementation.patch"
+          actual="$(sha256sum "$RUNNER_TEMP/v041-implementation.patch" | awk '{print $1}')"
+          expected="ae30a5cd9bea927218c2784516d7c98d87d66812afbff90ca82aece0969291fc"
+          test "$actual" = "$expected"
+          git apply --check "$RUNNER_TEMP/v041-implementation.patch"
+
+      - name: Apply implementation as one commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git apply --index "$RUNNER_TEMP/v041-implementation.patch"
+          git rm -f \
+            .github/patches/v041-implementation.patch.gz.b64 \
+            .github/workflows/apply-v041-implementation.yml
+
+          changed="$(git diff --cached --name-only)"
+          if printf '%s\n' "$changed" | grep -E '^(src/BIMBaoGui\.Stage01/|\.github/workflows/build-stage01-gha\.yml$)'; then
+            echo "v0.4.1 patch unexpectedly modifies the GHA product line." >&2
+            exit 1
+          fi
+          test "$(printf '%s\n' "$changed" | sed '/^$/d' | wc -l)" -eq 48
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "feat: implement Revit native v0.4.1"
+          git push origin HEAD:feat/revit-native-addin-mcp-v0.3
