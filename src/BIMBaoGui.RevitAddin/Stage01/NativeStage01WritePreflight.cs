@@ -16,9 +16,6 @@ namespace BIMBaoGui.RevitAddin.Stage01
     internal const string CorruptStorage = "CORRUPT_STORAGE";
     internal const string UnsupportedFutureStorage =
       "UNSUPPORTED_FUTURE_STORAGE";
-    internal const string BlankConfirmationRequired =
-      "BLANK_CONFIRMATION_REQUIRED";
-    internal const string ModelNotBlank = "MODEL_NOT_BLANK";
     internal const string ReinitializePermissionRequired =
       "REINITIALIZE_PERMISSION_REQUIRED";
   }
@@ -145,22 +142,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
                 : storage.Message);
             break;
           case NativeStage01StorageState.NoRecord:
-            if (!confirmBlankProject)
-            {
-              Add(
-                blockers,
-                NativeStage01PreflightCodes.BlankConfirmationRequired,
-                "首次初始化前必须明确确认当前文件尚未开始正式建模。" );
-            }
-            IReadOnlyList<string> elements = state.BlockingElements
-              ?? Array.Empty<string>();
-            if (elements.Count > 0)
-            {
-              Add(
-                blockers,
-                NativeStage01PreflightCodes.ModelNotBlank,
-                "当前文件包含正式模型内容：" + string.Join("；", elements));
-            }
+            // Existing model content is allowed. The compatibility argument
+            // confirmBlankProject is intentionally ignored for this state.
             break;
           case NativeStage01StorageState.Current:
             if (!allowReinitialize)
