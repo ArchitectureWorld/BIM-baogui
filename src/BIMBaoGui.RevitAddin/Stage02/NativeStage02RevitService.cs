@@ -69,6 +69,16 @@ namespace BIMBaoGui.RevitAddin.Stage02
           "Stage02 等待文件初始化",
           "请先在 01 文件初始化中完成写入并回读。" );
       }
+      NativeProjectConditionDeclarationDecision declaration =
+        NativeProjectConditionDeclarationPolicy.Evaluate(
+          stage01.Model,
+          NativeRuleCatalog.Current);
+      if (!declaration.IsValid)
+      {
+        return Failure(
+          "Stage02 等待项目条件声明",
+          "请先在 01 文件初始化中选择一个或多个实际项目条件，或勾选“无上述项目条件（已确认）”。" );
+      }
       string modelProfile = stage01.Model.GetValue(
         NativeStage01Keys.ModelFileType);
       NativeStage02RuleCatalog catalog = NativeStage02RuleCatalog.Current;
