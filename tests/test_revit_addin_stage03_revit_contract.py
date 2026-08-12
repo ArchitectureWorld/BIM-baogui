@@ -73,8 +73,8 @@ def test_strict_and_forced_modes_are_explicit_and_never_claim_ifcflux_pass():
     assert "ForcedTest" in models
     assert "FORCE_REASON_REQUIRED" in models
     assert "FORCED_TEST_HIFC.ifc" in models
-    assert "HifcCoreStatus.InternalValidated" in reports
-    assert "HifcCoreStatus.IfcFluxManualPending" in reports
+    assert 'translation.InternalStatus' in reports
+    assert 'translation.IfcFluxStatus' in reports
     assert 'InternalValidated = "INTERNAL_VALIDATED"' in hifc
     assert 'IfcFluxManualPending = "IFCFLUX_MANUAL_PENDING"' in hifc
     assert "IFCFLUX_PASS" not in reports
