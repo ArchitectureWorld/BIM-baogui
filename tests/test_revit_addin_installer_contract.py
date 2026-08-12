@@ -4,7 +4,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "installer" / "Install-Revit2020.ps1"
 INSTALL_CMD = ROOT / "installer" / "Install.cmd"
 UNINSTALL_CMD = ROOT / "installer" / "Uninstall.cmd"
-WORKFLOW = ROOT / ".github" / "workflows" / "build-revit-addin.yml"
+WORKFLOW = ROOT / ".github" / "workflows" / "build-revit-mcp.yml"
 
 
 def read(path: Path) -> str:
@@ -64,7 +64,7 @@ def test_double_click_wrappers_use_their_own_extracted_directory():
     assert "-Uninstall" in uninstall
 
 
-def test_native_workflow_packages_complete_double_click_installer():
+def test_unified_workflow_packages_complete_double_click_installer():
     workflow = read(WORKFLOW)
     assert '- "installer/**"' in workflow
     assert "Copy-Item installer/Install-Revit2020.ps1 $artifactRoot/" in workflow
@@ -80,15 +80,15 @@ def test_checksum_manifest_uses_portable_forward_slash_paths():
     assert "Checksum manifest contains a backslash path" in workflow
 
 
-def test_native_workflow_smoke_tests_install_and_uninstall_on_windows():
+def test_unified_workflow_smoke_tests_install_and_uninstall_on_windows():
     workflow = read(WORKFLOW)
-    assert "Smoke-test native installer" in workflow
+    assert "Smoke-test complete installer and uninstall" in workflow
     assert "& installer/Install-Revit2020.ps1" in workflow
     assert "-Uninstall -Force" in workflow
     assert "install-evidence.json" in workflow
     assert "IsPathRooted" in workflow
 
 
-def test_native_workflow_tracks_packaged_readme_as_an_artifact_input():
+def test_unified_workflow_tracks_packaged_readme_as_an_artifact_input():
     workflow = read(WORKFLOW)
     assert '- "docs/revit-addin/README.md"' in workflow
