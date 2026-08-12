@@ -2,7 +2,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 STAGE01 = ROOT / "src" / "BIMBaoGui.RevitAddin" / "Stage01"
-WORKFLOW = ROOT / ".github" / "workflows" / "build-revit-addin.yml"
+WORKFLOW = ROOT / ".github" / "workflows" / "build-revit-mcp.yml"
 
 
 def read(name: str) -> str:
@@ -61,12 +61,7 @@ def test_stage01_first_initialization_does_not_scan_or_block_existing_model():
     assert "ModelNotBlank" not in preflight
 
 
-def test_native_ci_runs_stage01_revit_contract():
-    workflow = (ROOT / ".github" / "workflows" / "build-revit-addin.yml").read_text(
-        encoding="utf-8"
-    )
-    assert "Verify native Stage01 Revit contract" in workflow
-    assert (
-        "python -m pytest tests/test_revit_addin_stage01_revit_contract.py -q"
-        in workflow
-    )
+def test_unified_ci_runs_stage01_revit_contract():
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    assert "Verify native and MCP contracts" in workflow
+    assert "tests/test_revit_addin_stage01_revit_contract.py" in workflow
