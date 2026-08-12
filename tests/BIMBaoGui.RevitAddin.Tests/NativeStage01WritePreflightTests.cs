@@ -111,9 +111,7 @@ namespace BIMBaoGui.RevitAddin.Tests
           allowReinitialize: false);
 
       Assert.True(decision.Accepted);
-      Assert.DoesNotContain(decision.Blockers, value =>
-        value.Code == NativeStage01PreflightCodes.BlankConfirmationRequired
-        || value.Code == NativeStage01PreflightCodes.ModelNotBlank);
+      Assert.Empty(decision.Blockers);
     }
 
     [Fact]
