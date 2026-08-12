@@ -34,7 +34,7 @@ def test_installer_writes_absolute_manifest_and_verifies_dll_hash():
     assert "[IO.Path]::GetFullPath" in source
     assert "Get-FileHash" in source
     assert "sourceHash" in source
-    assert "installedHash" in source
+    assert "Assert-SameHash" in source
     assert "[System.Security.SecurityElement]::Escape" in source
     assert "BIMBaoGui.RevitAddin.App" in source
     assert "6F3EE836-2A54-43C1-8B90-C9D291E9A8F1" in source
