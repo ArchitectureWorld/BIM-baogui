@@ -50,6 +50,24 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
+    public void Model_identity_is_case_insensitive_and_updates_only_that_model()
+    {
+      string modelA = Path.Combine(_root, "models", "A.rvt");
+      string modelB = Path.Combine(_root, "models", "B.rvt");
+      string firstOutput = Path.Combine(_root, "exports", "A-first");
+      string secondOutput = Path.Combine(_root, "exports", "A-second");
+      string modelBOutput = Path.Combine(_root, "exports", "B");
+      var store = new NativeStage03OutputDirectoryStore(_settingsPath);
+
+      store.Remember(modelA.ToUpperInvariant(), firstOutput);
+      store.Remember(modelB, modelBOutput);
+      store.Remember(modelA.ToLowerInvariant(), secondOutput);
+
+      Assert.Equal(Path.GetFullPath(secondOutput), store.Resolve(modelA));
+      Assert.Equal(Path.GetFullPath(modelBOutput), store.Resolve(modelB));
+    }
+
+    [Fact]
     public void Corrupt_local_preferences_fall_back_to_the_model_directory()
     {
       string modelDirectory = Path.Combine(_root, "models");
