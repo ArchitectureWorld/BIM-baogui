@@ -31,7 +31,7 @@ jobs:
           test "$(sha256sum "$patch_payload" | awk '{print $1}')" = \
             "a4df548e5a01134ad84318d8e9b3ba7de2cb08f8fe496db5642b8f5658c491d4"
           test "$(sha256sum "$script_payload" | awk '{print $1}')" = \
-            "4ce23ef01daaa72deecf45318d6dbf9f71a96237fdcf08b4dd45d3c24143b6fd"
+            "d22ecd827c5f6133791dd042cd19896f91bb304b941c3be7f29da29b5301d8e9"
           base64 --decode "$patch_payload" \
             | gzip --decompress > "$RUNNER_TEMP/stage03-output-directory-v041.patch"
           base64 --decode "$script_payload" \
@@ -39,7 +39,7 @@ jobs:
           test "$(sha256sum "$RUNNER_TEMP/stage03-output-directory-v041.patch" | awk '{print $1}')" = \
             "a0989486dae2b50a0039fb6c8eb48bd993f1242aee4aed9e3168a3a007524964"
           test "$(sha256sum "$RUNNER_TEMP/transform-stage03-view.py" | awk '{print $1}')" = \
-            "7032a598650171753e2c3dde692ce118c0676a9c44cfad6663216f6f3bc5ac90"
+            "1e69fc9f8fd80bb480d479eda53651084a71e16792140c84c9834e11b0b486a2"
           python -m py_compile "$RUNNER_TEMP/transform-stage03-view.py"
           git apply --check \
             --exclude=src/BIMBaoGui.RevitAddin/Stage03/NativeStage03View.cs \
