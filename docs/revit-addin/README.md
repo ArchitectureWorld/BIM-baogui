@@ -109,7 +109,7 @@ Stage03 已形成可供实际测试的完整内部链路：
 
 ## 强制测试模式
 
-强制测试模式必须填写原因。它只允许跳过可诊断的业务阻断，不允许跳过 Revit 版本错误、文档不可用、Stage01 未初始化、项目条件未声明、RAW 导出失败、STEP 解析失败或 Owner 无法安全确定等技术错误。
+强制测试模式不再要求填写原因。它只允许跳过可诊断的业务阻断，不允许跳过 Revit 版本错误、文档不可用、Stage01 未初始化、项目条件未声明、RAW 导出失败、STEP 解析失败或 Owner 无法安全确定等技术错误。人工工作台和 MCP `bimbaogui_stage03_scan` 均不再提供 `force_reason` 输入。
 
 强制测试文件名包含：
 
@@ -118,6 +118,18 @@ FORCED_TEST_HIFC.ifc
 ```
 
 无法安全挂接的字段不会被猜测写入，并在报告中标记为跳过。
+
+## 导出位置
+
+Stage03 读取当前已保存的 Revit 模型后，导出根目录默认设为该 `.rvt` 文件所在文件夹。用户可以直接编辑路径或通过“浏览”选择其他文件夹；路径在输入框失去焦点、浏览确认、开始导出或点击“打开导出位置文件夹”时保存。
+
+该记录不是全局“上一次路径”，而是按 Revit 模型规范化完整路径分别保存。例如 A 模型与 B 模型可以各自保持不同的导出目录。记录位于本机：
+
+```text
+%LOCALAPPDATA%\BIMBaoGui\RevitAddin\stage03-output-directories.json
+```
+
+“打开导出位置文件夹”始终针对当前模型配置的导出根目录；文件夹尚不存在时会先创建，因此无需等到成功导出后才能打开。
 
 ## 输出文件
 
@@ -204,6 +216,7 @@ Install.cmd
 
 %LOCALAPPDATA%\BIMBaoGui\McpServer\0.4.1\BIMBaoGui.McpServer.exe
 %LOCALAPPDATA%\BIMBaoGui\McpServer\mcp-server-config.json
+%LOCALAPPDATA%\BIMBaoGui\RevitAddin\stage03-output-directories.json（首次记忆导出目录后生成）
 ```
 
 # 检查 MCP 连接
