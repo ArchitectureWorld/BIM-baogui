@@ -1,0 +1,91 @@
+name: Update Revit v0.4.1 functional baseline
+
+on:
+  push:
+    branches:
+      - feat/revit-native-addin-mcp-v0.3
+    paths:
+      - ".github/workflows/update-v041-functional-baseline.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out target branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Rebuild the complete source fingerprint
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path.cwd()
+          path = root / "specs/revit-addin/v0.4.1-functional-baseline.json"
+          manifest = json.loads(path.read_text(encoding="utf-8"))
+
+          source_paths: set[str] = set()
+          for source_root in manifest["roots"]:
+              directory = root / source_root
+              if not directory.is_dir():
+                  raise SystemExit(f"baseline root does not exist: {source_root}")
+              for source in directory.rglob("*.cs"):
+                  relative = source.relative_to(root)
+                  if any(part in {"bin", "obj"} for part in relative.parts):
+                      continue
+                  source_paths.add(relative.as_posix())
+
+          hashes = {
+              source: hashlib.sha256((root / source).read_bytes()).hexdigest()
+              for source in sorted(source_paths)
+          }
+          snapshot_bytes = "".join(
+              f"{source}\0{hashes[source]}\n"
+              for source in sorted(hashes)
+          ).encode("utf-8")
+
+          capabilities = list(manifest.get("capabilities", []))
+          additions = [
+              "Stage03 defaults export output to the active Revit model directory and remembers manual directory overrides per canonical RVT path.",
+              "Stage03 forced test mode no longer requires a reason string.",
+              "Stage03 can open or create the currently configured export root folder before or after export.",
+          ]
+          for capability in additions:
+              if capability not in capabilities:
+                  capabilities.append(capability)
+
+          manifest["source_snapshot_sha256"] = hashlib.sha256(snapshot_bytes).hexdigest()
+          manifest["sha256_by_path"] = hashes
+          manifest["capabilities"] = capabilities
+          path.write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+          python -m pytest tests/test_revit_addin_mcp_non_regression.py -q
+          git diff --check
+          git diff -- specs/revit-addin/v0.4.1-functional-baseline.json
+
+      - name: Commit the regenerated baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add specs/revit-addin/v0.4.1-functional-baseline.json
+          git diff --cached --quiet && {
+            echo "Functional baseline was already current."
+            exit 0
+          }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "test: refresh Revit v0.4.1 functional baseline"
+          git push origin HEAD:feat/revit-native-addin-mcp-v0.3
