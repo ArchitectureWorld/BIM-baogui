@@ -3,6 +3,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT = ROOT / "src" / "BIMBaoGui.RevitAddin"
 STAGE03 = PROJECT / "Stage03"
+README = ROOT / "docs" / "revit-addin" / "README.md"
 
 
 def read(path: Path) -> str:
@@ -63,3 +64,11 @@ def test_stage03_report_region_has_fixed_height_and_internal_scroll():
     assert "new GridLength(96)" in view
     assert "VerticalScrollBarVisibility = ScrollBarVisibility.Auto" in view
     assert "TextWrapping = TextWrapping.Wrap" in view
+
+
+def test_installable_readme_matches_the_stage03_interaction_contract():
+    readme = read(README)
+    assert "强制测试模式不再要求填写原因" in readme
+    assert "按 Revit 模型规范化完整路径分别保存" in readme
+    assert "stage03-output-directories.json" in readme
+    assert "打开导出位置文件夹" in readme
