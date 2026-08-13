@@ -20,201 +20,28 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify and decode the deterministic finalizer
+        shell: bash
+        run: |
+          set -euo pipefail
+          payload=".github/patches/finalize-stage03-mcp.py.gz.b64"
+          test "$(sha256sum "$payload" | awk '{print $1}')" = \
+            "1b546f097901566832a10cbb762982e5d45f3fb4b3c25576e275d57f5652ec7b"
+          base64 --decode "$payload" \
+            | gzip --decompress > "$RUNNER_TEMP/finalize-stage03-mcp.py"
+          test "$(sha256sum "$RUNNER_TEMP/finalize-stage03-mcp.py" | awk '{print $1}')" = \
+            "3ef3c9855a0a9e08dc9f273a7e476d3515b51b8dc4ce8d115deb38719f0e8bf3"
+          python -m py_compile "$RUNNER_TEMP/finalize-stage03-mcp.py"
+
       - name: Install targeted contract runner
         shell: bash
         run: python -m pip install --disable-pip-version-check pytest==8.3.5
 
-      - name: Remove the force reason from the MCP input contract
+      - name: Apply the MCP contract change and rebuild the baseline
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-
-          def replace_once(path_text: str, old: str, new: str) -> None:
-              path = Path(path_text)
-              text = path.read_text(encoding="utf-8")
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(
-                      f"expected exactly one replacement in {path}: {count}")
-              path.write_text(text.replace(old, new), encoding="utf-8")
-
-          replace_once(
-              "src/BIMBaoGui.RevitAddin/McpBridge/McpStage03Adapter.cs",
-              """    internal async Task<string> ScanAsync(
-      string mode,
-      string forceReason,
-      CancellationToken cancellationToken)
-""",
-              """    internal async Task<string> ScanAsync(
-      string mode,
-      CancellationToken cancellationToken)
-""",
-          )
-          replace_once(
-              "src/BIMBaoGui.RevitAddin/McpBridge/McpStage03Adapter.cs",
-              """      if (parsedMode == NativeStage03Mode.ForcedTest
-        && string.IsNullOrWhiteSpace(forceReason))
-      {
-        throw new McpCommandException(
-          BridgeErrorCodes.InvalidArgument,
-          \"Stage03 forced_test 必须提供非空 force_reason。\" );
-      }
-""",
-              "",
-          )
-          replace_once(
-              "src/BIMBaoGui.RevitAddin/McpBridge/McpStage03Adapter.cs",
-              """          Mode = parsedMode,
-          ForceReason = forceReason ?? string.Empty
-""",
-              """          Mode = parsedMode,
-          ForceReason = string.Empty
-""",
-          )
-
-          replace_once(
-              "src/BIMBaoGui.RevitAddin/McpBridge/McpBridgeCommandRouter.cs",
-              """      return _stage03.ScanAsync(
-        payload.mode,
-        payload.force_reason,
-        cancellationToken);
-""",
-              """      return _stage03.ScanAsync(
-        payload.mode,
-        cancellationToken);
-""",
-          )
-          replace_once(
-              "src/BIMBaoGui.RevitAddin/McpBridge/McpBridgeCommandRouter.cs",
-              """    private sealed class Stage03ScanPayload
-    {
-      public string mode { get; set; } = \"strict\";
-      public string force_reason { get; set; } = string.Empty;
-    }
-""",
-              """    private sealed class Stage03ScanPayload
-    {
-      public string mode { get; set; } = \"strict\";
-    }
-""",
-          )
-
-          replace_once(
-              "src/BIMBaoGui.McpServer/BimBaoGuiTools.cs",
-              """    [Description(\"strict（默认）或 forced_test。\")]
-    string mode,
-    [Description(\"forced_test 必填；strict 可为空。\")]
-    string force_reason,
-    [Description(\"Revit 进程 ID；只有一个会话时可传 null。\")]
-""",
-              """    [Description(\"strict（默认）或 forced_test；两种模式均不需要填写理由。\")]
-    string mode,
-    [Description(\"Revit 进程 ID；只有一个会话时可传 null。\")]
-""",
-          )
-          replace_once(
-              "src/BIMBaoGui.McpServer/BimBaoGuiTools.cs",
-              """      new { mode, force_reason },
-""",
-              """      new { mode },
-""",
-          )
-
-          test_path = Path("tests/test_revit_addin_mcp_stage03_contract.py")
-          test_text = test_path.read_text(encoding="utf-8")
-          old_test = """def test_stage03_write_requires_confirm_scan_hash_output_and_force_reason():
-    tools = read(SERVER / \"BimBaoGuiTools.cs\")
-    adapter = read(ADDIN / \"McpBridge\" / \"McpStage03Adapter.cs\")
-    assert \"scan_hash\" in tools
-    assert \"output_directory\" in tools
-    assert \"confirm\" in tools
-    assert \"force_reason\" in tools
-    assert \"ConfirmationRequired\" in adapter
-    assert \"forced_test 必须提供非空 force_reason\" in adapter
-"""
-          new_test = """def test_stage03_write_requires_confirm_scan_hash_and_output_but_not_force_reason():
-    tools = read(SERVER / \"BimBaoGuiTools.cs\")
-    adapter = read(ADDIN / \"McpBridge\" / \"McpStage03Adapter.cs\")
-    router = read(ADDIN / \"McpBridge\" / \"McpBridgeCommandRouter.cs\")
-    assert \"scan_hash\" in tools
-    assert \"output_directory\" in tools
-    assert \"confirm\" in tools
-    assert \"force_reason\" not in tools
-    assert \"force_reason\" not in router
-    assert \"ConfirmationRequired\" in adapter
-    assert \"forced_test 必须提供非空 force_reason\" not in adapter
-    assert \"ForceReason = string.Empty\" in adapter
-"""
-          if test_text.count(old_test) != 1:
-              raise SystemExit("Stage03 MCP contract test replacement target drifted")
-          test_path.write_text(
-              test_text.replace(old_test, new_test),
-              encoding="utf-8",
-          )
-          PY
-
-      - name: Rebuild the complete source fingerprint
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import hashlib
-          import json
-          from pathlib import Path
-
-          root = Path.cwd()
-          path = root / "specs/revit-addin/v0.4.1-functional-baseline.json"
-          manifest = json.loads(path.read_text(encoding="utf-8"))
-
-          source_paths: set[str] = set()
-          for source_root in manifest["roots"]:
-              directory = root / source_root
-              if not directory.is_dir():
-                  raise SystemExit(f"baseline root does not exist: {source_root}")
-              for source in directory.rglob("*.cs"):
-                  relative = source.relative_to(root)
-                  if any(part in {"bin", "obj"} for part in relative.parts):
-                      continue
-                  source_paths.add(relative.as_posix())
-
-          hashes = {
-              source: hashlib.sha256((root / source).read_bytes()).hexdigest()
-              for source in sorted(source_paths)
-          }
-          snapshot_bytes = "".join(
-              f"{source}\0{hashes[source]}\n"
-              for source in sorted(hashes)
-          ).encode("utf-8")
-
-          capabilities = list(manifest.get("capabilities", []))
-          additions = [
-              "Stage03 defaults export output to the active Revit model directory and remembers manual directory overrides per canonical RVT path.",
-              "Stage03 forced test mode no longer requires a reason string in either the native workspace or MCP tool contract.",
-              "Stage03 can open or create the currently configured export root folder before or after export.",
-          ]
-          capabilities = [
-              item for item in capabilities
-              if item != "Stage03 forced test mode no longer requires a reason string."
-          ]
-          for capability in additions:
-              if capability not in capabilities:
-                  capabilities.append(capability)
-
-          manifest["source_snapshot_sha256"] = hashlib.sha256(snapshot_bytes).hexdigest()
-          manifest["sha256_by_path"] = hashes
-          manifest["capabilities"] = capabilities
-          path.write_text(
-              json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
-              encoding="utf-8",
-          )
-          PY
-
-      - name: Verify targeted contracts
-        shell: bash
-        run: |
-          set -euo pipefail
+          python "$RUNNER_TEMP/finalize-stage03-mcp.py"
           python -m pytest \
             tests/test_revit_addin_mcp_non_regression.py \
             tests/test_revit_addin_mcp_stage03_contract.py \
