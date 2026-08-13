@@ -206,10 +206,13 @@ namespace BIMBaoGui.RevitAddin
       _refreshButton.IsEnabled = true;
       if (snapshot == null || !snapshot.HasDocument)
       {
+        _stage03View.ApplyDocumentPath(string.Empty);
         _documentText.Text = "当前文档：Revit 中没有活动项目文档";
         UpdateStageSummary("等待打开项目文档");
         return;
       }
+      _stage03View.ApplyDocumentPath(
+        snapshot.IsSaved ? snapshot.DocumentPath : string.Empty);
       _documentText.Text = "当前文档："
         + snapshot.DocumentTitle
         + "｜Revit "

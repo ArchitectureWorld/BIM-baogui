@@ -16,7 +16,7 @@ def test_stage03_workspace_is_real_and_exposes_manual_ifcflux_flow():
         "扫描与预检",
         "导出并转译",
         "重新校验结果",
-        "打开输出目录",
+        "打开导出位置文件夹",
         "严格模式",
         "强制测试模式",
         "IFCFlux",
@@ -25,6 +25,24 @@ def test_stage03_workspace_is_real_and_exposes_manual_ifcflux_flow():
     assert "new NativeStage03View" in workspace
     assert "Stage03 等待开发" not in workspace
     assert "_stage03Placeholder" not in workspace
+
+
+def test_stage03_output_directory_is_model_scoped_and_force_reason_ui_is_removed():
+    view = read(STAGE03 / "NativeStage03View.cs")
+    store = read(STAGE03 / "NativeStage03OutputDirectoryStore.cs")
+    workspace = read(PROJECT / "WorkspaceControl.cs")
+
+    assert "强制原因" not in view
+    assert "_forceReason" not in view
+    assert "BIMBaoGui_HIFC_Output" not in view
+    assert "ApplyDocumentPath" in view
+    assert "_stage03View.ApplyDocumentPath" in workspace
+    assert "stage03-output-directories.json" in store
+    assert "LocalApplicationData" in store
+    assert "StringComparer.OrdinalIgnoreCase" in store
+    assert "NormalizeDocumentPath" in store
+    assert "Remember(" in store
+    assert "Resolve(" in store
 
 
 def test_stage03_uses_external_event_for_all_revit_work():

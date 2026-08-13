@@ -22,9 +22,9 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
-    public void Forced_requires_a_reason_and_at_least_one_exportable_field()
+    public void Forced_does_not_require_a_reason_but_still_requires_exportable_fields()
     {
-      NativeStage03GateDecision missingReason =
+      NativeStage03GateDecision emptyReason =
         NativeStage03GatePolicy.Evaluate(
           NativeStage03Mode.ForcedTest,
           " ",
@@ -38,8 +38,9 @@ namespace BIMBaoGui.RevitAddin.Tests
         new[] { "EMPTY_REQUIRED_VALUE" },
         0);
 
-      Assert.False(missingReason.AllowExport);
-      Assert.Contains("FORCE_REASON_REQUIRED", missingReason.Blockers);
+      Assert.True(emptyReason.AllowExport);
+      Assert.True(emptyReason.Forced);
+      Assert.Contains("EMPTY_REQUIRED_VALUE", emptyReason.BypassedBusinessBlockers);
       Assert.False(noFields.AllowExport);
       Assert.Contains("NO_EXPORTABLE_FIELDS", noFields.Blockers);
     }

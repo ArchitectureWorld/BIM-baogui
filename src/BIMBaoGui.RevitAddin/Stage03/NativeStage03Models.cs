@@ -72,8 +72,6 @@ namespace BIMBaoGui.RevitAddin.Stage03
         };
       }
 
-      if (string.IsNullOrWhiteSpace(forceReason))
-        blockers.Add(NativeStage03Codes.ForceReasonRequired);
       return new NativeStage03GateDecision
       {
         AllowExport = blockers.Count == 0,

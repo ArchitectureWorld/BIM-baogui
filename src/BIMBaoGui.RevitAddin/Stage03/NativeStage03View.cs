@@ -12,9 +12,9 @@ namespace BIMBaoGui.RevitAddin.Stage03
   internal sealed class NativeStage03View : UserControl
   {
     private readonly TextBox _outputDirectory;
+    private readonly NativeStage03OutputDirectoryStore _outputDirectoryStore;
     private readonly RadioButton _strictMode;
     private readonly RadioButton _forcedMode;
-    private readonly TextBox _forceReason;
     private readonly Button _scanButton;
     private readonly Button _exportButton;
     private readonly Button _revalidateButton;
@@ -27,9 +27,19 @@ namespace BIMBaoGui.RevitAddin.Stage03
     private NativeStage03ScanResult _scan;
     private NativeStage03ExecutionResult _lastResult;
     private bool _busy;
+    private string _activeDocumentPath = string.Empty;
 
     internal NativeStage03View()
+      : this(new NativeStage03OutputDirectoryStore())
     {
+    }
+
+    internal NativeStage03View(
+      NativeStage03OutputDirectoryStore outputDirectoryStore)
+    {
+      if (outputDirectoryStore == null)
+        throw new ArgumentNullException(nameof(outputDirectoryStore));
+      _outputDirectoryStore = outputDirectoryStore;
       Background = Brushes.White;
       var root = new Grid();
       root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -67,7 +77,6 @@ namespace BIMBaoGui.RevitAddin.Stage03
       settings.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
       settings.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
       settings.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-      settings.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
       var outputLabel = Label("输出目录");
       Grid.SetRow(outputLabel, 0);
@@ -79,6 +88,8 @@ namespace BIMBaoGui.RevitAddin.Stage03
         Margin = new Thickness(8, 3, 8, 3),
         Padding = new Thickness(7, 5, 7, 5)
       };
+      _outputDirectory.TextChanged += (_, __) => UpdateOutputDirectoryButtonState();
+      _outputDirectory.LostFocus += (_, __) => RememberOutputDirectory();
       Grid.SetRow(_outputDirectory, 0);
       Grid.SetColumn(_outputDirectory, 1);
       settings.Children.Add(_outputDirectory);
@@ -113,21 +124,6 @@ namespace BIMBaoGui.RevitAddin.Stage03
       Grid.SetColumnSpan(modes, 2);
       settings.Children.Add(modes);
 
-      var reasonLabel = Label("强制原因");
-      Grid.SetRow(reasonLabel, 2);
-      Grid.SetColumn(reasonLabel, 0);
-      settings.Children.Add(reasonLabel);
-      _forceReason = new TextBox
-      {
-        IsEnabled = false,
-        Margin = new Thickness(8, 3, 0, 3),
-        Padding = new Thickness(7, 5, 7, 5),
-        ToolTip = "强制测试模式必须填写原因；该原因进入文件名与 validation.json。"
-      };
-      Grid.SetRow(_forceReason, 2);
-      Grid.SetColumn(_forceReason, 1);
-      Grid.SetColumnSpan(_forceReason, 2);
-      settings.Children.Add(_forceReason);
       Grid.SetRow(settings, 1);
       root.Children.Add(settings);
 
@@ -135,7 +131,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
       _scanButton = ActionButton("扫描与预检", 115);
       _exportButton = ActionButton("导出并转译", 115);
       _revalidateButton = ActionButton("重新校验结果", 125);
-      _openDirectoryButton = ActionButton("打开输出目录", 125);
+      _openDirectoryButton = ActionButton("打开导出位置文件夹", 155);
       _problemsOnly = new CheckBox
       {
         Content = "仅显示问题",
@@ -210,18 +206,24 @@ namespace BIMBaoGui.RevitAddin.Stage03
 
     internal event Action<string> StatusChanged;
 
+    internal void ApplyDocumentPath(string documentPath)
+    {
+      if (!Dispatcher.CheckAccess())
+      {
+        Dispatcher.BeginInvoke(
+          new Action<string>(ApplyDocumentPath),
+          documentPath);
+        return;
+      }
+      SetActiveDocumentPath(documentPath);
+    }
+
     private void RequestScan()
     {
       if (_busy) return;
       NativeStage03Mode mode = _forcedMode.IsChecked == true
         ? NativeStage03Mode.ForcedTest
         : NativeStage03Mode.Strict;
-      if (mode == NativeStage03Mode.ForcedTest
-        && string.IsNullOrWhiteSpace(_forceReason.Text))
-      {
-        SetStatus("强制测试模式必须填写强制原因。" );
-        return;
-      }
       _scan = null;
       _lastResult = null;
       SetBusy(true, "正在通过 Revit ExternalEvent 扫描当前模型和固定 GUID 参数……" );
@@ -231,7 +233,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
           new NativeStage03ScanRequest
           {
             Mode = mode,
-            ForceReason = _forceReason.Text ?? string.Empty
+            ForceReason = string.Empty
           },
           ApplyScanResult,
           ApplyFailure);
@@ -245,12 +247,15 @@ namespace BIMBaoGui.RevitAddin.Stage03
     private void RequestExport()
     {
       if (_busy || _scan == null || !_scan.AllowExport) return;
-      string output = (_outputDirectory.Text ?? string.Empty).Trim();
-      if (output.Length == 0)
+      if (!NativeStage03OutputDirectoryStore.TryNormalizeOutputDirectory(
+        _outputDirectory.Text,
+        out string output))
       {
-        SetStatus("请先选择 Stage03 输出目录。" );
+        SetStatus("Stage03 输出目录必须是绝对路径。" );
         return;
       }
+      _outputDirectory.Text = output;
+      if (!RememberOutputDirectory()) return;
       SetBusy(true, "正在导出 IFC4 RAW、转译 H-IFC 并执行 exact 回读……" );
       try
       {
@@ -299,13 +304,8 @@ namespace BIMBaoGui.RevitAddin.Stage03
       SetBusy(false, string.Empty);
       _scan = result;
       _exportButton.IsEnabled = result != null && result.AllowExport;
-      if (string.IsNullOrWhiteSpace(_outputDirectory.Text)
-        && !string.IsNullOrWhiteSpace(result?.DocumentPath))
-      {
-        string directory = Path.GetDirectoryName(result.DocumentPath);
-        if (!string.IsNullOrWhiteSpace(directory))
-          _outputDirectory.Text = Path.Combine(directory, "BIMBaoGui_HIFC_Output");
-      }
+      if (!string.IsNullOrWhiteSpace(result?.DocumentPath))
+        ApplyDocumentPath(result.DocumentPath);
       RenderFields();
       SetStatus(result == null
         ? "预检失败：未返回结果。"
@@ -327,8 +327,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
       _revalidateButton.IsEnabled = result?.Paths != null
         && !string.IsNullOrWhiteSpace(result.Paths.FinalIfcPath)
         && File.Exists(result.Paths.FinalIfcPath);
-      _openDirectoryButton.IsEnabled = result?.Paths != null
-        && Directory.Exists(result.Paths.RunDirectory);
+      UpdateOutputDirectoryButtonState();
       if (result?.Fields != null && _scan != null)
         _scan.Fields = result.Fields;
       RenderFields();
@@ -462,35 +461,47 @@ namespace BIMBaoGui.RevitAddin.Stage03
       })
       {
         if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
           _outputDirectory.Text = dialog.SelectedPath;
+          RememberOutputDirectory();
+        }
       }
     }
 
     private void OpenOutputDirectory()
     {
-      string directory = _lastResult?.Paths?.RunDirectory;
-      if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
+      if (!NativeStage03OutputDirectoryStore.TryNormalizeOutputDirectory(
+        _outputDirectory.Text,
+        out string directory))
       {
-        SetStatus("Stage03 输出目录不存在。" );
+        SetStatus("Stage03 输出目录必须是绝对路径。" );
         return;
       }
-      Process.Start(new ProcessStartInfo
+      try
       {
-        FileName = "explorer.exe",
-        Arguments = "\"" + directory + "\"",
-        UseShellExecute = true
-      });
+        Directory.CreateDirectory(directory);
+        _outputDirectory.Text = directory;
+        if (!RememberOutputDirectory()) return;
+        Process.Start(new ProcessStartInfo
+        {
+          FileName = "explorer.exe",
+          Arguments = "\"" + directory + "\"",
+          UseShellExecute = true
+        });
+      }
+      catch (Exception exception)
+      {
+        SetStatus("无法打开 Stage03 导出位置：" + exception.Message);
+      }
     }
 
     private void ApplyModeState()
     {
-      bool forced = _forcedMode.IsChecked == true;
-      _forceReason.IsEnabled = forced && !_busy;
       _scan = null;
       _lastResult = null;
       _exportButton.IsEnabled = false;
       _revalidateButton.IsEnabled = false;
-      _openDirectoryButton.IsEnabled = false;
+      UpdateOutputDirectoryButtonState();
       RenderFields();
     }
 
@@ -501,14 +512,64 @@ namespace BIMBaoGui.RevitAddin.Stage03
       _exportButton.IsEnabled = !busy && _scan != null && _scan.AllowExport;
       _revalidateButton.IsEnabled = !busy && _lastResult?.Paths != null
         && File.Exists(_lastResult.Paths.FinalIfcPath);
-      _openDirectoryButton.IsEnabled = !busy && _lastResult?.Paths != null
-        && Directory.Exists(_lastResult.Paths.RunDirectory);
       _strictMode.IsEnabled = !busy;
       _forcedMode.IsEnabled = !busy;
-      _forceReason.IsEnabled = !busy && _forcedMode.IsChecked == true;
       _outputDirectory.IsEnabled = !busy;
       _problemsOnly.IsEnabled = !busy;
+      UpdateOutputDirectoryButtonState();
       if (!string.IsNullOrWhiteSpace(status)) SetStatus(status);
+    }
+
+    private void SetActiveDocumentPath(string documentPath)
+    {
+      string normalized = string.Empty;
+      if (!string.IsNullOrWhiteSpace(documentPath))
+      {
+        try
+        {
+          normalized = NativeStage03OutputDirectoryStore.NormalizeDocumentPath(
+            documentPath);
+        }
+        catch (ArgumentException)
+        {
+          normalized = string.Empty;
+        }
+      }
+      if (string.Equals(
+        normalized,
+        _activeDocumentPath,
+        StringComparison.OrdinalIgnoreCase))
+      {
+        return;
+      }
+
+      _activeDocumentPath = normalized;
+      _outputDirectory.Text = normalized.Length == 0
+        ? string.Empty
+        : _outputDirectoryStore.Resolve(normalized);
+      UpdateOutputDirectoryButtonState();
+    }
+
+    private bool RememberOutputDirectory()
+    {
+      if (string.IsNullOrWhiteSpace(_activeDocumentPath)) return true;
+      if (!_outputDirectoryStore.TryRemember(
+        _activeDocumentPath,
+        _outputDirectory.Text,
+        out string error))
+      {
+        SetStatus("无法按当前 Revit 模型记录导出位置：" + error);
+        return false;
+      }
+      return true;
+    }
+
+    private void UpdateOutputDirectoryButtonState()
+    {
+      _openDirectoryButton.IsEnabled = !_busy
+        && NativeStage03OutputDirectoryStore.TryNormalizeOutputDirectory(
+          _outputDirectory.Text,
+          out _);
     }
 
     private void SetStatus(string status)
