@@ -1,4 +1,4 @@
-name: Finalize Stage03 output directory behavior
+name: Document Stage03 output directory behavior
 
 on:
   push:
@@ -20,50 +20,39 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify and decode the deterministic finalizer
+      - name: Verify and decode the README updater
         shell: bash
         run: |
           set -euo pipefail
-          payload=".github/patches/finalize-stage03-mcp.py.gz.b64"
+          payload=".github/patches/update-stage03-readme.py.gz.b64"
           test "$(sha256sum "$payload" | awk '{print $1}')" = \
-            "1b546f097901566832a10cbb762982e5d45f3fb4b3c25576e275d57f5652ec7b"
+            "aa97858ec29bbf5453d14ccaebd6e560baed7601c2f5a3a977fd98ed604b4cb4"
           base64 --decode "$payload" \
-            | gzip --decompress > "$RUNNER_TEMP/finalize-stage03-mcp.py"
-          test "$(sha256sum "$RUNNER_TEMP/finalize-stage03-mcp.py" | awk '{print $1}')" = \
-            "3ef3c9855a0a9e08dc9f273a7e476d3515b51b8dc4ce8d115deb38719f0e8bf3"
-          python -m py_compile "$RUNNER_TEMP/finalize-stage03-mcp.py"
+            | gzip --decompress > "$RUNNER_TEMP/update-stage03-readme.py"
+          test "$(sha256sum "$RUNNER_TEMP/update-stage03-readme.py" | awk '{print $1}')" = \
+            "7f7ab432b297bd5878ec16bcbca78b037a34d3bb67240b66319f03a991e2cd8c"
+          python -m py_compile "$RUNNER_TEMP/update-stage03-readme.py"
 
-      - name: Install targeted contract runner
-        shell: bash
-        run: python -m pip install --disable-pip-version-check pytest==8.3.5
-
-      - name: Apply the MCP contract change and rebuild the baseline
+      - name: Update and verify the installable README
         shell: bash
         run: |
           set -euo pipefail
-          python "$RUNNER_TEMP/finalize-stage03-mcp.py"
-          python -m pytest \
-            tests/test_revit_addin_mcp_non_regression.py \
-            tests/test_revit_addin_mcp_stage03_contract.py \
-            tests/test_revit_addin_stage03_ui_contract.py \
-            -q
+          python "$RUNNER_TEMP/update-stage03-readme.py"
+          grep -F "强制测试模式不再要求填写原因" docs/revit-addin/README.md
+          grep -F "stage03-output-directories.json" docs/revit-addin/README.md
+          grep -F "打开导出位置文件夹" docs/revit-addin/README.md
           git diff --check
 
-      - name: Commit the finalized implementation and baseline
+      - name: Commit the documentation update
         shell: bash
         run: |
           set -euo pipefail
-          git add \
-            src/BIMBaoGui.RevitAddin/McpBridge/McpStage03Adapter.cs \
-            src/BIMBaoGui.RevitAddin/McpBridge/McpBridgeCommandRouter.cs \
-            src/BIMBaoGui.McpServer/BimBaoGuiTools.cs \
-            tests/test_revit_addin_mcp_stage03_contract.py \
-            specs/revit-addin/v0.4.1-functional-baseline.json
+          git add docs/revit-addin/README.md
           git diff --cached --quiet && {
-            echo "Stage03 implementation and baseline were already current."
+            echo "Stage03 README was already current."
             exit 0
           }
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "feat: remove Stage03 force reason from MCP"
+          git commit -m "docs: explain Stage03 model-scoped export folders"
           git push origin HEAD:feat/revit-native-addin-mcp-v0.3
