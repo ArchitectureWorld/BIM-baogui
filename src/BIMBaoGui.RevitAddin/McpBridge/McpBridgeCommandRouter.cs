@@ -251,7 +251,6 @@ namespace BIMBaoGui.RevitAddin.McpBridge
         .Deserialize<Stage03ScanPayload>(json);
       return _stage03.ScanAsync(
         payload.mode,
-        payload.force_reason,
         cancellationToken);
     }
 
@@ -310,7 +309,6 @@ namespace BIMBaoGui.RevitAddin.McpBridge
     private sealed class Stage03ScanPayload
     {
       public string mode { get; set; } = "strict";
-      public string force_reason { get; set; } = string.Empty;
     }
 
     private sealed class Stage03ExportPayload

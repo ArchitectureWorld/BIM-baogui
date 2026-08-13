@@ -41,15 +41,18 @@ def test_stage03_bridge_routes_to_same_native_workflow():
     assert "NativeStage03WorkflowService.Execute" in dispatcher
 
 
-def test_stage03_write_requires_confirm_scan_hash_output_and_force_reason():
+def test_stage03_write_requires_confirm_scan_hash_and_output_but_not_force_reason():
     tools = read(SERVER / "BimBaoGuiTools.cs")
     adapter = read(ADDIN / "McpBridge" / "McpStage03Adapter.cs")
+    router = read(ADDIN / "McpBridge" / "McpBridgeCommandRouter.cs")
     assert "scan_hash" in tools
     assert "output_directory" in tools
     assert "confirm" in tools
-    assert "force_reason" in tools
+    assert "force_reason" not in tools
+    assert "force_reason" not in router
     assert "ConfirmationRequired" in adapter
-    assert "forced_test 必须提供非空 force_reason" in adapter
+    assert "forced_test 必须提供非空 force_reason" not in adapter
+    assert "ForceReason = string.Empty" in adapter
 
 
 def test_stage03_does_not_expose_arbitrary_revit_execution():

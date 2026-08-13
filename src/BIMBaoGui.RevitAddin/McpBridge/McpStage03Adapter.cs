@@ -24,7 +24,6 @@ namespace BIMBaoGui.RevitAddin.McpBridge
 
     internal async Task<string> ScanAsync(
       string mode,
-      string forceReason,
       CancellationToken cancellationToken)
     {
       NativeStage03Mode parsedMode;
@@ -43,18 +42,11 @@ namespace BIMBaoGui.RevitAddin.McpBridge
             BridgeErrorCodes.InvalidArgument,
             "Stage03 mode 必须为 strict 或 forced_test。" );
       }
-      if (parsedMode == NativeStage03Mode.ForcedTest
-        && string.IsNullOrWhiteSpace(forceReason))
-      {
-        throw new McpCommandException(
-          BridgeErrorCodes.InvalidArgument,
-          "Stage03 forced_test 必须提供非空 force_reason。" );
-      }
       NativeStage03ScanResult result = await _gateway.ScanStage03Async(
         new NativeStage03ScanRequest
         {
           Mode = parsedMode,
-          ForceReason = forceReason ?? string.Empty
+          ForceReason = string.Empty
         },
         cancellationToken).ConfigureAwait(false);
       if (result != null && result.AllowExport

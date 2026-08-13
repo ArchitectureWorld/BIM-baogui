@@ -169,17 +169,15 @@ public static class BimBaoGuiTools
    Description("现场重读 Stage01/Stage02 与模型参数，执行 Stage03 严格或强制测试预检，并返回一次性 scan_hash。")]
   public static Task<string> Stage03Scan(
     NamedPipeBridgeService bridge,
-    [Description("strict（默认）或 forced_test。")]
+    [Description("strict（默认）或 forced_test；两种模式均不需要填写理由。")]
     string mode,
-    [Description("forced_test 必填；strict 可为空。")]
-    string force_reason,
     [Description("Revit 进程 ID；只有一个会话时可传 null。")]
     int? revit_process_id,
     CancellationToken cancellationToken)
   {
     return bridge.CallPayloadAsync(
       BIMBaoGui.McpContracts.BridgeMethodNames.Stage03Scan,
-      new { mode, force_reason },
+      new { mode },
       revit_process_id,
       300000,
       cancellationToken);
