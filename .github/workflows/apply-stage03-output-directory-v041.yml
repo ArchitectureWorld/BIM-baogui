@@ -6,6 +6,7 @@ on:
       - feat/revit-native-addin-mcp-v0.3
     paths:
       - ".github/patches/stage03-output-directory-v041.patch.gz.b64"
+      - ".github/patches/transform-stage03-view.py.gz.b64"
       - ".github/workflows/apply-stage03-output-directory-v041.yml"
 
 permissions:
@@ -21,27 +22,43 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Decode and verify patch
+      - name: Decode and verify inputs
         shell: bash
         run: |
           set -euo pipefail
-          payload=".github/patches/stage03-output-directory-v041.patch.gz.b64"
-          test "$(sha256sum "$payload" | awk '{print $1}')" = \
+          patch_payload=".github/patches/stage03-output-directory-v041.patch.gz.b64"
+          script_payload=".github/patches/transform-stage03-view.py.gz.b64"
+          test "$(sha256sum "$patch_payload" | awk '{print $1}')" = \
             "a4df548e5a01134ad84318d8e9b3ba7de2cb08f8fe496db5642b8f5658c491d4"
-          base64 --decode "$payload" \
+          test "$(sha256sum "$script_payload" | awk '{print $1}')" = \
+            "4ce23ef01daaa72deecf45318d6dbf9f71a96237fdcf08b4dd45d3c24143b6fd"
+          base64 --decode "$patch_payload" \
             | gzip --decompress > "$RUNNER_TEMP/stage03-output-directory-v041.patch"
+          base64 --decode "$script_payload" \
+            | gzip --decompress > "$RUNNER_TEMP/transform-stage03-view.py"
           test "$(sha256sum "$RUNNER_TEMP/stage03-output-directory-v041.patch" | awk '{print $1}')" = \
             "a0989486dae2b50a0039fb6c8eb48bd993f1242aee4aed9e3168a3a007524964"
-          git apply --3way --check "$RUNNER_TEMP/stage03-output-directory-v041.patch"
+          test "$(sha256sum "$RUNNER_TEMP/transform-stage03-view.py" | awk '{print $1}')" = \
+            "7032a598650171753e2c3dde692ce118c0676a9c44cfad6663216f6f3bc5ac90"
+          python -m py_compile "$RUNNER_TEMP/transform-stage03-view.py"
+          git apply --check \
+            --exclude=src/BIMBaoGui.RevitAddin/Stage03/NativeStage03View.cs \
+            "$RUNNER_TEMP/stage03-output-directory-v041.patch"
 
       - name: Apply implementation as one commit
         shell: bash
         run: |
           set -euo pipefail
-          git apply --3way --index "$RUNNER_TEMP/stage03-output-directory-v041.patch"
+          git apply --index \
+            --exclude=src/BIMBaoGui.RevitAddin/Stage03/NativeStage03View.cs \
+            "$RUNNER_TEMP/stage03-output-directory-v041.patch"
+          python "$RUNNER_TEMP/transform-stage03-view.py"
+          git add src/BIMBaoGui.RevitAddin/Stage03/NativeStage03View.cs
+
           mapfile -t changed < <(git diff --cached --name-only | sed '/^$/d')
           test "${#changed[@]}" -eq 7
           printf '%s\n' "${changed[@]}"
+          git diff --cached --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "feat: remember Stage03 export folders per Revit model"
