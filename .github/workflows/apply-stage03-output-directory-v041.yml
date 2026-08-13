@@ -32,13 +32,13 @@ jobs:
             | gzip --decompress > "$RUNNER_TEMP/stage03-output-directory-v041.patch"
           test "$(sha256sum "$RUNNER_TEMP/stage03-output-directory-v041.patch" | awk '{print $1}')" = \
             "a0989486dae2b50a0039fb6c8eb48bd993f1242aee4aed9e3168a3a007524964"
-          git apply --check "$RUNNER_TEMP/stage03-output-directory-v041.patch"
+          git apply --3way --check "$RUNNER_TEMP/stage03-output-directory-v041.patch"
 
       - name: Apply implementation as one commit
         shell: bash
         run: |
           set -euo pipefail
-          git apply --index "$RUNNER_TEMP/stage03-output-directory-v041.patch"
+          git apply --3way --index "$RUNNER_TEMP/stage03-output-directory-v041.patch"
           mapfile -t changed < <(git diff --cached --name-only | sed '/^$/d')
           test "${#changed[@]}" -eq 7
           printf '%s\n' "${changed[@]}"
