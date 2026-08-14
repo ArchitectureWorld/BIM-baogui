@@ -56,8 +56,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
   {
     internal bool Success { get; set; }
     internal string Status { get; set; } = string.Empty;
-    internal IReadOnlyList<string> Messages { get; set; } =
-      Array.Empty<string>();
+    internal IReadOnlyList<string> Messages { get; set; } = Array.Empty<string>();
     internal NativeStage02Preview Preview { get; set; }
     internal NativeStage02PreviewRequest ResolvedRequest { get; set; }
   }
@@ -68,8 +67,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       UIApplication uiApplication,
       NativeStage02PreviewRequest request)
     {
-      if (uiApplication == null)
-        throw new ArgumentNullException(nameof(uiApplication));
+      if (uiApplication == null) throw new ArgumentNullException(nameof(uiApplication));
       NativeStage02PreviewRequest safeRequest = request?.Clone()
         ?? new NativeStage02PreviewRequest();
       UIDocument uiDocument = uiApplication.ActiveUIDocument;
@@ -80,8 +78,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       if (environmentErrors.Count > 0)
         return Failure("Stage02 当前不可预览", environmentErrors.ToArray());
 
-      NativeStage01ReadResult stage01 = NativeStage01RevitReadService.Read(
-        uiApplication);
+      NativeStage01ReadResult stage01 = NativeStage01RevitReadService.Read(uiApplication);
       if (stage01?.StorageDecision == null || stage01.Model == null)
         return Failure("Stage02 等待文件初始化", "请先在 01 文件初始化中完成写入并回读。" );
       if (stage01.StorageDecision.State == NativeStage01StorageState.MigratableLegacy)
@@ -159,6 +156,14 @@ namespace BIMBaoGui.RevitAddin.Stage02
           "Stage02 扫描范围阻断",
           inventoryDecision.ErrorCode + "：" + inventoryDecision.Message);
 
+      NativeStage02SemanticAssignmentReadResult persisted =
+        NativeStage02SemanticAssignmentRevitService.Read(document);
+      if (persisted.State == NativeStage02SemanticAssignmentStorageState.Corrupt
+        || persisted.State == NativeStage02SemanticAssignmentStorageState.UnsupportedFuture)
+        return Failure(
+          "Stage02 语义角色存储阻断",
+          persisted.State + "：" + persisted.Message);
+
       var assignmentsByElement = assignmentDecision.Assignments.ToDictionary(
         value => value.ElementUniqueId,
         StringComparer.Ordinal);
@@ -169,67 +174,35 @@ namespace BIMBaoGui.RevitAddin.Stage02
       var evidence = new List<NativeStage02ElementEvidence>();
       foreach (NativeStage02ElementSnapshot snapshot in inventoryDecision.Elements)
       {
-        NativeStage02RoleMatchResult role;
-        if (resolvedRequest.IdentificationMode == NativeStage02IdentificationMode.Manual)
-        {
-          NativeStage02ResolvedAssignment assignment;
-          if (!assignmentsByElement.TryGetValue(snapshot.UniqueId, out assignment))
-          {
-            role = new NativeStage02RoleMatchResult(
-              NativeStage02RoleMatchStatus.NotApplicable,
-              string.Empty,
-              string.Empty,
-              Array.Empty<string>(),
-              NativeStage02RoleAssignmentCodes.ManualRoleRequired
-                + "：当前构件没有手动角色。" );
-          }
-          else
-          {
-            NativeStage02ManualCarrierDecision manual =
-              NativeStage02ManualCarrierPolicy.Evaluate(
-                assignment.RoleId,
-                modelProfile,
-                conditions,
-                snapshot,
-                NativeStage02ManualRoleCatalog.Current.Roles);
-            if (!manual.Accepted)
-            {
-              role = new NativeStage02RoleMatchResult(
-                NativeStage02RoleMatchStatus.AssignedRoleConflict,
-                string.Empty,
-                "MANUAL_SEMANTIC_ASSIGNMENT",
-                new[] { assignment.RoleId },
-                manual.ErrorCode + "：" + manual.Message);
-            }
-            else
-            {
-              snapshot.AssignedRoleId = assignment.RoleId;
-              role = new NativeStage02RoleMatchResult(
-                NativeStage02RoleMatchStatus.Matched,
-                assignment.RoleId,
-                assignment.Source,
-                new[] { assignment.RoleId },
-                string.Empty);
-            }
-          }
-        }
-        else
-        {
-          role = NativeStage02RoleMatcher.Match(
-            snapshot,
-            catalog.CarrierRoles,
-            modelProfile);
-        }
+        NativeStage02ResolvedAssignment currentAssignment;
+        assignmentsByElement.TryGetValue(snapshot.UniqueId, out currentAssignment);
+        NativeStage02SemanticAssignmentRecord savedAssignment;
+        persisted.AssignmentsByElement.TryGetValue(snapshot.UniqueId, out savedAssignment);
 
+        NativeStage02RoleMatchResult role = ResolveEffectiveRole(
+          snapshot,
+          currentAssignment,
+          savedAssignment,
+          modelProfile,
+          conditions,
+          catalog);
         if (role.Status != NativeStage02RoleMatchStatus.Matched)
         {
-          evidence.Add(new NativeStage02ElementEvidence { Element = snapshot });
+          evidence.Add(new NativeStage02ElementEvidence
+          {
+            Element = snapshot,
+            ResolvedRoleMatch = role
+          });
           continue;
         }
         Element live = document.GetElement(snapshot.UniqueId);
         if (live == null)
         {
-          evidence.Add(new NativeStage02ElementEvidence { Element = snapshot });
+          evidence.Add(new NativeStage02ElementEvidence
+          {
+            Element = snapshot,
+            ResolvedRoleMatch = role
+          });
           continue;
         }
         var parameters = new Dictionary<Guid, NativeStage02ParameterEvidence>();
@@ -247,6 +220,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
         evidence.Add(new NativeStage02ElementEvidence
         {
           Element = snapshot,
+          ResolvedRoleMatch = role,
           Parameters = parameters
         });
       }
@@ -260,19 +234,93 @@ namespace BIMBaoGui.RevitAddin.Stage02
           Elements = evidence
         },
         catalog);
+      var messages = new List<string>
+      {
+        "已扫描 " + preview.Elements.Count.ToString(CultureInfo.InvariantCulture) + " 个规则相关构件。",
+        "识别方式：" + resolvedRequest.IdentificationMode,
+        "预览 SHA-256：" + preview.PreviewHash
+      };
+      if (persisted.StaleElementUniqueIds.Count > 0)
+        messages.Add(
+          "检测到 " + persisted.StaleElementUniqueIds.Count.ToString(CultureInfo.InvariantCulture)
+          + " 条已删除构件的 Stage02 stale role 记录；不会转移到其他构件。" );
       return new NativeStage02RevitPreviewResult
       {
         Success = true,
         Status = "Stage02 预览已生成",
         Preview = preview,
         ResolvedRequest = resolvedRequest,
-        Messages = new[]
-        {
-          "已扫描 " + preview.Elements.Count.ToString(CultureInfo.InvariantCulture) + " 个规则相关构件。",
-          "识别方式：" + resolvedRequest.IdentificationMode,
-          "预览 SHA-256：" + preview.PreviewHash
-        }
+        Messages = new ReadOnlyCollection<string>(messages)
       };
+    }
+
+    private static NativeStage02RoleMatchResult ResolveEffectiveRole(
+      NativeStage02ElementSnapshot snapshot,
+      NativeStage02ResolvedAssignment currentAssignment,
+      NativeStage02SemanticAssignmentRecord savedAssignment,
+      string modelProfile,
+      IReadOnlyDictionary<string, bool> conditions,
+      NativeStage02RuleCatalog catalog)
+    {
+      if (currentAssignment != null)
+      {
+        if (currentAssignment.AssignmentMode == NativeStage02AssignmentMode.Auto)
+          return NativeStage02RoleMatcher.Match(snapshot, catalog.CarrierRoles, modelProfile);
+        return ResolveManualRole(
+          snapshot,
+          currentAssignment.RoleId,
+          currentAssignment.Source,
+          modelProfile,
+          conditions,
+          catalog);
+      }
+
+      if (savedAssignment != null
+        && savedAssignment.AssignmentMode == NativeStage02AssignmentMode.Manual)
+      {
+        return ResolveManualRole(
+          snapshot,
+          savedAssignment.RoleId,
+          "PersistedManual",
+          modelProfile,
+          conditions,
+          catalog);
+      }
+
+      return NativeStage02RoleMatcher.Match(snapshot, catalog.CarrierRoles, modelProfile);
+    }
+
+    private static NativeStage02RoleMatchResult ResolveManualRole(
+      NativeStage02ElementSnapshot snapshot,
+      string roleId,
+      string source,
+      string modelProfile,
+      IReadOnlyDictionary<string, bool> conditions,
+      NativeStage02RuleCatalog catalog)
+    {
+      NativeStage02ManualCarrierDecision manual =
+        NativeStage02ManualCarrierPolicy.Evaluate(
+          roleId,
+          modelProfile,
+          conditions,
+          snapshot,
+          NativeStage02ManualRoleCatalog.Current.Roles);
+      if (!manual.Accepted)
+      {
+        return new NativeStage02RoleMatchResult(
+          NativeStage02RoleMatchStatus.AssignedRoleConflict,
+          string.Empty,
+          "MANUAL_SEMANTIC_ASSIGNMENT",
+          string.IsNullOrWhiteSpace(roleId) ? Array.Empty<string>() : new[] { roleId },
+          manual.ErrorCode + "：" + manual.Message);
+      }
+      snapshot.AssignedRoleId = roleId;
+      return new NativeStage02RoleMatchResult(
+        NativeStage02RoleMatchStatus.Matched,
+        roleId,
+        source,
+        new[] { roleId },
+        string.Empty);
     }
 
     private static IReadOnlyList<string> ValidateEnvironment(
@@ -427,6 +475,16 @@ namespace BIMBaoGui.RevitAddin.Stage02
         }
         catch { }
       }
+      NativeStage02SemanticSuggestionDecision suggestion =
+        NativeStage02SemanticValueSuggestionPolicy.Evaluate(
+          property.SuggestionKind,
+          property.SuggestionAliases,
+          TypeName(document, element),
+          null);
+      if (suggestion.Status == NativeStage02SemanticSuggestionStatus.Suggested
+        && !string.IsNullOrWhiteSpace(suggestion.CanonicalValue))
+        aliases[suggestion.CanonicalValue] = suggestion.CanonicalValue;
+
       return new NativeStage02ParameterEvidence
       {
         ParameterGuid = property.ParameterGuid,
