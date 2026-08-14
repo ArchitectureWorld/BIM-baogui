@@ -12,7 +12,7 @@
 
 - 实施起点固定为 `eca4639af65e165827810e06340ecb700ffe3e09`，即 `feat/revit-stage02-manual-semantic-v0.4.2` 的干净 HEAD。
 - 目标分支固定为 `feat/revit-native-total-plan-phase1-v0.4.3`；目标产品版本为 `0.4.3`，程序集版本为 `0.4.3.0`。
-- 不在脏的旧 `main` 工作树实施；执行前必须使用 `superpowers:using-git-worktrees` 创建隔离工作树。
+- 不在脏的旧 `main` 工作树实施。当前执行点已经是 `C:\Users\2899\.config\superpowers\worktrees\BIM-baogui\revit-native-total-plan-phase1-v0.4.3` 的 linked worktree，分支为 `feat/revit-native-total-plan-phase1-v0.4.3`；续作时只验证并复用，禁止再次运行 `worktree add -b`。
 - 只交付 Autodesk Revit 2020 原生插件；不新增 Web、Grasshopper 或外部常驻服务作为替代路径。
 - 第一阶段只支持 `总平模型`；`单体建筑—地上`、`单体建筑—地下` 必须明确返回 `MODEL_PROFILE_NOT_IMPLEMENTED_PHASE1`，不得回退到总平清单。
 - Stage03 清单没有 `NotApplicable` 状态或人工“不适用”入口；不满足条件的定义在生成阶段排除。
@@ -20,6 +20,10 @@
 - 规划目标和实际指标以完整 `IFC Entity + PropertySet + Property + propertyId` 区分，任何同名字段不得合并。
 - 02A 以单构件为写入原子；02B 以单指标为写入原子。成功项保留，失败项仅回滚自身并可单独重试；v0.4.2 的 `CustomSelection` 表示读取当前 Revit 选择集，内部解析为排序后的 UniqueId，不得把它误写成既有公开 ElementId payload。
 - `IfcProject`、`IfcSite`、`IfcSpatialZone` 当前 `officialExportVerified=false`。允许保存内部真实输入；未完成 Golden RVT → 官方插件 → IFCFlux 证据前，官方载体状态必须保持 `PENDING_GOLDEN_RVT`，不得从 `legacyProjection.carrier` 猜测为已验证。
+- 02A 的 37 条 task attribute 必须逐条以 `taskId + attributeRequirement + internalPropertyId` 静态连接；运行时禁止按中文名称、别名或包含关系猜 property。内部参数写入/回读状态与官方投影状态是两个字段，内部通过不得升级 `officialCarrierStatus`。
+- 规则中有明确数学/拓扑判据的几何项必须自动求值；规则文本没有量化判据的关系项必须使用绑定 `documentFingerprint + rulePackageSha256 + sorted element snapshot/evidence hash` 的人工复核凭证。缺失、拒绝或因模型变化过期的凭证均为红色；不得永久返回 `GEOMETRY_CHECK_UNSUPPORTED_PHASE1`。
+- 官方 carrier 探针只允许在由验收脚本创建并带授权 manifest 的 Golden 副本运行。探针使用官方 exact source parameter name 和逐候选唯一 sentinel；探针 RVT/IFC 只用于发现 selector，不能作为最终 Golden 验收产物，也不得写回生产 RVT。
+- Golden 完成门禁固定要求：最终 Stage03 `failed=0/not_checked=0`；Strict 正常导出成功且 `IsTestExport=false/CountsAsNormalExportPass=true`；所有要求官方投影的 propertyId 在同一 Golden RVT、同一官方 IFC、同一 HIFCTool/IFCFlux 版本下完成 Revit 回读值、IFC 值和 IFCFlux 观察值的类型化逐值一致。
 - 测试强制导出必须要求非空原因、保留全部红项、写入测试身份；它只能绕过业务缺项，不能绕过文档、规则、hash、输出、导出器、RAW、转译或报告错误。
 - 现有 MCP 工具总数保持 13；本期不新增 02B MCP 工具，只恢复 Stage03 既有工具的 `force_reason` 参数。
 - 自动化测试、内部回读、标准 IFC 导出均不得冒充官方 HIFCTool/IFCFlux 验收通过。
@@ -27,33 +31,31 @@
 
 ## 执行前准备
 
-先读取 `superpowers:using-git-worktrees`，然后执行：
+先读取 `superpowers:using-git-worktrees`，检测现有 linked worktree 后执行：
 
 ```powershell
-$repo = 'D:\18_建模项目\湖北BIM云平台\BIM-baogui'
 $worktree = 'C:\Users\2899\.config\superpowers\worktrees\BIM-baogui\revit-native-total-plan-phase1-v0.4.3'
 $branch = 'feat/revit-native-total-plan-phase1-v0.4.3'
 $base = 'eca4639af65e165827810e06340ecb700ffe3e09'
-$planPath = 'docs/superpowers/plans/2026-08-14-native-revit-total-plan-reporting-phase1.md'
-$planCommit = (git -C $repo log -1 --format=%H -- $planPath).Trim()
-
-git -C $repo fetch origin
-git -C $repo cat-file -e "$base^{commit}"
-git -C $repo cat-file -e "$planCommit^{commit}"
-git -C $repo show-ref --verify --quiet "refs/heads/$branch"
-git -C $repo ls-remote --exit-code --heads origin "refs/heads/$branch"
-```
-
-Expected: 两个 `cat-file` exit 0；`show-ref` exit 1；`ls-remote` 无输出且 exit 2。若目标分支在本地或远端已存在，停止并检查，不复用未知状态。
-
-```powershell
-git -C $repo worktree add $worktree -b $branch $base
-git -C $worktree cherry-pick 6f646a5 $planCommit
+$dotnet8 = 'C:\Program Files\Epic Games\UE_5.5\Engine\Binaries\ThirdParty\DotNet\8.0.300\win-x64\dotnet.exe'
+if (-not (Test-Path -LiteralPath $dotnet8) -or (& $dotnet8 --version).Trim() -ne '8.0.300') {
+  throw 'required pinned .NET 8.0.300 runtime is unavailable'
+}
+Set-Alias -Name dotnet -Value $dotnet8 -Scope Global
+$gitDir = (git -C $worktree rev-parse --path-format=absolute --git-dir).Trim()
+$gitCommon = (git -C $worktree rev-parse --path-format=absolute --git-common-dir).Trim()
+$actualBranch = (git -C $worktree branch --show-current).Trim()
+$superproject = [string](git -C $worktree rev-parse --show-superproject-working-tree)
+$superproject = $superproject.Trim()
+if ($gitDir -eq $gitCommon -or $superproject -or $actualBranch -ne $branch) {
+  throw 'expected the prepared linked worktree and exact feature branch'
+}
+git -C $worktree merge-base --is-ancestor $base HEAD
 git -C $worktree status --short --branch
-git -C $worktree rev-parse HEAD
+git -C $worktree log -3 --oneline
 ```
 
-Expected: `$planCommit` 为本计划的已提交版本；新工作树干净；历史包含 v0.4.2 基线、已确认设计规格和本实施计划。后续所有命令均在 `$worktree` 执行。
+Expected: linked-worktree 检测通过；`merge-base` exit 0；分支名精确匹配；状态只允许出现本计划续作产生的受控修改；历史包含 v0.4.2 基线、已确认设计规格和本实施计划。后续所有命令均在同一 PowerShell 会话、`$worktree` 中执行；文中的 `dotnet` 已由上述 alias 锁定为明确的 .NET 8.0.300，禁止落回 PATH 中的 .NET 7；且不得切换、reset、stash 或清理原脏 `main`。
 
 ## 文件结构与职责
 
@@ -104,6 +106,7 @@ import json
 import struct
 import subprocess
 import sys
+import uuid
 from pathlib import Path
 
 import pytest
@@ -154,7 +157,53 @@ def test_v043_reporting_pack_is_deterministic_and_exact(tmp_path):
     assert len(payload["carrierRoles"]) == 15
     reporting = payload["nativeReporting"]
     assert reporting["schemaVersion"] == "1.0.0"
-    assert reporting["profiles"][0]["modelFileType"] == "总平模型"
+    assert len(reporting["profiles"]) == 1
+    profile = reporting["profiles"][0]
+    assert profile["modelFileType"] == "总平模型"
+    assert profile["strictNoNotApplicable"] is True
+    assert len(profile["taskIds"]) == 15
+    assert len(reporting["semanticRoles"]) == 13
+    assert len(reporting["internalProperties"]) == 10
+    mappings = [
+        mapping
+        for role in reporting["semanticRoles"]
+        for mapping in role["attributeMappings"]
+    ]
+    assert len(mappings) == 37
+    assert all("linkedCarrierRoleId" not in role for role in reporting["semanticRoles"])
+    assert all(
+        mapping["definitionSource"] in {"RULE_PROPERTY", "NATIVE_INTERNAL_EXTENSION"}
+        for mapping in mappings
+    )
+    field_property_ids = {
+        item["fieldKey"]: item["propertyId"]
+        for item in payload["stage01"]["fieldRefs"]
+    }
+    expected_official_ids = {
+        field_property_ids[key]
+        for key in reporting["stage01FieldKeys"]
+        if key in field_property_ids
+    }
+    expected_official_ids.update(reporting["planningTargetPropertyIds"])
+    expected_official_ids.update(
+        item["internalPropertyId"]
+        for item in mappings
+        if item["definitionSource"] == "RULE_PROPERTY"
+    )
+    expected_official_ids.update(METRICS)
+    expected_official_ids.update(
+        item["propertyId"] for item in payload["properties"]
+        if "SITE_GREEN_OBJECT" in item["carrierRoleIds"]
+    )
+    assert reporting["officialAcceptancePropertyIds"] == sorted(expected_official_ids)
+    properties_by_id = {item["propertyId"]: item for item in payload["properties"]}
+    assert all(
+        properties_by_id[property_id]["revit"]["parameterGuid"] == property_id
+        and properties_by_id[property_id]["revit"]["bindingScope"] == "INSTANCE"
+        and properties_by_id[property_id]["ifc"]["declaredType"]
+            in {"IfcLabel", "IfcText", "IfcInteger", "IfcReal", "IfcDateTime"}
+        for property_id in reporting["officialAcceptancePropertyIds"]
+    )
     assert len(reporting["stage01FieldKeys"]) == 24
     assert len(reporting["planningTargetPropertyIds"]) == 10
     assert {m["propertyId"]: m["identity"] for m in reporting["stage02BMetrics"]} == METRICS
@@ -169,7 +218,13 @@ def test_v043_reporting_pack_is_deterministic_and_exact(tmp_path):
 @pytest.mark.parametrize("case", [
     "duplicate_role", "duplicate_metric", "aliases_unsorted",
     "aliases_duplicate", "invalid_role_status", "orphan_carrier",
-    "orphan_evidence", "derived_check_id_collision",
+    "orphan_probe", "orphan_evidence", "derived_check_id_collision",
+    "missing_attribute_mapping", "duplicate_attribute_mapping",
+    "unknown_internal_property", "orphan_internal_property",
+    "invalid_internal_uuid5", "profile_not_strict",
+    "profile_task_count", "semantic_role_count",
+    "missing_geometry_policy", "unknown_geometry_reference",
+    "missing_property_policy", "unknown_property_policy_reference",
 ])
 def test_invalid_native_reporting_overlay_is_rejected_atomically(tmp_path, case):
     overlay = json.loads(OVERLAY.read_text(encoding="utf-8"))
@@ -189,6 +244,48 @@ def test_invalid_native_reporting_overlay_is_rejected_atomically(tmp_path, case)
         role["candidateAliases"].append(role["candidateAliases"][0])
     elif case == "invalid_role_status":
         reporting["semanticRoles"][0]["officialCarrierStatus"] = "BOGUS"
+    elif case == "missing_attribute_mapping":
+        reporting["semanticRoles"][0]["attributeMappings"].pop()
+    elif case == "duplicate_attribute_mapping":
+        role = reporting["semanticRoles"][0]
+        role["attributeMappings"].append(dict(role["attributeMappings"][0]))
+    elif case == "unknown_internal_property":
+        internal_mapping = next(
+            mapping
+            for role in reporting["semanticRoles"]
+            for mapping in role["attributeMappings"]
+            if mapping["definitionSource"] == "NATIVE_INTERNAL_EXTENSION"
+        )
+        internal_mapping["internalPropertyId"] = str(
+            uuid.uuid5(uuid.NAMESPACE_DNS, "unknown-native-property"))
+    elif case == "orphan_internal_property":
+        orphan_id = reporting["internalProperties"][0]["propertyId"]
+        replacement_id = reporting["internalProperties"][1]["propertyId"]
+        orphan_mapping = next(
+            mapping
+            for role in reporting["semanticRoles"]
+            for mapping in role["attributeMappings"]
+            if mapping["internalPropertyId"] == orphan_id
+        )
+        orphan_mapping["internalPropertyId"] = replacement_id
+    elif case == "invalid_internal_uuid5":
+        reporting["internalProperties"][0]["propertyId"] = str(
+            uuid.uuid5(uuid.NAMESPACE_DNS, "invalid-native-internal-id"))
+    elif case == "profile_not_strict":
+        reporting["profiles"][0]["strictNoNotApplicable"] = False
+    elif case == "profile_task_count":
+        reporting["profiles"][0]["taskIds"].pop()
+    elif case == "semantic_role_count":
+        reporting["semanticRoles"].pop()
+    elif case == "missing_geometry_policy":
+        reporting["geometryEvaluationPolicies"].pop()
+    elif case == "unknown_geometry_reference":
+        reporting["geometryEvaluationPolicies"][0]["referenceRoleId"] = "UNKNOWN_ROLE"
+    elif case == "missing_property_policy":
+        reporting["propertyEvaluationPolicies"].pop()
+    elif case == "unknown_property_policy_reference":
+        reporting["propertyEvaluationPolicies"][0]["propertyId"] = str(
+            uuid.uuid5(uuid.NAMESPACE_DNS, "unknown-policy-property"))
     elif case == "orphan_carrier":
         reporting["officialProjectionCarriers"].append({
             "carrierId": "OFFICIAL.ORPHAN.V1",
@@ -199,6 +296,23 @@ def test_invalid_native_reporting_overlay_is_rejected_atomically(tmp_path, case)
             "elementClass": "Autodesk.Revit.DB.ProjectInfo",
             "bindingScope": "INSTANCE",
             "parameterGuid": property_id,
+        })
+    elif case == "orphan_probe":
+        reporting["officialCarrierProbeRecords"].append({
+            "probeId": "PROBE.ORPHAN.000000000000",
+            "propertyId": property_id,
+            "sourceGoldenRvtSha256": "0" * 64,
+            "probeSeedManifestSha256": "1" * 64,
+            "probeRvtSha256": "2" * 64,
+            "probeIfcSha256": "3" * 64,
+            "hifcToolManifestSha256": "4" * 64,
+            "hifcToolDllSha256": "5" * 64,
+            "hifcToolProductVersion": "1.0.0",
+            "observedRevitUniqueId": "orphan-revit-unique-id",
+            "observedIfcGlobalId": "orphan-ifc-global-id",
+            "observedBindingScope": "INSTANCE",
+            "observedParameterGuid": property_id,
+            "observedSentinel": "700001.000001",
         })
     elif case == "orphan_evidence":
         reporting["officialEvidenceRecords"].append({
@@ -216,7 +330,7 @@ def test_invalid_native_reporting_overlay_is_rejected_atomically(tmp_path, case)
             "observedBindingScope": "INSTANCE",
             "observedParameterGuid": property_id,
         })
-    else:
+    elif case == "derived_check_id_collision":
         reporting["systemChecks"].append({
             "sequence": 99999,
             "checkId": f"STAGE02B.METRIC.{property_id}",
@@ -289,20 +403,70 @@ Expected: FAIL，因为 v0.4.3 overlay/compiler 尚不存在。
         ]
       }
     ],
+    "internalProperties": [
+      {"propertyId":"2f9e7336-4758-55d6-8cbb-cee8bb254bd8","canonicalKey":"HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_TOTAL_LAND|用地类型","displayName":"规划总用地｜用地类型","valueKind":"TEXT","canonicalUnit":null,"revit":{"parameterGuid":"2f9e7336-4758-55d6-8cbb-cee8bb254bd8","parameterName":"HBR｜总平内部｜规划总用地｜用地类型","storageType":"String","parameterType":"Text","bindingScope":"INSTANCE"},"evidenceStatus":"INTERNAL_ONLY","officialExportVerified":false},
+      {"propertyId":"11ee1873-ad4c-526c-ad3c-4cc4847c43e0","canonicalKey":"HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_NET_LAND|用地类型","displayName":"规划净用地｜用地类型","valueKind":"TEXT","canonicalUnit":null,"revit":{"parameterGuid":"11ee1873-ad4c-526c-ad3c-4cc4847c43e0","parameterName":"HBR｜总平内部｜规划净用地｜用地类型","storageType":"String","parameterType":"Text","bindingScope":"INSTANCE"},"evidenceStatus":"INTERNAL_ONLY","officialExportVerified":false},
+      {"propertyId":"450f0c45-6024-598d-babd-98b05391c678","canonicalKey":"HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_ROAD_CENTERLINE|道路等级","displayName":"道路中心线｜道路等级","valueKind":"TEXT","canonicalUnit":null,"revit":{"parameterGuid":"450f0c45-6024-598d-babd-98b05391c678","parameterName":"HBR｜总平内部｜道路中心线｜道路等级","storageType":"String","parameterType":"Text","bindingScope":"INSTANCE"},"evidenceStatus":"INTERNAL_ONLY","officialExportVerified":false},
+      {"propertyId":"9d03bc4c-96da-53fb-95d1-9cbe5a4bf0ad","canonicalKey":"HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_INTERNAL_ROADS|道路名称","displayName":"区内道路｜道路名称","valueKind":"TEXT","canonicalUnit":null,"revit":{"parameterGuid":"9d03bc4c-96da-53fb-95d1-9cbe5a4bf0ad","parameterName":"HBR｜总平内部｜区内道路｜道路名称","storageType":"String","parameterType":"Text","bindingScope":"INSTANCE"},"evidenceStatus":"INTERNAL_ONLY","officialExportVerified":false},
+      {"propertyId":"277c9f25-38fd-5e4b-a18e-23cd05f4fd32","canonicalKey":"HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_FIRE_LANE|名称","displayName":"消防道路｜名称","valueKind":"TEXT","canonicalUnit":null,"revit":{"parameterGuid":"277c9f25-38fd-5e4b-a18e-23cd05f4fd32","parameterName":"HBR｜总平内部｜消防道路｜名称","storageType":"String","parameterType":"Text","bindingScope":"INSTANCE"},"evidenceStatus":"INTERNAL_ONLY","officialExportVerified":false},
+      {"propertyId":"8457b54b-8f9b-56b4-981c-3ee4038ab9ec","canonicalKey":"HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_FIRE_LANE|道路宽度","displayName":"消防道路｜道路宽度","valueKind":"LENGTH","canonicalUnit":"m","revit":{"parameterGuid":"8457b54b-8f9b-56b4-981c-3ee4038ab9ec","parameterName":"HBR｜总平内部｜消防道路｜道路宽度","storageType":"Double","parameterType":"Length","bindingScope":"INSTANCE"},"evidenceStatus":"INTERNAL_ONLY","officialExportVerified":false},
+      {"propertyId":"dc79663b-0462-5d01-ae31-d160540086a4","canonicalKey":"HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_FIRE_LANE|转弯半径","displayName":"消防道路｜转弯半径","valueKind":"LENGTH","canonicalUnit":"m","revit":{"parameterGuid":"dc79663b-0462-5d01-ae31-d160540086a4","parameterName":"HBR｜总平内部｜消防道路｜转弯半径","storageType":"Double","parameterType":"Length","bindingScope":"INSTANCE"},"evidenceStatus":"INTERNAL_ONLY","officialExportVerified":false},
+      {"propertyId":"1834163c-cefd-56a6-ba68-f8266cedf95e","canonicalKey":"HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_FIRE_FIELD|场地类型","displayName":"消防场地｜场地类型","valueKind":"TEXT","canonicalUnit":null,"revit":{"parameterGuid":"1834163c-cefd-56a6-ba68-f8266cedf95e","parameterName":"HBR｜总平内部｜消防场地｜场地类型","storageType":"String","parameterType":"Text","bindingScope":"INSTANCE"},"evidenceStatus":"INTERNAL_ONLY","officialExportVerified":false},
+      {"propertyId":"1d7fd3ce-080c-5448-bd13-7e1981b63758","canonicalKey":"HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_CIVIL_DEFENSE|人防类型","displayName":"人防区域｜人防类型","valueKind":"TEXT","canonicalUnit":null,"revit":{"parameterGuid":"1d7fd3ce-080c-5448-bd13-7e1981b63758","parameterName":"HBR｜总平内部｜人防区域｜人防类型","storageType":"String","parameterType":"Text","bindingScope":"INSTANCE"},"evidenceStatus":"INTERNAL_ONLY","officialExportVerified":false},
+      {"propertyId":"131f758e-4f80-5ec5-8cf7-cdc4537233a1","canonicalKey":"HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_STRUCTURES|数量","displayName":"室外构筑物与设施｜数量","valueKind":"INTEGER","canonicalUnit":"个","revit":{"parameterGuid":"131f758e-4f80-5ec5-8cf7-cdc4537233a1","parameterName":"HBR｜总平内部｜室外构筑物与设施｜数量","storageType":"Integer","parameterType":"Integer","bindingScope":"INSTANCE"},"evidenceStatus":"INTERNAL_ONLY","officialExportVerified":false}
+    ],
     "semanticRoles": [
-      {"roleId":"SITE_TOTAL_LAND","taskId":"SITE.TOTAL_LAND","displayName":"规划总用地","candidateAliases":["总用地","规划总用地"],"linkedCarrierRoleId":"","officialCarrierStatus":"PENDING_GOLDEN_RVT"},
-      {"roleId":"SITE_NET_LAND","taskId":"SITE.NET_LAND","displayName":"规划净用地","candidateAliases":["净用地","规划净用地"],"linkedCarrierRoleId":"","officialCarrierStatus":"PENDING_GOLDEN_RVT"},
-      {"roleId":"SITE_BUILDING_FOOTPRINT","taskId":"SITE.BUILDING_FOOTPRINT","displayName":"建筑轮廓或建筑占地表达","candidateAliases":["建筑占地","建筑基底","建筑轮廓"],"linkedCarrierRoleId":"","officialCarrierStatus":"PENDING_GOLDEN_RVT"},
-      {"roleId":"SITE_OTHER_LAND","taskId":"SITE.OTHER_LAND","displayName":"其他分类用地","candidateAliases":["其他分类用地","其它用地"],"linkedCarrierRoleId":"","officialCarrierStatus":"PENDING_GOLDEN_RVT"},
-      {"roleId":"SITE_ROAD_REDLINE","taskId":"SITE.ROAD_REDLINE","displayName":"道路红线","candidateAliases":["道路红线"],"linkedCarrierRoleId":"","officialCarrierStatus":"PENDING_GOLDEN_RVT"},
-      {"roleId":"SITE_ROAD_CENTERLINE","taskId":"SITE.ROAD_CENTERLINE","displayName":"道路中心线","candidateAliases":["道路中心线"],"linkedCarrierRoleId":"","officialCarrierStatus":"PENDING_GOLDEN_RVT"},
-      {"roleId":"SITE_INTERNAL_ROADS","taskId":"SITE.INTERNAL_ROADS","displayName":"区内道路","candidateAliases":["内部道路","区内道路"],"linkedCarrierRoleId":"","officialCarrierStatus":"PENDING_GOLDEN_RVT"},
-      {"roleId":"SITE_FIRE_LANE","taskId":"SITE.FIRE_LANE","displayName":"消防道路","candidateAliases":["消防车道","消防道路"],"linkedCarrierRoleId":"","officialCarrierStatus":"PENDING_GOLDEN_RVT"},
-      {"roleId":"SITE_FIRE_FIELD","taskId":"SITE.FIRE_FIELD","displayName":"消防登高或操作场地","candidateAliases":["消防操作场地","消防登高场地"],"linkedCarrierRoleId":"","officialCarrierStatus":"PENDING_GOLDEN_RVT"},
-      {"roleId":"SITE_GREEN_OBJECT","taskId":"SITE.GREEN","displayName":"绿地","candidateAliases":["绿地"],"linkedCarrierRoleId":"SITE_GREEN_OBJECT","officialCarrierStatus":"PENDING_GOLDEN_RVT"},
-      {"roleId":"SITE_OUTDOOR_PARKING","taskId":"SITE.OUTDOOR_PARKING","displayName":"室外停车场或车位","candidateAliases":["室外停车场","室外车位"],"linkedCarrierRoleId":"","officialCarrierStatus":"PENDING_GOLDEN_RVT"},
-      {"roleId":"SITE_CIVIL_DEFENSE","taskId":"SITE.CIVIL_DEFENSE","displayName":"人防区域","candidateAliases":["人防","人防区域"],"linkedCarrierRoleId":"","officialCarrierStatus":"PENDING_GOLDEN_RVT"},
-      {"roleId":"SITE_STRUCTURES","taskId":"SITE.STRUCTURES","displayName":"室外构筑物与设施","candidateAliases":["室外构筑物","室外设施"],"linkedCarrierRoleId":"","officialCarrierStatus":"PENDING_GOLDEN_RVT"}
+      {"roleId":"SITE_TOTAL_LAND","taskId":"SITE.TOTAL_LAND","displayName":"规划总用地","candidateAliases":["总用地","规划总用地"],"internalCarrierStatus":"INTERNAL_ONLY","officialCarrierStatus":"PENDING_GOLDEN_RVT","attributeMappings":[{"attributeRequirement":"名称","internalPropertyId":"dc982a98-fc31-5e99-ac67-5ee489daeb86","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"用地类型","internalPropertyId":"2f9e7336-4758-55d6-8cbb-cee8bb254bd8","definitionSource":"NATIVE_INTERNAL_EXTENSION"},{"attributeRequirement":"投影面积","internalPropertyId":"b970d6b1-92c9-51d2-8fac-187808a07801","definitionSource":"RULE_PROPERTY"}]},
+      {"roleId":"SITE_NET_LAND","taskId":"SITE.NET_LAND","displayName":"规划净用地","candidateAliases":["净用地","规划净用地"],"internalCarrierStatus":"INTERNAL_ONLY","officialCarrierStatus":"PENDING_GOLDEN_RVT","attributeMappings":[{"attributeRequirement":"名称","internalPropertyId":"81f745fe-f61f-55a1-922f-4a1fb05baaa0","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"用地类型","internalPropertyId":"11ee1873-ad4c-526c-ad3c-4cc4847c43e0","definitionSource":"NATIVE_INTERNAL_EXTENSION"},{"attributeRequirement":"投影面积","internalPropertyId":"c42ea80f-4a12-5d4b-8bba-2374135d9d2a","definitionSource":"RULE_PROPERTY"}]},
+      {"roleId":"SITE_BUILDING_FOOTPRINT","taskId":"SITE.BUILDING_FOOTPRINT","displayName":"建筑轮廓或建筑占地表达","candidateAliases":["建筑占地","建筑基底","建筑轮廓"],"internalCarrierStatus":"INTERNAL_ONLY","officialCarrierStatus":"PENDING_GOLDEN_RVT","attributeMappings":[{"attributeRequirement":"建筑名称","internalPropertyId":"4225a5de-c942-54aa-874a-28a1e67ce39c","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"建筑编号","internalPropertyId":"6b9e1517-695c-54fc-bf8a-3800d18019a0","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"占地面积","internalPropertyId":"43b52fa7-4954-5409-9389-4eddb97807a2","definitionSource":"RULE_PROPERTY"}]},
+      {"roleId":"SITE_OTHER_LAND","taskId":"SITE.OTHER_LAND","displayName":"其他分类用地","candidateAliases":["其他分类用地","其它用地"],"internalCarrierStatus":"INTERNAL_ONLY","officialCarrierStatus":"PENDING_GOLDEN_RVT","attributeMappings":[{"attributeRequirement":"名称","internalPropertyId":"0c15f6bd-0dfb-545a-bd4f-8c773f7aa6b5","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"用地分类","internalPropertyId":"40f7e661-5c21-5ed0-afe2-def81322eb06","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"投影面积","internalPropertyId":"f1c6c634-887c-51bd-9b12-2b734d5aa7bd","definitionSource":"RULE_PROPERTY"}]},
+      {"roleId":"SITE_ROAD_REDLINE","taskId":"SITE.ROAD_REDLINE","displayName":"道路红线","candidateAliases":["道路红线"],"internalCarrierStatus":"INTERNAL_ONLY","officialCarrierStatus":"PENDING_GOLDEN_RVT","attributeMappings":[{"attributeRequirement":"名称","internalPropertyId":"2b251cbc-2dfb-5bd9-8013-d5be0d846e69","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"红线类型","internalPropertyId":"1b387099-43df-5c34-86eb-f6183395a934","definitionSource":"RULE_PROPERTY"}]},
+      {"roleId":"SITE_ROAD_CENTERLINE","taskId":"SITE.ROAD_CENTERLINE","displayName":"道路中心线","candidateAliases":["道路中心线"],"internalCarrierStatus":"INTERNAL_ONLY","officialCarrierStatus":"PENDING_GOLDEN_RVT","attributeMappings":[{"attributeRequirement":"名称","internalPropertyId":"9b49b6b0-545b-5280-9b00-bb338cdc2ef6","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"道路等级","internalPropertyId":"450f0c45-6024-598d-babd-98b05391c678","definitionSource":"NATIVE_INTERNAL_EXTENSION"}]},
+      {"roleId":"SITE_INTERNAL_ROADS","taskId":"SITE.INTERNAL_ROADS","displayName":"区内道路","candidateAliases":["内部道路","区内道路"],"internalCarrierStatus":"INTERNAL_ONLY","officialCarrierStatus":"PENDING_GOLDEN_RVT","attributeMappings":[{"attributeRequirement":"道路名称","internalPropertyId":"9d03bc4c-96da-53fb-95d1-9cbe5a4bf0ad","definitionSource":"NATIVE_INTERNAL_EXTENSION"},{"attributeRequirement":"道路类型","internalPropertyId":"e931547d-497e-5582-849e-451eee359411","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"道路宽度","internalPropertyId":"5f1a2f9e-7fb5-56c2-b410-e094a079f40e","definitionSource":"RULE_PROPERTY"}]},
+      {"roleId":"SITE_FIRE_LANE","taskId":"SITE.FIRE_LANE","displayName":"消防道路","candidateAliases":["消防车道","消防道路"],"internalCarrierStatus":"INTERNAL_ONLY","officialCarrierStatus":"PENDING_GOLDEN_RVT","attributeMappings":[{"attributeRequirement":"名称","internalPropertyId":"277c9f25-38fd-5e4b-a18e-23cd05f4fd32","definitionSource":"NATIVE_INTERNAL_EXTENSION"},{"attributeRequirement":"道路宽度","internalPropertyId":"8457b54b-8f9b-56b4-981c-3ee4038ab9ec","definitionSource":"NATIVE_INTERNAL_EXTENSION"},{"attributeRequirement":"转弯半径","internalPropertyId":"dc79663b-0462-5d01-ae31-d160540086a4","definitionSource":"NATIVE_INTERNAL_EXTENSION"}]},
+      {"roleId":"SITE_FIRE_FIELD","taskId":"SITE.FIRE_FIELD","displayName":"消防登高或操作场地","candidateAliases":["消防操作场地","消防登高场地"],"internalCarrierStatus":"INTERNAL_ONLY","officialCarrierStatus":"PENDING_GOLDEN_RVT","attributeMappings":[{"attributeRequirement":"名称","internalPropertyId":"41a8f3ca-d057-5263-9dce-30bf795ae20d","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"场地类型","internalPropertyId":"1834163c-cefd-56a6-ba68-f8266cedf95e","definitionSource":"NATIVE_INTERNAL_EXTENSION"},{"attributeRequirement":"投影面积","internalPropertyId":"ace69397-c24a-5c6a-a253-3bf5fc657cd0","definitionSource":"RULE_PROPERTY"}]},
+      {"roleId":"SITE_GREEN_OBJECT","taskId":"SITE.GREEN","displayName":"绿地","candidateAliases":["绿地"],"internalCarrierStatus":"INTERNAL_ONLY","officialCarrierStatus":"PENDING_GOLDEN_RVT","attributeMappings":[{"attributeRequirement":"绿地类型","internalPropertyId":"3fd74b35-3164-5248-9fe9-c675992a4292","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"投影面积","internalPropertyId":"6cc053e3-891d-51b1-b861-af498733f73a","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"折算系数","internalPropertyId":"a99a0961-05fe-56fd-b8a0-865410bfe72f","definitionSource":"RULE_PROPERTY"}]},
+      {"roleId":"SITE_OUTDOOR_PARKING","taskId":"SITE.OUTDOOR_PARKING","displayName":"室外停车场或车位","candidateAliases":["室外停车场","室外车位"],"internalCarrierStatus":"INTERNAL_ONLY","officialCarrierStatus":"PENDING_GOLDEN_RVT","attributeMappings":[{"attributeRequirement":"停车类型","internalPropertyId":"4f90183f-8105-58c4-93f6-e7525c4096b3","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"车位数量","internalPropertyId":"82dd52d2-1192-5d97-aa4b-a912cccb2709","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"投影面积","internalPropertyId":"f020407e-9400-5eab-bf3b-0e3bcc138ba6","definitionSource":"RULE_PROPERTY"}]},
+      {"roleId":"SITE_CIVIL_DEFENSE","taskId":"SITE.CIVIL_DEFENSE","displayName":"人防区域","candidateAliases":["人防","人防区域"],"internalCarrierStatus":"INTERNAL_ONLY","officialCarrierStatus":"PENDING_GOLDEN_RVT","attributeMappings":[{"attributeRequirement":"名称","internalPropertyId":"f2fafcc9-abfd-55de-a54a-30f05180351b","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"人防类型","internalPropertyId":"1d7fd3ce-080c-5448-bd13-7e1981b63758","definitionSource":"NATIVE_INTERNAL_EXTENSION"},{"attributeRequirement":"投影面积","internalPropertyId":"5f9489f6-9809-5899-b949-2fa58d00cc1f","definitionSource":"RULE_PROPERTY"}]},
+      {"roleId":"SITE_STRUCTURES","taskId":"SITE.STRUCTURES","displayName":"室外构筑物与设施","candidateAliases":["室外构筑物","室外设施"],"internalCarrierStatus":"INTERNAL_ONLY","officialCarrierStatus":"PENDING_GOLDEN_RVT","attributeMappings":[{"attributeRequirement":"名称","internalPropertyId":"21ac8910-524a-5f61-9d0c-a0a7bdd0c1a3","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"设施类型","internalPropertyId":"1b1f9357-ac7a-5339-9c7f-770bb91ac10f","definitionSource":"RULE_PROPERTY"},{"attributeRequirement":"数量","internalPropertyId":"131f758e-4f80-5ec5-8cf7-cdc4537233a1","definitionSource":"NATIVE_INTERNAL_EXTENSION"}]}
+    ],
+    "geometryEvaluationPolicies": [
+      {"taskId":"SITE.SKELETON","ruleText":"项目基点与共享坐标有效","mode":"AUTO_SHARED_COORDINATE"},
+      {"taskId":"SITE.SKELETON","ruleText":"总平计算平面有效","mode":"AUTO_PLANAR_REFERENCE"},
+      {"taskId":"SITE.TOTAL_LAND","ruleText":"边界闭合","mode":"AUTO_CLOSED_BOUNDARY","subjectRoleId":"SITE_TOTAL_LAND"},
+      {"taskId":"SITE.TOTAL_LAND","ruleText":"无自交","mode":"AUTO_NO_SELF_INTERSECTION","subjectRoleId":"SITE_TOTAL_LAND"},
+      {"taskId":"SITE.TOTAL_LAND","ruleText":"面积大于零","mode":"AUTO_POSITIVE_AREA","subjectRoleId":"SITE_TOTAL_LAND"},
+      {"taskId":"SITE.NET_LAND","ruleText":"边界闭合","mode":"AUTO_CLOSED_BOUNDARY","subjectRoleId":"SITE_NET_LAND"},
+      {"taskId":"SITE.NET_LAND","ruleText":"位于规划总用地内","mode":"AUTO_CONTAINED_BY_ROLE","subjectRoleId":"SITE_NET_LAND","referenceRoleId":"SITE_TOTAL_LAND"},
+      {"taskId":"SITE.NET_LAND","ruleText":"面积大于零","mode":"AUTO_POSITIVE_AREA","subjectRoleId":"SITE_NET_LAND"},
+      {"taskId":"SITE.BUILDING_FOOTPRINT","ruleText":"轮廓闭合","mode":"AUTO_CLOSED_BOUNDARY","subjectRoleId":"SITE_BUILDING_FOOTPRINT"},
+      {"taskId":"SITE.BUILDING_FOOTPRINT","ruleText":"位于规划净用地内","mode":"AUTO_CONTAINED_BY_ROLE","subjectRoleId":"SITE_BUILDING_FOOTPRINT","referenceRoleId":"SITE_NET_LAND"},
+      {"taskId":"SITE.BUILDING_FOOTPRINT","ruleText":"建筑轮廓不重复","mode":"AUTO_NO_DUPLICATE_GEOMETRY","subjectRoleId":"SITE_BUILDING_FOOTPRINT"},
+      {"taskId":"SITE.OTHER_LAND","ruleText":"边界闭合","mode":"AUTO_CLOSED_BOUNDARY","subjectRoleId":"SITE_OTHER_LAND"},
+      {"taskId":"SITE.OTHER_LAND","ruleText":"用地关系有效","mode":"MANUAL_CURRENT_SNAPSHOT_REVIEW","subjectRoleId":"SITE_OTHER_LAND"},
+      {"taskId":"SITE.ROAD_REDLINE","ruleText":"曲线连续","mode":"AUTO_CONTINUOUS_CURVE_CHAIN","subjectRoleId":"SITE_ROAD_REDLINE"},
+      {"taskId":"SITE.ROAD_REDLINE","ruleText":"无无效短线","mode":"AUTO_MIN_SEGMENT_LENGTH","subjectRoleId":"SITE_ROAD_REDLINE","thresholdSource":"REVIT_APPLICATION_SHORT_CURVE_TOLERANCE"},
+      {"taskId":"SITE.ROAD_CENTERLINE","ruleText":"中心线连续","mode":"AUTO_CONTINUOUS_CURVE_CHAIN","subjectRoleId":"SITE_ROAD_CENTERLINE"},
+      {"taskId":"SITE.ROAD_CENTERLINE","ruleText":"与道路红线关系有效","mode":"MANUAL_CURRENT_SNAPSHOT_REVIEW","subjectRoleId":"SITE_ROAD_CENTERLINE","referenceRoleId":"SITE_ROAD_REDLINE"},
+      {"taskId":"SITE.INTERNAL_ROADS","ruleText":"道路范围闭合","mode":"AUTO_CLOSED_BOUNDARY","subjectRoleId":"SITE_INTERNAL_ROADS"},
+      {"taskId":"SITE.INTERNAL_ROADS","ruleText":"位于规划净用地内","mode":"AUTO_CONTAINED_BY_ROLE","subjectRoleId":"SITE_INTERNAL_ROADS","referenceRoleId":"SITE_NET_LAND"},
+      {"taskId":"SITE.FIRE_LANE","ruleText":"消防道路连续","mode":"AUTO_CONTINUOUS_CURVE_CHAIN","subjectRoleId":"SITE_FIRE_LANE"},
+      {"taskId":"SITE.FIRE_LANE","ruleText":"消防道路范围有效","mode":"MANUAL_CURRENT_SNAPSHOT_REVIEW","subjectRoleId":"SITE_FIRE_LANE"},
+      {"taskId":"SITE.FIRE_FIELD","ruleText":"场地边界闭合","mode":"AUTO_CLOSED_BOUNDARY","subjectRoleId":"SITE_FIRE_FIELD"},
+      {"taskId":"SITE.FIRE_FIELD","ruleText":"与服务建筑关系有效","mode":"MANUAL_CURRENT_SNAPSHOT_REVIEW","subjectRoleId":"SITE_FIRE_FIELD","referenceRoleId":"SITE_BUILDING_FOOTPRINT"},
+      {"taskId":"SITE.GREEN","ruleText":"绿地边界闭合","mode":"AUTO_CLOSED_BOUNDARY","subjectRoleId":"SITE_GREEN_OBJECT"},
+      {"taskId":"SITE.GREEN","ruleText":"绿地不越界","mode":"AUTO_CONTAINED_BY_ROLE","subjectRoleId":"SITE_GREEN_OBJECT","referenceRoleId":"SITE_NET_LAND"},
+      {"taskId":"SITE.GREEN","ruleText":"绿地不重复统计","mode":"AUTO_NO_DUPLICATE_GEOMETRY","subjectRoleId":"SITE_GREEN_OBJECT"},
+      {"taskId":"SITE.OUTDOOR_PARKING","ruleText":"停车范围有效","mode":"MANUAL_CURRENT_SNAPSHOT_REVIEW","subjectRoleId":"SITE_OUTDOOR_PARKING"},
+      {"taskId":"SITE.OUTDOOR_PARKING","ruleText":"车位不重复","mode":"AUTO_NO_DUPLICATE_GEOMETRY","subjectRoleId":"SITE_OUTDOOR_PARKING"},
+      {"taskId":"SITE.CIVIL_DEFENSE","ruleText":"人防范围闭合","mode":"AUTO_CLOSED_BOUNDARY","subjectRoleId":"SITE_CIVIL_DEFENSE"},
+      {"taskId":"SITE.CIVIL_DEFENSE","ruleText":"范围关系有效","mode":"MANUAL_CURRENT_SNAPSHOT_REVIEW","subjectRoleId":"SITE_CIVIL_DEFENSE"},
+      {"taskId":"SITE.STRUCTURES","ruleText":"设施位置位于项目范围内","mode":"AUTO_CONTAINED_BY_ROLE","subjectRoleId":"SITE_STRUCTURES","referenceRoleId":"SITE_TOTAL_LAND"}
+    ],
+    "propertyEvaluationPolicies": [
+      {"taskId":"SITE.TOTAL_LAND","ruleText":"投影面积与几何一致","mode":"AUTO_PROJECTED_AREA_MATCH","propertyId":"b970d6b1-92c9-51d2-8fac-187808a07801"},
+      {"taskId":"SITE.NET_LAND","ruleText":"投影面积与几何一致","mode":"AUTO_PROJECTED_AREA_MATCH","propertyId":"c42ea80f-4a12-5d4b-8bba-2374135d9d2a"},
+      {"taskId":"SITE.GREEN","ruleText":"折算面积计算有效","mode":"AUTO_GREEN_CONVERTED_AREA_FINITE","areaPropertyId":"6cc053e3-891d-51b1-b861-af498733f73a","factorPropertyId":"a99a0961-05fe-56fd-b8a0-865410bfe72f"}
     ],
     "stage01FieldKeys": [
       "HBR|FileIdentity|ModelFileType",
@@ -343,19 +507,20 @@ Expected: FAIL，因为 v0.4.3 overlay/compiler 尚不存在。
       "20c734f0-64ea-52a9-a73b-a335d6a811db"
     ],
     "stage02BMetrics": [
-      {"sequence":10,"propertyId":"ca21e324-046b-5bfd-84c8-0d3470082303","identity":"IfcProject|Pset_登记信息属性集|总建筑面积","source":"MANUAL_INPUT","officialExportVerified":false,"officialCarrierStatus":"PENDING_GOLDEN_RVT","officialProjectionCarrierId":"","officialEvidenceRef":""},
-      {"sequence":20,"propertyId":"93e51676-237e-56a8-8f28-2da845422e2e","identity":"IfcSite|Pset_场地信息属性集|建筑密度","source":"MANUAL_INPUT","officialExportVerified":false,"officialCarrierStatus":"PENDING_GOLDEN_RVT","officialProjectionCarrierId":"","officialEvidenceRef":""},
-      {"sequence":30,"propertyId":"201a00ac-3672-5ded-83d2-ed96f81bfabf","identity":"IfcSite|Pset_场地信息属性集|容积率","source":"MANUAL_INPUT","officialExportVerified":false,"officialCarrierStatus":"PENDING_GOLDEN_RVT","officialProjectionCarrierId":"","officialEvidenceRef":""},
-      {"sequence":40,"propertyId":"f630ad47-b006-5127-badd-b1660cf996c3","identity":"IfcSite|Pset_场地信息属性集|绿地率","source":"MANUAL_INPUT","officialExportVerified":false,"officialCarrierStatus":"PENDING_GOLDEN_RVT","officialProjectionCarrierId":"","officialEvidenceRef":""},
-      {"sequence":50,"propertyId":"c62cfd5f-2a50-5230-9c5d-4037c39061bf","identity":"IfcSpatialZone|Pset_停车场信息属性集|机动车位数量","source":"MANUAL_INPUT","officialExportVerified":false,"officialCarrierStatus":"PENDING_GOLDEN_RVT","officialProjectionCarrierId":"","officialEvidenceRef":""},
-      {"sequence":60,"propertyId":"84df74c2-a7e5-5a98-a5e0-4458e49a3973","identity":"IfcSpatialZone|Pset_停车场信息属性集|非机动车位数量","source":"MANUAL_INPUT","officialExportVerified":false,"officialCarrierStatus":"PENDING_GOLDEN_RVT","officialProjectionCarrierId":"","officialEvidenceRef":""}
+      {"sequence":10,"propertyId":"ca21e324-046b-5bfd-84c8-0d3470082303","identity":"IfcProject|Pset_登记信息属性集|总建筑面积","source":"MANUAL_INPUT","officialExportVerified":false,"officialCarrierStatus":"PENDING_GOLDEN_RVT","officialProjectionCarrierId":"","officialCarrierProbeRef":"","officialEvidenceRef":""},
+      {"sequence":20,"propertyId":"93e51676-237e-56a8-8f28-2da845422e2e","identity":"IfcSite|Pset_场地信息属性集|建筑密度","source":"MANUAL_INPUT","officialExportVerified":false,"officialCarrierStatus":"PENDING_GOLDEN_RVT","officialProjectionCarrierId":"","officialCarrierProbeRef":"","officialEvidenceRef":""},
+      {"sequence":30,"propertyId":"201a00ac-3672-5ded-83d2-ed96f81bfabf","identity":"IfcSite|Pset_场地信息属性集|容积率","source":"MANUAL_INPUT","officialExportVerified":false,"officialCarrierStatus":"PENDING_GOLDEN_RVT","officialProjectionCarrierId":"","officialCarrierProbeRef":"","officialEvidenceRef":""},
+      {"sequence":40,"propertyId":"f630ad47-b006-5127-badd-b1660cf996c3","identity":"IfcSite|Pset_场地信息属性集|绿地率","source":"MANUAL_INPUT","officialExportVerified":false,"officialCarrierStatus":"PENDING_GOLDEN_RVT","officialProjectionCarrierId":"","officialCarrierProbeRef":"","officialEvidenceRef":""},
+      {"sequence":50,"propertyId":"c62cfd5f-2a50-5230-9c5d-4037c39061bf","identity":"IfcSpatialZone|Pset_停车场信息属性集|机动车位数量","source":"MANUAL_INPUT","officialExportVerified":false,"officialCarrierStatus":"PENDING_GOLDEN_RVT","officialProjectionCarrierId":"","officialCarrierProbeRef":"","officialEvidenceRef":""},
+      {"sequence":60,"propertyId":"84df74c2-a7e5-5a98-a5e0-4458e49a3973","identity":"IfcSpatialZone|Pset_停车场信息属性集|非机动车位数量","source":"MANUAL_INPUT","officialExportVerified":false,"officialCarrierStatus":"PENDING_GOLDEN_RVT","officialProjectionCarrierId":"","officialCarrierProbeRef":"","officialEvidenceRef":""}
     ],
     "officialProjectionCarriers": [],
+    "officialCarrierProbeRecords": [],
     "officialEvidenceRecords": [],
     "officialCarrierPolicies": [
-      {"ifcEntity":"IfcProject","internalCarrier":"PROJECT_INFORMATION","projectionPolicy":"ALLOW_WITH_EXPORT_VERIFICATION_REQUIRED","officialExportVerified":false,"evidenceStatus":"PENDING_GOLDEN_RVT","evidenceRefs":[]},
-      {"ifcEntity":"IfcSite","internalCarrier":"","projectionPolicy":"BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT","officialExportVerified":false,"evidenceStatus":"PENDING_GOLDEN_RVT","evidenceRefs":[]},
-      {"ifcEntity":"IfcSpatialZone","internalCarrier":"","projectionPolicy":"BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT","officialExportVerified":false,"evidenceStatus":"PENDING_GOLDEN_RVT","evidenceRefs":[]}
+      {"ifcEntity":"IfcProject","internalCarrier":"PROJECT_INFORMATION","projectionPolicy":"ALLOW_WITH_EXPORT_VERIFICATION_REQUIRED","officialExportVerified":false,"evidenceStatus":"PENDING_GOLDEN_RVT","probeRefs":[],"evidenceRefs":[]},
+      {"ifcEntity":"IfcSite","internalCarrier":"","projectionPolicy":"BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT","officialExportVerified":false,"evidenceStatus":"PENDING_GOLDEN_RVT","probeRefs":[],"evidenceRefs":[]},
+      {"ifcEntity":"IfcSpatialZone","internalCarrier":"","projectionPolicy":"BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT","officialExportVerified":false,"evidenceStatus":"PENDING_GOLDEN_RVT","probeRefs":[],"evidenceRefs":[]}
     ],
     "systemChecks": [
       {"sequence":90010,"checkId":"CROSS.DOCUMENT_IDENTITY","displayName":"跨阶段文档身份一致","sourceStage":"CROSS_STAGE","applicableBasis":"当前文档的 01、02A、02B 结果必须同源","remediationTarget":"RECHECK_ALL"},
@@ -384,6 +549,7 @@ import os
 import re
 import sys
 import tempfile
+import uuid
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -427,13 +593,34 @@ def build_native_reporting_catalog(merged, overlay):
         [item["modelFileType"] for item in profiles] == ["总平模型"],
         "phase1 native reporting must contain exactly the total-plan profile",
     )
+    profile = profiles[0]
+    _require(profile.get("strictNoNotApplicable") is True, "total-plan profile must be strict")
+    _require(len(profile["taskIds"]) == 15, "total-plan profile must contain exactly 15 tasks")
     semantic_roles = reporting["semanticRoles"]
     semantic_role_id_list = [item["roleId"] for item in semantic_roles]
     _require(
         len(semantic_role_id_list) == len(set(semantic_role_id_list)),
         "duplicate semantic roleId",
     )
+    _require(len(semantic_roles) == 13, "total-plan profile must contain exactly 13 semantic roles")
     semantic_role_ids = set(semantic_role_id_list)
+    namespace = uuid.UUID(merged["guidNamespace"])
+    internal_property_list = reporting["internalProperties"]
+    internal_properties = {
+        item["propertyId"]: item for item in internal_property_list
+    }
+    _require(
+        len(internal_properties) == len(internal_property_list) == 10,
+        "native internal properties must contain exactly 10 unique definitions",
+    )
+    for item in internal_properties.values():
+        expected_id = str(uuid.uuid5(namespace, item["canonicalKey"]))
+        _require(item["propertyId"] == expected_id, "native internal property UUIDv5 mismatch")
+        _require(item["revit"]["parameterGuid"] == expected_id, "native internal parameter GUID mismatch")
+        _require(item["revit"]["bindingScope"] == "INSTANCE", "native internal binding must be INSTANCE")
+        _require(item["evidenceStatus"] == "INTERNAL_ONLY", "native internal evidence must be INTERNAL_ONLY")
+        _require(item["officialExportVerified"] is False, "native internal property cannot be official")
+    referenced_internal_extension_ids = set()
     metrics = reporting["stage02BMetrics"]
     metric_property_ids = [item["propertyId"] for item in metrics]
     _require(
@@ -454,6 +641,10 @@ def build_native_reporting_catalog(merged, overlay):
         item["evidenceId"]: item
         for item in reporting["officialEvidenceRecords"]
     }
+    probe_records = {
+        item["probeId"]: item
+        for item in reporting["officialCarrierProbeRecords"]
+    }
     _require(
         len(projection_carriers) == len(reporting["officialProjectionCarriers"]),
         "duplicate official projection carrierId",
@@ -461,6 +652,10 @@ def build_native_reporting_catalog(merged, overlay):
     _require(
         len(evidence_records) == len(reporting["officialEvidenceRecords"]),
         "duplicate official evidenceId",
+    )
+    _require(
+        len(probe_records) == len(reporting["officialCarrierProbeRecords"]),
+        "duplicate official carrier probeId",
     )
     for carrier in projection_carriers.values():
         _require(
@@ -492,7 +687,21 @@ def build_native_reporting_catalog(merged, overlay):
             _require(bool(evidence[key].strip()), f"missing {key}: {evidence['evidenceId']}")
         _require(evidence["observedBindingScope"] == "INSTANCE", "evidence binding mismatch")
         _require(evidence["observedParameterGuid"] == evidence["propertyId"], "evidence parameter GUID mismatch")
+    for probe in probe_records.values():
+        for key in (
+            "sourceGoldenRvtSha256", "probeSeedManifestSha256", "probeRvtSha256",
+            "probeIfcSha256", "hifcToolManifestSha256", "hifcToolDllSha256",
+        ):
+            _require(bool(sha256.fullmatch(probe[key])), f"invalid probe {key}: {probe['probeId']}")
+        for key in (
+            "hifcToolProductVersion", "observedRevitUniqueId", "observedIfcGlobalId",
+            "observedSentinel",
+        ):
+            _require(bool(probe[key].strip()), f"missing probe {key}: {probe['probeId']}")
+        _require(probe["observedBindingScope"] == "INSTANCE", "probe binding mismatch")
+        _require(probe["observedParameterGuid"] == probe["propertyId"], "probe parameter GUID mismatch")
     referenced_carrier_ids = set()
+    referenced_probe_ids = set()
     referenced_evidence_ids = set()
     for metric in metrics:
         prop = properties.get(metric["propertyId"])
@@ -509,22 +718,33 @@ def build_native_reporting_catalog(merged, overlay):
             f"invalid metric carrier status: {metric['propertyId']}",
         )
         if metric["officialCarrierStatus"] == "VERIFIED":
-            _require(metric["officialExportVerified"] is True, "verified metric flag mismatch")
             carrier = projection_carriers.get(metric["officialProjectionCarrierId"])
-            evidence = evidence_records.get(metric["officialEvidenceRef"])
+            probe = probe_records.get(metric["officialCarrierProbeRef"])
             _require(carrier is not None, "verified metric carrier ref missing")
-            _require(evidence is not None, "verified metric evidence ref missing")
+            _require(probe is not None, "verified metric carrier probe ref missing")
             _require(carrier["propertyId"] == metric["propertyId"], "carrier propertyId mismatch")
-            _require(evidence["propertyId"] == metric["propertyId"], "evidence propertyId mismatch")
+            _require(probe["propertyId"] == metric["propertyId"], "probe propertyId mismatch")
             referenced_carrier_ids.add(metric["officialProjectionCarrierId"])
-            referenced_evidence_ids.add(metric["officialEvidenceRef"])
+            referenced_probe_ids.add(metric["officialCarrierProbeRef"])
+            if metric["officialExportVerified"]:
+                evidence = evidence_records.get(metric["officialEvidenceRef"])
+                _require(evidence is not None, "verified export evidence ref missing")
+                _require(evidence["propertyId"] == metric["propertyId"], "evidence propertyId mismatch")
+                referenced_evidence_ids.add(metric["officialEvidenceRef"])
+            else:
+                _require(not metric["officialEvidenceRef"], "unverified export evidence ref must be empty")
         else:
             _require(metric["officialExportVerified"] is False, "unproved metric cannot be verified")
             _require(not metric["officialProjectionCarrierId"], "pending metric carrier ref must be empty")
+            _require(not metric["officialCarrierProbeRef"], "pending metric probe ref must be empty")
             _require(not metric["officialEvidenceRef"], "pending metric evidence ref must be empty")
     _require(
         set(projection_carriers) == referenced_carrier_ids,
         "orphan or missing official projection carrier",
+    )
+    _require(
+        set(probe_records) == referenced_probe_ids,
+        "orphan or missing official carrier probe",
     )
     _require(
         set(evidence_records) == referenced_evidence_ids,
@@ -539,8 +759,10 @@ def build_native_reporting_catalog(merged, overlay):
             _require(task_id in tasks, f"unknown reporting taskId: {task_id}")
     for role in semantic_roles:
         _require(role["taskId"] in tasks, f"unknown semantic taskId: {role['taskId']}")
-        linked = role["linkedCarrierRoleId"]
-        _require(not linked or linked in roles, f"unknown linked carrier role: {linked}")
+        _require(
+            role.get("internalCarrierStatus") == "INTERNAL_ONLY",
+            f"semantic role internal status mismatch: {role['roleId']}",
+        )
         aliases = role["candidateAliases"]
         _require(
             aliases == sorted(aliases) and len(aliases) == len(set(aliases)),
@@ -550,6 +772,87 @@ def build_native_reporting_catalog(merged, overlay):
             role["officialCarrierStatus"] in valid_evidence_statuses,
             f"invalid semantic role carrier status: {role['roleId']}",
         )
+        mappings = role["attributeMappings"]
+        mapping_keys = [item["attributeRequirement"] for item in mappings]
+        _require(
+            mapping_keys == tasks[role["taskId"]]["attributeRequirements"],
+            f"attribute mapping must exactly cover task literals in order: {role['roleId']}",
+        )
+        _require(
+            len(mapping_keys) == len(set(mapping_keys)),
+            f"duplicate attribute mapping: {role['roleId']}",
+        )
+        for mapping in mappings:
+            property_id = mapping["internalPropertyId"]
+            source = mapping["definitionSource"]
+            _require(
+                source in {"RULE_PROPERTY", "NATIVE_INTERNAL_EXTENSION"},
+                f"invalid attribute definition source: {role['roleId']}",
+            )
+            if source == "RULE_PROPERTY":
+                _require(property_id in properties, f"unknown rule property mapping: {property_id}")
+            else:
+                _require(property_id in internal_properties, f"unknown native internal property: {property_id}")
+                referenced_internal_extension_ids.add(property_id)
+    _require(
+        referenced_internal_extension_ids == set(internal_properties),
+        "orphan or unused native internal property",
+    )
+    _require(
+        sum(len(item["attributeMappings"]) for item in semantic_roles) == 37,
+        "total-plan roles must contain exactly 37 attribute mappings",
+    )
+    geometry_policy_keys = [
+        (item["taskId"], item["ruleText"])
+        for item in reporting["geometryEvaluationPolicies"]
+    ]
+    expected_geometry_keys = [
+        (task_id, rule_text)
+        for task_id in profile["taskIds"]
+        for rule_text in tasks[task_id]["geometryChecks"]
+    ]
+    _require(geometry_policy_keys == expected_geometry_keys, "geometry policies must exactly cover task geometry rules")
+    valid_geometry_modes = {
+        "AUTO_SHARED_COORDINATE", "AUTO_PLANAR_REFERENCE", "AUTO_CLOSED_BOUNDARY",
+        "AUTO_NO_SELF_INTERSECTION", "AUTO_POSITIVE_AREA", "AUTO_CONTAINED_BY_ROLE",
+        "AUTO_NO_DUPLICATE_GEOMETRY", "AUTO_CONTINUOUS_CURVE_CHAIN",
+        "AUTO_MIN_SEGMENT_LENGTH", "MANUAL_CURRENT_SNAPSHOT_REVIEW",
+    }
+    for policy in reporting["geometryEvaluationPolicies"]:
+        _require(policy["mode"] in valid_geometry_modes, f"unsupported geometry policy mode: {policy['mode']}")
+        subject = policy.get("subjectRoleId", "")
+        reference = policy.get("referenceRoleId", "")
+        _require(not subject or subject in semantic_role_ids, f"unknown geometry subject role: {subject}")
+        _require(not reference or reference in semantic_role_ids, f"unknown geometry reference role: {reference}")
+        if policy["mode"] == "AUTO_MIN_SEGMENT_LENGTH":
+            _require(policy.get("thresholdSource") == "REVIT_APPLICATION_SHORT_CURVE_TOLERANCE", "short-line threshold source mismatch")
+    property_policy_keys = [
+        (item["taskId"], item["ruleText"])
+        for item in reporting["propertyEvaluationPolicies"]
+    ]
+    expected_property_keys = [
+        (task_id, rule_text)
+        for task_id in profile["taskIds"]
+        for rule_text in tasks[task_id]["propertyChecks"]
+    ]
+    _require(property_policy_keys == expected_property_keys, "property policies must exactly cover task property rules")
+    _require(
+        {item["mode"] for item in reporting["propertyEvaluationPolicies"]}
+        == {"AUTO_PROJECTED_AREA_MATCH", "AUTO_GREEN_CONVERTED_AREA_FINITE"},
+        "unexpected property evaluation policy mode",
+    )
+    for policy in reporting["propertyEvaluationPolicies"]:
+        if policy["mode"] == "AUTO_PROJECTED_AREA_MATCH":
+            _require(
+                policy["propertyId"] in properties,
+                f"unknown projected-area policy property: {policy['propertyId']}",
+            )
+        else:
+            _require(
+                policy["areaPropertyId"] in properties
+                and policy["factorPropertyId"] in properties,
+                "unknown green-area policy property",
+            )
     policies = reporting["officialCarrierPolicies"]
     policy_entities = [item["ifcEntity"] for item in policies]
     _require(
@@ -576,13 +879,22 @@ def build_native_reporting_catalog(merged, overlay):
             item for item in metrics
             if item["identity"].split("|", 1)[0] == policy["ifcEntity"]
         ]
-        expected_refs = sorted(item["officialEvidenceRef"] for item in entity_metrics)
+        expected_refs = sorted(
+            item["officialEvidenceRef"] for item in entity_metrics
+            if item["officialEvidenceRef"]
+        )
+        expected_probe_refs = sorted(
+            item["officialCarrierProbeRef"] for item in entity_metrics
+            if item["officialCarrierProbeRef"]
+        )
         if policy["evidenceStatus"] == "VERIFIED":
-            _require(entity_metrics and all(item["officialExportVerified"] for item in entity_metrics), "entity policy cannot outrun properties")
-            _require(policy["officialExportVerified"] is True, "verified entity flag mismatch")
+            _require(entity_metrics and all(item["officialCarrierStatus"] == "VERIFIED" for item in entity_metrics), "entity carrier policy cannot outrun properties")
+            _require(policy["probeRefs"] == expected_probe_refs, "entity probeRefs mismatch")
+            _require(policy["officialExportVerified"] == all(item["officialExportVerified"] for item in entity_metrics), "entity export flag mismatch")
             _require(policy["evidenceRefs"] == expected_refs, "entity evidenceRefs mismatch")
         else:
             _require(policy["officialExportVerified"] is False, "pending entity cannot be verified")
+            _require(policy["probeRefs"] == [], "pending entity probeRefs must be empty")
             _require(policy["evidenceRefs"] == [], "pending entity evidenceRefs must be empty")
     stage01_keys = {
         item["fieldKey"] for item in merged["stage01"]["fieldRefs"]
@@ -607,6 +919,44 @@ def build_native_reporting_catalog(merged, overlay):
             properties[property_id]["ifc"]["propertySet"] == "Pset_项目控制指标信息属性集",
             f"planning target identity mismatch: {property_id}",
         )
+    field_property_ids = {
+        item["fieldKey"]: item["propertyId"]
+        for item in merged["stage01"]["fieldRefs"]
+    }
+    official_acceptance_ids = {
+        field_property_ids[key]
+        for key in reporting["stage01FieldKeys"]
+        if key in field_property_ids
+    }
+    official_acceptance_ids.update(planning_target_ids)
+    official_acceptance_ids.update(metric_property_ids)
+    official_acceptance_ids.update(
+        mapping["internalPropertyId"]
+        for role in semantic_roles
+        for mapping in role["attributeMappings"]
+        if mapping["definitionSource"] == "RULE_PROPERTY"
+    )
+    official_acceptance_ids.update(
+        item["propertyId"]
+        for item in merged["properties"]
+        if "SITE_GREEN_OBJECT" in item["carrierRoleIds"]
+    )
+    for property_id in official_acceptance_ids:
+        prop = properties[property_id]
+        _require(
+            prop["revit"]["parameterGuid"] == property_id,
+            f"official acceptance parameter GUID mismatch: {property_id}",
+        )
+        _require(
+            prop["revit"]["bindingScope"] == "INSTANCE",
+            f"official acceptance binding must be INSTANCE: {property_id}",
+        )
+        _require(
+            prop["ifc"]["declaredType"]
+            in {"IfcLabel", "IfcText", "IfcInteger", "IfcReal", "IfcDateTime"},
+            f"unsupported official acceptance type: {property_id}",
+        )
+    reporting["officialAcceptancePropertyIds"] = sorted(official_acceptance_ids)
     system_check_ids = []
     for check in reporting["systemChecks"]:
         check_id = check.get("checkId")
@@ -725,7 +1075,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-上述实现必须保持 fail-closed：生成后的全局 `checkId`、overlay `roleId`、02B `propertyId`、carrierId、evidenceId 均唯一；aliases 按 ordinal 排序去重；孤儿 carrier/evidence 被拒绝；`systemChecks.sourceStage` 只能是 `CROSS_STAGE/EXPORT_PREPARATION`；`evidenceStatus` 只能显式取 `VERIFIED/PENDING_GOLDEN_RVT/INTERNAL_ONLY`。只有逐 propertyId 的 `officialEvidenceRef` 能解析到完整结构记录（Golden RVT/manifest/DLL/IFC/IFCFlux 报告 SHA、两个工具版本、observed UniqueId/GlobalId/scope/GUID），且 `officialProjectionCarrierId` 同时解析到同 propertyId 的结构 carrier 时才允许对应 `officialExportVerified=true`。负向参数化测试逐项覆盖重复 role/metric、aliases 乱序/重复、非法状态、孤儿结构记录和派生 checkId 冲突；并直接 import wrapper 调用 `compile_rulepack(...)`，断言异常时临时文件被清理且旧输出不被截断。
+上述实现必须保持 fail-closed：生成后的全局 `checkId`、overlay `roleId`、02B `propertyId`、internal propertyId、carrierId、probeId、evidenceId 均唯一；profile 必须精确为 strict=true/15 tasks/13 roles，37 条 attribute mapping 必须按源 task literal 顺序逐条覆盖，10 条 internal property 必须满足固定 namespace UUIDv5、GUID 同值、`INSTANCE/INTERNAL_ONLY/official=false` 且无孤儿。31 条 geometry policy 和 3 条 property policy 必须与源 task 文本逐字逐序一一对应，缺行、重复行、未知 role/reference、永久 unsupported mode 均拒绝。aliases 按 ordinal 排序去重；孤儿 carrier/probe/evidence 被拒绝；`systemChecks.sourceStage` 只能是 `CROSS_STAGE/EXPORT_PREPARATION`；`evidenceStatus` 只能显式取 `VERIFIED/PENDING_GOLDEN_RVT/INTERNAL_ONLY`。carrier ready 必须由同 propertyId 的 `officialProjectionCarrierId + officialCarrierProbeRef` 共同证明；只有再解析同 propertyId 的最终 `officialEvidenceRef` 时才允许 `officialExportVerified=true`。负向参数化测试逐项覆盖上述计数/映射/UUIDv5/策略、重复 role/metric、aliases 乱序/重复、非法状态、孤儿结构记录和派生 checkId 冲突；并直接 import wrapper 调用 `compile_rulepack(...)`，断言异常时临时文件被清理且旧输出不被截断。
 
 - [ ] **Step 5: 切换构建入口并运行 PASS**
 
@@ -770,8 +1120,8 @@ git commit -m "build(rules): add v0.4.3 total-plan reporting catalog"
 - Modify: `tests/BIMBaoGui.RevitAddin.Tests/NativeStage02RuleCatalogTests.cs`
 
 **Interfaces:**
-- Consumes: Task 1 的嵌入 `nativeReporting` 和现有 363 属性/15 roles。
-- Produces: `NativeReportingRuleCatalog.Current.GetChecks(...)`、`GetSemanticRoles(...)`、`GetCarrierPolicy(...)`；`NativeStage02BMetricCatalog.Current.MetricsFor("总平模型")`。
+- Consumes: Task 1 的嵌入 `nativeReporting`、动态派生的 `officialAcceptancePropertyIds` 和现有 363 属性/15 roles。
+- Produces: `NativeReportingRuleCatalog.Current.GetChecks(...)`、`GetSemanticRoles(...)`、`GetInternalProperty(...)`、`GetCarrierPolicy(...)`、`OfficialAcceptancePropertyIds`、`OfficialAcceptanceProperties`；`NativeStage02BMetricCatalog.Current.MetricsFor("总平模型")`。
 
 - [ ] **Step 1: 写目录 RED 测试**
 
@@ -782,6 +1132,19 @@ public void Total_plan_catalog_exposes_all_tasks_and_exact_manual_metrics()
   NativeReportingRuleCatalog reporting = NativeReportingRuleCatalog.Current;
   Assert.Equal(15, reporting.GetTaskIds("总平模型").Count);
   Assert.Equal(13, reporting.GetSemanticRoles("总平模型").Count);
+  Assert.Equal(10, reporting.InternalProperties.Count);
+  Assert.All(reporting.InternalProperties, value =>
+  {
+    Assert.Equal(value.PropertyId, value.ParameterGuid.ToString("D"));
+    Assert.Equal(NativeOfficialCarrierEvidenceStatus.InternalOnly, value.EvidenceStatus);
+    Assert.False(value.OfficialExportVerified);
+  });
+  Assert.Equal(37, reporting.GetSemanticRoles("总平模型")
+    .SelectMany(value => value.AttributeMappings).Count());
+  Assert.All(reporting.GetSemanticRoles("总平模型"), role =>
+    Assert.Equal(
+      NativeRuleCatalog.Current.TasksById[role.TaskId].AttributeRequirements,
+      role.AttributeMappings.Select(value => value.AttributeRequirement)));
 
   IReadOnlyList<NativeStage02BMetricDefinition> metrics =
     NativeStage02BMetricCatalog.Current.MetricsFor("总平模型");
@@ -790,6 +1153,32 @@ public void Total_plan_catalog_exposes_all_tasks_and_exact_manual_metrics()
   Assert.Equal("IfcProject|Pset_登记信息属性集|总建筑面积", metrics[0].Identity);
   Assert.All(metrics, value => Assert.Equal("MANUAL_INPUT", value.Source));
   Assert.All(metrics, value => Assert.False(value.OfficialExportVerified));
+
+  IReadOnlyList<string> acceptanceIds = reporting.OfficialAcceptancePropertyIds;
+  IReadOnlyList<NativeOfficialAcceptancePropertyDefinition> acceptance =
+    reporting.OfficialAcceptanceProperties;
+  Assert.NotEmpty(acceptanceIds);
+  Assert.Equal(acceptanceIds.OrderBy(value => value, StringComparer.Ordinal), acceptanceIds);
+  Assert.Equal(acceptanceIds.Count, acceptanceIds.Distinct(StringComparer.Ordinal).Count());
+  Assert.Equal(acceptanceIds, acceptance.Select(value => value.PropertyId));
+  Assert.All(acceptance, value =>
+  {
+    NativeStage02PropertyDefinition property =
+      NativeStage02RuleCatalog.Current.PropertiesById[value.PropertyId];
+    Assert.Equal(
+      string.Join("|", property.IfcEntity, property.IfcPropertySet, property.IfcProperty),
+      value.Identity);
+    Assert.Equal(property.DeclaredIfcType, value.DeclaredIfcType);
+    Assert.Equal(property.CanonicalUnit, value.CanonicalUnit);
+    Assert.Equal(property.ParameterGuid, value.ParameterGuid);
+    Assert.Equal("INSTANCE", value.BindingScope);
+    Assert.Contains(value.SourceStage, new[]
+    {
+      NativeReportingSourceStage.Stage01,
+      NativeReportingSourceStage.Stage02A,
+      NativeReportingSourceStage.Stage02B
+    });
+  });
 
   IReadOnlyList<NativeReportingCheckDefinition> checks =
     reporting.GetChecks("总平模型");
@@ -892,6 +1281,8 @@ internal sealed class NativeReportingCheckDefinition
   internal string TaskId { get; set; } = string.Empty;
   internal string FieldKey { get; set; } = string.Empty;
   internal string PropertyId { get; set; } = string.Empty;
+  internal string InternalDefinitionSource { get; set; } = string.Empty;
+  internal NativeOfficialCarrierEvidenceStatus InternalCarrierStatus { get; set; }
   internal string RoleId { get; set; } = string.Empty;
   internal string RuleText { get; set; } = string.Empty;
   internal string TargetKey { get; set; } = string.Empty;
@@ -899,6 +1290,7 @@ internal sealed class NativeReportingCheckDefinition
   internal string RemediationTarget { get; set; } = string.Empty;
   internal NativeOfficialCarrierEvidenceStatus OfficialCarrierStatus { get; set; }
   internal string OfficialProjectionCarrierId { get; set; } = string.Empty;
+  internal string OfficialCarrierProbeRef { get; set; } = string.Empty;
   internal string OfficialEvidenceRef { get; set; } = string.Empty;
 }
 
@@ -908,8 +1300,44 @@ internal sealed class NativeReportingSemanticRole
   internal string TaskId { get; set; } = string.Empty;
   internal string DisplayName { get; set; } = string.Empty;
   internal IReadOnlyList<string> CandidateAliases { get; set; } = Array.Empty<string>();
-  internal string LinkedCarrierRoleId { get; set; } = string.Empty;
+  internal NativeOfficialCarrierEvidenceStatus InternalCarrierStatus { get; set; }
   internal NativeOfficialCarrierEvidenceStatus OfficialCarrierStatus { get; set; }
+  internal IReadOnlyList<NativeReportingAttributeMapping> AttributeMappings { get; set; } =
+    Array.Empty<NativeReportingAttributeMapping>();
+}
+
+internal sealed class NativeReportingAttributeMapping
+{
+  internal string AttributeRequirement { get; set; } = string.Empty;
+  internal string InternalPropertyId { get; set; } = string.Empty;
+  internal string DefinitionSource { get; set; } = string.Empty;
+}
+
+internal sealed class NativeInternalPropertyDefinition
+{
+  internal string PropertyId { get; set; } = string.Empty;
+  internal string CanonicalKey { get; set; } = string.Empty;
+  internal string DisplayName { get; set; } = string.Empty;
+  internal string ValueKind { get; set; } = string.Empty;
+  internal string CanonicalUnit { get; set; } = string.Empty;
+  internal Guid ParameterGuid { get; set; }
+  internal string ParameterName { get; set; } = string.Empty;
+  internal string StorageType { get; set; } = string.Empty;
+  internal string ParameterType { get; set; } = string.Empty;
+  internal string BindingScope { get; set; } = string.Empty;
+  internal NativeOfficialCarrierEvidenceStatus EvidenceStatus { get; set; }
+  internal bool OfficialExportVerified { get; set; }
+}
+
+internal sealed class NativeOfficialAcceptancePropertyDefinition
+{
+  internal string PropertyId { get; set; } = string.Empty;
+  internal string Identity { get; set; } = string.Empty;
+  internal string DeclaredIfcType { get; set; } = string.Empty;
+  internal string CanonicalUnit { get; set; } = string.Empty;
+  internal Guid ParameterGuid { get; set; }
+  internal string BindingScope { get; set; } = string.Empty;
+  internal NativeReportingSourceStage SourceStage { get; set; }
 }
 
 internal sealed class NativeOfficialCarrierPolicy
@@ -919,6 +1347,7 @@ internal sealed class NativeOfficialCarrierPolicy
   internal string ProjectionPolicy { get; set; } = string.Empty;
   internal bool OfficialExportVerified { get; set; }
   internal NativeOfficialCarrierEvidenceStatus EvidenceStatus { get; set; }
+  internal IReadOnlyList<string> ProbeRefs { get; set; } = Array.Empty<string>();
   internal IReadOnlyList<string> EvidenceRefs { get; set; } = Array.Empty<string>();
 }
 
@@ -951,6 +1380,24 @@ internal sealed class NativeOfficialEvidenceRecord
   internal string ObservedParameterGuid { get; set; } = string.Empty;
 }
 
+internal sealed class NativeOfficialCarrierProbeRecord
+{
+  internal string ProbeId { get; set; } = string.Empty;
+  internal string PropertyId { get; set; } = string.Empty;
+  internal string SourceGoldenRvtSha256 { get; set; } = string.Empty;
+  internal string ProbeSeedManifestSha256 { get; set; } = string.Empty;
+  internal string ProbeRvtSha256 { get; set; } = string.Empty;
+  internal string ProbeIfcSha256 { get; set; } = string.Empty;
+  internal string HifcToolManifestSha256 { get; set; } = string.Empty;
+  internal string HifcToolDllSha256 { get; set; } = string.Empty;
+  internal string HifcToolProductVersion { get; set; } = string.Empty;
+  internal string ObservedRevitUniqueId { get; set; } = string.Empty;
+  internal string ObservedIfcGlobalId { get; set; } = string.Empty;
+  internal string ObservedBindingScope { get; set; } = string.Empty;
+  internal string ObservedParameterGuid { get; set; } = string.Empty;
+  internal string ObservedSentinel { get; set; } = string.Empty;
+}
+
 internal sealed class NativeStage02BMetricDefinition
 {
   internal string PropertyId { get; set; } = string.Empty;
@@ -961,6 +1408,7 @@ internal sealed class NativeStage02BMetricDefinition
   internal bool OfficialExportVerified { get; set; }
   internal NativeOfficialCarrierEvidenceStatus OfficialCarrierStatus { get; set; }
   internal string OfficialProjectionCarrierId { get; set; } = string.Empty;
+  internal string OfficialCarrierProbeRef { get; set; } = string.Empty;
   internal string OfficialEvidenceRef { get; set; } = string.Empty;
 }
 
@@ -970,8 +1418,16 @@ internal sealed class NativeReportingRuleCatalog
   internal IReadOnlyList<string> GetTaskIds(string modelFileType);
   internal IReadOnlyList<NativeReportingCheckDefinition> GetChecks(string modelFileType);
   internal IReadOnlyList<NativeReportingSemanticRole> GetSemanticRoles(string modelFileType);
+  internal IReadOnlyList<NativeInternalPropertyDefinition> InternalProperties { get; }
+  internal IReadOnlyList<string> OfficialAcceptancePropertyIds { get; }
+  internal IReadOnlyList<NativeOfficialAcceptancePropertyDefinition>
+    OfficialAcceptanceProperties { get; }
+  internal NativeOfficialAcceptancePropertyDefinition
+    GetOfficialAcceptanceProperty(string propertyId);
+  internal NativeInternalPropertyDefinition GetInternalProperty(string propertyId);
   internal NativeOfficialCarrierPolicy GetCarrierPolicy(string ifcEntity);
   internal NativeOfficialProjectionCarrierDefinition GetProjectionCarrier(string carrierId);
+  internal NativeOfficialCarrierProbeRecord GetCarrierProbe(string probeId);
   internal NativeOfficialEvidenceRecord GetOfficialEvidence(string evidenceId);
 }
 
@@ -983,6 +1439,8 @@ internal sealed class NativeStage02BMetricCatalog
 ```
 
 `NativeReportingRuleCatalog` 从 `stage01FieldKeys`、`planningTargetPropertyIds`、`semanticRoles`、`stage02BMetrics`、profile task/condition、每个 task 的 `GeometryChecks/PropertyChecks/TargetComparisons` 和 `systemChecks` 确定性投影 `GetChecks`；不得在 UI 重新维护一份字段表，也不得把 task 的几何规则吞并成一个可以凭角色确认直接变绿的总项。
+
+`OfficialAcceptancePropertyIds` 必须原样读取 Task 1 编译产物并再次验证 ordinal 严格升序、唯一、非空；`OfficialAcceptanceProperties` 必须逐 ID 连接 `NativeStage02RuleCatalog.Current.PropertiesById`，不得复制或手填 identity/type/unit。来源阶段按同一静态来源集合确定：可解析 Stage01 `fieldRef` 与规划目标为 `Stage01`，02A `RULE_PROPERTY` 映射与 v0.4.2 `SITE_GREEN_OBJECT` 全属性为 `Stage02A`，六指标为 `Stage02B`；同 propertyId 在同一阶段重复来源只去重，跨阶段冲突直接 `InvalidDataException`，不得用优先级猜测。运行时重算得到的 ID 集必须与编译产物逐项相等，否则拒绝加载。
 
 派生 checkId 固定为：
 
@@ -998,9 +1456,9 @@ Stage01 字段       STAGE01.FIELD.<sha16(fieldKey)>
 跨阶段/导出准备    直接使用 systemChecks.checkId
 ```
 
-`sha16` 是 UTF-8 SHA-256 的前 16 个小写十六进制字符。Sequence 固定分段为：Stage01 字段 `10000 + index*10`、规划目标 `20000 + index*10`、02A 角色 `30000 + index*10`、属性要求 `35000 + taskIndex*100 + ruleIndex`、几何规则 `45000 + taskIndex*100 + ruleIndex`、属性一致性 `55000 + taskIndex*100 + ruleIndex`、目标/实际比较 `65000 + taskIndex*100 + ruleIndex`、02B 指标 `75000 + metric.sequence`、systemChecks 使用 overlay 的 90010–91040。属性要求通过 task→semantic role→linked carrier role→property 的 exact IFC property 名连接；无 mapping 时仍生成检查并返回 `ATTRIBUTE_MAPPING_MISSING`，不得靠中文近似词猜测。`SITE.SKELETON` 的坐标/高程/真北属性和几何规则使用显式 Stage01 fieldKey mapping；其他几何和属性一致性规则读取 Task 5 的构件几何证据。目标比较只允许使用明确映射的 `planning.building_density → IfcSite/Pset_场地信息属性集/建筑密度`、`planning.floor_area_ratio → .../容积率`、`planning.green_rate → .../绿地率`；其他 targetKey 若无实际值 identity，生成红色 `TARGET_COMPARISON_MAPPING_MISSING`，不得猜测。
+`sha16` 是 UTF-8 SHA-256 的前 16 个小写十六进制字符。Sequence 固定分段为：Stage01 字段 `10000 + index*10`、规划目标 `20000 + index*10`、02A 角色 `30000 + index*10`、属性要求 `35000 + taskIndex*100 + ruleIndex`、几何规则 `45000 + taskIndex*100 + ruleIndex`、属性一致性 `55000 + taskIndex*100 + ruleIndex`、目标/实际比较 `65000 + taskIndex*100 + ruleIndex`、02B 指标 `75000 + metric.sequence`、systemChecks 使用 overlay 的 90010–91040。属性要求只允许通过 `taskId + exact attributeRequirements literal → semanticRoles.attributeMappings.internalPropertyId` 连接；`RULE_PROPERTY` 必须解析现有 363 属性，`NATIVE_INTERNAL_EXTENSION` 必须解析 10 条内部定义。缺失/重复/顺序变化在 Task 1 编译阶段即失败，运行时不得按中文名称、alias、PropertySet 或 carrier role 猜测。`SITE.SKELETON` 的坐标/高程/真北属性和几何规则使用显式 Stage01 fieldKey mapping；其他几何和属性一致性规则读取 Task 5 的构件几何证据/当前人工复核凭证。目标比较只允许使用明确映射的 `planning.building_density → IfcSite/Pset_场地信息属性集/建筑密度`、`planning.floor_area_ratio → IfcSite/Pset_场地信息属性集/容积率`、`planning.green_rate → IfcSite/Pset_场地信息属性集/绿地率`；其他 targetKey 若无实际值 identity，生成红色 `TARGET_COMPARISON_MAPPING_MISSING`，不得猜测。
 
-Stage01 内部字段的 carrier 状态为 `InternalOnly`；规则属性和 02A/02B owner 使用其显式官方证据，未证实即 `PendingGoldenRvt`。最终按 `Sequence`、`CheckId` ordinal 排序并拒绝重复。`officialProjectionCarriers` 与 `officialEvidenceRecords` 是两个按 ID 唯一索引的结构目录，pending 初始包中均为空；metric 只存 `OfficialProjectionCarrierId/OfficialEvidenceRef` 外键。只有 Verified metric 的两个外键都存在、各自 `PropertyId` 与 metric 相同、carrier 的 `ParameterGuid == PropertyId` 且 evidence 的五个 SHA/两个工具版本/observed UniqueId+GlobalId+scope+GUID 全部有效时才加载成功；pending metric 两个外键必须都为空。`NativeStage02BMetricCatalog` 连接时重新计算完整 identity 并与 overlay 比较；任何缺失/不一致直接 `InvalidDataException`。JSON 的 `VERIFIED/PENDING_GOLDEN_RVT/INTERNAL_ONLY` 必须显式映射到 enum，未知值 fail-closed。目录测试逐项断言 15 个 task 的所有 attribute/geometry/property/target 文本均恰好投影一次，并覆盖断链、跨 propertyId 引用和同 entity 连带升级均 fail-closed。
+Stage01 内部字段和 02A internal write 的 carrier 状态为 `InternalOnly`；同一检查另保留 `OfficialCarrierStatus`，未证实即 `PendingGoldenRvt`，不得因内部写入/回读成功而覆盖。最终按 `Sequence`、`CheckId` ordinal 排序并拒绝重复。`officialProjectionCarriers`、`officialCarrierProbeRecords`、`officialEvidenceRecords` 是三个按 ID 唯一索引的结构目录，pending 初始包中均为空。metric 的 carrier ready 必须同时解析同 propertyId 的 `OfficialProjectionCarrierId + OfficialCarrierProbeRef`，且 carrier `ParameterGuid == PropertyId`、probe 的 source/probe/IFC/tool SHA 与 observed UniqueId/GlobalId/scope/GUID/sentinel 全部有效；这时允许 Stage02B 向已发现载体投影，但 `officialExportVerified` 仍可为 false。只有当前 Golden 的最终官方 evidence 外键存在且同 propertyId 时才允许 `officialExportVerified=true`。pending metric 的三个外键必须都为空。Task 14 的最终 evidence 保存在验收 JSON，不反写已冻结 rulepack，避免“证据改变规则 SHA”的自引用循环。`NativeStage02BMetricCatalog` 连接时重新计算完整 identity 并与 overlay 比较；任何缺失/不一致直接 `InvalidDataException`。JSON 的 `VERIFIED/PENDING_GOLDEN_RVT/INTERNAL_ONLY` 必须显式映射到 enum，未知值 fail-closed。目录测试逐项断言 strict/15 tasks/13 roles/37 mappings/10 internal properties、动态 official acceptance ID/定义/来源阶段完全一致、所有 attribute/geometry/property/target 文本均恰好投影一次，并覆盖断链、跨阶段 official acceptance 归属冲突、跨 propertyId 引用和同 entity 连带升级均 fail-closed。
 
 - [ ] **Step 5: 投影官方属性证据并运行回归**
 
@@ -1580,11 +2038,14 @@ git commit -m "feat(stage01): complete total-plan project inputs"
 - Create: `src/BIMBaoGui.RevitAddin/Stage02/NativeStage02ElementSnapshotCanonicalizer.cs`
 - Create: `src/BIMBaoGui.RevitAddin/Stage02/NativeStage02GeometryEvidence.cs`
 - Create: `src/BIMBaoGui.RevitAddin/Stage02/NativeStage02RevitGeometryEvidenceService.cs`
+- Create: `src/BIMBaoGui.RevitAddin/Stage02/NativeStage02ManualReviewPolicy.cs`
+- Create: `src/BIMBaoGui.RevitAddin/Stage02/NativeStage02ManualReviewStorage.cs`
 - Create: `src/BIMBaoGui.RevitAddin/Stage02/NativeStage02CandidatePolicy.cs`
 - Create: `src/BIMBaoGui.RevitAddin/Stage02/NativeStage02RoleConfirmationPolicy.cs`
 - Create: `src/BIMBaoGui.RevitAddin/Stage02/NativeStage02IssueCompiler.cs`
 - Create: `tests/BIMBaoGui.RevitAddin.Tests/NativeStage02ElementSnapshotCanonicalizerTests.cs`
 - Create: `tests/BIMBaoGui.RevitAddin.Tests/NativeStage02GeometryEvidencePolicyTests.cs`
+- Create: `tests/BIMBaoGui.RevitAddin.Tests/NativeStage02ManualReviewPolicyTests.cs`
 - Create: `tests/BIMBaoGui.RevitAddin.Tests/NativeStage02CandidatePolicyTests.cs`
 - Create: `tests/BIMBaoGui.RevitAddin.Tests/NativeStage02RoleConfirmationPolicyTests.cs`
 - Create: `tests/BIMBaoGui.RevitAddin.Tests/NativeStage02AIssuePolicyTests.cs`
@@ -1674,7 +2135,7 @@ public void Confirmation_is_rejected_after_element_or_rule_change()
 
 另加测试：全模型和自主选择都要求确认；确认写入 request 后刷新预览仍能解析；保存确认后再次扫描不会因 `AssignedRoleId` 自行过期；preview→write 以同一 request 重建时 `PreviewHash` 相同；自主选择不产生任何 02B metric；一个构件失败不改变其他构件 outcome；v0.4.2 绿地字段仍为 4 个。
 
-同一步在 `NativeStage02GeometryEvidencePolicyTests.cs` 写完整对象初始化，不使用隐藏 helper，覆盖：可靠 BuildingPad 面积能成为 `APPROVED_REVIT_AREA` 建议；零/NaN/缺失面积阻断；边界框不能冒充投影面积；不支持的 task 几何规则返回 `GEOMETRY_CHECK_UNSUPPORTED_PHASE1`；任何几何证据都不产生总建筑面积、建筑密度、容积率、绿地率或停车位汇总。
+同一步在 `NativeStage02GeometryEvidencePolicyTests.cs` 写完整对象初始化，不使用隐藏 helper，覆盖：可靠 BuildingPad/Floor/DirectShape/FamilyInstance 的水平 planar face 或 curve chain 能形成确定性二维拓扑；零/NaN/缺失面积阻断；边界框不能冒充投影面积；闭合、自交、面积、包含、重复、连续、Revit `ShortCurveTolerance` 七类自动 evaluator 各有一正一负；31 条源 geometry rule 均取得唯一 policy 且没有 `GEOMETRY_CHECK_UNSUPPORTED_PHASE1`。`NativeStage02ManualReviewPolicyTests.cs` 覆盖六条 `MANUAL_CURRENT_SNAPSHOT_REVIEW` 规则：无凭证、拒绝、文档/规则/任一构件快照或 geometry hash 改变均红；只有字段齐全且 hash 当前的批准凭证通过。任何几何证据都不得产生总建筑面积、建筑密度、容积率、绿地率或停车位汇总。
 
 - [ ] **Step 2: 运行 02A 测试确认 RED**
 
@@ -1718,7 +2179,7 @@ internal sealed class NativeStage02BoundingBoxEvidence
 
 internal enum NativeStage02GeometryCheckState
 {
-  Passed, Failed, Unsupported
+  Passed, Failed, ManualReviewRequired, ManualReviewApproved
 }
 
 internal sealed class NativeStage02GeometryCheckEvidence
@@ -1738,6 +2199,12 @@ internal sealed class NativeStage02GeometryEvidence
     Array.Empty<double>();
   internal double? ApprovedProjectedAreaSquareMetres { get; set; }
   internal string ProjectedAreaSource { get; set; } = string.Empty;
+  internal IReadOnlyList<IReadOnlyList<double>> PlanarLoopsMetres { get; set; } =
+    Array.Empty<IReadOnlyList<double>>();
+  internal IReadOnlyList<IReadOnlyList<double>> CurveChainsMetres { get; set; } =
+    Array.Empty<IReadOnlyList<double>>();
+  internal double ShortCurveToleranceMetres { get; set; }
+  internal string TopologySource { get; set; } = string.Empty;
   internal string EvidenceHash { get; set; } = string.Empty;
 }
 
@@ -1748,6 +2215,23 @@ internal sealed class NativeStage02TaskGeometryEvaluation
   internal IReadOnlyList<NativeStage02GeometryCheckEvidence> Checks { get; set; } =
     Array.Empty<NativeStage02GeometryCheckEvidence>();
   internal string EvaluationHash { get; set; } = string.Empty;
+}
+
+internal sealed class NativeStage02ManualReviewRecord
+{
+  internal string SchemaVersion { get; set; } = "HBR_NATIVE_GEOMETRY_REVIEW_V1";
+  internal string CheckId { get; set; } = string.Empty;
+  internal string RuleText { get; set; } = string.Empty;
+  internal string DocumentFingerprint { get; set; } = string.Empty;
+  internal string RulePackageSha256 { get; set; } = string.Empty;
+  internal IReadOnlyList<string> ElementUniqueIds { get; set; } = Array.Empty<string>();
+  internal IReadOnlyList<string> ElementSnapshotHashes { get; set; } = Array.Empty<string>();
+  internal IReadOnlyList<string> GeometryEvidenceHashes { get; set; } = Array.Empty<string>();
+  internal string Decision { get; set; } = string.Empty;
+  internal string Reviewer { get; set; } = string.Empty;
+  internal string Basis { get; set; } = string.Empty;
+  internal string ReviewedUtc { get; set; } = string.Empty;
+  internal string RecordHash { get; set; } = string.Empty;
 }
 
 internal sealed class NativeStage02RoleConfirmationDecision
@@ -1768,7 +2252,7 @@ internal static class NativeStage02ElementSnapshotCanonicalizer
 
 在 `NativeStage02ElementSnapshot` 增加 `Geometry` 属性，默认新建空 `NativeStage02GeometryEvidence`。快照 canonical 输入固定包含：DocumentFingerprint、UniqueId、ElementId、Category、CategoryName、ClrType、ElementKind、ElementName、FamilyName、TypeName、LevelName，以及 `Geometry` 的边界框、位置、可靠面积和 evidence hash；double 全部以 invariant `G17` 格式。**确认前事实 hash 明确排除 `AssignedRoleId`、候选置信度、RoleId、task-specific check、RunId、UI 文案和时间戳**，避免保存确认后自身立即 stale；RoleId 只属于 confirmation。
 
-`NativeStage02RevitGeometryEvidenceService.Capture(Document, Element)` 在角色决策前、Revit ExternalEvent 内读取原始几何事实：`element.get_BoundingBox(null)` 的 8 个角点经 `BoundingBoxXYZ.Transform` 转为模型内部坐标后求 world min/max；`LocationPoint` 保存 XYZ，`LocationCurve` 保存两个端点 XYZ；其他位置为空。面积第一期唯一批准的自动源是 `BuildingPad` 的只读 `BuiltInParameter.HOST_AREA_COMPUTED`，要求 `StorageType.Double`、finite、`> 0`，再用 Revit 2020 API `UnitUtils.ConvertFromInternalUnits(value, DisplayUnitType.DUT_SQUARE_METERS)` 转为平方米。不得使用包围盒长乘宽、显示字符串、族名称或参数别名估算面积。
+`NativeStage02RevitGeometryEvidenceService.Capture(Document, Element)` 在角色决策前、Revit ExternalEvent 内读取原始几何事实：`element.get_BoundingBox(null)` 的 8 个角点经 `BoundingBoxXYZ.Transform` 转为模型内部坐标后求 world min/max；`LocationPoint` 保存 XYZ，`LocationCurve` 保存 tessellated 曲线；其他位置为空。对 `BuildingPad/Floor/DirectShape/FamilyInstance` 遍历 `GeometryElement` 与 `GeometryInstance.GetInstanceGeometry()`，只接受法向与当前 Stage01 计算平面平行、面积最大的 `PlanarFace`，用 `GetEdgesAsCurveLoops()`、`Curve.Tessellate()` 和完整 instance transform 生成米制 XY loops；同面积多 face、非平面、空 loop、Z 偏差超过 `1e-6 m` 均以 `GEOMETRY_CAPTURE_AMBIGUOUS/UNSUPPORTED` 失败。面积批准源依次为该 accepted planar face 的 `Area`，以及 BuildingPad/Floor 的只读 `BuiltInParameter.HOST_AREA_COMPUTED`；两者同时存在时必须在 `max(0.01 m², faceArea*0.001)` 内一致，否则 `GEOMETRY_AREA_SOURCE_MISMATCH`。记录 `document.Application.ShortCurveTolerance` 的米制值。不得使用包围盒长乘宽、显示字符串、族名称或参数别名估算面积。
 
 ```csharp
 internal static class NativeStage02RevitGeometryEvidenceService
@@ -1784,13 +2268,29 @@ internal static class NativeStage02GeometryEvidencePolicy
     NativeTaskDefinition task,
     NativeStage02ElementSnapshot element,
     NativeStage02GeometryEvidence geometry,
-    IReadOnlyDictionary<Guid, NativeStage02ParameterEvidence> parameters);
+    IReadOnlyDictionary<Guid, NativeStage02ParameterEvidence> parameters,
+    NativeStage02GeometryEvaluationContext context);
+}
+
+internal sealed class NativeStage02GeometryEvaluationContext
+{
+  internal NativeWorkflowIdentity Identity { get; set; }
+  internal IReadOnlyList<NativeStage02ElementSnapshot> ConfirmedElements { get; set; } =
+    Array.Empty<NativeStage02ElementSnapshot>();
+  internal IReadOnlyList<NativeStage02ManualReviewRecord> ManualReviews { get; set; } =
+    Array.Empty<NativeStage02ManualReviewRecord>();
 }
 ```
 
-角色确定后才调用 `NativeStage02GeometryEvidencePolicy.Evaluate(...)` 生成 task-specific checks；这些 checks 不反向改变 confirmation snapshot hash。逐规则证据使用 exact ordinal 文本匹配。对有效 `BuildingPad`，Revit 已接受的 host profile 可证明 `边界闭合`、`无自交`、`绿地边界闭合`；可靠面积可证明 `面积大于零`。其余关系/连续性/越界/重复检查本期都返回 `Unsupported + GEOMETRY_CHECK_UNSUPPORTED_PHASE1`，在 Stage03 中是红色业务缺项，不得由 bbox 或角色确认变绿。`投影面积与几何一致` 在字段 GUID 回读值与 `ApprovedProjectedAreaSquareMetres` 同时存在时计算，容差为 `max(0.01 m², geometryArea * 0.001)`；其他 property check 没有受控 evaluator 时同样返回 unsupported。`NativeStage02RevitService.ReadParameterEvidence` 将该可靠面积传给现有 `NativeStage02SemanticValueSuggestionPolicy.Evaluate(...)`，替换当前硬编码 `null`，但只影响 `suggestionKind == APPROVED_REVIT_AREA`。
+角色确定后才调用 `NativeStage02GeometryEvidencePolicy.Evaluate(...)` 生成 task-specific checks；这些 checks 不反向改变 confirmation snapshot hash。逐规则证据只按 Task 1 的 exact `(taskId, ruleText)` policy 连接。二维比较统一使用米制、`1e-6 m` 点相等容差和方向无关的 canonical ring：闭合检查首尾与每个 chain 接点；自交使用非相邻线段相交；包含要求 subject 全部顶点在 reference 外环内/边界上且与 reference 边界无 crossing；重复比较 canonical ring SHA；连续线比较排序后端点度数（单链恰有 0 或 2 个奇数端点）；短线阈值只取捕获时的 `Application.ShortCurveTolerance`。捕获缺失、reference role 缺失/多重、数值非 finite 或拓扑歧义均返回稳定红码，不能回退 bbox。
+
+`MANUAL_CURRENT_SNAPSHOT_REVIEW` 的六条规则只接受 `NativeStage02ManualReviewPolicy.Seal/VerifyCurrent(...)` 生成的凭证。canonical 输入严格包含 checkId/ruleText、documentFingerprint、rulePackageSha256、排序后的 `ElementUniqueIds/ElementSnapshotHashes/GeometryEvidenceHashes`、`APPROVED|REJECTED`、reviewer、basis、reviewedUtc；reviewer/basis 必须非空，三个列表长度一致且无重复，record hash 为 UTF-8 canonical JSON SHA-256。模型、规则、subject/reference 集合或任一几何事实变化后必须返回 `MANUAL_REVIEW_STALE`；缺凭证为 `MANUAL_REVIEW_REQUIRED`，拒绝为 `MANUAL_REVIEW_REJECTED`，只有当前批准为 `MANUAL_REVIEW_APPROVED_CURRENT`。批准只表示本条内部人工检查通过，不改变任何官方 H-IFC/IFCFlux 状态。
+
+`投影面积与几何一致` 在字段 GUID 回读值与 `ApprovedProjectedAreaSquareMetres` 同时存在时计算，容差为 `max(0.01 m², geometryArea * 0.001)`；`折算面积计算有效` 要求绿地投影面积和折算系数均 finite、`>=0` 且乘积 finite。缺字段或不满足公式直接失败，不存在 unsupported 分支。`NativeStage02RevitService.ReadParameterEvidence` 将可靠面积传给现有 `NativeStage02SemanticValueSuggestionPolicy.Evaluate(...)`，替换当前硬编码 `null`，但只影响 `suggestionKind == APPROVED_REVIT_AREA`。
 
 `NativeStage02ElementEvidence` 增加 `NativeStage02TaskGeometryEvaluation TaskGeometry`；未匹配/未确认角色时为 null，确认角色后通过 role 的 TaskId 取得 `NativeTaskDefinition` 再求值。Preview canonical JSON 纳入 `TaskGeometry.EvaluationHash`，workflow geometry outcomes 从这里生成。
+
+`NativeStage02ManualReviewStorage` 使用独立 Extensible Storage schema `HBR_NATIVE_GEOMETRY_REVIEW_V1`，以 checkId 为 key 保存最新 sealed record；同一短 transaction 内只替换当前 checkId，其他凭证保留。读回时重新验证 record hash，不接受 WPF 内存副本。全模型扫描在所有 role confirmation 和 geometry capture 完成后再构造一个不可变 `NativeStage02GeometryEvaluationContext`，从而让 contains/duplicate/reference-role 检查使用同一模型快照；自主选择可写字段，但若关系检查缺少全模型 reference，必须返回 `FULL_MODEL_RECHECK_REQUIRED`，不得把局部范围当全模型通过。
 
 - [ ] **Step 4: 实现候选与显式确认 policy**
 
@@ -1875,7 +2375,7 @@ internal IReadOnlyList<NativeStage02ElementWriteOutcome> ElementOutcomes { get; 
 internal NativeWorkflowResultEnvelope WorkflowResult { get; set; }
 ```
 
-最后以所有 element 的角色、geometry/property-check 和 field outcomes 建立 `SourceFeature="STAGE02A"`、`SourceFunction="ELEMENT_PREPARATION"` envelope；geometry item key 固定为 `ElementUniqueId|CheckId`，值包含 `GeometryEvidenceHash`、状态和稳定 code。unsupported 几何规则保持失败证据，但不回滚同构件已经成功的独立参数写入。Envelope 的 `InputSnapshotHash` 由本次全模型/所选范围中排序后的 element snapshot hash 生成；Stage03 全量检查时必须重新全模型捕获以判定当前性，不能靠上次 WPF preview 缓存。workflow result 在独立短 transaction 写入；若该写入失败必须返回技术失败，不能声称结果已持久化。
+最后以所有 element 的角色、geometry/property-check、manual-review 和 field outcomes 建立 `SourceFeature="STAGE02A"`、`SourceFunction="ELEMENT_PREPARATION"` envelope；geometry item key 固定为 `ElementUniqueId|CheckId`，值包含 `GeometryEvidenceHash`、可选 `ManualReviewRecordHash`、状态和稳定 code。几何/人工复核失败不回滚同构件已经成功的独立参数写入，但 Stage03 保持红色。Envelope 的 `InputSnapshotHash` 由本次全模型中排序后的 element snapshot hash 生成；自主选择结果必须标记 `ScopeComplete=false`，不能成为关系检查的全模型通过依据。Stage03 全量检查时必须重新全模型捕获以判定当前性，不能靠上次 WPF preview 缓存。workflow result 在独立短 transaction 写入；若该写入失败必须返回技术失败，不能声称结果已持久化。
 
 - [ ] **Step 7: 改造 02A WPF 两段预览**
 
@@ -1885,7 +2385,7 @@ internal NativeWorkflowResultEnvelope WorkflowResult { get; set; }
 选择范围 → 生成候选 → 人工逐项/批量确认 → 刷新写入预览 → 确认写入
 ```
 
-未确认行显示红色“待确认”，低置信候选显示黄色；“批量接受当前候选”只生成 confirmation、写回 request 并刷新预览，不直接调用写入。全模型和自主选择都显示 confirmation 列。字段表增加“几何来源/当前面积/几何检查”列：可靠面积显示平方米和 `HOST_AREA_COMPUTED`；无可靠来源显示“待填写”；unsupported check 明确显示红色“本期未实现”，不得显示绿色。
+未确认行显示红色“待确认”，低置信候选显示黄色；“批量接受当前候选”只生成 confirmation、写回 request 并刷新预览，不直接调用写入。全模型和自主选择都显示 confirmation 列。字段表增加“几何来源/当前面积/几何检查”列：可靠面积显示平方米和 exact topology source；捕获失败显示稳定红码。六条人工复核规则显示“批准/拒绝、复核人、依据”编辑入口，保存后必须从 RVT storage 回读并重新 scan；缺失/拒绝/stale 显示红色，不提供“不适用”或永久“本期未实现”。
 
 - [ ] **Step 8: 运行完整 02A 回归**
 
@@ -2241,6 +2741,7 @@ internal sealed class NativeStage02BMetricRecord
   internal string ProjectionStatus { get; set; } = string.Empty;
   internal NativeOfficialCarrierEvidenceStatus OfficialCarrierStatus { get; set; }
   internal string OfficialProjectionCarrierId { get; set; } = string.Empty;
+  internal string OfficialCarrierProbeRef { get; set; } = string.Empty;
   internal string OfficialEvidenceRef { get; set; } = string.Empty;
   internal NativeWorkflowIdentity IdentityContext { get; set; }
   internal string UpdatedUtc { get; set; } = string.Empty;
@@ -2346,6 +2847,7 @@ internal static class NativeStage02BOwnerPolicy
     NativeStage02BMetricDefinition metric,
     NativeOfficialCarrierPolicy carrierPolicy,
     NativeOfficialProjectionCarrierDefinition projectionCarrier,
+    NativeOfficialCarrierProbeRecord carrierProbe,
     NativeOfficialEvidenceRecord officialEvidence);
 }
 ```
@@ -2359,7 +2861,7 @@ IfcSpatialZone  → InternalStorageOnly，code=OFFICIAL_CARRIER_PENDING_GOLDEN_R
 其他 entity     → 阻断，code=UNSUPPORTED_METRIC_OWNER
 ```
 
-内部保存成功与官方导出准备成功是两个独立状态；不得把 `legacyProjection.carrier` 作为目标 Element。Owner 决策以 metric 自身的 `propertyId + officialCarrierStatus + officialProjectionCarrierId + officialEvidenceRef` 为准，并通过 Task 2 目录解析结构化 carrier/evidence；空外键、断链或跨 propertyId 引用一律 pending/blocked。entity policy 只是上限，不能因为同一 IfcSite/IfcSpatialZone 的一个属性取得证据，就把同 entity 的其他指标一起变绿。
+内部保存成功、官方载体已发现、当前 Golden 官方导出已验证是三个独立状态；不得把 `legacyProjection.carrier` 作为目标 Element。Owner 决策以 metric 自身的 `propertyId + officialCarrierStatus + officialProjectionCarrierId + officialCarrierProbeRef` 为准，并通过 Task 2 目录解析同 propertyId 的结构化 carrier/probe；空外键、断链或跨 propertyId 引用一律 pending/blocked。`officialEvidenceRef` 只描述已经发生的最终导出，不是写前载体发现门禁。entity policy 只是上限，不能因为同一 IfcSite/IfcSpatialZone 的一个属性取得证据，就把同 entity 的其他指标一起变绿。
 
 - [ ] **Step 6: 实现 canonical、storage merge 和当前性判定**
 
@@ -2397,7 +2899,7 @@ internal static class NativeStage02BCurrentResultPolicy
 }
 ```
 
-`Evaluate` 必须依次验证 record hash、document/model/rule identity，然后把 `LastAttemptRunId != LastSuccessfulRunId`、`WriteStatus != SUCCEEDED` 或 `ReadbackStatus != SUCCEEDED` 统一返回 `LATEST_ATTEMPT_FAILED`；只有最新 attempt 完整成功才继续判断值和载体。测试中的失败 record 必须在设置失败字段后重新 `SealRecord`，另单测篡改已密封 record 返回 `RECORD_HASH_MISMATCH`。`ExportReady=false` 直到该 propertyId 自身为 Verified 且具有非空 projection carrier/evidence ref。
+`Evaluate` 必须依次验证 record hash、document/model/rule identity，然后把 `LastAttemptRunId != LastSuccessfulRunId`、`WriteStatus != SUCCEEDED` 或 `ReadbackStatus != SUCCEEDED` 统一返回 `LATEST_ATTEMPT_FAILED`；只有最新 attempt 完整成功才继续判断值和载体。测试中的失败 record 必须在设置失败字段后重新 `SealRecord`，另单测篡改已密封 record 返回 `RECORD_HASH_MISMATCH`。`ExportReady=false` 直到该 propertyId 自身 `officialCarrierStatus=Verified` 且具有同 propertyId 的非空 projection carrier/probe ref；最终 `OfficialAcceptancePassed` 仍为 false，直到 Task 14 外部 evidence 证明当前 Golden official IFC/IFCFlux 逐值一致。
 
 - [ ] **Step 7: 运行全部 02B 领域测试**
 
@@ -2429,12 +2931,23 @@ git commit -m "feat(stage02b): add manual actual metric domain"
 - Create: `src/BIMBaoGui.RevitAddin/Stage02B/NativeStage02BRevitReadService.cs`
 - Create: `src/BIMBaoGui.RevitAddin/Stage02B/NativeStage02BRevitWriteService.cs`
 - Create: `src/BIMBaoGui.RevitAddin/Stage02B/NativeStage02BProjectionCarrierResolver.cs`
+- Create: `src/BIMBaoGui.RevitAddin/Acceptance/NativeOfficialCarrierProbeModels.cs`
+- Create: `src/BIMBaoGui.RevitAddin/Acceptance/NativeOfficialCarrierProbePolicy.cs`
+- Create: `src/BIMBaoGui.RevitAddin/Acceptance/NativeOfficialCarrierProbeService.cs`
+- Create: `src/BIMBaoGui.RevitAddin/Acceptance/NativeOfficialCarrierProbeCommand.cs`
+- Create: `src/BIMBaoGui.HifcCore/OfficialCarrierProbeInspector.cs`
 - Create: `src/BIMBaoGui.RevitAddin/Stage02B/NativeStage02BWriteBatchPolicy.cs`
 - Create: `src/BIMBaoGui.RevitAddin/Stage02B/NativeStage02BViewModel.cs`
 - Create: `src/BIMBaoGui.RevitAddin/Stage02B/NativeStage02BView.cs`
 - Create: `tests/BIMBaoGui.RevitAddin.Tests/NativeStage02BWriteBatchPolicyTests.cs`
 - Create: `tests/BIMBaoGui.RevitAddin.Tests/NativeStage02BResultCanonicalizerTests.cs`
 - Create: `tests/BIMBaoGui.RevitAddin.Tests/NativeStage02BProjectionCarrierResolverTests.cs`
+- Create: `tests/BIMBaoGui.RevitAddin.Tests/NativeOfficialCarrierProbePolicyTests.cs`
+- Create: `tests/BIMBaoGui.HifcCore.Tests/OfficialCarrierProbeInspectorTests.cs`
+- Create: `tools/acceptance/New-NativeOfficialCarrierProbeContext.ps1`
+- Create: `tools/acceptance/Resolve-NativeOfficialCarrierProbe.ps1`
+- Create: `tools/acceptance/Resolve-NativeOfficialPropertyReadback.ps1`
+- Create: `tests/test_native_official_carrier_probe_contract.py`
 - Create: `tests/test_revit_addin_stage02b_revit_contract.py`
 - Create: `tests/test_revit_addin_stage02b_ui_contract.py`
 - Modify: `src/BIMBaoGui.RevitAddin/RevitExternalEventDispatcher.cs`
@@ -2445,7 +2958,7 @@ git commit -m "feat(stage02b): add manual actual metric domain"
 
 **Interfaces:**
 - Consumes: Task 7 metric request/record/policies，复用 `NativeStage02ParameterBindingService.Ensure` 与 `NativeStage02ValueCodec.WriteAndVerify`。
-- Produces: `RequestStage02BRead/Write`、结构化官方 carrier resolver、独立 `NativeStage02BView`、指标级部分成功结果和 `STAGE02B/PROJECT_ACTUAL_METRICS` envelope。
+- Produces: `RequestStage02BRead/Write`、结构化官方 carrier resolver、独立 `NativeStage02BView`、指标级部分成功结果、`STAGE02B/PROJECT_ACTUAL_METRICS` envelope，以及只允许在授权验收副本运行的官方 carrier sentinel probe。
 
 - [ ] **Step 1: 写部分成功和 retry RED 测试**
 
@@ -2658,22 +3171,72 @@ Stage01 总建筑面积卡片调用 `NavigateToMetric("ca21e324-046b-5bfd-84c8-0
 
 基线 `NativeStage03View` 有无参构造和 `NativeStage03View(NativeStage03OutputDirectoryStore)`。本 Task 增加主构造 `NativeStage03View(NativeStage03OutputDirectoryStore store, NativeIssueHub hub)`；现有两个构造分别委托到它并新建仅供设计器/旧测试使用的 hub，同时新增 `NativeStage03View(NativeIssueHub hub)` 供 `WorkspaceControl` 注入共享实例。Task 10 再扩展清单回溯行为；这样本 Task 改完即可编译，不能提前传入不存在的构造参数。
 
-- [ ] **Step 8: 运行 02B 领域、Revit 和 UI 合同**
+- [ ] **Step 8: 实现只对验收副本开放的官方 carrier sentinel probe**
+
+`New-NativeOfficialCarrierProbeContext.ps1` 只接收 source Golden RVT、验收根、当前 commit/rule SHA 和显式 candidate UniqueId 列表；它在验收根创建名称带 `__HIFC_CARRIER_PROBE__` 的新副本，要求复制前后 SHA 相同，并写出不可覆盖的 context JSON。context 至少包含：source/probe 规范化绝对路径与 pre-seed SHA、acceptance root/runId、随机 nonce、commit、rule SHA、六个 metric 的 propertyId/exact official source name/declared type、按 `UniqueId` 排序的 candidates（ProjectInformation 使用固定 token，其他项带 UniqueId/categoryBuiltInId/CLR type）。脚本拒绝 source/probe 同路径、现存目标、reparse point、路径逃逸、空/重复 candidate 和非 40/64 位 hash。
+
+```csharp
+internal sealed class NativeOfficialCarrierProbeContext
+{
+  internal string SchemaVersion { get; set; } = "HBR_OFFICIAL_CARRIER_PROBE_V1";
+  internal string SourceGoldenRvtPath { get; set; } = string.Empty;
+  internal string SourceGoldenRvtSha256 { get; set; } = string.Empty;
+  internal string ProbeCopyPath { get; set; } = string.Empty;
+  internal string ProbeCopyPreSeedSha256 { get; set; } = string.Empty;
+  internal string AcceptanceRoot { get; set; } = string.Empty;
+  internal string AcceptanceRunId { get; set; } = string.Empty;
+  internal string Nonce { get; set; } = string.Empty;
+  internal string CommitSha { get; set; } = string.Empty;
+  internal string RulePackageSha256 { get; set; } = string.Empty;
+  internal IReadOnlyList<NativeOfficialCarrierProbeCandidate> Candidates { get; set; } =
+    Array.Empty<NativeOfficialCarrierProbeCandidate>();
+}
+
+internal static class NativeOfficialCarrierProbePolicy
+{
+  internal static NativeOfficialCarrierProbeAuthorization Authorize(
+    string contextPath,
+    string activeDocumentPath,
+    string activeDocumentPreSeedSha256,
+    NativeOfficialCarrierProbeContext context);
+  internal static IReadOnlyList<NativeOfficialCarrierProbeSentinel> BuildSentinels(
+    NativeOfficialCarrierProbeContext context,
+    IReadOnlyList<NativeStage02BMetricDefinition> metrics);
+}
+```
+
+授权必须同时满足：环境变量 `BIMBAOGUI_ACCEPTANCE_PROBE_CONTEXT` 与传入 context path 是同一文件；context、probe RVT 都在 `AcceptanceRoot` 下且路径链无 reparse point；活动文档精确为 probe copy、文件名含固定后缀、pre-seed SHA 与 source SHA 相同；source path 与活动文档不同；commit/rule identity 与已安装运行时一致。任一条件失败时不启动 transaction。正常工作台不显示探针按钮；只有启动 Revit 前设置该环境变量且 context 通过静态校验时，`App` 才注册红色“验收载体探针”按钮。
+
+每个 metric 使用官方 `sourceParameterOverride ?? IFC property` 的 exact name、`parameterGuid=propertyId` 和 instance binding；已有同名参数 0 个时创建，1 个时要求 GUID/storage type 一致，多个或异 GUID 以 `OFFICIAL_SOURCE_NAME_AMBIGUOUS/CONTRACT_MISMATCH` 阻断。Real sentinel 固定为 `700000 + metric.sequence*1000 + candidateIndex + nonceSha16/1e9`，Integer sentinel 固定为 `700000000 + metric.sequence*10000 + candidateIndex`；因此每个 `propertyId + candidate` 都有可类型化比较的唯一值。一个 transaction group 将六个 exact-name 参数绑定到候选实际 category 并逐实例写入/Guid 回读；任一写入或回读不一致则整体回滚。成功后只保存 probe copy，并输出含 context SHA、每项 candidate UniqueId/category/class/GUID/sentinel/readback、probe seeded RVT SHA 的 `official-carrier-probe-seed.json`。
+
+`OfficialCarrierProbeInspector` 复用 HifcCore 的 STEP parser，只读解析官方 probe IFC：按 exact entity/Pset/property/declared type 找 `IfcPropertySingleValue`，沿 `IfcRelDefinesByProperties` 解析 owner GlobalId，并把 canonical numeric value 与 seed manifest sentinel 做类型化相等比较。每个 propertyId 必须恰好命中 0 或 1 个 sentinel；多个 owner、一个 sentinel 出现在多个 identity、类型不符或 seed 未知值均 fail-closed。`Resolve-NativeOfficialCarrierProbe.ps1` 加载已安装且 SHA 已锁定的 `BIMBaoGui.HifcCore.dll`，把 inspector 结果、HIFCTool manifest/DLL/version、probe RVT/IFC/journal SHA 封装为 `official-carrier-probe-result.json`；脚本不编辑 overlay，也不把未命中解释为否定所有可能 carrier。
+
+同一 inspector 的 final-readback 模式由 `Resolve-NativeOfficialPropertyReadback.ps1` 调用：输入最终 Golden scan evidence、Strict validation 和正式 official export result，只接受 scan 内 Task 9 生成的 `official_acceptance_manifest + official_acceptance_revit_readbacks`，不得从脚本参数或 UI 注入 propertyId。输出必须原样包含完整 `official_acceptance_manifest`（含 schema/version/SHA/全部定义），并按 manifest 动态全集输出每个 propertyId 的一条记录及其按 owner GlobalId/Revit UniqueId 排序的 `values[]`；每个 value 同时包含 Revit GUID canonical value、source stage/result hash、official IFC canonical value/type/unit/owner GlobalId。输入 document/rule/三个 result hash、manifest SHA、RVT/IFC SHA 任一不同，或 manifest/readback/official IFC 的 propertyId 与 owner value 集不完全一致，立即拒绝。final-readback canonicalization 必须覆盖本 manifest 的五种类型：`IfcLabel/IfcText` 使用 ordinal 原字符串，`IfcInteger` 使用 invariant Int64，`IfcReal` 使用 finite Double `G17`，`IfcDateTime` 使用 invariant `DateTimeOffset` 解析（`AssumeUniversal + AdjustToUniversal`）并输出 UTC `O` 格式；未知类型 fail-closed。
+
+`NativeOfficialCarrierProbePolicyTests` 必须逐项证明生产 RVT、source Golden、路径逃逸、reparse point、SHA/commit/rule 不一致、重复 candidate、同名参数歧义均在 transaction 前拒绝；Real/Integer sentinel 在全部六指标和全部 candidates 中唯一、可 round-trip。Python contract 断言无 context 时产品没有探针按钮/MCP 工具，且脚本只创建验收副本/context，不写 source。
+
+- [ ] **Step 9: 运行 02B 领域、Revit、UI 和 probe 合同**
 
 ```powershell
 dotnet test tests/BIMBaoGui.RevitAddin.Tests/BIMBaoGui.RevitAddin.Tests.csproj `
-  -c Release --nologo --filter "FullyQualifiedName~NativeStage02B"
+  -c Release --nologo `
+  --filter "FullyQualifiedName~NativeStage02B|FullyQualifiedName~NativeOfficialCarrierProbe"
+dotnet test tests/BIMBaoGui.HifcCore.Tests/BIMBaoGui.HifcCore.Tests.csproj `
+  -c Release --nologo --filter "FullyQualifiedName~OfficialCarrierProbeInspector"
 python -m pytest tests/test_revit_addin_stage02b_revit_contract.py `
   tests/test_revit_addin_stage02b_ui_contract.py `
-  tests/test_revit_addin_stage01_ui_contract.py -q
+  tests/test_revit_addin_stage01_ui_contract.py `
+  tests/test_native_official_carrier_probe_contract.py -q
 ```
 
 Expected: PASS；静态合同确认 02B 不调用几何 collector/area 计算，也不把 Site/SpatialZone 写到 ProjectInformation。
 
-- [ ] **Step 9: 提交 02B 原生功能和工作台拆分**
+- [ ] **Step 10: 提交 02B 原生功能、工作台拆分和验收探针**
 
 ```powershell
 git add src/BIMBaoGui.RevitAddin/Stage02B `
+  src/BIMBaoGui.RevitAddin/Acceptance `
+  src/BIMBaoGui.HifcCore/OfficialCarrierProbeInspector.cs `
   src/BIMBaoGui.RevitAddin/RevitExternalEventDispatcher.cs `
   src/BIMBaoGui.RevitAddin/WorkspaceControl.cs `
   src/BIMBaoGui.RevitAddin/Stage01/NativeStage01View.cs `
@@ -2682,6 +3245,12 @@ git add src/BIMBaoGui.RevitAddin/Stage02B `
   tests/BIMBaoGui.RevitAddin.Tests/NativeStage02BWriteBatchPolicyTests.cs `
   tests/BIMBaoGui.RevitAddin.Tests/NativeStage02BResultCanonicalizerTests.cs `
   tests/BIMBaoGui.RevitAddin.Tests/NativeStage02BProjectionCarrierResolverTests.cs `
+  tests/BIMBaoGui.RevitAddin.Tests/NativeOfficialCarrierProbePolicyTests.cs `
+  tests/BIMBaoGui.HifcCore.Tests/OfficialCarrierProbeInspectorTests.cs `
+  tools/acceptance/New-NativeOfficialCarrierProbeContext.ps1 `
+  tools/acceptance/Resolve-NativeOfficialCarrierProbe.ps1 `
+  tools/acceptance/Resolve-NativeOfficialPropertyReadback.ps1 `
+  tests/test_native_official_carrier_probe_contract.py `
   tests/test_revit_addin_stage02b_revit_contract.py `
   tests/test_revit_addin_stage02b_ui_contract.py `
   tests/test_revit_addin_stage01_ui_contract.py
@@ -2708,8 +3277,8 @@ git commit -m "feat(stage02b): add independent project actual metrics"
 - Modify: `tests/test_revit_addin_stage03_revit_contract.py`
 
 **Interfaces:**
-- Consumes: Stage01 read/result、02A 当前全模型几何 preview/result、02B read/result、规范化输出目录/技术 preflight 和 Task 2 reporting 目录。
-- Produces: 仅由 Stage01 模型类型驱动的四态 `NativeStage03ChecklistItem`，以及包含清单的 `NativeStage03ScanResult`。
+- Consumes: Stage01 read/result、02A 当前全模型几何 preview/result、02B read/result、规范化输出目录/技术 preflight 和 Task 2 reporting/official acceptance 目录。
+- Produces: 仅由 Stage01 模型类型驱动的四态 `NativeStage03ChecklistItem`，以及包含清单、动态官方验收属性 manifest 和当前 Revit GUID 回读集合的 `NativeStage03ScanResult`。
 
 - [ ] **Step 1: 写动态生成和四态 RED 测试**
 
@@ -2738,6 +3307,11 @@ public void Total_plan_checklist_is_deterministic_and_has_no_not_applicable()
     second.Definitions.Select(value => value.CheckId));
   Assert.DoesNotContain(first.Definitions,
     value => value.DisplayName.Contains("不适用"));
+  Assert.Equal(
+    NativeReportingRuleCatalog.Current.OfficialAcceptancePropertyIds,
+    first.OfficialAcceptanceManifest.Properties.Select(value => value.PropertyId));
+  Assert.Equal(first.OfficialAcceptanceManifest.Sha256,
+    second.OfficialAcceptanceManifest.Sha256);
 }
 
 [Fact]
@@ -2776,6 +3350,7 @@ internal sealed class NativeStage03ChecklistGenerationResult
   internal bool Supported { get; set; }
   internal string Code { get; set; } = string.Empty;
   internal string ModelFileType { get; set; } = string.Empty;
+  internal NativeOfficialAcceptanceManifest OfficialAcceptanceManifest { get; set; }
   internal IReadOnlyList<NativeReportingCheckDefinition> Definitions { get; set; } =
     Array.Empty<NativeReportingCheckDefinition>();
 }
@@ -2812,11 +3387,47 @@ internal sealed class NativeStage03ChecklistItem
   internal string TargetKey { get; set; } = string.Empty;
   internal NativeOfficialCarrierEvidenceStatus OfficialCarrierStatus { get; set; }
   internal string OfficialProjectionCarrierId { get; set; } = string.Empty;
+  internal string OfficialCarrierProbeRef { get; set; } = string.Empty;
   internal string OfficialEvidenceRef { get; set; } = string.Empty;
+}
+
+internal sealed class NativeOfficialAcceptanceManifestEntry
+{
+  internal string PropertyId { get; set; } = string.Empty;
+  internal string Identity { get; set; } = string.Empty;
+  internal string DeclaredIfcType { get; set; } = string.Empty;
+  internal string CanonicalUnit { get; set; } = string.Empty;
+  internal string ParameterGuid { get; set; } = string.Empty;
+  internal string BindingScope { get; set; } = string.Empty;
+  internal NativeReportingSourceStage SourceStage { get; set; }
+}
+
+internal sealed class NativeOfficialAcceptanceManifest
+{
+  internal string SchemaVersion { get; set; } = "1.0.0";
+  internal string Sha256 { get; set; } = string.Empty;
+  internal IReadOnlyList<NativeOfficialAcceptanceManifestEntry> Properties { get; set; } =
+    Array.Empty<NativeOfficialAcceptanceManifestEntry>();
+}
+
+internal sealed class NativeOfficialAcceptanceOwnerReadback
+{
+  internal string RevitUniqueId { get; set; } = string.Empty;
+  internal string ExpectedIfcGlobalId { get; set; } = string.Empty;
+  internal string CanonicalValue { get; set; } = string.Empty;
+}
+
+internal sealed class NativeOfficialAcceptancePropertyReadback
+{
+  internal string PropertyId { get; set; } = string.Empty;
+  internal NativeReportingSourceStage SourceStage { get; set; }
+  internal string SourceResultHash { get; set; } = string.Empty;
+  internal IReadOnlyList<NativeOfficialAcceptanceOwnerReadback> Values { get; set; } =
+    Array.Empty<NativeOfficialAcceptanceOwnerReadback>();
 }
 ```
 
-不得增加 `NotApplicable`。
+不得增加 `NotApplicable`。manifest property 按 `PropertyId` ordinal 排序，字段只能来自 Task 2 的 `OfficialAcceptanceProperties`；其 SHA-256 canonical bytes 固定为 UTF-8 无 BOM：首行 `BIMBAOGUI_OFFICIAL_ACCEPTANCE_MANIFEST|1.0.0\n`，随后每个属性一行，依次连接 `propertyId/identity/declaredIfcType/canonicalUnit/parameterGuid/bindingScope/sourceStage`，字段间使用 U+001F、行末 `\n`。GUID 使用小写 D 格式，`sourceStage` 使用 `STAGE01/STAGE02A/STAGE02B`。任何 UI、MCP、Task 14 脚本都不得重建或补写此 manifest。
 
 - [ ] **Step 4: 实现生成器和来源分组**
 
@@ -2885,11 +3496,11 @@ internal static class NativeStage03ChecklistEvaluator
 }
 ```
 
-每个来源 result 先经 Task 3 freshness policy。Stage03 同时调用 02A 的只读全模型捕获，重新计算 element/geometry evidence 和排序后的当前 input snapshot hash；它不得写参数或保存 confirmation。hash/identity/最新 attempt 失败均为红；未执行扫描时才是灰；低置信且非阻断提示为黄；只有写入成功、回读成功、输入 hash 当前且必要 carrier 状态满足该 check 时为绿。
+每个来源 result 先经 Task 3 freshness policy。Stage03 同时调用 02A 的只读全模型捕获，重新计算 element/geometry evidence、manual-review currentness 和排序后的当前 input snapshot hash；它不得写参数、保存 confirmation 或更新人工复核。hash/identity/最新 attempt 失败均为红；未执行扫描时才是灰；低置信且非阻断提示为黄。02A 内部清单项在写入成功、回读成功、输入 hash 当前且 automatic/manual evaluator 通过时为绿；官方投影状态作为独立 evidence 列，pending 显示黄色 `INTERNAL_PASS_OFFICIAL_PENDING` 并保持 `OfficialAcceptancePassed=false`，不得把内部清单项重新染红而令 Golden Strict 永久不可用，也不得把黄色解释为官方通过。02B 被 normal export 要求的 metric 则继续以逐 propertyId verified carrier 为门禁。
 
-`AttributeRequirement` 按目录的 exact mapping 读取每个适用构件 GUID 回读；mapping 不存在、值空或回读失败分别为稳定红码。`Geometry` check 按 `TaskId + RuleText + ElementUniqueId` 连接 live evidence 与已保存 outcome：任一适用构件失败/unsupported 即红；没有已确认构件为 `MISSING_REQUIRED_ELEMENT`；全部适用构件都有 current `Passed` evidence 才绿。`PropertyConsistency` 读取对应 GUID 回读和几何 evidence，例如“投影面积与几何一致”使用 Task 5 容差；无 evaluator 返回 `PROPERTY_CHECK_UNSUPPORTED_PHASE1` 红。`TargetComparison` 同时读取 Stage01 目标 operator/value 和 02B 最新实际值，映射缺失、任一值缺失或比较不满足分别返回稳定红码。
+`AttributeRequirement` 按目录的 exact mapping 读取每个适用构件 GUID 回读；mapping 不存在、值空或回读失败分别为稳定红码。`Geometry` check 按 `TaskId + RuleText + ElementUniqueId` 连接 live evidence 与已保存 outcome：任一适用构件失败或 evidence 无法确定即红；没有已确认构件为 `MISSING_REQUIRED_ELEMENT`；全部适用构件都有 current `Passed` evidence 才绿。`PropertyConsistency` 读取对应 GUID 回读和几何 evidence，例如“投影面积与几何一致”使用 Task 5 容差；Task 1 已冻结的三条 policy 必须都有 evaluator，缺 evaluator 是目录加载/测试失败，不允许退化成运行时 unsupported。`TargetComparison` 同时读取 Stage01 目标 operator/value 和 02B 最新实际值，映射缺失、任一值缺失或比较不满足分别返回稳定红码。
 
-求值码固定为：Stage01/02B 空值 `MISSING_REQUIRED_DATA`；02A 无已确认构件 `MISSING_REQUIRED_ELEMENT`；候选未确认 `ROLE_CONFIRMATION_REQUIRED`；属性映射/值缺失 `ATTRIBUTE_MAPPING_MISSING/ATTRIBUTE_VALUE_MISSING`；写入失败 `WRITE_FAILED`；回读失败 `READBACK_FAILED`；几何失败 `GEOMETRY_CHECK_FAILED`；几何未实现 `GEOMETRY_CHECK_UNSUPPORTED_PHASE1`；属性一致性失败/未实现 `PROPERTY_CHECK_FAILED/PROPERTY_CHECK_UNSUPPORTED_PHASE1`；目标映射/值/比较失败 `TARGET_COMPARISON_MAPPING_MISSING/TARGET_VALUE_MISSING/TARGET_COMPARISON_FAILED`；freshness 非 Current 使用对应 `WORKFLOW_<STATE>`；官方载体未证实 `OFFICIAL_CARRIER_PENDING_GOLDEN_RVT`；低置信但不阻断 `LOW_CONFIDENCE_CANDIDATE`。除低置信为 `Warning`、扫描前为 `NotChecked` 外，上述业务码均为 `Failed`；不得用自由文案决定颜色。
+求值码固定为：Stage01/02B 空值 `MISSING_REQUIRED_DATA`；02A 无已确认构件 `MISSING_REQUIRED_ELEMENT`；候选未确认 `ROLE_CONFIRMATION_REQUIRED`；属性映射/值缺失 `ATTRIBUTE_MAPPING_MISSING/ATTRIBUTE_VALUE_MISSING`；写入失败 `WRITE_FAILED`；回读失败 `READBACK_FAILED`；几何捕获/求值失败 `GEOMETRY_CAPTURE_UNSUPPORTED/GEOMETRY_CAPTURE_AMBIGUOUS/GEOMETRY_CHECK_FAILED/FULL_MODEL_RECHECK_REQUIRED`；人工复核 `MANUAL_REVIEW_REQUIRED/MANUAL_REVIEW_REJECTED/MANUAL_REVIEW_STALE`，当前批准使用通过码 `MANUAL_REVIEW_APPROVED_CURRENT`；属性一致性失败 `PROPERTY_CHECK_FAILED`；目标映射/值/比较失败 `TARGET_COMPARISON_MAPPING_MISSING/TARGET_VALUE_MISSING/TARGET_COMPARISON_FAILED`；freshness 非 Current 使用对应 `WORKFLOW_<STATE>`；官方载体未证实 `OFFICIAL_CARRIER_PENDING_GOLDEN_RVT`；内部检查已通过但官方待验证使用黄色 `INTERNAL_PASS_OFFICIAL_PENDING`，且 official acceptance 仍为 false；低置信但不阻断 `LOW_CONFIDENCE_CANDIDATE`。除两个 warning 码为 `Warning`、扫描前为 `NotChecked`、批准码为 `Passed` 外，上述业务码均为 `Failed`；不得用自由文案决定颜色，也不得出现 `*_UNSUPPORTED_PHASE1`。
 
 - [ ] **Step 6: 改造 Scanner 和 scan hash**
 
@@ -2919,6 +3530,10 @@ internal NativeWorkflowResultEnvelope Stage01WorkflowResult { get; set; }
 internal NativeWorkflowResultEnvelope Stage02AWorkflowResult { get; set; }
 internal NativeWorkflowResultEnvelope Stage02BWorkflowResult { get; set; }
 internal NativePluginRuntimeIdentity PluginRuntime { get; set; }
+internal NativeOfficialAcceptanceManifest OfficialAcceptanceManifest { get; set; }
+internal IReadOnlyList<NativeOfficialAcceptancePropertyReadback>
+  OfficialAcceptanceRevitReadbacks { get; set; } =
+    Array.Empty<NativeOfficialAcceptancePropertyReadback>();
 internal IReadOnlyList<NativeStage03ChecklistItem> Checklist { get; set; } =
   Array.Empty<NativeStage03ChecklistItem>();
 internal int PassedCount { get; set; }
@@ -2929,7 +3544,9 @@ internal int NotCheckedCount { get; set; }
 
 `NativePluginRuntimeIdentity` 由 scanner 从当前已加载 `BIMBaoGui.RevitAddin` assembly 捕获，不允许 UI/MCP 传入；Product/Assembly/InformationalVersion、程序集绝对 Location、当前 DLL SHA 和 informational version 中 `.sha.<40hex>`（若存在）分别原样保存。Task 11 的报告只投影该 confirmed scan 身份，不在写报告时悄悄换成另一程序集。
 
-聚合 check 的 `Elements` 按 UniqueId 排序去重；标量 `ElementId/ElementUniqueId` 仅在恰好一个构件时填充，多个构件时为空并由列表驱动定位。ScanHash 包含规范化文档路径、规则三元身份、插件 runtime 六字段、规范化输出目录、preflight hash、02A 当前全模型 input snapshot hash、每项 checkId/kind/source/status/fieldKey/propertyId/roleId/ruleText/targetKey/sorted element UniqueIds/officialCarrierStatus/officialProjectionCarrierId/officialEvidenceRef 和三个来源 ResultHash；不得把可变问题文案或时间戳作为 identity。这样相同业务数据由不同 DLL 扫描时不会复用同一个 scan-evidence 文件名。
+scanner 必须从 Task 2 目录生成且只生成一个 `OfficialAcceptanceManifest`，再按 manifest 每个 propertyId 从对应 Stage01/02A/02B 当前结果和 live GUID 参数回读生成一条 `OfficialAcceptanceRevitReadback`。一个 propertyId 可有多个构件 owner，`Values` 按 `ExpectedIfcGlobalId`、`RevitUniqueId` ordinal 排序且组合键唯一；不得假设绿地等 02A 属性只有一个 owner。manifest ID 缺 readback 行、sourceStage/hash 不符、owner GlobalId 缺失、值为空或跨 propertyId 借值均产生业务红项。Golden Strict 因此能证明完整动态集合，而不是固定十项样例。
+
+聚合 check 的 `Elements` 按 UniqueId 排序去重；标量 `ElementId/ElementUniqueId` 仅在恰好一个构件时填充，多个构件时为空并由列表驱动定位。ScanHash 包含规范化文档路径、规则三元身份、插件 runtime 六字段、规范化输出目录、preflight hash、02A 当前全模型 input snapshot hash、official acceptance manifest SHA、逐 propertyId/sourceResultHash/sorted owner GlobalId+UniqueId+canonical value、每项 checkId/kind/source/status/fieldKey/propertyId/roleId/ruleText/targetKey/sorted element UniqueIds/officialCarrierStatus/officialProjectionCarrierId/officialCarrierProbeRef/officialEvidenceRef 和三个来源 ResultHash；不得把可变问题文案或时间戳作为 identity。这样相同业务数据由不同 DLL 扫描时不会复用同一个 scan-evidence 文件名。
 
 - [ ] **Step 7: 运行 Stage03 核心合同**
 
@@ -3142,8 +3759,8 @@ git commit -m "feat(stage03): add checklist navigation and recheck"
 - Modify: `docs/revit-addin/README.md`
 
 **Interfaces:**
-- Consumes: Task 9/10 红黄绿灰 checklist 和现有 Strict/ForcedTest export pipeline。
-- Produces: 强制理由门禁、`IsTestExport/CountsAsNormalExportPass/OfficialAcceptanceStatus`、含 checklist/文档路径/插件运行身份的 scan/fields/validation/failure 报告，以及 MCP `force_reason + output_directory` scan parity 和显式结果投影。
+- Consumes: Task 9/10 红黄绿灰 checklist、动态 official acceptance manifest/Revit readback 和现有 Strict/ForcedTest export pipeline。
+- Produces: 强制理由门禁、`IsTestExport/CountsAsNormalExportPass/OfficialAcceptanceStatus`、含 checklist/文档路径/插件运行身份/official acceptance manifest/readback 的 scan/fields/validation/failure 报告，以及 MCP `force_reason + output_directory` scan parity 和显式结果投影。
 
 - [ ] **Step 1: 反转现有 Force 合同为 RED 测试**
 
@@ -3200,6 +3817,10 @@ if (string.IsNullOrWhiteSpace(forceReason))
 internal bool IsTestExport { get; set; }
 internal bool CountsAsNormalExportPass { get; set; }
 internal string OfficialAcceptanceStatus { get; set; } = "PENDING";
+internal NativeOfficialAcceptanceManifest OfficialAcceptanceManifest { get; set; }
+internal IReadOnlyList<NativeOfficialAcceptancePropertyReadback>
+  OfficialAcceptanceRevitReadbacks { get; set; } =
+    Array.Empty<NativeOfficialAcceptancePropertyReadback>();
 internal IReadOnlyList<NativeStage03ChecklistItem> Checklist { get; set; } =
   Array.Empty<NativeStage03ChecklistItem>();
 ```
@@ -3249,6 +3870,35 @@ ForcedTest 产物继续使用 `_FORCED_TEST_HIFC.ifc` 后缀；Strict 不显示�
     "addin_dll_path": "D:\\absolute\\BIMBaoGui.RevitAddin.dll",
     "addin_dll_sha256": "<64-hex-sha>"
   },
+  "official_acceptance_manifest": {
+    "schema_version": "1.0.0",
+    "sha256": "<64-hex-sha>",
+    "properties": [
+      {
+        "property_id": "<lowercase-guid>",
+        "identity": "IfcEntity|Pset|Property",
+        "declared_ifc_type": "IfcLabel|IfcText|IfcInteger|IfcReal|IfcDateTime",
+        "canonical_unit": "",
+        "parameter_guid": "<same-lowercase-guid>",
+        "binding_scope": "INSTANCE",
+        "source_stage": "STAGE01|STAGE02A|STAGE02B"
+      }
+    ]
+  },
+  "official_acceptance_revit_readbacks": [
+    {
+      "property_id": "<lowercase-guid>",
+      "source_stage": "STAGE01|STAGE02A|STAGE02B",
+      "source_result_hash": "<64-hex-sha>",
+      "values": [
+        {
+          "revit_unique_id": "...",
+          "expected_ifc_global_id": "...",
+          "canonical_value": "..."
+        }
+      ]
+    }
+  ],
   "revit_version": "2020",
   "scan_hash": "...",
   "normalized_output_directory": "...",
@@ -3257,9 +3907,11 @@ ForcedTest 产物继续使用 `_FORCED_TEST_HIFC.ifc` 后缀；Strict 不显示�
 }
 ```
 
+validation 文件名固定为 `<scan_hash>-validation.json`；在共享身份键之外增加 `report_kind="VALIDATION"`、`execution_mode="STRICT|FORCED_TEST"`、`export_succeeded`、`blockers[]` 和所用 `scan_hash`。它必须逐字节投影 confirmed scan 的 official acceptance manifest 和 readback 集合，manifest SHA、ID/定义/来源阶段或任一 readback 值不同均拒绝写入。Strict 只有 checklist `failed=0/not_checked=0`、技术 blocker 为空且 RAW/转译/报告全部成功时才输出 `is_test_export=false/counts_as_normal_export_pass=true`；ForcedTest 永远输出 `true/false`。报告测试必须覆盖“Golden 零红 Strict 成功”和“任一红项时 Strict 不创建成功 validation”。
+
 省略号和尖括号只表示上面展示的是 schema 形状；实现必须从当前 scan/envelope 填入非空真实值，不把占位文本写入报告。`document_path` 使用已保存项目的 `Path.GetFullPath(Document.PathName)`；未保存文档返回 `UNSAVED_DOCUMENT` technical fatal。`plugin_runtime` 必须原样投影 Task 9 confirmed scan 捕获的程序集身份，并在写报告前重新 hash 同一绝对 DLL；字节变化返回 `RUNTIME_ARTIFACT_CHANGED`，不接受 UI/MCP 传入版本或 commit。普通本地开发 build 可以留下空 CommitSha，但 Task 12 的 CI 发布合同必须生成 `0.4.3+build.<run>.sha.<40hex>`，Task 14 会把任何空值或格式偏差判为不可验收，不能冒充最终 artifact。
 
-`NativeStage03ReportWriter.WriteScanEvidence(...)` 在 scanner 完成 checklist/scan hash 后、创建 lease 前调用；写入失败追加 `REPORT_WRITER_UNAVAILABLE` 并禁止 lease。目标目录必须是本次 preflight 的规范化目录；若同名 scan evidence 已存在，只在字节完全一致时复用，否则返回 `SCAN_EVIDENCE_COLLISION`，不得覆盖。每个 checklist item 输出 source_stage、applicable_basis、status、issue_code、remediation_target、field_key、property_id、role_id、rule_text、target_key、sorted element refs、official_carrier_status、official_projection_carrier_id、official_evidence_ref。`IFCFLUX_MANUAL_PENDING` 保留；内部 exact 成功不能改 official_acceptance_status。报告测试回读 JSON 并验证三个 result hash、rule identity、document fingerprint/path、插件运行身份、DLL SHA、scan/preflight hash 与输入对象和当前程序集完全一致；另测业务红项仍写 scan evidence、未保存文档/伪造 informational version/同名异内容均阻断。
+`NativeStage03ReportWriter.WriteScanEvidence(...)` 在 scanner 完成 checklist/scan hash 后、创建 lease 前调用；写入失败追加 `REPORT_WRITER_UNAVAILABLE` 并禁止 lease。目标目录必须是本次 preflight 的规范化目录；若同名 scan evidence 已存在，只在字节完全一致时复用，否则返回 `SCAN_EVIDENCE_COLLISION`，不得覆盖。每个 checklist item 输出 source_stage、applicable_basis、status、issue_code、remediation_target、field_key、property_id、role_id、rule_text、target_key、sorted element refs、official_carrier_status、official_projection_carrier_id、official_carrier_probe_ref、official_evidence_ref。official acceptance manifest 和 readback 必须按 Task 9 canonical 顺序投影；报告层不得筛成固定列表、不得折叠同 propertyId 的多 owner values。`IFCFLUX_MANUAL_PENDING` 保留；内部 exact 成功不能改 official_acceptance_status。报告测试回读 JSON 并验证三个 result hash、rule identity、document fingerprint/path、插件运行身份、DLL SHA、scan/preflight hash、manifest SHA/全部定义和全部 Revit readback 与输入对象和当前程序集完全一致；另测业务红项仍写 scan evidence、未保存文档/伪造 informational version/同名异内容均阻断。
 
 - [ ] **Step 6: 恢复 MCP `force_reason`，工具数保持 13**
 
@@ -3288,14 +3940,16 @@ Server payload 使用 `new { mode, force_reason, output_directory }`；router �
 ```text
 ProjectScan:
   normalized_output_directory, preflight_hash,
+  official_acceptance_manifest, official_acceptance_revit_readbacks,
   checklist_counts, checklist
 
 ProjectExecution:
   is_test_export, counts_as_normal_export_pass,
-  official_acceptance_status, checklist_counts, checklist
+  official_acceptance_status, official_acceptance_manifest,
+  official_acceptance_revit_readbacks, checklist_counts, checklist
 ```
 
-每个 MCP checklist item 投影 `check_id/check_kind/display_name/source_stage/applicable_basis/current_value/unit/status/issue_code/remediation_target/field_key/property_id/role_id/rule_text/target_key/element_id/element_unique_id/official_carrier_status/official_projection_carrier_id/official_evidence_ref`。行为测试分别覆盖 strict、forced_test 有理由、forced_test 空理由、output directory 不可写和 translator 缺失；后三种不得创建 lease，强制成功 execution 必须返回 `true/false/PENDING` 且红项仍为红。
+每个 MCP checklist item 投影 `check_id/check_kind/display_name/source_stage/applicable_basis/current_value/unit/status/issue_code/remediation_target/field_key/property_id/role_id/rule_text/target_key/element_id/element_unique_id/official_carrier_status/official_projection_carrier_id/official_carrier_probe_ref/official_evidence_ref`。manifest/readback 的字段和顺序与 JSON 报告完全相同，adapter 不得维护固定 propertyId 表。行为测试分别覆盖 strict、forced_test 有理由、forced_test 空理由、output directory 不可写和 translator 缺失；后三种不得创建 lease，强制成功 execution 必须返回 `true/false/PENDING` 且红项仍为红。
 
 - [ ] **Step 7: 运行 Stage03/MCP/report 回归**
 
@@ -3792,7 +4446,7 @@ Expected: `SHA256SUMS.txt` 全部命中；三个托管 DLL 的 AssemblyVersion �
 
 **Interfaces:**
 - Consumes: Task 13 已验证 CI artifact、Revit 2020、官方 HIFCTool、IFCFlux 0.1.0。
-- Produces: 空模型、不完整模型、Golden 副本的可追溯证据；只有相同 Golden RVT/IFC 的四级状态均满足时才允许宣称完成。
+- Produces: 空模型、不完整模型、Golden 副本的可追溯证据；只有 Golden 零红、Strict 正常导出、相同 Golden RVT/IFC 的四级状态和逐 propertyId 三方值一致同时满足时才允许宣称完成。
 
 - [ ] **Step 1: 核对官方工具和候选 RVT，不修改原件**
 
@@ -3967,10 +4621,19 @@ Strict 遇任一红项必须阻断
 ForcedTest 需要原因，导出后红项仍红，报告 is_test_export=true
 ```
 
-如果官方 carrier 仍为 `PENDING_GOLDEN_RVT`，Strict 红项是正确结果，不得临时改绿。
-保存、关闭、重开后切换到此前不存在的 `$acceptRoot\golden-evidence`，只执行一次最终 scan，并确认恰好一个 `*-stage03-scan-evidence.json`。保存本阶段截图和报告到该目录；后续官方 IFC 与 IFCFlux 原件分别留在 `official-hifc`、`ifcflux-evidence`，均纳入同一 golden scenario 引用。
+如果任一 02B propertyId 的官方 carrier 仍为 `PENDING_GOLDEN_RVT`，Strict 红项是正确结果，不得临时改绿，也不得提前生成最终 golden-evidence。先执行下一步验收副本探针。
 
-- [ ] **Step 7: 用官方 HIFCTool 直接导出并锁定载体证据**
+- [ ] **Step 7: 在一次性 Golden 探针副本发现 exact 官方 carrier**
+
+关闭 Revit，使用 Task 8 的 `New-NativeOfficialCarrierProbeContext.ps1` 从当前 Golden 创建 `$acceptRoot\carrier-probe\BIMBaoGui-v0.4.3-golden__HIFC_CARRIER_PROBE__.rvt`。candidate 固定包含 `ProjectInformation`、当前 02A 已确认的全部 UniqueId，以及验收人员显式列出的 Level/Room/Area/DirectShape/FamilyInstance；输入列表和 SHA 写入 context，不做名称搜索。启动 Revit 前只对该进程设置 `BIMBAOGUI_ACCEPTANCE_PROBE_CONTEXT=<context path>`，打开 probe copy，点击红色“验收载体探针”，确认生成 seed manifest 后保存关闭。随后只从 probe copy 用官方 HIFCTool 导出到空目录 `carrier-probe\official-hifc`，关闭 Revit并锁定 journal，再运行 `Resolve-NativeOfficialCarrierProbe.ps1`。
+
+`official-carrier-probe-result.json` 对每个 propertyId 只允许三种结果：`EXACT_SINGLE_MATCH`（含 seed candidate UniqueId/category/class、Ifc owner GlobalId、INSTANCE/propertyId GUID、typed sentinel）、`NO_SENTINEL_MATCH`、`AMBIGUOUS_OR_CONTRACT_MISMATCH`。后两者都保持 pending 并终止正式验收；它们不能由人工改成 match。probe RVT/IFC/seed/result 不作为最终 Golden/official IFC。
+
+若首次取得 match，按 propertyId 生成 `CarrierId=OFFICIAL.<propertyId>.V1`、`ProbeId=PROBE.<propertyId>.<probeIfcSha256前12位>`，在 Task 1 overlay 的 `officialProjectionCarriers/officialCarrierProbeRecords` 写入同 propertyId 结构记录，并设置 metric 的 `officialCarrierStatus=VERIFIED`、`officialProjectionCarrierId`、`officialCarrierProbeRef`；`officialExportVerified` 仍为 false、`officialEvidenceRef` 仍为空。只允许使用 probe result 里的 exact selector/category/class/scope/GUID，不得手写猜测。然后按 TDD 重跑 Tasks 1–13、安装新 artifact，从原始 source RVT 重新创建全新 acceptance run 和 Golden 副本，再执行 Steps 1–7；不得在旧 Golden 上叠加新 artifact。直到六个 metric 都有 carrier/probe 且重新完成真实值写入/回读，再在此前不存在的 `$acceptRoot\golden-evidence` 只执行一次最终 scan；该 scan 必须 `failed=0/not_checked=0`。随后在同一目录执行一次 Strict 正常导出，要求 validation 报告 `report_kind=VALIDATION/is_test_export=false/counts_as_normal_export_pass=true`、checklist hash 与最终 scan 相同且 execution 无 blocker；缺少这份 Strict 结果不能进入 Step 8。
+
+这个回边只发生在 carrier discovery；最终 Golden 官方证据保存在 acceptance JSON，不反写 overlay，因此新 rule SHA 冻结后不会产生第二个证据自引用循环。
+
+- [ ] **Step 8: 用官方 HIFCTool 从同一最终 Golden 直接导出**
 
 从同一 Golden RVT 使用官方 HIFCTool Ribbon 命令导出新 IFC；不得用 BIMBaoGui 标准导出或后处理文件替代。点击前先运行以下块，它从持久 context 重建全部路径，并冻结导出开始身份：
 
@@ -4113,31 +4776,51 @@ $officialExportResult | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $offi
 
 后续若 Golden RVT、journal、官方 IFC、manifest 或 HIFCTool DLL 任一字节改变，当前 official export result 作废，必须重导。只出现插件启动注册行而没有上述 `Jrn.RibbonEvent` 命令行时，官方层保持 pending，不能以“DLL 已加载”代替“官方命令已执行”。
 
-只有在 Steps 7–8 的官方 IFC/IFCFlux 中对**某个 exact propertyId** 精确发现 Entity/Pset/Property/type/unit/value，且能反查到确定的 Revit element selector、binding scope 和 parameter GUID 时，才允许把该 `stage02BMetrics[propertyId]` 的 `officialCarrierStatus/officialProjectionCarrierId/officialEvidenceRef/officialExportVerified` 改为 Verified。CarrierId 固定为 `OFFICIAL.<propertyId>.V1`；EvidenceId 固定为 `EVIDENCE.<propertyId>.<officialIfcSha256 前 12 位>`。在两个结构目录中分别新增一条同 propertyId 记录：carrier 必须填 selectorKind/role/category/class/INSTANCE/propertyId GUID，evidence 必须填 Golden RVT、manifest、官方 DLL、IFC、IFCFlux 报告的现场 SHA、两个工具版本和 observed UniqueId/GlobalId/scope/GUID；metric 只引用这两个 ID。未发现或 owner 冲突时该 propertyId 保持 `PENDING_GOLDEN_RVT`、两个 ID 为空，失败观察留在验收证据而不是猜 carrier。entity 级 `officialCarrierPolicies` 只有在证据明确覆盖该 entity 的全部受控属性时才可升级；单个 IfcSite 属性通过不能让另外两个 IfcSite 指标变绿。
+到本步骤时六个 carrier/probe 必须已经在 Step 7 的回边中冻结并由最终 artifact 使用；本次正式 IFC 不再承担 selector discovery，也不得改 rulepack。运行：
 
-若 Steps 7–8 首次证明某个 property carrier，实施顺序固定为：
-
-1. 在 `test_hbr_rulepack_v043.py` 增加该 propertyId 的 exact identity、Verified 状态、两个外键及其结构记录完整性的 RED 测试；
-2. 在 `NativeStage02BOwnerPolicyTests`、`NativeStage02BProjectionCarrierResolverTests` 与 Revit contract 中增加“只解析该 propertyId 的 exact target、按固定 GUID 写入并 GUID 回读、同 entity 其他 property 仍 pending”的 RED 测试；
-3. 更新两个结构目录和该 metric 的外键；复用 Task 8 已实现的 `VerifiedElementParameter` 分支。carrier resolver 必须解析为唯一 live element；0 个或多个目标分别返回 `OFFICIAL_CARRIER_NOT_FOUND/OFFICIAL_CARRIER_AMBIGUOUS`，当前指标 transaction 回滚，其他指标继续；
-4. 重跑 Tasks 1–2、7–13 的测试/构建/CI，下载新的同分支 artifact，重新执行 Step 3 安装，并用同一 `$goldenRvt` 重跑 Steps 6–8；
-5. 只有实际参数 GUID 回读、官方 IFC exact value 和 IFCFlux 报告三者一致时，该 propertyId 的 Stage03 carrier 项才为绿。
-
-证据 JSON 的 commit、rule-package SHA、安装 DLL SHA 必须取这次最终 artifact；不得把首次 pending artifact 的运行结果与更新后的规则身份拼接为一次通过。
-
-- [ ] **Step 8: 在 IFCFlux 中核对 exact identity**
-
-用 IFCFlux 0.1.0 打开 Step 7 的官方 IFC，逐项核对：
-
-```text
-IfcProject / Pset_登记信息属性集 / 总建筑面积
-IfcSite / Pset_场地信息属性集 / 建筑密度
-IfcSite / Pset_场地信息属性集 / 容积率
-IfcSite / Pset_场地信息属性集 / 绿地率
-IfcSpatialZone / Pset_停车场信息属性集 / 机动车位数量
-IfcSpatialZone / Pset_停车场信息属性集 / 非机动车位数量
-IfcBuildingElementProxy / Pset_绿地信息属性集 / 类型、投影面积、绿地类型、折算系数
+```powershell
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+$repoRoot = (git rev-parse --show-toplevel).Trim()
+$commit = (git rev-parse HEAD).Trim().ToLowerInvariant()
+$acceptBase = 'D:\18_建模项目\湖北BIM云平台\BIM-baogui-acceptance\v0.4.3'
+$activeContextPath = Join-Path $acceptBase ("active-$($commit.Substring(0,12)).json")
+$pointer = Get-Content -Raw -LiteralPath $activeContextPath | ConvertFrom-Json
+$contextPath = (Resolve-Path -LiteralPath $pointer.context_path).Path
+if ($pointer.commit_sha -ne $commit -or $pointer.context_sha256 -ne
+    (Get-FileHash -LiteralPath $contextPath -Algorithm SHA256).Hash.ToLowerInvariant()) {
+  throw 'acceptance pointer identity/hash mismatch'
+}
+$context = Get-Content -Raw -LiteralPath $contextPath | ConvertFrom-Json
+$acceptRoot = (Resolve-Path -LiteralPath $context.accept_root).Path
+if ($context.commit_sha -ne $commit -or
+    $context.acceptance_run_id -ne (Split-Path -Leaf $acceptRoot) -or
+    -not [StringComparer]::OrdinalIgnoreCase.Equals(
+      (Split-Path -Parent $acceptRoot), (Resolve-Path -LiteralPath $acceptBase).Path)) {
+  throw 'acceptance context/root mismatch'
+}
+$officialDirectory = Join-Path $acceptRoot 'official-hifc'
+$officialExportResultPath = Join-Path $officialDirectory 'official-export-result.json'
+$installed = Get-Content -Raw -LiteralPath $context.install_evidence_path | ConvertFrom-Json
+$goldenScanFiles = @(Get-ChildItem -LiteralPath (Join-Path $acceptRoot 'golden-evidence') -File -Filter '*-stage03-scan-evidence.json')
+$strictFiles = @(Get-ChildItem -LiteralPath (Join-Path $acceptRoot 'golden-evidence') -File -Filter '*-validation.json')
+if ($goldenScanFiles.Count -ne 1 -or $strictFiles.Count -ne 1) { throw 'expected one Golden scan and one Strict validation' }
+& tools/acceptance/Resolve-NativeOfficialPropertyReadback.ps1 `
+  -AcceptanceContext $contextPath `
+  -GoldenScanEvidence $goldenScanFiles[0].FullName `
+  -StrictValidation $strictFiles[0].FullName `
+  -OfficialExportResult $officialExportResultPath `
+  -InstalledHifcCoreDll $installed.installedHifcCoreDll `
+  -OutputPath (Join-Path $officialDirectory 'official-property-readback.json')
 ```
+
+脚本用 `OfficialCarrierProbeInspector` 的只读 exact-identity 查询模式从正式 IFC 提取 Golden scan manifest 的动态全部 propertyId，不接受固定数量或外部静态检查表。该文件原样携带完整 manifest 及 SHA，并把每个 propertyId 的 Stage01/02A/02B 当前 GUID readback `values[]`、source stage/result hash 与 official IFC owner/value 集逐项连接；多 owner 必须完整保留并按稳定键排序。任一 propertyId/owner 缺失或多出、类型/单位不符、GlobalId 对不上、canonical value 不相等即正式验收失败。
+
+若本次正式 IFC 与已冻结 probe selector 不一致，先为该 exact propertyId 新增失败 regression test，修复并重跑 Tasks 1–14；不得现场更新 carrier、不得复用旧 Golden，也不得把正式证据写回 overlay。证据 JSON 的 commit、rule-package SHA、安装 DLL SHA 必须取最终 artifact；不得把首次 pending/probe artifact 的运行结果与更新后的规则身份拼接为一次通过。
+
+- [ ] **Step 9: 在 IFCFlux 中核对 exact identity 与逐值一致**
+
+用 IFCFlux 0.1.0 打开 Step 8 的正式官方 IFC，逐项核对 Golden scan 的 `official_acceptance_manifest.properties`。这份运行时 manifest 是唯一检查表；不得再维护固定“六指标 + 四个绿地属性”清单，也不得跳过 Stage01、planning target 或其余 02A `RULE_PROPERTY`。
 
 保存 IFCFlux 原始报告为 `$acceptRoot\ifcflux-evidence\IFCFlux-report.pdf`（若工具只能生成其他格式，使用实际扩展名但保持 basename），截图可另存。用以下安全默认值生成观察表：
 
@@ -4190,18 +4873,33 @@ if ($officialExportResult.golden_rvt_sha256 -ne $actualGoldenRvtSha -or
 $ifcFluxReports = @(Get-ChildItem -LiteralPath $ifcFluxDirectory -File |
   Where-Object { $_.BaseName -eq 'IFCFlux-report' })
 if ($ifcFluxReports.Count -ne 1) { throw "expected one IFCFlux report, got $($ifcFluxReports.Count)" }
-$checkSpecs = @(
-  @('ca21e324-046b-5bfd-84c8-0d3470082303','IfcProject|Pset_登记信息属性集|总建筑面积','IfcReal','m2'),
-  @('93e51676-237e-56a8-8f28-2da845422e2e','IfcSite|Pset_场地信息属性集|建筑密度','IfcReal',''),
-  @('201a00ac-3672-5ded-83d2-ed96f81bfabf','IfcSite|Pset_场地信息属性集|容积率','IfcReal',''),
-  @('f630ad47-b006-5127-badd-b1660cf996c3','IfcSite|Pset_场地信息属性集|绿地率','IfcReal',''),
-  @('c62cfd5f-2a50-5230-9c5d-4037c39061bf','IfcSpatialZone|Pset_停车场信息属性集|机动车位数量','IfcInteger','个'),
-  @('84df74c2-a7e5-5a98-a5e0-4458e49a3973','IfcSpatialZone|Pset_停车场信息属性集|非机动车位数量','IfcInteger','个'),
-  @('4d9d7775-e83c-5357-8f3e-1e6a6692e793','IfcBuildingElementProxy|Pset_绿地信息属性集|类型','IfcLabel',''),
-  @('6cc053e3-891d-51b1-b861-af498733f73a','IfcBuildingElementProxy|Pset_绿地信息属性集|投影面积','IfcReal','m2'),
-  @('3fd74b35-3164-5248-9fe9-c675992a4292','IfcBuildingElementProxy|Pset_绿地信息属性集|绿地类型','IfcLabel',''),
-  @('a99a0961-05fe-56fd-b8a0-865410bfe72f','IfcBuildingElementProxy|Pset_绿地信息属性集|折算系数','IfcReal','')
-)
+$officialReadbackPath = Join-Path $acceptRoot 'official-hifc\official-property-readback.json'
+$officialReadback = Get-Content -Raw -LiteralPath $officialReadbackPath | ConvertFrom-Json
+if ($officialReadback.acceptance_run_id -ne $acceptRunId -or
+    $officialReadback.golden_rvt_sha256 -ne $actualGoldenRvtSha -or
+    $officialReadback.official_ifc_sha256 -ne $actualOfficialIfcSha) {
+  throw 'official property readback belongs to different Golden bytes'
+}
+$goldenScanFiles = @(Get-ChildItem -LiteralPath (Join-Path $acceptRoot 'golden-evidence') `
+  -File -Filter '*-stage03-scan-evidence.json')
+if ($goldenScanFiles.Count -ne 1) { throw 'expected one Golden scan evidence file' }
+$goldenScan = Get-Content -Raw -LiteralPath $goldenScanFiles[0].FullName | ConvertFrom-Json
+$manifest = $goldenScan.official_acceptance_manifest
+$manifestProperties = @($manifest.properties)
+$manifestIds = @($manifestProperties.property_id)
+$sortedManifestIds = @($manifestIds | Sort-Object)
+$readbackRows = @($officialReadback.properties)
+$readbackIds = @($readbackRows.property_id)
+if ($manifest.schema_version -ne '1.0.0' -or
+    $manifest.sha256 -notmatch '^[0-9a-f]{64}$' -or
+    $manifestProperties.Count -eq 0 -or
+    $manifestIds.Count -ne @($manifestIds | Sort-Object -Unique).Count -or
+    ($manifestIds -join "`n") -cne ($sortedManifestIds -join "`n") -or
+    $officialReadback.official_acceptance_manifest.sha256 -cne $manifest.sha256 -or
+    $readbackRows.Count -ne $manifestProperties.Count -or
+    ($readbackIds -join "`n") -cne ($manifestIds -join "`n")) {
+  throw 'Golden manifest and official readback are not the same dynamic property set'
+}
 $ifcFluxResult = [ordered]@{
   acceptance_run_id = $acceptRunId
   tool_path = [IO.Path]::GetFullPath($ifcFlux)
@@ -4212,22 +4910,35 @@ $ifcFluxResult = [ordered]@{
   report_path = $ifcFluxReports[0].FullName
   report_sha256 = (Get-FileHash -LiteralPath $ifcFluxReports[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant()
   checked_utc = [DateTimeOffset]::UtcNow.ToString('O')
-  checks = @($checkSpecs | ForEach-Object {
+  official_acceptance_manifest_sha256 = $manifest.sha256
+  checks = @($manifestProperties | ForEach-Object {
+    $spec = $_
+    $propertyId = $spec.property_id
+    $rows = @($readbackRows | Where-Object property_id -CEQ $propertyId)
+    if ($rows.Count -ne 1) { throw "expected one official readback property row: $propertyId" }
+    $readback = $rows[0]
     [ordered]@{
-      property_id = $_[0]; identity = $_[1]
-      expected_declared_type = $_[2]; expected_unit = $_[3]
-      declared_type = ''; unit = ''; observed_value = ''
-      owner_global_id = ''; passed = $false
+      property_id = $propertyId
+      identity = $spec.identity
+      expected_declared_type = $spec.declared_ifc_type
+      expected_unit = $spec.canonical_unit
+      source_stage = $spec.source_stage
+      source_result_hash = $readback.source_result_hash
+      expected_values = @($readback.values)
+      checker_declared_type = ''
+      checker_unit = ''
+      checker_values = @()
+      checker_marked_pass = $false
     }
   })
 }
 $ifcFluxResultPath = Join-Path $ifcFluxDirectory 'ifcflux-result.json'
-$ifcFluxResult | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $ifcFluxResultPath -Encoding utf8NoBOM
+$ifcFluxResult | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $ifcFluxResultPath -Encoding utf8NoBOM
 ```
 
-检查人员逐项填写 `declared_type/unit/observed_value/owner_global_id`，并只在 exact identity/type/unit/value/owner 全部正确时把 `passed` 改为 JSON boolean `true`；不得删项或改 propertyId/identity/expected 字段。无量纲属性的正确 `unit` 是空字符串，不得为了“非空”伪造单位。最终脚本要求 exact 10 个 propertyId 唯一齐全，且 `input_ifc_sha256` 等于现场重算的 official IFC SHA。字段存在但类型、单位、owner 或值错误仍为失败。
+`official-property-readback.json` 的每个 `properties[]` 固定包含 `property_id/identity/declared_ifc_type/canonical_unit/source_stage/source_result_hash/values[]`；每个 value 固定包含 `revit_unique_id/expected_ifc_global_id/owner_global_id/revit_canonical_value/official_ifc_canonical_value`。检查人员只填写 IFCFlux 现场观察字段 `checker_declared_type/checker_unit/checker_values[{owner_global_id,observed_value}]/checker_marked_pass`；不得修改脚本预填的 propertyId/identity/expected/source stage/source result hash/expected values/manifest SHA。无量纲属性的正确 unit 是空字符串。最终脚本不信任单独的 `checker_marked_pass=true`：它还必须对每个 propertyId 的每个 owner 按 declared type 解析并证明 `Revit canonical == official IFC canonical == checker observed`，owner GlobalId 集完全相同，source result hash 属于本次 Golden scan 对应来源阶段。manifest 动态 propertyId 全集及每项 owner value 必须唯一齐全，`input_ifc_sha256` 必须等于现场重算的 official IFC SHA；任一不等即失败。
 
-- [ ] **Step 9: 写证据 JSON；若发现代码缺陷则回到 RED 测试**
+- [ ] **Step 10: 写证据 JSON；若发现代码缺陷则回到 RED 测试**
 
 从最终安装运行时报告和已捕获文件提取值，不读取本地 `obj` rulepack，不用 `Read-Host` 人工设置总状态：
 
@@ -4357,6 +5068,71 @@ function Read-ScanEvidence(
       $json.preflight_hash -notmatch '^[0-9a-f]{64}$') {
     throw "invalid scan evidence identity: $($file.FullName)"
   }
+  $manifest = $json.official_acceptance_manifest
+  $manifestProperties = @($manifest.properties)
+  $manifestIds = @($manifestProperties.property_id)
+  $sortedManifestIds = @($manifestIds | Sort-Object -CaseSensitive)
+  $readbacks = @($json.official_acceptance_revit_readbacks)
+  $readbackIds = @($readbacks.property_id)
+  if ($manifest.schema_version -ne '1.0.0' -or
+      $manifest.sha256 -notmatch '^[0-9a-f]{64}$' -or
+      $manifestProperties.Count -eq 0 -or
+      $manifestIds.Count -ne @($manifestIds | Sort-Object -CaseSensitive -Unique).Count -or
+      ($manifestIds -join "`n") -cne ($sortedManifestIds -join "`n") -or
+      $readbacks.Count -ne $manifestProperties.Count -or
+      ($readbackIds -join "`n") -cne ($manifestIds -join "`n")) {
+    throw "invalid official acceptance manifest/readback set: $($file.FullName)"
+  }
+  foreach ($index in 0..($manifestProperties.Count - 1)) {
+    $property = $manifestProperties[$index]
+    $readback = $readbacks[$index]
+    $sourceKey = $property.source_stage.ToLowerInvariant()
+    if ($property.property_id -notmatch '^[0-9a-f-]{36}$' -or
+        $property.parameter_guid -cne $property.property_id -or
+        $property.binding_scope -cne 'INSTANCE' -or
+        $property.source_stage -notin @('STAGE01','STAGE02A','STAGE02B') -or
+        $readback.property_id -cne $property.property_id -or
+        $readback.source_stage -cne $property.source_stage -or
+        $readback.source_result_hash -cne $json.workflow_results.$sourceKey.result_hash) {
+      throw "official acceptance property/readback mismatch: $($property.property_id)"
+    }
+  }
+  [ordered]@{ report = File-Evidence $file.FullName; data = $json }
+}
+function Read-StrictValidation([string]$directory, [object]$goldenScan) {
+  $directoryFull = (Resolve-Path -LiteralPath $directory).Path
+  $file = Get-OneFile $directoryFull '*-validation.json'
+  Resolve-EvidenceFile $file.FullName $directoryFull | Out-Null
+  $json = Get-Content -Raw -LiteralPath $file.FullName | ConvertFrom-Json
+  $validationManifest = $json.official_acceptance_manifest |
+    ConvertTo-Json -Depth 10 -Compress
+  $scanManifest = $goldenScan.data.official_acceptance_manifest |
+    ConvertTo-Json -Depth 10 -Compress
+  $validationReadbacks = ConvertTo-Json `
+    -InputObject @($json.official_acceptance_revit_readbacks) -Depth 10 -Compress
+  $scanReadbacks = ConvertTo-Json `
+    -InputObject @($goldenScan.data.official_acceptance_revit_readbacks) -Depth 10 -Compress
+  if ($json.report_kind -ne 'VALIDATION' -or
+      $json.execution_mode -ne 'STRICT' -or
+      $json.export_succeeded -ne $true -or
+      $json.is_test_export -ne $false -or
+      $json.counts_as_normal_export_pass -ne $true -or
+      $json.scan_hash -ne $goldenScan.data.scan_hash -or
+      $json.document_fingerprint -ne $goldenScan.data.document_fingerprint -or
+      $json.document_path -ne $goldenScan.data.document_path -or
+      $json.rule_package.sha256 -ne $goldenScan.data.rule_package.sha256 -or
+      $json.plugin_runtime.commit_sha -ne $goldenScan.data.plugin_runtime.commit_sha -or
+      $json.plugin_runtime.addin_dll_sha256 -ne $goldenScan.data.plugin_runtime.addin_dll_sha256 -or
+      $json.workflow_results.stage01.result_hash -ne $goldenScan.data.workflow_results.stage01.result_hash -or
+      $json.workflow_results.stage02a.result_hash -ne $goldenScan.data.workflow_results.stage02a.result_hash -or
+      $json.workflow_results.stage02b.result_hash -ne $goldenScan.data.workflow_results.stage02b.result_hash -or
+      $validationManifest -cne $scanManifest -or
+      $validationReadbacks -cne $scanReadbacks -or
+      @($json.blockers).Count -ne 0 -or
+      $json.checklist_counts.failed -ne 0 -or
+      $json.checklist_counts.not_checked -ne 0) {
+    throw 'Golden Strict validation is not a normal successful export'
+  }
   [ordered]@{ report = File-Evidence $file.FullName; data = $json }
 }
 
@@ -4367,14 +5143,18 @@ if ($installed.commitSha.ToLowerInvariant() -ne $commit) {
 $emptyScan = Read-ScanEvidence (Join-Path $acceptRoot 'empty-evidence') $emptyRvt $commit $installed
 $incompleteScan = Read-ScanEvidence (Join-Path $acceptRoot 'incomplete-evidence') $incompleteRvt $commit $installed
 $goldenScan = Read-ScanEvidence (Join-Path $acceptRoot 'golden-evidence') $goldenRvt $commit $installed
+$goldenStrict = Read-StrictValidation (Join-Path $acceptRoot 'golden-evidence') $goldenScan
 
 $officialRoot = (Resolve-Path -LiteralPath (Join-Path $acceptRoot 'official-hifc')).Path
 $ifcFluxRoot = (Resolve-Path -LiteralPath (Join-Path $acceptRoot 'ifcflux-evidence')).Path
 $officialPath = Resolve-EvidenceFile (Join-Path $officialRoot 'official-export-result.json') $officialRoot
+$officialReadbackPath = Resolve-EvidenceFile (Join-Path $officialRoot 'official-property-readback.json') $officialRoot
 $ifcFluxPath = Resolve-EvidenceFile (Join-Path $ifcFluxRoot 'ifcflux-result.json') $ifcFluxRoot
 $official = Get-Content -Raw -LiteralPath $officialPath | ConvertFrom-Json
+$officialReadback = Get-Content -Raw -LiteralPath $officialReadbackPath | ConvertFrom-Json
 $ifcFluxResult = Get-Content -Raw -LiteralPath $ifcFluxPath | ConvertFrom-Json
 if ($official.acceptance_run_id -ne $acceptRunId -or
+    $officialReadback.acceptance_run_id -ne $acceptRunId -or
     $ifcFluxResult.acceptance_run_id -ne $acceptRunId) {
   throw 'acceptance runId linkage mismatch'
 }
@@ -4404,6 +5184,7 @@ $actualHifcDllSha = (Get-FileHash -LiteralPath $hifcDll -Algorithm SHA256).Hash.
 $actualOfficialIfcSha = (Get-FileHash -LiteralPath $resolvedOfficialIfc -Algorithm SHA256).Hash.ToLowerInvariant()
 $actualJournalSha = (Get-FileHash -LiteralPath $resolvedJournal -Algorithm SHA256).Hash.ToLowerInvariant()
 $actualStartMarkerSha = (Get-FileHash -LiteralPath $resolvedStartMarker -Algorithm SHA256).Hash.ToLowerInvariant()
+$actualOfficialReadbackSha = (Get-FileHash -LiteralPath $officialReadbackPath -Algorithm SHA256).Hash.ToLowerInvariant()
 $actualIfcFluxToolSha = (Get-FileHash -LiteralPath $ifcFlux -Algorithm SHA256).Hash.ToLowerInvariant()
 $actualIfcFluxReportSha = (Get-FileHash -LiteralPath $resolvedIfcFluxReport -Algorithm SHA256).Hash.ToLowerInvariant()
 $startMarker = Get-Content -Raw -LiteralPath $resolvedStartMarker | ConvertFrom-Json
@@ -4440,38 +5221,144 @@ $officialProvenanceMatches =
   [DateTimeOffset]::Parse($official.official_ifc_last_write_utc).UtcDateTime -eq
     $ifcLastWrite.UtcDateTime
 
-$checks = @($ifcFluxResult.checks)
-$expectedChecks = [ordered]@{
-  'ca21e324-046b-5bfd-84c8-0d3470082303' = [ordered]@{ identity='IfcProject|Pset_登记信息属性集|总建筑面积'; declared_type='IfcReal'; unit='m2' }
-  '93e51676-237e-56a8-8f28-2da845422e2e' = [ordered]@{ identity='IfcSite|Pset_场地信息属性集|建筑密度'; declared_type='IfcReal'; unit='' }
-  '201a00ac-3672-5ded-83d2-ed96f81bfabf' = [ordered]@{ identity='IfcSite|Pset_场地信息属性集|容积率'; declared_type='IfcReal'; unit='' }
-  'f630ad47-b006-5127-badd-b1660cf996c3' = [ordered]@{ identity='IfcSite|Pset_场地信息属性集|绿地率'; declared_type='IfcReal'; unit='' }
-  'c62cfd5f-2a50-5230-9c5d-4037c39061bf' = [ordered]@{ identity='IfcSpatialZone|Pset_停车场信息属性集|机动车位数量'; declared_type='IfcInteger'; unit='个' }
-  '84df74c2-a7e5-5a98-a5e0-4458e49a3973' = [ordered]@{ identity='IfcSpatialZone|Pset_停车场信息属性集|非机动车位数量'; declared_type='IfcInteger'; unit='个' }
-  '4d9d7775-e83c-5357-8f3e-1e6a6692e793' = [ordered]@{ identity='IfcBuildingElementProxy|Pset_绿地信息属性集|类型'; declared_type='IfcLabel'; unit='' }
-  '6cc053e3-891d-51b1-b861-af498733f73a' = [ordered]@{ identity='IfcBuildingElementProxy|Pset_绿地信息属性集|投影面积'; declared_type='IfcReal'; unit='m2' }
-  '3fd74b35-3164-5248-9fe9-c675992a4292' = [ordered]@{ identity='IfcBuildingElementProxy|Pset_绿地信息属性集|绿地类型'; declared_type='IfcLabel'; unit='' }
-  'a99a0961-05fe-56fd-b8a0-865410bfe72f' = [ordered]@{ identity='IfcBuildingElementProxy|Pset_绿地信息属性集|折算系数'; declared_type='IfcReal'; unit='' }
+function Convert-CanonicalObservedValue([string]$declaredType, [string]$value) {
+  $culture = [Globalization.CultureInfo]::InvariantCulture
+  if ($declaredType -eq 'IfcInteger') {
+    return [Int64]::Parse($value, [Globalization.NumberStyles]::Integer, $culture).ToString($culture)
+  }
+  if ($declaredType -eq 'IfcReal') {
+    $number = [Double]::Parse($value, [Globalization.NumberStyles]::Float, $culture)
+    if ([Double]::IsNaN($number) -or [Double]::IsInfinity($number)) { throw 'non-finite observed real' }
+    return $number.ToString('G17', $culture)
+  }
+  if ($declaredType -in @('IfcLabel','IfcText')) { return $value }
+  if ($declaredType -eq 'IfcDateTime') {
+    $styles = [Globalization.DateTimeStyles]::AssumeUniversal -bor
+      [Globalization.DateTimeStyles]::AdjustToUniversal
+    return [DateTimeOffset]::Parse($value, $culture, $styles).ToUniversalTime().ToString('O', $culture)
+  }
+  throw "unsupported acceptance declared type: $declaredType"
 }
-$actualCheckIds = @($checks.property_id | Sort-Object -Unique)
-$expectedCheckIds = @($expectedChecks.Keys | Sort-Object)
-if ($checks.Count -ne 10 -or
-    @(Compare-Object -ReferenceObject $expectedCheckIds -DifferenceObject $actualCheckIds).Count -ne 0) {
-  throw 'IFCFlux checks do not contain the exact 10 expected propertyIds'
+
+function Get-OfficialAcceptanceManifestSha256([object]$manifest) {
+  $separator = [char]0x1f
+  $builder = [Text.StringBuilder]::new()
+  [void]$builder.Append("BIMBAOGUI_OFFICIAL_ACCEPTANCE_MANIFEST|1.0.0`n")
+  foreach ($property in @($manifest.properties)) {
+    $fields = @(
+      $property.property_id, $property.identity, $property.declared_ifc_type,
+      $property.canonical_unit, $property.parameter_guid,
+      $property.binding_scope, $property.source_stage)
+    [void]$builder.Append(($fields -join $separator)).Append("`n")
+  }
+  $algorithm = [Security.Cryptography.SHA256]::Create()
+  try {
+    $bytes = [Text.UTF8Encoding]::new($false).GetBytes($builder.ToString())
+    return ([BitConverter]::ToString($algorithm.ComputeHash($bytes))).Replace('-','').ToLowerInvariant()
+  } finally {
+    $algorithm.Dispose()
+  }
+}
+function Get-ExpectedSourceResultHash([string]$sourceStage, [object]$scan) {
+  switch -CaseSensitive ($sourceStage) {
+    'STAGE01' { return $scan.data.workflow_results.stage01.result_hash }
+    'STAGE02A' { return $scan.data.workflow_results.stage02a.result_hash }
+    'STAGE02B' { return $scan.data.workflow_results.stage02b.result_hash }
+    default { throw "invalid manifest source stage: $sourceStage" }
+  }
+}
+function Test-CheckerValues([object]$check, [object]$spec) {
+  if ($check.checker_marked_pass -isnot [bool] -or
+      $check.checker_marked_pass -ne $true -or
+      $check.checker_declared_type -cne $spec.declared_ifc_type -or
+      $check.checker_unit -cne $spec.canonical_unit) {
+    return $false
+  }
+  $expectedValues = @($check.expected_values)
+  $checkerValues = @($check.checker_values)
+  if ($expectedValues.Count -eq 0 -or $checkerValues.Count -ne $expectedValues.Count -or
+      @($checkerValues.owner_global_id | Sort-Object -Unique).Count -ne $checkerValues.Count) {
+    return $false
+  }
+  foreach ($expected in $expectedValues) {
+    $observed = @($checkerValues | Where-Object owner_global_id -CEQ $expected.owner_global_id)
+    if ($observed.Count -ne 1 -or
+        $expected.owner_global_id -notmatch '\S' -or
+        $expected.expected_ifc_global_id -cne $expected.owner_global_id) {
+      return $false
+    }
+    try {
+      $revit = Convert-CanonicalObservedValue $spec.declared_ifc_type $expected.revit_canonical_value
+      $officialIfc = Convert-CanonicalObservedValue $spec.declared_ifc_type $expected.official_ifc_canonical_value
+      $checker = Convert-CanonicalObservedValue $spec.declared_ifc_type $observed[0].observed_value
+      if ($revit -cne $officialIfc -or $officialIfc -cne $checker) { return $false }
+    } catch {
+      return $false
+    }
+  }
+  return $true
+}
+
+$manifest = $goldenScan.data.official_acceptance_manifest
+$manifestProperties = @($manifest.properties)
+$manifestIds = @($manifestProperties.property_id)
+$sortedManifestIds = @($manifestIds | Sort-Object -CaseSensitive)
+$checks = @($ifcFluxResult.checks)
+$checkIds = @($checks.property_id)
+$officialReadbackRows = @($officialReadback.properties)
+$officialReadbackIds = @($officialReadbackRows.property_id)
+$expectedChecks = [Collections.Generic.Dictionary[string,object]]::new(
+  [StringComparer]::Ordinal)
+foreach ($property in $manifestProperties) {
+  if ($property.property_id -notmatch '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' -or
+      $property.parameter_guid -cne $property.property_id -or
+      $property.binding_scope -cne 'INSTANCE' -or
+      $property.identity -notmatch '^[^|]+\|[^|]+\|[^|]+$' -or
+      $property.declared_ifc_type -notin @('IfcLabel','IfcText','IfcInteger','IfcReal','IfcDateTime')) {
+    throw "invalid official acceptance manifest definition: $($property.property_id)"
+  }
+  $expectedChecks.Add($property.property_id, $property)
+}
+$manifestHash = Get-OfficialAcceptanceManifestSha256 $manifest
+if ($manifest.schema_version -ne '1.0.0' -or
+    $manifestProperties.Count -eq 0 -or
+    $manifestIds.Count -ne $expectedChecks.Count -or
+    ($manifestIds -join "`n") -cne ($sortedManifestIds -join "`n") -or
+    $manifest.sha256 -cne $manifestHash -or
+    $officialReadback.official_acceptance_manifest.sha256 -cne $manifestHash -or
+    $ifcFluxResult.official_acceptance_manifest_sha256 -cne $manifestHash -or
+    $officialReadback.golden_rvt_sha256 -ne $actualGoldenRvtSha -or
+    $officialReadback.official_ifc_sha256 -ne $actualOfficialIfcSha -or
+    $checks.Count -ne $manifestProperties.Count -or
+    $officialReadbackRows.Count -ne $manifestProperties.Count -or
+    ($checkIds -join "`n") -cne ($manifestIds -join "`n") -or
+    ($officialReadbackIds -join "`n") -cne ($manifestIds -join "`n")) {
+  throw 'official/IFCFlux evidence does not exactly cover the Golden dynamic manifest'
 }
 foreach ($check in $checks) {
   $spec = $expectedChecks[$check.property_id]
+  $readback = @($officialReadbackRows | Where-Object property_id -CEQ $check.property_id)
+  if ($readback.Count -ne 1) { throw "official readback row mismatch: $($check.property_id)" }
+  $expectedResultHash = Get-ExpectedSourceResultHash $spec.source_stage $goldenScan
+  $expectedValuesJson = ConvertTo-Json -InputObject @($readback[0].values) -Depth 8 -Compress
+  $checkValuesJson = ConvertTo-Json -InputObject @($check.expected_values) -Depth 8 -Compress
   if ($check.identity -cne $spec.identity -or
-      $check.expected_declared_type -cne $spec.declared_type -or
-      $check.expected_unit -cne $spec.unit) {
+      $check.expected_declared_type -cne $spec.declared_ifc_type -or
+      $check.expected_unit -cne $spec.canonical_unit -or
+      $check.source_stage -cne $spec.source_stage -or
+      $readback[0].identity -cne $spec.identity -or
+      $readback[0].declared_ifc_type -cne $spec.declared_ifc_type -or
+      $readback[0].canonical_unit -cne $spec.canonical_unit -or
+      $readback[0].source_stage -cne $spec.source_stage -or
+      $check.source_result_hash -cne $expectedResultHash -or
+      $readback[0].source_result_hash -cne $expectedResultHash -or
+      $checkValuesJson -cne $expectedValuesJson) {
     throw "IFCFlux immutable contract mismatch: $($check.property_id)"
   }
 }
 $invalidPassedChecks = @($checks | Where-Object {
   $spec = $expectedChecks[$_.property_id]
-  $_.passed -isnot [bool] -or $_.passed -ne $true -or
-  $_.declared_type -cne $spec.declared_type -or $_.unit -cne $spec.unit -or
-  $_.observed_value -notmatch '\S' -or $_.owner_global_id -notmatch '\S'
+  -not (Test-CheckerValues $_ $spec)
 })
 
 $ciRuns = foreach ($workflowName in @('Build BIMBaoGui Revit MCP','Build BIMBaoGui GHA')) {
@@ -4509,12 +5396,28 @@ $hostVerified = @($scanSet | Where-Object {
 }).Count -eq 3 -and
   $emptyScan.data.checklist_counts.failed -gt 0 -and
   $incompleteScan.data.checklist_counts.passed -gt 0 -and
-  $incompleteScan.data.checklist_counts.failed -gt 0
+  $incompleteScan.data.checklist_counts.failed -gt 0 -and
+  $goldenScan.data.checklist_counts.failed -eq 0 -and
+  $goldenScan.data.checklist_counts.not_checked -eq 0 -and
+  $goldenStrict.data.export_succeeded -eq $true -and
+  $goldenStrict.data.is_test_export -eq $false -and
+  $goldenStrict.data.counts_as_normal_export_pass -eq $true -and
+  @($goldenStrict.data.blockers).Count -eq 0
+$dynamicManifestVerified = $manifestHash -ceq $manifest.sha256 -and
+  $officialReadback.official_acceptance_manifest.sha256 -ceq $manifest.sha256 -and
+  $ifcFluxResult.official_acceptance_manifest_sha256 -ceq $manifest.sha256 -and
+  $checks.Count -eq $manifestProperties.Count -and
+  $officialReadbackRows.Count -eq $manifestProperties.Count -and
+  ($checkIds -join "`n") -ceq ($manifestIds -join "`n") -and
+  ($officialReadbackIds -join "`n") -ceq ($manifestIds -join "`n")
 $officialVerified = $pathsMatch -and
   $official.golden_rvt_sha256 -eq $actualGoldenRvtSha -and
   $official.hifctool_manifest_sha256 -eq $actualHifcManifestSha -and
   $official.hifctool_dll_sha256 -eq $actualHifcDllSha -and
   $official.official_ifc_sha256 -eq $actualOfficialIfcSha -and
+  $officialReadback.golden_rvt_sha256 -eq $actualGoldenRvtSha -and
+  $officialReadback.official_ifc_sha256 -eq $actualOfficialIfcSha -and
+  $dynamicManifestVerified -and
   $officialProvenanceMatches -and
   $official.hifctool_product_version -match '\S' -and
   $official.hifctool_product_version -eq (Get-Item -LiteralPath $hifcDll).VersionInfo.ProductVersion
@@ -4524,6 +5427,7 @@ $ifcFluxVerified = $pathsMatch -and $officialVerified -and
   $ifcFluxResult.tool_product_version -match '\S' -and
   $ifcFluxResult.tool_product_version -eq (Get-Item -LiteralPath $ifcFlux).VersionInfo.ProductVersion -and
   $ifcFluxResult.report_sha256 -eq $actualIfcFluxReportSha -and
+  $dynamicManifestVerified -and
   $invalidPassedChecks.Count -eq 0
 
 $evidence = [ordered]@{
@@ -4547,10 +5451,12 @@ $evidence = [ordered]@{
   scenarios = @(
     [ordered]@{ name='empty'; rvt=File-Evidence $emptyRvt; scanEvidence=$emptyScan },
     [ordered]@{ name='incomplete'; rvt=File-Evidence $incompleteRvt; scanEvidence=$incompleteScan },
-    [ordered]@{ name='golden'; rvt=File-Evidence $goldenRvt; scanEvidence=$goldenScan }
+    [ordered]@{ name='golden'; rvt=File-Evidence $goldenRvt; scanEvidence=$goldenScan; strictValidation=$goldenStrict }
   )
   officialChain = [ordered]@{
     exportResult = File-Evidence $officialPath
+    propertyReadback = File-Evidence $officialReadbackPath
+    propertyReadbackSha256 = $actualOfficialReadbackSha
     goldenRvtSha256 = $actualGoldenRvtSha
     officialIfcSha256 = $official.official_ifc_sha256
     hifcToolVersion = $official.hifctool_product_version
@@ -4563,6 +5469,9 @@ $evidence = [ordered]@{
     ifcFluxToolSha256 = $actualIfcFluxToolSha
     ifcFluxReport = File-Evidence $ifcFluxResult.report_path
     ifcFluxReportSha256 = $ifcFluxResult.report_sha256
+    officialAcceptanceManifest = $manifest
+    officialAcceptanceManifestSha256 = $manifestHash
+    propertyChecks = @($checks)
   }
   status = [ordered]@{
     AUTOMATED_VERIFIED = $automatedVerified
@@ -4577,9 +5486,9 @@ $roundTrip = Get-Content -Raw -LiteralPath $evidencePath | ConvertFrom-Json
 if ($roundTrip.acceptanceRunId -ne $acceptRunId) { throw 'evidence round-trip failed' }
 ```
 
-最终 JSON 必须显式保留三个阶段各自的 runId/resultHash/inputSnapshotHash、文档指纹、最终安装文件 SHA、运行时规则 identity、工具版本和 RVT→官方 IFC→IFCFlux 报告的 SHA 关联。状态完全由这些结构化证据派生；缺文件、hash 不匹配或任一 IFCFlux check 未通过都为 false。若任一步暴露产品缺陷：先新增失败 regression test，修复，重跑 Tasks 12–14；若只是官方 carrier 未证实，则保持 pending，不把证据缺口改成代码通过。
+最终 JSON 必须显式保留三个阶段各自的 runId/resultHash/inputSnapshotHash、文档指纹、最终安装文件 SHA、运行时规则 identity、Golden scan/Strict validation、动态 official acceptance manifest、工具版本和 RVT→官方 IFC→IFCFlux 报告的 SHA 关联，以及 manifest 每个 propertyId/owner 的 Revit/IFC/IFCFlux canonical value。状态完全由这些结构化证据派生；Golden `failed/not_checked` 非零、Strict 非正常成功、manifest 集合不一致、缺文件、hash 不匹配或任一三方值/IFCFlux check 未通过都为 false。若任一步暴露产品缺陷：先新增失败 regression test，修复，重跑 Tasks 12–14；若只是官方 carrier 未证实，则保持 pending，不把证据缺口改成代码通过。
 
-- [ ] **Step 10: 提交可审计证据，不提交二进制原件**
+- [ ] **Step 11: 提交可审计证据，不提交二进制原件**
 
 ```powershell
 git add docs/revit-addin/acceptance/native-total-plan-phase1-v0.4.3-checklist.md `
@@ -4588,7 +5497,7 @@ git commit -m "docs(acceptance): record native v0.4.3 host evidence"
 git diff --check HEAD~1 HEAD
 ```
 
-只有四项 status 都为 true、且指向相同 Golden RVT 和同一官方 IFC 时，才可对用户报告“官方全链路通过”。否则准确报告已通过层级和仍为 pending/failed 的 exact identity。
+只有四项 status 都为 true、Golden scan `failed=0/not_checked=0`、Strict validation `is_test_export=false/counts_as_normal_export_pass=true`，且 Golden 动态 manifest 全部 propertyId/owner 的 Revit/同一官方 IFC/IFCFlux canonical value 全部一致时，才可对用户报告“官方全链路通过”。否则准确报告已通过层级和仍为 pending/failed 的 exact identity。
 
 ---
 
