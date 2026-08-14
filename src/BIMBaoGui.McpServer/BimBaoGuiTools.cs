@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using BIMBaoGui.McpContracts;
 using ModelContextProtocol.Server;
 
 namespace BIMBaoGui.McpServer;
@@ -133,13 +134,26 @@ public static class BimBaoGuiTools
     NamedPipeBridgeService bridge,
     [Description("full_model 或 current_selection。")]
     string scope,
+    [Description("automatic 或 manual。")]
+    string identification_mode,
+    [Description("手动模式的批量语义角色；无批量角色时传空字符串。")]
+    string bulk_role_id,
+    [Description("按 Revit Element UniqueId 指定的逐构件角色改写。")]
+    IReadOnlyList<Stage02RoleOverrideCommand> role_overrides,
     [Description("Revit 进程 ID；只有一个会话时可传 null。")]
     int? revit_process_id,
     CancellationToken cancellationToken)
   {
     return bridge.CallPayloadAsync(
       BIMBaoGui.McpContracts.BridgeMethodNames.Stage02Preview,
-      new { scope },
+      new
+      {
+        scope,
+        identification_mode,
+        bulk_role_id,
+        role_overrides = role_overrides
+          ?? Array.Empty<Stage02RoleOverrideCommand>()
+      },
       revit_process_id,
       120000,
       cancellationToken);

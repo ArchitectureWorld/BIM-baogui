@@ -60,6 +60,45 @@ if (!actualTools.SequenceEqual(expectedTools, StringComparer.Ordinal))
   return 1;
 }
 
+McpClientTool stage02Preview = tools.Single(tool => string.Equals(
+  tool.Name,
+  "bimbaogui_stage02_preview",
+  StringComparison.Ordinal));
+JsonElement stage02Schema = stage02Preview.JsonSchema;
+if (!stage02Schema.TryGetProperty("properties", out JsonElement stage02Properties))
+{
+  Console.Error.WriteLine("Stage02 preview tool has no input properties schema.");
+  return 1;
+}
+string[] expectedStage02Inputs =
+{
+  "scope",
+  "identification_mode",
+  "bulk_role_id",
+  "role_overrides",
+  "revit_process_id"
+};
+foreach (string input in expectedStage02Inputs)
+{
+  if (!stage02Properties.TryGetProperty(input, out _))
+  {
+    Console.Error.WriteLine(
+      "Stage02 preview input schema is missing " + input + ": "
+        + stage02Schema.GetRawText());
+    return 1;
+  }
+}
+string roleOverridesSchema = stage02Properties
+  .GetProperty("role_overrides")
+  .GetRawText();
+if (!roleOverridesSchema.Contains("elementUniqueId", StringComparison.Ordinal)
+  || !roleOverridesSchema.Contains("roleId", StringComparison.Ordinal))
+{
+  Console.Error.WriteLine(
+    "Stage02 role_overrides schema is not typed: " + roleOverridesSchema);
+  return 1;
+}
+
 CallToolResult result = await client.CallToolAsync(
   "bimbaogui_list_revit_sessions",
   new Dictionary<string, object?>(),

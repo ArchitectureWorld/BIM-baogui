@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,34 @@ namespace BIMBaoGui.McpContracts.Tests
 {
   public sealed class BridgeFrameCodecTests
   {
+    [Fact]
+    public void Stage02_preview_command_carries_typed_semantic_assignment_inputs()
+    {
+      var command = new Stage02PreviewCommand
+      {
+        Scope = "current_selection",
+        IdentificationMode = "manual",
+        BulkRoleId = "SITE_GREEN_OBJECT",
+        RoleOverrides = new[]
+        {
+          new Stage02RoleOverrideCommand
+          {
+            ElementUniqueId = "A",
+            RoleId = "SITE_GREEN_OBJECT"
+          }
+        }
+      };
+
+      Assert.Equal("manual", command.IdentificationMode);
+      Assert.Equal("SITE_GREEN_OBJECT", command.BulkRoleId);
+      Stage02RoleOverrideCommand roleOverride = Assert.Single(
+        command.RoleOverrides);
+      Assert.Equal("A", roleOverride.ElementUniqueId);
+      Assert.Equal("SITE_GREEN_OBJECT", roleOverride.RoleId);
+      Assert.Equal(13, McpToolNames.Approved.Count);
+      Assert.Equal(13, McpToolNames.Approved.Distinct().Count());
+    }
+
     [Fact]
     public async Task RoundTripUsesFourByteLittleEndianLengthAndUtf8Json()
     {

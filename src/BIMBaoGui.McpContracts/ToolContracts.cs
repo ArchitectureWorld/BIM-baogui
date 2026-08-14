@@ -65,6 +65,16 @@ namespace BIMBaoGui.McpContracts
   public sealed class Stage02PreviewCommand : RevitSessionSelector
   {
     public string Scope { get; set; } = "full_model";
+    public string IdentificationMode { get; set; } = "automatic";
+    public string BulkRoleId { get; set; } = string.Empty;
+    public IReadOnlyList<Stage02RoleOverrideCommand> RoleOverrides { get; set; } =
+      Array.Empty<Stage02RoleOverrideCommand>();
+  }
+
+  public sealed class Stage02RoleOverrideCommand
+  {
+    public string ElementUniqueId { get; set; } = string.Empty;
+    public string RoleId { get; set; } = string.Empty;
   }
 
   public sealed class Stage02WriteCommand : RevitSessionSelector

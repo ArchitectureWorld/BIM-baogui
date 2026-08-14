@@ -30,6 +30,9 @@ namespace BIMBaoGui.RevitAddin.McpBridge
 
     internal async Task<string> PreviewAsync(
       string scope,
+      string identificationMode,
+      string bulkRoleId,
+      IReadOnlyList<Stage02RoleOverrideCommand> roleOverrides,
       CancellationToken cancellationToken)
     {
       NativeStage02ScopeMode mode;
@@ -46,13 +49,46 @@ namespace BIMBaoGui.RevitAddin.McpBridge
             BridgeErrorCodes.InvalidArgument,
             "Stage02 scope 必须为 full_model 或 current_selection。" );
       }
+      NativeStage02IdentificationMode identification;
+      switch ((identificationMode ?? string.Empty).Trim().ToLowerInvariant())
+      {
+        case "automatic":
+          identification = NativeStage02IdentificationMode.Automatic;
+          break;
+        case "manual":
+          identification = NativeStage02IdentificationMode.Manual;
+          break;
+        default:
+          throw new McpCommandException(
+            BridgeErrorCodes.InvalidArgument,
+            "Stage02 identification_mode 必须为 automatic 或 manual。" );
+      }
+      var overrides = new Dictionary<string, string>(StringComparer.Ordinal);
+      foreach (Stage02RoleOverrideCommand roleOverride in roleOverrides
+        ?? Array.Empty<Stage02RoleOverrideCommand>())
+      {
+        if (roleOverride == null) continue;
+        string uniqueId = (roleOverride.ElementUniqueId ?? string.Empty).Trim();
+        string roleId = (roleOverride.RoleId ?? string.Empty).Trim();
+        string existing;
+        if (overrides.TryGetValue(uniqueId, out existing)
+          && !string.Equals(existing, roleId, StringComparison.Ordinal))
+        {
+          throw new McpCommandException(
+            BridgeErrorCodes.InvalidArgument,
+            "同一 ElementUniqueId 存在冲突的 Stage02 role_overrides。" );
+        }
+        overrides[uniqueId] = roleId;
+      }
+      NativeStage02PreviewRequest request =
+        NativeStage02WorkbenchRequestPolicy.Build(
+          mode,
+          identification,
+          bulkRoleId,
+          overrides);
       NativeStage02RevitPreviewResult result = await _gateway
         .PreviewStage02Async(
-          new NativeStage02PreviewRequest
-          {
-            ScopeMode = mode,
-            CustomUniqueIds = Array.Empty<string>()
-          },
+          request,
           cancellationToken).ConfigureAwait(false);
       if (result?.Success == true
         && result.Preview != null
@@ -119,6 +155,8 @@ namespace BIMBaoGui.RevitAddin.McpBridge
         ["success"] = result != null && result.Success,
         ["status"] = result?.Status ?? string.Empty,
         ["messages"] = result?.Messages ?? Array.Empty<string>(),
+        ["schema_version"] = preview?.SchemaVersion ?? string.Empty,
+        ["canonical_json"] = preview?.CanonicalJson ?? string.Empty,
         ["preview_hash"] = preview?.PreviewHash ?? string.Empty,
         ["lease_minutes"] = preview == null ? 0 : 30,
         ["rule_package_id"] = preview?.RulePackageId ?? string.Empty,
@@ -129,6 +167,9 @@ namespace BIMBaoGui.RevitAddin.McpBridge
         ["document_fingerprint"] =
           preview?.DocumentFingerprint ?? string.Empty,
         ["model_profile"] = preview?.ModelProfile ?? string.Empty,
+        ["identification_mode"] = preview?.IdentificationMode.ToString()
+          ?? string.Empty,
+        ["bulk_role_id"] = preview?.BulkRoleId ?? string.Empty,
         ["blocked_element_count"] = preview?.BlockedElementCount ?? 0,
         ["actionable_element_count"] =
           preview?.ActionableElementCount ?? 0,
@@ -157,6 +198,13 @@ namespace BIMBaoGui.RevitAddin.McpBridge
           ["role_match_status"] = element.RoleMatchStatus.ToString(),
           ["role_id"] = element.RoleId,
           ["role_match_source"] = element.RoleMatchSource,
+          ["automatic_role_status"] = element.AutomaticRoleStatus.ToString(),
+          ["automatic_role_id"] = element.AutomaticRoleId,
+          ["effective_role_id"] = element.EffectiveRoleId,
+          ["assignment_mode"] = element.AssignmentMode.ToString(),
+          ["assignment_source"] = element.AssignmentSource,
+          ["assignment_action"] = element.AssignmentAction,
+          ["manual_carrier_evidence"] = element.ManualCarrierEvidence,
           ["blocked"] = element.IsBlocked,
           ["message"] = element.Message,
           ["fields"] = element.Fields.Select(field =>

@@ -222,7 +222,12 @@ namespace BIMBaoGui.RevitAddin.McpBridge
     {
       Stage02PreviewPayload payload = McpBridgeJson
         .Deserialize<Stage02PreviewPayload>(json);
-      return _stage02.PreviewAsync(payload.scope, cancellationToken);
+      return _stage02.PreviewAsync(
+        payload.scope,
+        payload.identification_mode,
+        payload.bulk_role_id,
+        payload.role_overrides,
+        cancellationToken);
     }
 
     private Task<string> RouteStage02Write(
@@ -298,6 +303,10 @@ namespace BIMBaoGui.RevitAddin.McpBridge
     private sealed class Stage02PreviewPayload
     {
       public string scope { get; set; } = "full_model";
+      public string identification_mode { get; set; } = "automatic";
+      public string bulk_role_id { get; set; } = string.Empty;
+      public IReadOnlyList<Stage02RoleOverrideCommand> role_overrides { get; set; } =
+        Array.Empty<Stage02RoleOverrideCommand>();
     }
 
     private sealed class Stage02WritePayload
