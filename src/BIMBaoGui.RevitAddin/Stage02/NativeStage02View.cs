@@ -371,7 +371,12 @@ namespace BIMBaoGui.RevitAddin.Stage02
       }
       _writeButton.IsEnabled = _preview != null && !_busy && !_previewStale;
       RenderElements();
-      SetStatus(result.Status + "｜" + string.Join(" ", result.Messages));
+      SetStatus(
+        result.Status
+        + "｜Assignment 保存=" + result.AssignedElementCount
+        + "，删除=" + result.RemovedAssignmentCount
+        + "，失败=" + result.FailedAssignmentCount
+        + "｜" + string.Join(" ", result.Messages));
     }
 
     private void ApplyFailure(Exception exception)

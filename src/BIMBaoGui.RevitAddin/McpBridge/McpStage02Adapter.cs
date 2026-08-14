@@ -101,6 +101,9 @@ namespace BIMBaoGui.RevitAddin.McpBridge
         ["written_element_count"] = result?.WrittenElementCount ?? 0,
         ["failed_parameter_count"] = result?.FailedParameterCount ?? 0,
         ["failed_element_count"] = result?.FailedElementCount ?? 0,
+        ["assigned_element_count"] = result?.AssignedElementCount ?? 0,
+        ["removed_assignment_count"] = result?.RemovedAssignmentCount ?? 0,
+        ["failed_assignment_count"] = result?.FailedAssignmentCount ?? 0,
         ["refreshed_preview_hash"] =
           result?.RefreshedPreview?.PreviewHash ?? string.Empty,
         ["messages"] = result?.Messages ?? Array.Empty<string>()

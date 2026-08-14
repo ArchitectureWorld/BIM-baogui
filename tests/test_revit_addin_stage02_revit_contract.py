@@ -56,6 +56,9 @@ def test_stage02_manual_roles_are_persisted_in_one_fixed_revit_storage_contract(
     storage = read_stage02("NativeStage02SemanticAssignmentStorage.cs")
     reader = read_stage02("NativeStage02SemanticAssignmentRevitService.cs")
     write = read_stage02("NativeStage02RevitWriteService.cs")
+    write_policy = read_stage02(
+        "NativeStage02SemanticAssignmentWritePolicy.cs"
+    )
     preview = read_stage02("NativeStage02RevitService.cs")
     assert '"6f0ab4a7-0e0f-46d9-a31e-1f7615a4f2e3"' in storage
     assert '"HBR_BIMBAOGUI_STAGE02_ASSIGNMENTS"' in storage
@@ -73,7 +76,15 @@ def test_stage02_manual_roles_are_persisted_in_one_fixed_revit_storage_contract(
     assert "NativeStage02SemanticAssignmentStoragePolicy.Evaluate" in reader
     assert "NativeStage02SemanticAssignmentStorage.Write" in write
     assert "NativeStage02SemanticAssignmentStorage.Read" in write
-    assert "SEMANTIC_ASSIGNMENT_READBACK_FAILED" in write
+    assert "NativeStage02SemanticAssignmentWritePolicy.Apply" in write
+    assert "NativeStage02SemanticAssignmentWritePolicy.Verify" in write
+    assert '"SEMANTIC_ASSIGNMENT_READBACK_FAILED"' in write_policy
+    assert "NativeStage02SemanticAssignmentWritePolicy.ReadbackFailed" in write
+    assert "document.Regenerate()" in write
+    assert "get_Parameter(" in write
+    assert "AssignedElementCount" in write
+    assert "RemovedAssignmentCount" in write
+    assert "FailedAssignmentCount" in write
     assert "NativeStage02SemanticAssignmentRevitService.Read" in preview
     assert '"PersistedManual"' in preview
 
