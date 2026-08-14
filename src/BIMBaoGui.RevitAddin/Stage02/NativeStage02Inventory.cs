@@ -14,9 +14,16 @@ namespace BIMBaoGui.RevitAddin.Stage02
   internal static class NativeStage02InventoryCodes
   {
     internal const string ScopeInputConflict = "SCOPE_INPUT_CONFLICT";
-    internal const string CustomScopeEmpty = "CUSTOM_SCOPE_EMPTY";
-    internal const string CustomElementUnavailable =
-      "CUSTOM_ELEMENT_UNAVAILABLE";
+    internal const string SelectionEmpty = "SELECTION_EMPTY";
+    internal const string SelectionElementMissing =
+      "SELECTION_ELEMENT_MISSING";
+    internal const string SelectionElementNotEligible =
+      "SELECTION_ELEMENT_NOT_ELIGIBLE";
+    internal const string AutoRoleUnsupported = "AUTO_ROLE_UNSUPPORTED";
+
+    // Legacy names stay available while callers migrate to the precise codes.
+    internal const string CustomScopeEmpty = SelectionEmpty;
+    internal const string CustomElementUnavailable = SelectionElementMissing;
   }
 
   internal sealed class NativeStage02ElementSnapshot
@@ -25,6 +32,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
     internal string UniqueId { get; set; } = string.Empty;
     internal int ElementId { get; set; }
     internal string Category { get; set; } = string.Empty;
+    internal string CategoryName { get; set; } = string.Empty;
+    internal string ClrType { get; set; } = string.Empty;
     internal string ElementKind { get; set; } = string.Empty;
     internal string ElementName { get; set; } = string.Empty;
     internal string FamilyName { get; set; } = string.Empty;
@@ -100,16 +109,28 @@ namespace BIMBaoGui.RevitAddin.Stage02
       {
         return NativeStage02InventoryDecision.Failure(
           NativeStage02InventoryCodes.ScopeInputConflict,
-          "全模型模式不得同时携带残留的自定义选择。" );
+          "全模型模式不得同时携带残留的当前选择。" );
+      }
+
+      NativeStage02ElementSnapshot[] all = (inventory
+          ?? Array.Empty<NativeStage02ElementSnapshot>())
+        .Where(value => value != null)
+        .ToArray();
+
+      if (scopeMode == NativeStage02ScopeMode.CustomSelection)
+      {
+        return NativeStage02SelectionInventoryPolicy.Resolve(
+          all,
+          customIds);
       }
 
       var allowed = new HashSet<string>(
         (allowedCategories ?? Array.Empty<string>())
-          .Where(value => !string.IsNullOrWhiteSpace(value)),
+          .Where(value => !string.IsNullOrWhiteSpace(value))
+          .Select(value => value.Trim()),
         StringComparer.Ordinal);
-      NativeStage02ElementSnapshot[] eligible = (inventory
-          ?? Array.Empty<NativeStage02ElementSnapshot>())
-        .Where(value => IsEligible(value, allowed))
+      NativeStage02ElementSnapshot[] automaticEligible = all
+        .Where(value => IsAutomaticInventoryEligible(value, allowed))
         .GroupBy(value => value.UniqueId, StringComparer.Ordinal)
         .Select(group => group
           .OrderBy(value => value.ElementId)
@@ -117,45 +138,16 @@ namespace BIMBaoGui.RevitAddin.Stage02
         .OrderBy(value => value.UniqueId, StringComparer.Ordinal)
         .ToArray();
 
-      if (scopeMode == NativeStage02ScopeMode.FullModel)
-        return NativeStage02InventoryDecision.Success(eligible);
-
-      if (customIds.Length == 0)
-      {
-        return NativeStage02InventoryDecision.Failure(
-          NativeStage02InventoryCodes.CustomScopeEmpty,
-          "自定义范围必须明确选择至少一个当前文档中的模型元素。" );
-      }
-
-      var byUniqueId = eligible.ToDictionary(
-        value => value.UniqueId,
-        StringComparer.Ordinal);
-      string unavailable = customIds.FirstOrDefault(value =>
-        !byUniqueId.ContainsKey(value));
-      if (!string.IsNullOrEmpty(unavailable))
-      {
-        return NativeStage02InventoryDecision.Failure(
-          NativeStage02InventoryCodes.CustomElementUnavailable,
-          "自定义元素不在当前文档可用清单中：" + unavailable);
-      }
-
-      return NativeStage02InventoryDecision.Success(
-        customIds.Select(value => byUniqueId[value]));
+      return NativeStage02InventoryDecision.Success(automaticEligible);
     }
 
-    private static bool IsEligible(
+    private static bool IsAutomaticInventoryEligible(
       NativeStage02ElementSnapshot element,
       ISet<string> allowedCategories)
     {
-      return element != null
-        && !string.IsNullOrWhiteSpace(element.UniqueId)
+      return NativeStage02SelectionInventoryPolicy.IsEligible(element)
         && !string.IsNullOrWhiteSpace(element.Category)
-        && allowedCategories.Contains(element.Category)
-        && !element.IsElementType
-        && !element.IsViewSpecific
-        && !element.IsImported
-        && !element.IsLinked
-        && element.IsModelElement;
+        && allowedCategories.Contains(element.Category);
     }
   }
 }
