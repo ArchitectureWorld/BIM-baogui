@@ -1,0 +1,225 @@
+{
+  "overlaySchemaVersion": "1.0.0",
+  "targetPackageId": "HBR-WUHAN-PLANNING",
+  "targetPackageVersion": "1.0.0",
+  "evidence": {
+    "officialIfcEntity": "IfcBuildingElementProxy",
+    "officialPropertySet": "Pset_绿地信息属性集",
+    "revit2020CarrierCategory": "OST_BuildingPad",
+    "revit2020CarrierElementKind": "BuildingPad"
+  },
+  "carrierRoles": [
+    {
+      "roleId": "SITE_GREEN_OBJECT",
+      "displayName": "绿地",
+      "modelFileTypes": [
+        "总平模型"
+      ],
+      "ifcEntity": "IfcBuildingElementProxy",
+      "revitCategories": [],
+      "allowedElementKinds": [],
+      "nameAliases": [
+        "绿地"
+      ],
+      "familyAliases": [],
+      "typeAliases": [
+        "集中绿地",
+        "宅旁绿地",
+        "水域",
+        "屋顶绿地",
+        "口袋公园",
+        "道路绿地",
+        "附属绿地",
+        "其它绿地"
+      ],
+      "cardinality": {
+        "min": 0,
+        "max": null
+      },
+      "selectionPolicy": "MANUAL_SEMANTIC_ASSIGNMENT",
+      "ifcOwnerStrategy": "BY_EXPORT_GUID",
+      "conditionId": "site.green",
+      "manualCarriers": [
+        {
+          "category": "OST_BuildingPad",
+          "elementKinds": [
+            "BuildingPad"
+          ]
+        }
+      ]
+    }
+  ],
+  "properties": [
+    {
+      "propertyId": "4d9d7775-e83c-5357-8f3e-1e6a6692e793",
+      "contractKind": "HIFC_EXTENSION",
+      "ifc": {
+        "entity": "IfcBuildingElementProxy",
+        "propertySet": "Pset_绿地信息属性集",
+        "property": "类型",
+        "declaredType": "IfcLabel",
+        "canonicalUnit": null
+      },
+      "revit": {
+        "parameterGuid": "4d9d7775-e83c-5357-8f3e-1e6a6692e793",
+        "parameterName": "HBR｜绿地对象属性集｜分类名称",
+        "legacyNames": [],
+        "visible": true,
+        "userModifiable": false,
+        "bindingScope": "INSTANCE",
+        "storageType": "String",
+        "parameterType": "Text"
+      },
+      "carrierRoleIds": [
+        "SITE_GREEN_OBJECT"
+      ],
+      "requirement": {
+        "level": "CONDITIONAL",
+        "conditionId": "site.green"
+      },
+      "stageOwnership": [
+        "STAGE02",
+        "STAGE03"
+      ],
+      "suggestion": {
+        "kind": "SYSTEM_FIXED",
+        "aliases": [
+          "绿地"
+        ]
+      },
+      "ifcWrite": {
+        "writeStrategy": "CREATE_OR_UPDATE_PSET",
+        "ownerStrategy": "BY_EXPORT_GUID"
+      }
+    },
+    {
+      "propertyId": "6cc053e3-891d-51b1-b861-af498733f73a",
+      "contractKind": "HIFC_EXTENSION",
+      "ifc": {
+        "entity": "IfcBuildingElementProxy",
+        "propertySet": "Pset_绿地信息属性集",
+        "property": "投影面积",
+        "declaredType": "IfcReal",
+        "canonicalUnit": "m2"
+      },
+      "revit": {
+        "parameterGuid": "6cc053e3-891d-51b1-b861-af498733f73a",
+        "parameterName": "HBR｜绿地对象属性集｜投影面积",
+        "legacyNames": [],
+        "visible": true,
+        "userModifiable": true,
+        "bindingScope": "INSTANCE",
+        "storageType": "Double",
+        "parameterType": "Area"
+      },
+      "carrierRoleIds": [
+        "SITE_GREEN_OBJECT"
+      ],
+      "requirement": {
+        "level": "CONDITIONAL",
+        "conditionId": "site.green"
+      },
+      "stageOwnership": [
+        "STAGE02",
+        "STAGE03"
+      ],
+      "suggestion": {
+        "kind": "APPROVED_REVIT_AREA",
+        "aliases": []
+      },
+      "ifcWrite": {
+        "writeStrategy": "CREATE_OR_UPDATE_PSET",
+        "ownerStrategy": "BY_EXPORT_GUID"
+      }
+    },
+    {
+      "propertyId": "3fd74b35-3164-5248-9fe9-c675992a4292",
+      "contractKind": "HIFC_EXTENSION",
+      "ifc": {
+        "entity": "IfcBuildingElementProxy",
+        "propertySet": "Pset_绿地信息属性集",
+        "property": "绿地类型",
+        "declaredType": "IfcLabel",
+        "canonicalUnit": null
+      },
+      "revit": {
+        "parameterGuid": "3fd74b35-3164-5248-9fe9-c675992a4292",
+        "parameterName": "HBR｜绿地对象属性集｜绿地类型",
+        "legacyNames": [],
+        "visible": true,
+        "userModifiable": true,
+        "bindingScope": "INSTANCE",
+        "storageType": "String",
+        "parameterType": "Text"
+      },
+      "carrierRoleIds": [
+        "SITE_GREEN_OBJECT"
+      ],
+      "requirement": {
+        "level": "CONDITIONAL",
+        "conditionId": "site.green"
+      },
+      "stageOwnership": [
+        "STAGE02",
+        "STAGE03"
+      ],
+      "suggestion": {
+        "kind": "EXACT_ENUM_FROM_TYPE",
+        "aliases": [
+          "集中绿地",
+          "宅旁绿地",
+          "水域",
+          "屋顶绿地",
+          "口袋公园",
+          "道路绿地",
+          "附属绿地",
+          "其它绿地"
+        ]
+      },
+      "ifcWrite": {
+        "writeStrategy": "CREATE_OR_UPDATE_PSET",
+        "ownerStrategy": "BY_EXPORT_GUID"
+      }
+    },
+    {
+      "propertyId": "a99a0961-05fe-56fd-b8a0-865410bfe72f",
+      "contractKind": "HIFC_EXTENSION",
+      "ifc": {
+        "entity": "IfcBuildingElementProxy",
+        "propertySet": "Pset_绿地信息属性集",
+        "property": "折算系数",
+        "declaredType": "IfcReal",
+        "canonicalUnit": null
+      },
+      "revit": {
+        "parameterGuid": "a99a0961-05fe-56fd-b8a0-865410bfe72f",
+        "parameterName": "HBR｜绿地对象属性集｜折算系数",
+        "legacyNames": [],
+        "visible": true,
+        "userModifiable": true,
+        "bindingScope": "INSTANCE",
+        "storageType": "Double",
+        "parameterType": "Number"
+      },
+      "carrierRoleIds": [
+        "SITE_GREEN_OBJECT"
+      ],
+      "requirement": {
+        "level": "CONDITIONAL",
+        "conditionId": "site.green"
+      },
+      "stageOwnership": [
+        "STAGE02",
+        "STAGE03"
+      ],
+      "suggestion": {
+        "kind": "PENDING_INPUT",
+        "aliases": []
+      },
+      "ifcWrite": {
+        "writeStrategy": "CREATE_OR_UPDATE_PSET",
+        "ownerStrategy": "BY_EXPORT_GUID"
+      }
+    }
+  ]
+}
