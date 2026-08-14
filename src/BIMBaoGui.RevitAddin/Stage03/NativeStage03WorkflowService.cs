@@ -307,6 +307,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
     {
       string status = source.Status;
       string message = source.Message;
+      string ownerResolutionStatus = source.OwnerResolutionStatus;
       if (source.HifcField != null)
       {
         if (exact == null)
@@ -317,11 +318,13 @@ namespace BIMBaoGui.RevitAddin.Stage03
         else if (exact.Success)
         {
           status = "INTERNAL_PASS";
+          ownerResolutionStatus = "OWNER_ENTITY_MATCH";
           message = Append(message, exact.Message);
         }
         else
         {
           status = "INTERNAL_FAIL";
+          ownerResolutionStatus = exact.ErrorCode;
           message = Append(
             message,
             exact.ErrorCode + "：" + exact.Message);
@@ -345,7 +348,9 @@ namespace BIMBaoGui.RevitAddin.Stage03
         ElementId = source.ElementId,
         OwnerUniqueId = source.OwnerUniqueId,
         OwnerStrategy = source.OwnerStrategy,
+        OwnerExportGuid = source.OwnerExportGuid,
         OwnerGlobalId = source.OwnerGlobalId,
+        OwnerResolutionStatus = ownerResolutionStatus,
         CanonicalValue = source.CanonicalValue,
         Status = status,
         Message = message,

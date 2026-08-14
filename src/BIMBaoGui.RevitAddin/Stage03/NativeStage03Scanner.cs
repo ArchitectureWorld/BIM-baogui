@@ -224,10 +224,14 @@ namespace BIMBaoGui.RevitAddin.Stage03
       string ownerStrategy = property.OwnerStrategy.Length > 0
         ? property.OwnerStrategy
         : role?.IfcOwnerStrategy ?? string.Empty;
+      string hifcOwnerStrategy = string.Empty;
+      string ownerExportGuid = string.Empty;
       string ownerGlobalId = string.Empty;
+      string ownerResolutionStatus = string.Empty;
       string ownerError = string.Empty;
       if (role == null || owner == null)
       {
+        ownerResolutionStatus = "OWNER_CONTEXT_UNRESOLVED";
         ownerError = "无法唯一确定字段载体角色或 Revit owner。";
       }
       else if (string.Equals(
@@ -236,7 +240,40 @@ namespace BIMBaoGui.RevitAddin.Stage03
         StringComparison.Ordinal))
       {
         if (!IsApprovedSingleEntityType(property.IfcEntity))
+        {
+          ownerResolutionStatus = "OWNER_TYPE_UNAPPROVED";
           ownerError = "该 IFC 实体尚未批准 SINGLE_ENTITY_BY_TYPE。";
+        }
+        else
+        {
+          hifcOwnerStrategy = HifcOwnerStrategies.SingleEntityByType;
+          ownerResolutionStatus = "OWNER_TYPE_READY";
+        }
+      }
+      else if (string.Equals(
+        ownerStrategy,
+        "BY_EXPORT_GUID",
+        StringComparison.Ordinal))
+      {
+        try
+        {
+          Guid exportId = ExportUtils.GetExportId(document, owner.Id);
+          NativeStage03ExportGuidOwnerDecision decision =
+            NativeStage03ExportGuidOwnerPolicy.Resolve(
+              ownerStrategy,
+              property.IfcEntity,
+              exportId);
+          ownerExportGuid = decision.ExportGuid;
+          ownerGlobalId = decision.OwnerGlobalId;
+          ownerResolutionStatus = decision.Status;
+          hifcOwnerStrategy = decision.HifcOwnerStrategy;
+          if (!decision.Success) ownerError = decision.Message;
+        }
+        catch (Exception exception)
+        {
+          ownerResolutionStatus = "OWNER_EXPORT_GUID_READ_FAILED";
+          ownerError = "读取 IFC owner Export GUID 失败：" + exception.Message;
+        }
       }
       else if (string.Equals(
         ownerStrategy,
@@ -247,17 +284,27 @@ namespace BIMBaoGui.RevitAddin.Stage03
         {
           Guid exportId = ExportUtils.GetExportId(document, owner.Id);
           if (exportId == Guid.Empty)
+          {
+            ownerResolutionStatus = "OWNER_EXPORT_GUID_EMPTY";
             ownerError = "Revit ExportUtils.GetExportId 返回空 GUID。";
+          }
           else
+          {
+            hifcOwnerStrategy = HifcOwnerStrategies.GlobalId;
+            ownerExportGuid = exportId.ToString("D");
             ownerGlobalId = IfcGlobalId.Encode(exportId);
+            ownerResolutionStatus = "OWNER_GUID_READY";
+          }
         }
         catch (Exception exception)
         {
+          ownerResolutionStatus = "OWNER_EXPORT_GUID_READ_FAILED";
           ownerError = "读取 IFC owner GlobalId 失败：" + exception.Message;
         }
       }
       else
       {
+        ownerResolutionStatus = "OWNER_STRATEGY_UNSUPPORTED";
         ownerError = "IFC owner strategy 尚未实现：" + ownerStrategy;
       }
 
@@ -320,7 +367,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
             + (owner?.UniqueId ?? string.Empty),
           OwnerEntityType = property.IfcEntity,
           OwnerGlobalId = ownerGlobalId,
-          OwnerStrategy = ownerStrategy,
+          OwnerStrategy = hifcOwnerStrategy,
           PropertySetName = property.IfcPropertySet,
           PropertyName = property.IfcProperty,
           DeclaredIfcType = property.DeclaredIfcType,
@@ -342,7 +389,9 @@ namespace BIMBaoGui.RevitAddin.Stage03
         ElementId = elementPlan.Element.ElementId,
         OwnerUniqueId = owner?.UniqueId ?? string.Empty,
         OwnerStrategy = ownerStrategy,
+        OwnerExportGuid = ownerExportGuid,
         OwnerGlobalId = ownerGlobalId,
+        OwnerResolutionStatus = ownerResolutionStatus,
         CanonicalValue = current,
         Status = status,
         Message = string.Join("｜", messages.Distinct(StringComparer.Ordinal)),
@@ -456,7 +505,13 @@ namespace BIMBaoGui.RevitAddin.Stage03
           .Append(field.ElementId.ToString(CultureInfo.InvariantCulture));
         Property(builder, "ownerUniqueId", field.OwnerUniqueId, true);
         Property(builder, "ownerStrategy", field.OwnerStrategy, true);
+        Property(builder, "ownerExportGuid", field.OwnerExportGuid, true);
         Property(builder, "ownerGlobalId", field.OwnerGlobalId, true);
+        Property(
+          builder,
+          "ownerResolutionStatus",
+          field.OwnerResolutionStatus,
+          true);
         Property(builder, "value", field.CanonicalValue, true);
         Property(builder, "status", field.Status, true);
         builder.Append(",\"strictReady\":")

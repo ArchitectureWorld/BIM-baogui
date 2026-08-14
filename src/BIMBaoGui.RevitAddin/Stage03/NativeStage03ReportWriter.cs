@@ -185,7 +185,13 @@ namespace BIMBaoGui.RevitAddin.Stage03
         ["element_id"] = field.ElementId,
         ["owner_unique_id"] = field.OwnerUniqueId,
         ["owner_strategy"] = field.OwnerStrategy,
+        ["owner_export_guid"] = field.OwnerExportGuid,
         ["owner_global_id"] = field.OwnerGlobalId,
+        ["owner_resolution_status"] = exact?.Success == true
+          ? "OWNER_ENTITY_MATCH"
+          : string.IsNullOrWhiteSpace(exact?.ErrorCode)
+            ? field.OwnerResolutionStatus
+            : exact.ErrorCode,
         ["owner_step_id"] = exact?.OwnerId,
         ["property_set_step_id"] = exact?.PropertySetId,
         ["property_step_id"] = exact?.PropertyId,

@@ -38,6 +38,9 @@ def test_stage03_live_scan_reuses_stage01_stage02_and_fixed_rule_database():
     assert "NativeStage02RuleCatalog.Current" in source
     assert "ExportUtils.GetExportId" in source
     assert "IfcGlobalId.Encode" in source
+    assert "NativeStage03ExportGuidOwnerPolicy.Resolve" in source
+    assert "ownerExportGuid" in source
+    assert "ownerResolutionStatus" in source
     assert "StageOwnership.Contains" in source
     assert "NativeStage03Canonicalizer.ComputeHash" in source
     assert "Stage01BusinessInvalid" in models

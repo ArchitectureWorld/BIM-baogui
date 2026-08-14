@@ -415,7 +415,12 @@ namespace BIMBaoGui.RevitAddin.Stage03
       AddDetail("路径", field.Entity + " / " + field.PropertySet + " / " + field.IfcProperty);
       AddDetail("字段 ID", field.PropertyId);
       AddDetail("载体", field.RoleId + "｜ElementId=" + field.ElementId + "｜" + field.OwnerUniqueId);
-      AddDetail("Owner", field.OwnerStrategy + "｜GlobalId=" + Empty(field.OwnerGlobalId));
+      AddDetail(
+        "Owner",
+        field.OwnerStrategy
+          + "｜ExportGuid=" + Empty(field.OwnerExportGuid)
+          + "｜GlobalId=" + Empty(field.OwnerGlobalId)
+          + "｜" + Empty(field.OwnerResolutionStatus));
       AddDetail("类型与单位", field.DeclaredIfcType + "｜" + Empty(field.CanonicalUnit));
       AddDetail("值", Empty(field.CanonicalValue));
       AddDetail("要求/运行状态", field.Requirement + "｜" + field.RuntimeStatus);

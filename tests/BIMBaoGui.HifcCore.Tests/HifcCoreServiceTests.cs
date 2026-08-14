@@ -105,6 +105,64 @@ namespace BIMBaoGui.HifcCore.Tests
       }
     }
 
+    [Fact]
+    public void ExportGuid_owner_missing_returns_ifc_owner_not_found()
+    {
+      using (var sandbox = new TemporaryDirectory())
+      {
+        string raw = sandbox.CopyFixture();
+        HifcFieldRequest field = CreateExportGuidField(
+          IfcGlobalId.Encode(Guid.Parse(
+            "00112233-4455-6677-8899-aabbccddeeff")));
+
+        HifcTranslationResult result = HifcCoreService.Translate(
+          new HifcTranslationRequest
+          {
+            RawIfcPath = raw,
+            FinalIfcPath = Path.Combine(sandbox.Path, "missing.ifc"),
+            QuarantineDirectory = Path.Combine(sandbox.Path, "quarantine"),
+            Fields = new[] { field }
+          });
+
+        Assert.False(result.Success);
+        HifcFieldEvidence evidence = Assert.Single(result.Fields);
+        Assert.Equal("IFC_OWNER_NOT_FOUND", evidence.ErrorCode);
+      }
+    }
+
+    [Fact]
+    public void ExportGuid_duplicate_entity_and_global_id_returns_ifc_owner_conflict()
+    {
+      using (var sandbox = new TemporaryDirectory())
+      {
+        string raw = sandbox.CopyFixture();
+        string text = File.ReadAllText(raw);
+        const string duplicate =
+          "#617=IFCSLAB('3lm1A2HnjGde0XRtdTot$e',#5,'SLAB-002',$,$,#70,#79,'S-002',.FLOOR.);";
+        int dataEnd = text.LastIndexOf("ENDSEC;", StringComparison.Ordinal);
+        Assert.True(dataEnd > 0);
+        File.WriteAllText(
+          raw,
+          text.Insert(dataEnd, duplicate + Environment.NewLine),
+          new System.Text.UTF8Encoding(false));
+        HifcFieldRequest field = CreateExportGuidField(
+          "3lm1A2HnjGde0XRtdTot$e");
+
+        HifcTranslationResult result = HifcCoreService.Translate(
+          new HifcTranslationRequest
+          {
+            RawIfcPath = raw,
+            FinalIfcPath = Path.Combine(sandbox.Path, "duplicate-owner.ifc"),
+            QuarantineDirectory = Path.Combine(sandbox.Path, "quarantine"),
+            Fields = new[] { field }
+          });
+
+        Assert.False(result.Success);
+        HifcFieldEvidence evidence = Assert.Single(result.Fields);
+        Assert.Equal("IFC_OWNER_CONFLICT", evidence.ErrorCode);
+      }
+    }
+
     private static HifcFieldRequest CreateField()
     {
       return new HifcFieldRequest
@@ -117,6 +175,23 @@ namespace BIMBaoGui.HifcCore.Tests
         PropertyName = "插件内部测试字段",
         DeclaredIfcType = "IfcLabel",
         CanonicalValue = "Stage03",
+        CanonicalUnit = string.Empty
+      };
+    }
+
+    private static HifcFieldRequest CreateExportGuidField(string globalId)
+    {
+      return new HifcFieldRequest
+      {
+        PropertyIdentity = "SITE.GREEN.OBJECT|SITE_GREEN_OBJECT|slab-001",
+        SemanticKey = "BIMBaoGui|Stage03|SiteGreenObject|Name",
+        OwnerEntityType = "IfcSlab",
+        OwnerGlobalId = globalId,
+        OwnerStrategy = HifcOwnerStrategies.GlobalId,
+        PropertySetName = "Pset_BIMBaoGui_SiteGreenObject",
+        PropertyName = "绿地对象名称",
+        DeclaredIfcType = "IfcLabel",
+        CanonicalValue = "测试绿地对象",
         CanonicalUnit = string.Empty
       };
     }

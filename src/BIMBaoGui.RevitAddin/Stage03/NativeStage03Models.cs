@@ -129,7 +129,9 @@ namespace BIMBaoGui.RevitAddin.Stage03
     internal int ElementId { get; set; }
     internal string OwnerUniqueId { get; set; } = string.Empty;
     internal string OwnerStrategy { get; set; } = string.Empty;
+    internal string OwnerExportGuid { get; set; } = string.Empty;
     internal string OwnerGlobalId { get; set; } = string.Empty;
+    internal string OwnerResolutionStatus { get; set; } = string.Empty;
     internal string CanonicalValue { get; set; } = string.Empty;
     internal string Status { get; set; } = string.Empty;
     internal string Message { get; set; } = string.Empty;
