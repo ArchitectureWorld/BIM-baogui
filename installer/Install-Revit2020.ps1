@@ -31,6 +31,39 @@ if (-not $Force -and $runningRevit.Count -gt 0) {
   throw "检测到 Revit 正在运行。请先关闭 Revit，再安装或卸载；确需强制执行时显式使用 -Force。"
 }
 
+function Remove-ControlledPathWithRetry {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Path,
+    [switch]$Recurse,
+    [int]$TimeoutMilliseconds = 10000
+  )
+
+  $deadline = [DateTime]::UtcNow.AddMilliseconds($TimeoutMilliseconds)
+  while (Test-Path -LiteralPath $Path) {
+    try {
+      if ($Recurse) {
+        Remove-Item -LiteralPath $Path -Recurse -Force -ErrorAction Stop
+      }
+      else {
+        Remove-Item -LiteralPath $Path -Force -ErrorAction Stop
+      }
+    }
+    catch {
+      if ([DateTime]::UtcNow -ge $deadline) {
+        throw
+      }
+    }
+    if (-not (Test-Path -LiteralPath $Path)) {
+      return
+    }
+    if ([DateTime]::UtcNow -ge $deadline) {
+      throw "等待受控路径解除占用超时：$Path"
+    }
+    Start-Sleep -Milliseconds 50
+  }
+}
+
 if ($Uninstall) {
   if (-not $PSCmdlet.ShouldProcess(
     $addinRoot,
@@ -44,7 +77,7 @@ if ($Uninstall) {
     Remove-Item -LiteralPath $productRoot -Recurse -Force
   }
   if (Test-Path -LiteralPath $mcpServerRoot) {
-    Remove-Item -LiteralPath $mcpServerRoot -Recurse -Force
+    Remove-ControlledPathWithRetry -Path $mcpServerRoot -Recurse
   }
   if (Test-Path -LiteralPath $mcpBaseRoot) {
     Get-ChildItem -LiteralPath $mcpBaseRoot -Directory -ErrorAction SilentlyContinue |

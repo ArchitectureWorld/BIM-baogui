@@ -1,4 +1,7 @@
+import ctypes
+import os
 import subprocess
+import threading
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,6 +57,80 @@ def test_installer_removes_superseded_mcp_version_directories():
     assert 'Get-ChildItem -LiteralPath $mcpBaseRoot -Directory' in source
     assert "'^\\d+\\.\\d+\\.\\d+$'" in source
     assert 'Remove-Item -LiteralPath $_.FullName -Recurse -Force' in source
+
+
+def test_uninstall_waits_for_a_transient_mcp_executable_lock(tmp_path: Path):
+    app_data = tmp_path / "AppData"
+    local_app_data = tmp_path / "LocalAppData"
+    mcp_root = (
+        local_app_data / "BIMBaoGui" / "McpServer" / "0.4.2"
+    )
+    mcp_root.mkdir(parents=True)
+    executable = mcp_root / "BIMBaoGui.McpServer.exe"
+    executable.write_bytes(b"locked smoke payload")
+
+    create_file = ctypes.windll.kernel32.CreateFileW
+    create_file.argtypes = (
+        ctypes.c_wchar_p,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_void_p,
+        ctypes.c_uint32,
+        ctypes.c_uint32,
+        ctypes.c_void_p,
+    )
+    create_file.restype = ctypes.c_void_p
+    close_handle = ctypes.windll.kernel32.CloseHandle
+    close_handle.argtypes = (ctypes.c_void_p,)
+    close_handle.restype = ctypes.c_int
+    handle = create_file(
+        str(executable),
+        0x80000000,
+        0x00000001 | 0x00000002,
+        None,
+        3,
+        0,
+        None,
+    )
+    assert handle != ctypes.c_void_p(-1).value
+
+    released = threading.Event()
+
+    def release_after_first_delete_attempt():
+        # The known timing is intentional: hold the file across the immediate
+        # delete, then release it so bounded condition polling can succeed.
+        released.wait(5.0)
+        close_handle(handle)
+
+    thread = threading.Thread(target=release_after_first_delete_attempt)
+    thread.start()
+    environment = os.environ.copy()
+    environment["APPDATA"] = str(app_data)
+    environment["LOCALAPPDATA"] = str(local_app_data)
+    try:
+        result = subprocess.run(
+            [
+                "pwsh",
+                "-NoProfile",
+                "-File",
+                str(INSTALLER),
+                "-Uninstall",
+                "-Force",
+            ],
+            cwd=ROOT,
+            env=environment,
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=15,
+        )
+    finally:
+        released.set()
+        thread.join(timeout=2)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert not mcp_root.exists()
 
 
 def test_installer_generates_absolute_mcp_client_configuration():
