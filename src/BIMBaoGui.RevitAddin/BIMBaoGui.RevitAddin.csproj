@@ -23,7 +23,8 @@
   <PropertyGroup>
     <HbrPythonExe Condition="'$(HbrPythonExe)' == ''">python</HbrPythonExe>
     <HbrRuleSource Condition="'$(HbrRuleSource)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'specs', 'hbr-rules', 'v1', 'source', 'hbr_rule_source.v1.json'))</HbrRuleSource>
-    <HbrRulePackCompiler Condition="'$(HbrRulePackCompiler)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'tools', 'build_hbr_rulepack.py'))</HbrRulePackCompiler>
+    <HbrRuleOverlay Condition="'$(HbrRuleOverlay)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'specs', 'hbr-rules', 'v1', 'source', 'hbr_rule_source.v0.4.2-overlay.json'))</HbrRuleOverlay>
+    <HbrRulePackCompiler Condition="'$(HbrRulePackCompiler)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'tools', 'build_hbr_rulepack_v042.py'))</HbrRulePackCompiler>
     <HbrCompatibilityBaseline Condition="'$(HbrCompatibilityBaseline)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'specs', 'hbr-rules', 'v1', 'compatibility', 'hbr_rule_compatibility_baseline.v1.json'))</HbrCompatibilityBaseline>
   </PropertyGroup>
 
@@ -45,6 +46,7 @@
     </PropertyGroup>
     <ItemGroup>
       <UpToDateCheckInput Include="$(HbrRuleSource)" />
+      <UpToDateCheckInput Include="$(HbrRuleOverlay)" />
       <UpToDateCheckInput Include="$(HbrRulePackCompiler)" />
       <UpToDateCheckInput Include="$(HbrCompatibilityBaseline)" />
       <UpToDateCheckBuilt Include="$(HbrRulePack)" Original="$(HbrRuleSource)" />
@@ -58,14 +60,15 @@
   <Target Name="CompileHbrRulePack"
           DependsOnTargets="InitializeHbrRulePackPath"
           Condition="'$(DesignTimeBuild)' != 'true'"
-          Inputs="$(HbrRuleSource);$(HbrRulePackCompiler);$(HbrCompatibilityBaseline)"
+          Inputs="$(HbrRuleSource);$(HbrRuleOverlay);$(HbrRulePackCompiler);$(HbrCompatibilityBaseline)"
           Outputs="$(HbrRulePack)">
     <Error Condition="!Exists('$(HbrRuleSource)')" Text="HBR rule source not found: $(HbrRuleSource)" />
+    <Error Condition="!Exists('$(HbrRuleOverlay)')" Text="HBR v0.4.2 rule overlay not found: $(HbrRuleOverlay)" />
     <Error Condition="!Exists('$(HbrRulePackCompiler)')" Text="HBR rule-pack compiler not found: $(HbrRulePackCompiler)" />
     <Error Condition="!Exists('$(HbrCompatibilityBaseline)')" Text="HBR compatibility baseline not found: $(HbrCompatibilityBaseline)" />
     <Exec WorkingDirectory="$(MSBuildProjectDirectory)"
           EnvironmentVariables="PYTHONUTF8=1"
-          Command="&quot;$(HbrPythonExe)&quot; &quot;$(HbrRulePackCompiler)&quot; --source &quot;$(HbrRuleSource)&quot; --baseline &quot;$(HbrCompatibilityBaseline)&quot; --output &quot;$(HbrRulePack)&quot;" />
+          Command="&quot;$(HbrPythonExe)&quot; &quot;$(HbrRulePackCompiler)&quot; --source &quot;$(HbrRuleSource)&quot; --overlay &quot;$(HbrRuleOverlay)&quot; --baseline &quot;$(HbrCompatibilityBaseline)&quot; --output &quot;$(HbrRulePack)&quot;" />
     <Error Condition="!Exists('$(HbrRulePack)')" Text="HBR rule-pack compiler exited without creating: $(HbrRulePack)" />
   </Target>
 
