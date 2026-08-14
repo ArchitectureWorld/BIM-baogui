@@ -59,12 +59,32 @@ namespace BIMBaoGui.RevitAddin.Stage02
       IEnumerable<NativeCarrierRoleDefinition> roles,
       string modelProfile)
     {
-      if (candidate == null)
-        return NotApplicable("候选元素为空。" );
-
-      NativeCarrierRoleDefinition[] compatible = (roles
+      if (candidate == null) return NotApplicable("候选元素为空。" );
+      NativeCarrierRoleDefinition[] allRoles = (roles
           ?? Array.Empty<NativeCarrierRoleDefinition>())
         .Where(role => role != null)
+        .GroupBy(role => role.RoleId, StringComparer.Ordinal)
+        .Select(group => group.First())
+        .OrderBy(role => role.RoleId, StringComparer.Ordinal)
+        .ToArray();
+
+      if (!string.IsNullOrWhiteSpace(candidate.AssignedRoleId))
+      {
+        string assignedRoleId = candidate.AssignedRoleId.Trim();
+        NativeCarrierRoleDefinition manualRole = allRoles.FirstOrDefault(role =>
+          string.Equals(role.RoleId, assignedRoleId, StringComparison.Ordinal)
+          && role.ModelFileTypes.Contains(
+            modelProfile ?? string.Empty,
+            StringComparer.Ordinal)
+          && string.Equals(
+            role.SelectionPolicy,
+            "MANUAL_SEMANTIC_ASSIGNMENT",
+            StringComparison.Ordinal));
+        if (manualRole != null)
+          return Matched(manualRole.RoleId, "VERIFIED_MANUAL_ASSIGNMENT");
+      }
+
+      NativeCarrierRoleDefinition[] compatible = allRoles
         .Where(role => role.ModelFileTypes.Contains(
           modelProfile ?? string.Empty,
           StringComparer.Ordinal))
@@ -74,11 +94,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
         .Where(role => role.AllowedElementKinds.Contains(
           candidate.ElementKind ?? string.Empty,
           StringComparer.Ordinal))
-        .GroupBy(role => role.RoleId, StringComparer.Ordinal)
-        .Select(group => group.First())
-        .OrderBy(role => role.RoleId, StringComparer.Ordinal)
         .ToArray();
-
       if (compatible.Length == 0)
         return NotApplicable("模型类型、Revit 类别或 ElementKind 不适用。" );
 
@@ -116,16 +132,12 @@ namespace BIMBaoGui.RevitAddin.Stage02
       }
 
       bool requiresAlias = compatible.Length > 1
-        || string.Equals(
-          candidate.Category,
-          "OST_GenericModel",
-          StringComparison.Ordinal)
+        || string.Equals(candidate.Category, "OST_GenericModel", StringComparison.Ordinal)
         || compatible.Any(role => string.Equals(
           role.SelectionPolicy,
           "USER_SELECTED_EXPORTABLE_GENERIC_MODEL",
           StringComparison.Ordinal));
-      if (!requiresAlias)
-        return Matched(compatible[0].RoleId, "CATEGORY_KIND");
+      if (!requiresAlias) return Matched(compatible[0].RoleId, "CATEGORY_KIND");
 
       NativeCarrierRoleDefinition[] aliasMatches = compatible
         .Where(role => MatchesExactAlias(role, candidate))
@@ -161,21 +173,11 @@ namespace BIMBaoGui.RevitAddin.Stage02
       NativeStage02ElementSnapshot candidate,
       IReadOnlyCollection<NativeCarrierRoleDefinition> roles)
     {
-      return string.Equals(
-          candidate.Category,
-          "OST_ProjectInformation",
-          StringComparison.Ordinal)
-        && string.Equals(
-          candidate.ElementKind,
-          "ProjectInformation",
-          StringComparison.Ordinal)
+      return string.Equals(candidate.Category, "OST_ProjectInformation", StringComparison.Ordinal)
+        && string.Equals(candidate.ElementKind, "ProjectInformation", StringComparison.Ordinal)
         && roles.Count > 0
-        && roles.All(role =>
-          ProjectInformationRoleIds.Contains(role.RoleId)
-          && string.Equals(
-            role.IfcOwnerStrategy,
-            "SINGLE_ENTITY_BY_TYPE",
-            StringComparison.Ordinal));
+        && roles.All(role => ProjectInformationRoleIds.Contains(role.RoleId)
+          && string.Equals(role.IfcOwnerStrategy, "SINGLE_ENTITY_BY_TYPE", StringComparison.Ordinal));
     }
 
     private static bool MatchesExactAlias(
@@ -189,19 +191,17 @@ namespace BIMBaoGui.RevitAddin.Stage02
         NormalizeAlias(candidate.TypeName)
       };
       return role.NameAliases
-          .Concat(role.FamilyAliases)
-          .Concat(role.TypeAliases)
-          .Select(NormalizeAlias)
-          .Where(value => value.Length > 0)
-          .Any(alias => values.Any(value => string.Equals(
-            alias,
-            value,
-            StringComparison.OrdinalIgnoreCase)));
+        .Concat(role.FamilyAliases)
+        .Concat(role.TypeAliases)
+        .Select(NormalizeAlias)
+        .Where(value => value.Length > 0)
+        .Any(alias => values.Any(value => string.Equals(
+          alias,
+          value,
+          StringComparison.OrdinalIgnoreCase)));
     }
 
-    private static NativeStage02RoleMatchResult Matched(
-      string roleId,
-      string source)
+    private static NativeStage02RoleMatchResult Matched(string roleId, string source)
     {
       return new NativeStage02RoleMatchResult(
         NativeStage02RoleMatchStatus.Matched,
