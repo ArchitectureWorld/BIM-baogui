@@ -26,6 +26,26 @@ def test_stage02_preview_reads_live_revit_and_exact_parameter_evidence():
     assert "DocumentFingerprint" in source
 
 
+def test_stage02_current_selection_is_decoupled_from_auto_role_whitelist():
+    inventory = read_stage02("NativeStage02Inventory.cs")
+    selection = read_stage02("NativeStage02SelectionInventoryPolicy.cs")
+    assignments = read_stage02("NativeStage02RoleAssignmentPolicy.cs")
+
+    assert "NativeStage02SelectionInventoryPolicy.Resolve" in inventory
+    assert "IsAutomaticInventoryEligible" in inventory
+    assert "allowedCategories.Contains(element.Category)" in inventory
+    assert "allowedCategories" not in selection
+    assert '"SELECTION_EMPTY"' in inventory
+    assert '"SELECTION_ELEMENT_MISSING"' in inventory
+    assert '"SELECTION_ELEMENT_NOT_ELIGIBLE"' in inventory
+    assert '"AUTO_ROLE_UNSUPPORTED"' in inventory
+    assert "ROLE_ASSIGNMENT_CONFLICT" in read_stage02(
+        "NativeStage02SemanticAssignmentModels.cs"
+    )
+    assert "NativeStage02IdentificationMode.Automatic" in assignments
+    assert "NativeStage02IdentificationMode.Manual" in assignments
+
+
 def test_stage02_requires_explicit_project_condition_declaration():
     source = read_stage02("NativeStage02RevitService.cs")
     assert "NativeProjectConditionDeclarationPolicy.Evaluate" in source
