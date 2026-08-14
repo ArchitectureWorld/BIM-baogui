@@ -13,7 +13,6 @@ namespace BIMBaoGui.RevitAddin.Tests
       NativeStage02RoleAssignmentDecision decision = Resolve(
         NativeStage02IdentificationMode.Automatic,
         new[] { "b", "a" });
-
       Assert.True(decision.Accepted);
       Assert.Empty(decision.Assignments);
       Assert.Equal(new[] { "a", "b" }, decision.SelectedUniqueIds);
@@ -26,7 +25,6 @@ namespace BIMBaoGui.RevitAddin.Tests
         NativeStage02IdentificationMode.Automatic,
         new[] { "a" },
         "SITE_GREEN_OBJECT");
-
       Assert.False(decision.Accepted);
       Assert.Equal(
         NativeStage02RoleAssignmentCodes.AutomaticModeInputConflict,
@@ -40,7 +38,6 @@ namespace BIMBaoGui.RevitAddin.Tests
         NativeStage02IdentificationMode.Manual,
         new[] { "b", "a" },
         " SITE_GREEN_OBJECT ");
-
       Assert.True(decision.Accepted);
       Assert.Equal(new[] { "a", "b" },
         decision.Assignments.Select(value => value.ElementUniqueId));
@@ -60,12 +57,28 @@ namespace BIMBaoGui.RevitAddin.Tests
         new[] { "a", "b" },
         "SITE_GREEN_OBJECT",
         Override("b", "SITE_FIRE_FIELD"));
-
       Assert.True(decision.Accepted);
       Assert.Equal("SITE_GREEN_OBJECT", decision.Assignments[0].RoleId);
       Assert.Equal("Bulk", decision.Assignments[0].Source);
       Assert.Equal("SITE_FIRE_FIELD", decision.Assignments[1].RoleId);
       Assert.Equal("Override", decision.Assignments[1].Source);
+    }
+
+    [Fact]
+    public void PerElementAutoOverrideRestoresAutomaticRecognition()
+    {
+      NativeStage02RoleAssignmentDecision decision = Resolve(
+        NativeStage02IdentificationMode.Manual,
+        new[] { "a", "b" },
+        "SITE_GREEN_OBJECT",
+        Override("b", NativeStage02RoleAssignmentPolicy.AutoOverrideRoleId));
+      Assert.True(decision.Accepted);
+      NativeStage02ResolvedAssignment restored = Assert.Single(
+        decision.Assignments,
+        value => value.ElementUniqueId == "b");
+      Assert.Equal(NativeStage02AssignmentMode.Auto, restored.AssignmentMode);
+      Assert.Empty(restored.RoleId);
+      Assert.Equal("OverrideAuto", restored.Source);
     }
 
     [Fact]
@@ -77,7 +90,6 @@ namespace BIMBaoGui.RevitAddin.Tests
         string.Empty,
         Override("a", "SITE_GREEN_OBJECT"),
         Override(" a ", "SITE_GREEN_OBJECT"));
-
       Assert.True(decision.Accepted);
       Assert.Single(decision.Assignments);
       Assert.Equal("SITE_GREEN_OBJECT", decision.Assignments[0].RoleId);
@@ -92,7 +104,6 @@ namespace BIMBaoGui.RevitAddin.Tests
         string.Empty,
         Override("a", "SITE_GREEN_OBJECT"),
         Override("a", "SITE_FIRE_FIELD"));
-
       Assert.False(decision.Accepted);
       Assert.Equal(
         NativeStage02RoleAssignmentCodes.RoleAssignmentConflict,
@@ -107,7 +118,6 @@ namespace BIMBaoGui.RevitAddin.Tests
         new[] { "a" },
         string.Empty,
         Override("b", "SITE_GREEN_OBJECT"));
-
       Assert.False(decision.Accepted);
       Assert.Equal(
         NativeStage02RoleAssignmentCodes.OverrideElementNotSelected,
@@ -127,13 +137,10 @@ namespace BIMBaoGui.RevitAddin.Tests
         new[] { "b", "c", "a" },
         "SITE_GREEN_OBJECT",
         Override("c", "SITE_FIRE_FIELD"));
-
       Assert.True(first.Accepted);
       Assert.True(second.Accepted);
       Assert.Equal(first.SelectedUniqueIds, second.SelectedUniqueIds);
-      Assert.Equal(
-        first.Assignments.Select(ValueKey),
-        second.Assignments.Select(ValueKey));
+      Assert.Equal(first.Assignments.Select(ValueKey), second.Assignments.Select(ValueKey));
     }
 
     [Fact]
@@ -146,11 +153,8 @@ namespace BIMBaoGui.RevitAddin.Tests
           new[] { "a" },
           "SITE_GREEN_OBJECT",
           Array.Empty<NativeStage02RoleOverride>());
-
       Assert.False(decision.Accepted);
-      Assert.Equal(
-        NativeStage02RoleAssignmentCodes.ScopeInputConflict,
-        decision.ErrorCode);
+      Assert.Equal(NativeStage02RoleAssignmentCodes.ScopeInputConflict, decision.ErrorCode);
     }
 
     [Fact]
@@ -165,10 +169,8 @@ namespace BIMBaoGui.RevitAddin.Tests
         BulkRoleId = " SITE_GREEN_OBJECT ",
         RoleOverrides = new[] { originalOverride }
       };
-
       NativeStage02PreviewRequest clone = request.Clone();
       originalOverride.RoleId = "CHANGED";
-
       Assert.Equal(NativeStage02ScopeMode.CustomSelection, clone.ScopeMode);
       Assert.Equal(NativeStage02IdentificationMode.Manual, clone.IdentificationMode);
       Assert.Equal(new[] { "a", "b" }, clone.CustomUniqueIds);
@@ -192,9 +194,7 @@ namespace BIMBaoGui.RevitAddin.Tests
         overrides ?? Array.Empty<NativeStage02RoleOverride>());
     }
 
-    private static NativeStage02RoleOverride Override(
-      string uniqueId,
-      string roleId)
+    private static NativeStage02RoleOverride Override(string uniqueId, string roleId)
     {
       return new NativeStage02RoleOverride
       {
@@ -205,10 +205,8 @@ namespace BIMBaoGui.RevitAddin.Tests
 
     private static string ValueKey(NativeStage02ResolvedAssignment value)
     {
-      return value.ElementUniqueId
-        + "|" + value.RoleId
-        + "|" + value.AssignmentMode
-        + "|" + value.Source;
+      return value.ElementUniqueId + "|" + value.RoleId + "|"
+        + value.AssignmentMode + "|" + value.Source;
     }
   }
 }
