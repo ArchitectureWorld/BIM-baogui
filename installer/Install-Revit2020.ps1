@@ -17,7 +17,7 @@ if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
 
 $productName = "BIMBaoGui.RevitAddin"
 $mcpProductName = "BIMBaoGui.McpServer"
-$mcpVersion = "0.4.1"
+$mcpVersion = "0.4.2"
 $addinRoot = Join-Path $env:APPDATA "Autodesk\Revit\Addins\2020"
 $productRoot = Join-Path $addinRoot "BIMBaoGui.RevitAddin"
 $manifestPath = Join-Path $addinRoot "BIMBaoGui.RevitAddin.addin"

@@ -19,7 +19,7 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def test_product_and_install_paths_are_uniformly_versioned_041():
+def test_product_and_install_paths_are_uniformly_versioned_042():
     installer = read(INSTALLER)
     addin_project = read(ADDIN_PROJECT)
     hifc_project = read(HIFC_PROJECT)
@@ -27,12 +27,12 @@ def test_product_and_install_paths_are_uniformly_versioned_041():
     probe = read(PROBE_CMD)
     example = read(CONFIG_EXAMPLE)
     for project in (addin_project, hifc_project, mcp_project):
-        assert "<Version>0.4.1</Version>" in project
-        assert "<AssemblyVersion>0.4.1.0</AssemblyVersion>" in project
-    assert '$mcpVersion = "0.4.1"' in installer
+        assert "<Version>0.4.2</Version>" in project
+        assert "<AssemblyVersion>0.4.2.0</AssemblyVersion>" in project
+    assert '$mcpVersion = "0.4.2"' in installer
     assert 'Join-Path $mcpBaseRoot $mcpVersion' in installer
-    assert "McpServer\\0.4.1" in probe
-    assert "McpServer\\\\0.4.1" in example
+    assert "McpServer\\0.4.2" in probe
+    assert "McpServer\\\\0.4.2" in example
 
 
 def test_installer_keeps_revit_user_addin_and_adds_stage03_dependencies():
@@ -40,7 +40,7 @@ def test_installer_keeps_revit_user_addin_and_adds_stage03_dependencies():
     assert '$env:APPDATA' in source
     assert '"Autodesk\\Revit\\Addins\\2020"' in source
     assert '$env:LOCALAPPDATA' in source
-    assert '$mcpVersion = "0.4.1"' in source
+    assert '$mcpVersion = "0.4.2"' in source
     assert 'Join-Path $mcpBaseRoot $mcpVersion' in source
     assert '"BIMBaoGui.McpServer.exe"' in source
     assert '"BIMBaoGui.McpContracts.dll"' in source
@@ -132,14 +132,14 @@ def test_mcp_workflow_builds_one_complete_stage03_installable_zip():
         'BIMBaoGui.McpServer.exe',
         'Install-Revit2020.ps1',
         'SHA256SUMS.txt',
-        'name: BIMBaoGui-Revit2020-Native-MCP-v0.4.1',
+        'name: BIMBaoGui-Revit2020-Native-MCP-v0.4.2',
     ):
         assert text in workflow
 
 
 def test_readme_states_stage03_and_ifcflux_manual_boundary():
     source = read(README)
-    assert "产品版本：0.4.1" in source
+    assert "产品版本：0.4.2" in source
     assert "项目条件" in source
     assert "无上述项目条件（已确认）" in source
     assert "Stage03" in source

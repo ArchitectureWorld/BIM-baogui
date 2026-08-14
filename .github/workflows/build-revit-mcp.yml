@@ -19,7 +19,9 @@ on:
       - "installer/**"
       - "docs/revit-addin/README.md"
       - "specs/hbr-rules/**"
+      - "specs/revit-addin/**"
       - "tools/build_hbr_rulepack.py"
+      - "tools/build_revit_functional_baseline.py"
       - ".github/workflows/build-revit-mcp.yml"
   workflow_dispatch:
 
@@ -71,7 +73,7 @@ jobs:
             tests/test_revit_addin_mcp_stage03_contract.py `
             tests/test_revit_addin_mcp_installer_contract.py `
             tests/test_revit_addin_v041_plan_contract.py `
-            tests/test_revit_addin_v041_contract.py `
+            tests/test_revit_addin_v042_contract.py `
             tests/test_revit_addin_v041_migration_contract.py `
             tests/test_revit_addin_v041_authority_contract.py `
             tests/test_revit_addin_v041_conditions_contract.py `
@@ -134,7 +136,7 @@ jobs:
           if ($metadata["HBR.CommitSha"] -ne "${{ github.sha }}") {
             throw "Revit DLL commit metadata mismatch."
           }
-          if ($assembly.GetName().Version.ToString() -ne "0.4.1.0") {
+          if ($assembly.GetName().Version.ToString() -ne "0.4.2.0") {
             throw "Revit DLL assembly version mismatch."
           }
           $informational = $assembly.GetCustomAttributesData() |
@@ -143,7 +145,7 @@ jobs:
           if ($null -eq $informational) {
             throw "Revit DLL informational version metadata is missing."
           }
-          $expectedInformation = "0.4.1+build.${{ github.run_number }}.sha.${{ github.sha }}"
+          $expectedInformation = "0.4.2+build.${{ github.run_number }}.sha.${{ github.sha }}"
           if ([string]$informational.ConstructorArguments[0].Value -ne $expectedInformation) {
             throw "Revit DLL informational version mismatch."
           }
@@ -167,7 +169,7 @@ jobs:
             }
             $assembly = [Reflection.AssemblyName]::GetAssemblyName(
               (Resolve-Path -LiteralPath $path).Path)
-            if ($assembly.Version.ToString() -ne "0.4.1.0") {
+            if ($assembly.Version.ToString() -ne "0.4.2.0") {
               throw "Product assembly version mismatch: $path => $($assembly.Version)"
             }
           }
@@ -288,6 +290,9 @@ jobs:
             $legacyRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.4.0"
             New-Item -ItemType Directory -Force -Path $legacyRoot | Out-Null
             Set-Content -LiteralPath (Join-Path $legacyRoot "legacy.marker") -Value "legacy"
+            $previousRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.4.1"
+            New-Item -ItemType Directory -Force -Path $previousRoot | Out-Null
+            Set-Content -LiteralPath (Join-Path $previousRoot "previous.marker") -Value "previous"
 
             & installer/Install-Revit2020.ps1 -SourceRoot "artifacts" -Force
 
@@ -298,12 +303,15 @@ jobs:
             $installedContracts = Join-Path $productRoot "BIMBaoGui.McpContracts.dll"
             $installedHifcCore = Join-Path $productRoot "BIMBaoGui.HifcCore.dll"
             $evidencePath = Join-Path $productRoot "install-evidence.json"
-            $mcpRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.4.1"
+            $mcpRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.4.2"
             $mcpExe = Join-Path $mcpRoot "BIMBaoGui.McpServer.exe"
             $mcpConfig = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\mcp-server-config.json"
 
             if (Test-Path -LiteralPath $legacyRoot) {
               throw "Installer left the superseded MCP version directory behind."
+            }
+            if (Test-Path -LiteralPath $previousRoot) {
+              throw "Installer left the previous MCP version directory behind."
             }
             foreach ($path in @(
               $manifestPath,
@@ -331,7 +339,7 @@ jobs:
             }
 
             $evidence = Get-Content -LiteralPath $evidencePath -Raw | ConvertFrom-Json
-            if ($evidence.productVersion -ne "0.4.1") {
+            if ($evidence.productVersion -ne "0.4.2") {
               throw "Install evidence product version mismatch."
             }
             if ($evidence.buildNumber -ne "${{ github.run_number }}") {
@@ -414,7 +422,7 @@ jobs:
       - name: Upload complete Revit MCP installer
         uses: actions/upload-artifact@v7
         with:
-          name: BIMBaoGui-Revit2020-Native-MCP-v0.4.1
+          name: BIMBaoGui-Revit2020-Native-MCP-v0.4.2
           path: artifacts
           if-no-files-found: error
           retention-days: 30

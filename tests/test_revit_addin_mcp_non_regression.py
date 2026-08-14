@@ -1,14 +1,10 @@
 import hashlib
 import json
-import os
 import re
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).resolve().parents[1]
-BASELINE = ROOT / "specs" / "revit-addin" / "v0.4.1-functional-baseline.json"
-V042_DEVELOPMENT_BRANCH = "feat/revit-stage02-manual-semantic-v0.4.2"
+BASELINE = ROOT / "specs" / "revit-addin" / "v0.4.2-functional-baseline.json"
 
 
 def sha256(data: bytes) -> str:
@@ -29,17 +25,10 @@ def source_paths(roots: list[str]) -> list[str]:
 
 
 def test_revit_manual_and_mcp_product_matches_current_baseline():
-    if os.environ.get("GITHUB_REF_NAME", "") == V042_DEVELOPMENT_BRANCH:
-        pytest.skip(
-            "v0.4.2 development intentionally changes the frozen v0.4.1 source "
-            "snapshot; refresh and re-enable this release gate only after the "
-            "v0.4.2 functional surface is locked."
-        )
-
     manifest = json.loads(BASELINE.read_text(encoding="utf-8"))
     assert manifest["schema_version"] == "BIMBAOGUI_REVIT_FUNCTIONAL_BASELINE_V3"
     assert manifest["product_line"] == "BIMBaoGui Revit 2020 Native + MCP"
-    assert manifest["product_version"] == "0.4.1"
+    assert manifest["product_version"] == "0.4.2"
     assert manifest["payload_schema_version"] == "0.9.1"
 
     roots = manifest["roots"]
@@ -75,7 +64,7 @@ def test_revit_manual_and_mcp_product_matches_current_baseline():
     assert drift == []
 
 
-def test_v041_baseline_records_the_revised_semantic_boundaries():
+def test_v042_baseline_records_the_completed_semantic_boundaries():
     manifest = json.loads(BASELINE.read_text(encoding="utf-8"))
     capabilities = set(manifest["capabilities"])
 
@@ -83,6 +72,10 @@ def test_v041_baseline_records_the_revised_semantic_boundaries():
         "Stage01 project conditions remain explicit user business declarations; none is never auto-confirmed.",
         "Stage01 payload 0.9.0 is validated before an in-memory 0.9.1 migration candidate is created.",
         "Revit-native fields use per-field authority and drift evidence instead of one global overwrite priority.",
+        "Stage02 Preview V2 hashes frozen effective roles, sorted overrides, and semantic Assignment evidence.",
+        "Stage02 semantic Assignment create, update, delete, and readback verification commit atomically per element.",
+        "The manual workbench and controlled MCP Stage02 entry use the same automatic, bulk, and per-element override semantics.",
+        "Stage03 resolves SITE_GREEN_OBJECT owners by Revit export GUID and requires exact IFC entity plus GlobalId matching.",
         "Stage02 and Stage03 consume only Current Stage01 storage, never an unconfirmed migration candidate.",
         "IFCFlux external status remains IFCFLUX_MANUAL_PENDING until user inspection.",
         "The MCP surface contains 13 approved business tools and exposes no arbitrary Revit API execution.",
@@ -90,9 +83,11 @@ def test_v041_baseline_records_the_revised_semantic_boundaries():
         assert required in capabilities
 
     delivery = manifest["delivery"]
-    assert delivery["single_revit_branch"] == "feat/revit-native-addin-mcp-v0.3"
+    assert delivery["single_revit_branch"] == (
+        "feat/revit-stage02-manual-semantic-v0.4.2"
+    )
     assert delivery["installer_artifact"] == (
-        "BIMBaoGui-Revit2020-Native-MCP-v0.4.1"
+        "BIMBaoGui-Revit2020-Native-MCP-v0.4.2"
     )
     assert delivery["target"] == "Autodesk Revit 2020"
     assert delivery["external_acceptance"] == "IFCFlux manual inspection"
