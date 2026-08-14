@@ -23,8 +23,13 @@ def test_native_addin_project_is_net48_wpf_and_has_no_gh_runtime_dependency():
 
 def test_native_addin_compiles_rulepack_from_the_shared_authoritative_database():
     project = read(PROJECT / "BIMBaoGui.RevitAddin.csproj")
+    wrapper = read(ROOT / "tools" / "build_hbr_rulepack_v042.py")
     assert "specs', 'hbr-rules', 'v1', 'source', 'hbr_rule_source.v1.json" in project
-    assert "tools', 'build_hbr_rulepack.py" in project
+    assert "hbr_rule_source.v0.4.2-overlay.json" in project
+    assert "tools', 'build_hbr_rulepack_v042.py" in project
+    assert 'BASE_COMPILER_PATH = ROOT / "tools" / "build_hbr_rulepack.py"' in wrapper
+    assert "base.load_validated_rule_source(source_path, baseline_path)" in wrapper
+    assert "base.build_rulepack_bytes(merged)" in wrapper
     assert "HBR_RulePack.hbrpack" in project
     assert "BIMBaoGui.RevitAddin.Resources.HBR_RulePack.hbrpack" in project
 
