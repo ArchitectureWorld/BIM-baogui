@@ -263,27 +263,16 @@ namespace BIMBaoGui.RevitAddin.Stage02
       _resolvedRequest = null;
       _previewStale = false;
       _writeButton.IsEnabled = false;
-      var request = new NativeStage02PreviewRequest
-      {
-        ScopeMode = currentSelection
-          ? NativeStage02ScopeMode.CustomSelection
-          : NativeStage02ScopeMode.FullModel,
-        IdentificationMode = manual
-          ? NativeStage02IdentificationMode.Manual
-          : NativeStage02IdentificationMode.Automatic,
-        CustomUniqueIds = Array.Empty<string>(),
-        BulkRoleId = manual ? bulkRole.RoleId : string.Empty,
-        RoleOverrides = manual
-          ? _roleOverrides
-            .OrderBy(pair => pair.Key, StringComparer.Ordinal)
-            .Select(pair => new NativeStage02RoleOverride
-            {
-              ElementUniqueId = pair.Key,
-              RoleId = pair.Value
-            })
-            .ToArray()
-          : Array.Empty<NativeStage02RoleOverride>()
-      };
+      NativeStage02PreviewRequest request =
+        NativeStage02WorkbenchRequestPolicy.Build(
+          currentSelection
+            ? NativeStage02ScopeMode.CustomSelection
+            : NativeStage02ScopeMode.FullModel,
+          manual
+            ? NativeStage02IdentificationMode.Manual
+            : NativeStage02IdentificationMode.Automatic,
+          manual ? bulkRole.RoleId : string.Empty,
+          _roleOverrides);
       SetBusy(true, "正在通过 Revit ExternalEvent 读取构件、语义角色与参数证据……" );
       try
       {
