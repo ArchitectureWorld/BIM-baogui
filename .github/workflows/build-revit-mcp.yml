@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feat/revit-native-addin-mcp-v0.3
+      - feat/revit-stage02-manual-semantic-v0.4.2
     paths:
       - "src/BIMBaoGui.HifcCore/**"
       - "src/BIMBaoGui.RevitAddin/**"
@@ -18,7 +19,6 @@ on:
       - "installer/**"
       - "docs/revit-addin/README.md"
       - "specs/hbr-rules/**"
-      - "specs/revit-addin/**"
       - "tools/build_hbr_rulepack.py"
       - ".github/workflows/build-revit-mcp.yml"
   workflow_dispatch:
