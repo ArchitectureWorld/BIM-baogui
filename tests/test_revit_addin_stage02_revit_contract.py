@@ -30,7 +30,6 @@ def test_stage02_current_selection_is_decoupled_from_auto_role_whitelist():
     inventory = read_stage02("NativeStage02Inventory.cs")
     selection = read_stage02("NativeStage02SelectionInventoryPolicy.cs")
     assignments = read_stage02("NativeStage02RoleAssignmentPolicy.cs")
-
     assert "NativeStage02SelectionInventoryPolicy.Resolve" in inventory
     assert "IsAutomaticInventoryEligible" in inventory
     assert "allowedCategories.Contains(element.Category)" in inventory
@@ -51,6 +50,32 @@ def test_stage02_requires_explicit_project_condition_declaration():
     assert "NativeProjectConditionDeclarationPolicy.Evaluate" in source
     assert "Stage02 等待项目条件声明" in source
     assert "无上述项目条件（已确认）" in source
+
+
+def test_stage02_manual_roles_are_persisted_in_one_fixed_revit_storage_contract():
+    storage = read_stage02("NativeStage02SemanticAssignmentStorage.cs")
+    reader = read_stage02("NativeStage02SemanticAssignmentRevitService.cs")
+    write = read_stage02("NativeStage02RevitWriteService.cs")
+    preview = read_stage02("NativeStage02RevitService.cs")
+    assert '"6f0ab4a7-0e0f-46d9-a31e-1f7615a4f2e3"' in storage
+    assert '"HBR_BIMBAOGUI_STAGE02_ASSIGNMENTS"' in storage
+    for field in (
+        "SchemaVersion",
+        "RulePackageId",
+        "RulePackageVersion",
+        "CanonicalJson",
+        "PayloadSha256",
+        "UpdatedUtc",
+    ):
+        assert f'"{field}"' in storage
+    assert "DataStorage.Create(document)" in storage
+    assert "storage.SetEntity(entity)" in storage
+    assert "NativeStage02SemanticAssignmentStoragePolicy.Evaluate" in reader
+    assert "NativeStage02SemanticAssignmentStorage.Write" in write
+    assert "NativeStage02SemanticAssignmentStorage.Read" in write
+    assert "SEMANTIC_ASSIGNMENT_READBACK_FAILED" in write
+    assert "NativeStage02SemanticAssignmentRevitService.Read" in preview
+    assert '"PersistedManual"' in preview
 
 
 def test_stage02_write_rebuilds_preview_and_allows_partial_success():
@@ -84,9 +109,7 @@ def test_stage02_shared_parameters_preserve_fixed_guids_and_binding_scope():
 
 
 def test_stage02_is_dispatched_only_through_revit_external_event():
-    source = (PROJECT / "RevitExternalEventDispatcher.cs").read_text(
-        encoding="utf-8"
-    )
+    source = (PROJECT / "RevitExternalEventDispatcher.cs").read_text(encoding="utf-8")
     assert "RequestStage02Preview" in source
     assert "RequestStage02Write" in source
     assert "NativeStage02RevitService.CreatePreview" in source
@@ -96,12 +119,26 @@ def test_stage02_is_dispatched_only_through_revit_external_event():
 def test_stage02_workspace_is_real_and_not_a_placeholder():
     view = read_stage02("NativeStage02View.cs")
     workspace = (PROJECT / "WorkspaceControl.cs").read_text(encoding="utf-8")
-    assert "全模型" in view
-    assert "当前 Revit 选择" in view
-    assert "生成预览" in view
-    assert "确认写入" in view
+    for text in (
+        "全模型",
+        "当前 Revit 选择",
+        "自动识别",
+        "手动指定",
+        "批量语义类型",
+        "继承批量选择",
+        "恢复自动识别",
+        "生成预览",
+        "确认写入",
+    ):
+        assert text in view
+    assert "NativeStage02ManualRoleCatalog.Current" in view
+    assert "RoleOverrides" in view
+    assert "NativeStage02RoleAssignmentPolicy.AutoOverrideRoleId" in view
+    assert "_previewStale = true" in view
+    assert "_resolvedRequest = null" in view
     assert "NativeStage02FieldStatus" in view
     assert "new ScrollViewer" in view
+    assert "CUSTOM_ELEMENT_UNAVAILABLE" not in view
     assert "new NativeStage02View" in workspace
     assert "Stage02 等待开发" not in workspace
 
