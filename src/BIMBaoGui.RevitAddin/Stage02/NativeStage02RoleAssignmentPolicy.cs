@@ -52,6 +52,14 @@ namespace BIMBaoGui.RevitAddin.Stage02
           Array.Empty<NativeStage02ResolvedAssignment>());
       }
 
+      if (identificationMode != NativeStage02IdentificationMode.Manual)
+      {
+        return NativeStage02RoleAssignmentDecision.Failure(
+          NativeStage02RoleAssignmentCodes.ManualRoleRequired,
+          "未知识别方式，无法建立语义角色分配。",
+          selected);
+      }
+
       if (!hasManualInput)
       {
         return NativeStage02RoleAssignmentDecision.Failure(
