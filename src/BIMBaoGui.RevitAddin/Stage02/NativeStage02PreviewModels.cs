@@ -57,6 +57,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
   internal sealed class NativeStage02ElementEvidence
   {
     internal NativeStage02ElementSnapshot Element { get; set; }
+    internal NativeStage02RoleMatchResult AutomaticRoleMatch { get; set; }
     internal NativeStage02RoleMatchResult ResolvedRoleMatch { get; set; }
     internal NativeStage02AssignmentMode AssignmentMode { get; set; } =
       NativeStage02AssignmentMode.Auto;

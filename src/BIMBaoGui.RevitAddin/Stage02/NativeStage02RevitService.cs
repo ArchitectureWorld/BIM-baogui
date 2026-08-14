@@ -179,19 +179,65 @@ namespace BIMBaoGui.RevitAddin.Stage02
         NativeStage02SemanticAssignmentRecord savedAssignment;
         persisted.AssignmentsByElement.TryGetValue(snapshot.UniqueId, out savedAssignment);
 
+        NativeStage02RoleMatchResult automaticRole =
+          NativeStage02RoleMatcher.Match(
+            snapshot,
+            catalog.CarrierRoles,
+            modelProfile);
         NativeStage02RoleMatchResult role = ResolveEffectiveRole(
           snapshot,
           currentAssignment,
           savedAssignment,
+          automaticRole,
           modelProfile,
           conditions,
           catalog);
+        NativeStage02AssignmentMode assignmentMode =
+          NativeStage02AssignmentMode.Auto;
+        string assignmentSource = "Automatic";
+        string assignmentAction = NativeStage02AssignmentActions.None;
+        string manualCarrierEvidence = string.Empty;
+        if (currentAssignment != null)
+        {
+          assignmentMode = currentAssignment.AssignmentMode;
+          assignmentSource = currentAssignment.Source;
+          if (currentAssignment.AssignmentMode == NativeStage02AssignmentMode.Manual)
+          {
+            assignmentAction = NativeStage02AssignmentActions.SaveManualAssignment;
+            manualCarrierEvidence = CarrierEvidence(
+              snapshot.Category,
+              snapshot.ElementKind);
+          }
+          else if (savedAssignment != null
+            && savedAssignment.AssignmentMode == NativeStage02AssignmentMode.Manual)
+          {
+            assignmentAction = NativeStage02AssignmentActions.RemoveManualAssignment;
+            manualCarrierEvidence = CarrierEvidence(
+              savedAssignment.CarrierCategory,
+              savedAssignment.CarrierElementKind);
+          }
+        }
+        else if (savedAssignment != null
+          && savedAssignment.AssignmentMode == NativeStage02AssignmentMode.Manual)
+        {
+          assignmentMode = NativeStage02AssignmentMode.Manual;
+          assignmentSource = "PersistedManual";
+          assignmentAction = NativeStage02AssignmentActions.KeepManualAssignment;
+          manualCarrierEvidence = CarrierEvidence(
+            savedAssignment.CarrierCategory,
+            savedAssignment.CarrierElementKind);
+        }
         if (role.Status != NativeStage02RoleMatchStatus.Matched)
         {
           evidence.Add(new NativeStage02ElementEvidence
           {
             Element = snapshot,
-            ResolvedRoleMatch = role
+            AutomaticRoleMatch = automaticRole,
+            ResolvedRoleMatch = role,
+            AssignmentMode = assignmentMode,
+            AssignmentSource = assignmentSource,
+            AssignmentAction = assignmentAction,
+            ManualCarrierEvidence = manualCarrierEvidence
           });
           continue;
         }
@@ -201,7 +247,12 @@ namespace BIMBaoGui.RevitAddin.Stage02
           evidence.Add(new NativeStage02ElementEvidence
           {
             Element = snapshot,
-            ResolvedRoleMatch = role
+            AutomaticRoleMatch = automaticRole,
+            ResolvedRoleMatch = role,
+            AssignmentMode = assignmentMode,
+            AssignmentSource = assignmentSource,
+            AssignmentAction = assignmentAction,
+            ManualCarrierEvidence = manualCarrierEvidence
           });
           continue;
         }
@@ -220,7 +271,12 @@ namespace BIMBaoGui.RevitAddin.Stage02
         evidence.Add(new NativeStage02ElementEvidence
         {
           Element = snapshot,
+          AutomaticRoleMatch = automaticRole,
           ResolvedRoleMatch = role,
+          AssignmentMode = assignmentMode,
+          AssignmentSource = assignmentSource,
+          AssignmentAction = assignmentAction,
+          ManualCarrierEvidence = manualCarrierEvidence,
           Parameters = parameters
         });
       }
@@ -230,6 +286,9 @@ namespace BIMBaoGui.RevitAddin.Stage02
         {
           DocumentFingerprint = documentFingerprint,
           ModelProfile = modelProfile,
+          IdentificationMode = resolvedRequest.IdentificationMode,
+          BulkRoleId = resolvedRequest.BulkRoleId,
+          RoleOverrides = resolvedRequest.RoleOverrides,
           Conditions = new Dictionary<string, bool>(stage01.Model.Conditions, StringComparer.Ordinal),
           Elements = evidence
         },
@@ -258,6 +317,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       NativeStage02ElementSnapshot snapshot,
       NativeStage02ResolvedAssignment currentAssignment,
       NativeStage02SemanticAssignmentRecord savedAssignment,
+      NativeStage02RoleMatchResult automaticRole,
       string modelProfile,
       IReadOnlyDictionary<string, bool> conditions,
       NativeStage02RuleCatalog catalog)
@@ -265,7 +325,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       if (currentAssignment != null)
       {
         if (currentAssignment.AssignmentMode == NativeStage02AssignmentMode.Auto)
-          return NativeStage02RoleMatcher.Match(snapshot, catalog.CarrierRoles, modelProfile);
+          return automaticRole;
         return ResolveManualRole(
           snapshot,
           currentAssignment.RoleId,
@@ -287,7 +347,12 @@ namespace BIMBaoGui.RevitAddin.Stage02
           catalog);
       }
 
-      return NativeStage02RoleMatcher.Match(snapshot, catalog.CarrierRoles, modelProfile);
+      return automaticRole;
+    }
+
+    private static string CarrierEvidence(string category, string elementKind)
+    {
+      return (category ?? string.Empty) + "|" + (elementKind ?? string.Empty);
     }
 
     private static NativeStage02RoleMatchResult ResolveManualRole(

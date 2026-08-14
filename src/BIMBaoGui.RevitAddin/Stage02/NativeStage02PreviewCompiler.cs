@@ -45,16 +45,29 @@ namespace BIMBaoGui.RevitAddin.Stage02
       var elements = new List<NativeStage02ElementPlan>(evidence.Length);
       foreach (NativeStage02ElementEvidence elementEvidence in evidence)
       {
-        NativeStage02RoleMatchResult role = NativeStage02RoleMatcher.Match(
-          elementEvidence.Element,
-          catalog.CarrierRoles,
-          input.ModelProfile);
+        NativeStage02RoleMatchResult automaticRole =
+          elementEvidence.AutomaticRoleMatch
+          ?? NativeStage02RoleMatcher.Match(
+            elementEvidence.Element,
+            catalog.CarrierRoles,
+            input.ModelProfile);
+        NativeStage02RoleMatchResult role = elementEvidence.ResolvedRoleMatch
+          ?? automaticRole;
         if (role.Status != NativeStage02RoleMatchStatus.Matched)
         {
           elements.Add(new NativeStage02ElementPlan
           {
             Element = elementEvidence.Element,
             RoleMatchStatus = role.Status,
+            AutomaticRoleStatus = automaticRole.Status,
+            AutomaticRoleId = automaticRole.RoleId,
+            EffectiveRoleId = role.RoleId,
+            RoleId = role.RoleId,
+            RoleMatchSource = role.MatchSource,
+            AssignmentMode = elementEvidence.AssignmentMode,
+            AssignmentSource = elementEvidence.AssignmentSource,
+            AssignmentAction = elementEvidence.AssignmentAction,
+            ManualCarrierEvidence = elementEvidence.ManualCarrierEvidence,
             Message = role.Message,
             Fields = Array.Empty<NativeStage02FieldPlan>()
           });
@@ -81,8 +94,15 @@ namespace BIMBaoGui.RevitAddin.Stage02
         {
           Element = elementEvidence.Element,
           RoleMatchStatus = role.Status,
+          AutomaticRoleStatus = automaticRole.Status,
+          AutomaticRoleId = automaticRole.RoleId,
           RoleId = role.RoleId,
+          EffectiveRoleId = role.RoleId,
           RoleMatchSource = role.MatchSource,
+          AssignmentMode = elementEvidence.AssignmentMode,
+          AssignmentSource = elementEvidence.AssignmentSource,
+          AssignmentAction = elementEvidence.AssignmentAction,
+          ManualCarrierEvidence = elementEvidence.ManualCarrierEvidence,
           Fields = new ReadOnlyCollection<NativeStage02FieldPlan>(fields)
         });
       }
@@ -94,6 +114,19 @@ namespace BIMBaoGui.RevitAddin.Stage02
         RulePackageSha256 = catalog.Identity.RulePackageSha256,
         DocumentFingerprint = input.DocumentFingerprint,
         ModelProfile = input.ModelProfile,
+        IdentificationMode = input.IdentificationMode,
+        BulkRoleId = (input.BulkRoleId ?? string.Empty).Trim(),
+        RoleOverrides = new ReadOnlyCollection<NativeStage02RoleOverride>(
+          (input.RoleOverrides ?? Array.Empty<NativeStage02RoleOverride>())
+            .Where(value => value != null)
+            .Select(value => new NativeStage02RoleOverride
+            {
+              ElementUniqueId = (value.ElementUniqueId ?? string.Empty).Trim(),
+              RoleId = (value.RoleId ?? string.Empty).Trim()
+            })
+            .OrderBy(value => value.ElementUniqueId, StringComparer.Ordinal)
+            .ThenBy(value => value.RoleId, StringComparer.Ordinal)
+            .ToArray()),
         Conditions = new ReadOnlyDictionary<string, bool>(conditions),
         Elements = new ReadOnlyCollection<NativeStage02ElementPlan>(elements),
         BlockedElementCount = elements.Count(value => value.IsBlocked),
@@ -422,8 +455,32 @@ namespace BIMBaoGui.RevitAddin.Stage02
         preview.DocumentFingerprint,
         true);
       Property(builder, "modelProfile", preview.ModelProfile, true);
-      builder.Append(",\"conditions\":[");
+      Property(
+        builder,
+        "identificationMode",
+        preview.IdentificationMode.ToString(),
+        true);
+      Property(builder, "bulkRoleId", preview.BulkRoleId, true);
+      builder.Append(",\"roleOverrides\":[");
       bool first = true;
+      foreach (NativeStage02RoleOverride roleOverride in preview.RoleOverrides
+        .OrderBy(value => value.ElementUniqueId, StringComparer.Ordinal)
+        .ThenBy(value => value.RoleId, StringComparer.Ordinal))
+      {
+        if (!first) builder.Append(',');
+        first = false;
+        builder.Append('{');
+        Property(
+          builder,
+          "elementUniqueId",
+          roleOverride.ElementUniqueId,
+          false);
+        Property(builder, "roleId", roleOverride.RoleId, true);
+        builder.Append('}');
+      }
+      builder.Append(']');
+      builder.Append(",\"conditions\":[");
+      first = true;
       foreach (KeyValuePair<string, bool> condition in preview.Conditions
         .OrderBy(value => value.Key, StringComparer.Ordinal))
       {
@@ -447,10 +504,6 @@ namespace BIMBaoGui.RevitAddin.Stage02
         NumberProperty(builder, "elementId", element.Element.ElementId);
         Property(builder, "category", element.Element.Category, true);
         Property(builder, "elementKind", element.Element.ElementKind, true);
-        Property(builder, "elementName", element.Element.ElementName, true);
-        Property(builder, "familyName", element.Element.FamilyName, true);
-        Property(builder, "typeName", element.Element.TypeName, true);
-        Property(builder, "levelName", element.Element.LevelName, true);
         Property(
           builder,
           "roleMatchStatus",
@@ -458,7 +511,25 @@ namespace BIMBaoGui.RevitAddin.Stage02
           true);
         Property(builder, "roleId", element.RoleId, true);
         Property(builder, "roleMatchSource", element.RoleMatchSource, true);
-        Property(builder, "message", element.Message, true);
+        Property(
+          builder,
+          "automaticRoleStatus",
+          element.AutomaticRoleStatus.ToString(),
+          true);
+        Property(builder, "automaticRoleId", element.AutomaticRoleId, true);
+        Property(builder, "effectiveRoleId", element.EffectiveRoleId, true);
+        Property(
+          builder,
+          "assignmentMode",
+          element.AssignmentMode.ToString(),
+          true);
+        Property(builder, "assignmentSource", element.AssignmentSource, true);
+        Property(builder, "assignmentAction", element.AssignmentAction, true);
+        Property(
+          builder,
+          "manualCarrierEvidence",
+          element.ManualCarrierEvidence,
+          true);
         builder.Append(",\"fields\":[");
         bool firstField = true;
         foreach (NativeStage02FieldPlan field in element.Fields
@@ -502,7 +573,6 @@ namespace BIMBaoGui.RevitAddin.Stage02
               ? string.Empty
               : field.Property.RuntimeDecision.Status,
             true);
-          Property(builder, "message", field.Message, true);
           builder.Append(",\"strictExportReady\":")
             .Append(field.StrictExportReady ? "true" : "false")
             .Append('}');
