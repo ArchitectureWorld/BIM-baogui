@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using BIMBaoGui.RevitAddin.Rules;
@@ -15,16 +14,40 @@ namespace BIMBaoGui.RevitAddin.Stage02
   {
     internal NativeStage02ScopeMode ScopeMode { get; set; } =
       NativeStage02ScopeMode.FullModel;
+    internal NativeStage02IdentificationMode IdentificationMode { get; set; } =
+      NativeStage02IdentificationMode.Automatic;
     internal IReadOnlyList<string> CustomUniqueIds { get; set; } =
       Array.Empty<string>();
+    internal string BulkRoleId { get; set; } = string.Empty;
+    internal IReadOnlyList<NativeStage02RoleOverride> RoleOverrides { get; set; } =
+      Array.Empty<NativeStage02RoleOverride>();
 
     internal NativeStage02PreviewRequest Clone()
     {
+      string[] ids = (CustomUniqueIds ?? Array.Empty<string>())
+        .Select(value => (value ?? string.Empty).Trim())
+        .Where(value => value.Length > 0)
+        .Distinct(StringComparer.Ordinal)
+        .OrderBy(value => value, StringComparer.Ordinal)
+        .ToArray();
+      NativeStage02RoleOverride[] overrides = (RoleOverrides
+          ?? Array.Empty<NativeStage02RoleOverride>())
+        .Where(value => value != null)
+        .Select(value => new NativeStage02RoleOverride
+        {
+          ElementUniqueId = (value.ElementUniqueId ?? string.Empty).Trim(),
+          RoleId = (value.RoleId ?? string.Empty).Trim()
+        })
+        .OrderBy(value => value.ElementUniqueId, StringComparer.Ordinal)
+        .ThenBy(value => value.RoleId, StringComparer.Ordinal)
+        .ToArray();
       return new NativeStage02PreviewRequest
       {
         ScopeMode = ScopeMode,
-        CustomUniqueIds = new ReadOnlyCollection<string>((CustomUniqueIds
-          ?? Array.Empty<string>()).ToArray())
+        IdentificationMode = IdentificationMode,
+        CustomUniqueIds = new ReadOnlyCollection<string>(ids),
+        BulkRoleId = (BulkRoleId ?? string.Empty).Trim(),
+        RoleOverrides = new ReadOnlyCollection<NativeStage02RoleOverride>(overrides)
       };
     }
   }
@@ -55,53 +78,35 @@ namespace BIMBaoGui.RevitAddin.Stage02
         uiApplication,
         document);
       if (environmentErrors.Count > 0)
-        return Failure(
-          "Stage02 当前不可预览",
-          environmentErrors.ToArray());
+        return Failure("Stage02 当前不可预览", environmentErrors.ToArray());
 
-      NativeStage01ReadResult stage01 =
-        NativeStage01RevitReadService.Read(uiApplication);
+      NativeStage01ReadResult stage01 = NativeStage01RevitReadService.Read(
+        uiApplication);
       if (stage01?.StorageDecision == null || stage01.Model == null)
-      {
-        return Failure(
-          "Stage02 等待文件初始化",
-          "请先在 01 文件初始化中完成写入并回读。" );
-      }
-      if (stage01.StorageDecision.State
-        == NativeStage01StorageState.MigratableLegacy)
-      {
+        return Failure("Stage02 等待文件初始化", "请先在 01 文件初始化中完成写入并回读。" );
+      if (stage01.StorageDecision.State == NativeStage01StorageState.MigratableLegacy)
         return Failure(
           "Stage02 等待 Stage01 数据迁移确认",
           "检测到旧版 Stage01 Payload；请先在 01 文件初始化中确认迁移并完成写入回读。" );
-      }
       if (stage01.StorageDecision.State != NativeStage01StorageState.Current)
-      {
-        return Failure(
-          "Stage02 等待文件初始化",
-          "当前 Stage01 Storage 未达到可消费的 Current 状态。" );
-      }
+        return Failure("Stage02 等待文件初始化", "当前 Stage01 Storage 未达到可消费的 Current 状态。" );
+
       NativeProjectConditionDeclarationDecision declaration =
         NativeProjectConditionDeclarationPolicy.Evaluate(
           stage01.Model,
           NativeRuleCatalog.Current);
       if (!declaration.IsValid)
-      {
         return Failure(
           "Stage02 等待项目条件声明",
           "请先在 01 文件初始化中选择一个或多个实际项目条件，或勾选“无上述项目条件（已确认）”。" );
-      }
-      string modelProfile = stage01.Model.GetValue(
-        NativeStage01Keys.ModelFileType);
+
+      string modelProfile = stage01.Model.GetValue(NativeStage01Keys.ModelFileType);
       NativeStage02RuleCatalog catalog = NativeStage02RuleCatalog.Current;
       if (string.IsNullOrWhiteSpace(modelProfile)
         || !catalog.CarrierRoles.Any(role => role.ModelFileTypes.Contains(
           modelProfile,
           StringComparer.Ordinal)))
-      {
-        return Failure(
-          "Stage02 模型类型阻断",
-          "Stage01 模型文件类型不属于当前 HBR 数据库。" );
-      }
+        return Failure("Stage02 模型类型阻断", "Stage01 模型文件类型不属于当前 HBR 数据库。" );
 
       string documentFingerprint = ComputeDocumentFingerprint(
         uiApplication,
@@ -111,21 +116,38 @@ namespace BIMBaoGui.RevitAddin.Stage02
         uiDocument,
         document,
         safeRequest);
+      NativeStage02RoleAssignmentDecision assignmentDecision =
+        NativeStage02RoleAssignmentPolicy.Resolve(
+          safeRequest.ScopeMode,
+          safeRequest.IdentificationMode,
+          resolvedCustomIds,
+          safeRequest.BulkRoleId,
+          safeRequest.RoleOverrides);
+      if (!assignmentDecision.Accepted)
+        return Failure(
+          "Stage02 语义角色分配阻断",
+          assignmentDecision.ErrorCode + "：" + assignmentDecision.Message);
+
       var resolvedRequest = new NativeStage02PreviewRequest
       {
         ScopeMode = safeRequest.ScopeMode,
-        CustomUniqueIds = resolvedCustomIds
+        IdentificationMode = safeRequest.IdentificationMode,
+        CustomUniqueIds = new ReadOnlyCollection<string>(
+          assignmentDecision.SelectedUniqueIds.ToArray()),
+        BulkRoleId = safeRequest.BulkRoleId,
+        RoleOverrides = new ReadOnlyCollection<NativeStage02RoleOverride>(
+          safeRequest.RoleOverrides.Select(value => new NativeStage02RoleOverride
+          {
+            ElementUniqueId = value.ElementUniqueId,
+            RoleId = value.RoleId
+          }).ToArray())
       };
 
-      NativeStage02ElementSnapshot[] inventory =
-        new FilteredElementCollector(document)
-          .WhereElementIsNotElementType()
-          .Select(element => CreateSnapshot(
-            document,
-            element,
-            documentFingerprint))
-          .Where(value => value != null)
-          .ToArray();
+      NativeStage02ElementSnapshot[] inventory = new FilteredElementCollector(document)
+        .WhereElementIsNotElementType()
+        .Select(element => CreateSnapshot(document, element, documentFingerprint))
+        .Where(value => value != null)
+        .ToArray();
       NativeStage02InventoryDecision inventoryDecision =
         NativeStage02InventoryPolicy.Resolve(
           resolvedRequest.ScopeMode,
@@ -133,44 +155,89 @@ namespace BIMBaoGui.RevitAddin.Stage02
           resolvedRequest.CustomUniqueIds,
           catalog.AllRevitCategories);
       if (!inventoryDecision.Accepted)
-      {
         return Failure(
           "Stage02 扫描范围阻断",
           inventoryDecision.ErrorCode + "：" + inventoryDecision.Message);
-      }
 
+      var assignmentsByElement = assignmentDecision.Assignments.ToDictionary(
+        value => value.ElementUniqueId,
+        StringComparer.Ordinal);
+      IReadOnlyDictionary<string, bool> conditions =
+        new ReadOnlyDictionary<string, bool>(new Dictionary<string, bool>(
+          stage01.Model.Conditions,
+          StringComparer.Ordinal));
       var evidence = new List<NativeStage02ElementEvidence>();
-      foreach (NativeStage02ElementSnapshot snapshot in
-        inventoryDecision.Elements)
+      foreach (NativeStage02ElementSnapshot snapshot in inventoryDecision.Elements)
       {
-        NativeStage02RoleMatchResult role = NativeStage02RoleMatcher.Match(
-          snapshot,
-          catalog.CarrierRoles,
-          modelProfile);
+        NativeStage02RoleMatchResult role;
+        if (resolvedRequest.IdentificationMode == NativeStage02IdentificationMode.Manual)
+        {
+          NativeStage02ResolvedAssignment assignment;
+          if (!assignmentsByElement.TryGetValue(snapshot.UniqueId, out assignment))
+          {
+            role = new NativeStage02RoleMatchResult(
+              NativeStage02RoleMatchStatus.NotApplicable,
+              string.Empty,
+              string.Empty,
+              Array.Empty<string>(),
+              NativeStage02RoleAssignmentCodes.ManualRoleRequired
+                + "：当前构件没有手动角色。" );
+          }
+          else
+          {
+            NativeStage02ManualCarrierDecision manual =
+              NativeStage02ManualCarrierPolicy.Evaluate(
+                assignment.RoleId,
+                modelProfile,
+                conditions,
+                snapshot,
+                NativeStage02ManualRoleCatalog.Current.Roles);
+            if (!manual.Accepted)
+            {
+              role = new NativeStage02RoleMatchResult(
+                NativeStage02RoleMatchStatus.AssignedRoleConflict,
+                string.Empty,
+                "MANUAL_SEMANTIC_ASSIGNMENT",
+                new[] { assignment.RoleId },
+                manual.ErrorCode + "：" + manual.Message);
+            }
+            else
+            {
+              snapshot.AssignedRoleId = assignment.RoleId;
+              role = new NativeStage02RoleMatchResult(
+                NativeStage02RoleMatchStatus.Matched,
+                assignment.RoleId,
+                assignment.Source,
+                new[] { assignment.RoleId },
+                string.Empty);
+            }
+          }
+        }
+        else
+        {
+          role = NativeStage02RoleMatcher.Match(
+            snapshot,
+            catalog.CarrierRoles,
+            modelProfile);
+        }
+
         if (role.Status != NativeStage02RoleMatchStatus.Matched)
         {
-          evidence.Add(new NativeStage02ElementEvidence
-          {
-            Element = snapshot
-          });
+          evidence.Add(new NativeStage02ElementEvidence { Element = snapshot });
           continue;
         }
         Element live = document.GetElement(snapshot.UniqueId);
         if (live == null)
         {
-          evidence.Add(new NativeStage02ElementEvidence
-          {
-            Element = snapshot
-          });
+          evidence.Add(new NativeStage02ElementEvidence { Element = snapshot });
           continue;
         }
         var parameters = new Dictionary<Guid, NativeStage02ParameterEvidence>();
-        foreach (NativeStage02PropertyDefinition property in
-          role.CandidateRoleIds
-            .SelectMany(roleId => catalog.PropertiesForRole(roleId))
-            .GroupBy(value => value.PropertyId, StringComparer.Ordinal)
-            .Select(group => group.First())
-            .OrderBy(value => value.PropertyId, StringComparer.Ordinal))
+        foreach (NativeStage02PropertyDefinition property in role.CandidateRoleIds
+          .SelectMany(roleId => catalog.PropertiesForRole(roleId))
+          .GroupBy(value => value.PropertyId, StringComparer.Ordinal)
+          .Select(group => group.First())
+          .OrderBy(value => value.PropertyId, StringComparer.Ordinal))
         {
           parameters[property.ParameterGuid] = ReadParameterEvidence(
             document,
@@ -189,9 +256,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
         {
           DocumentFingerprint = documentFingerprint,
           ModelProfile = modelProfile,
-          Conditions = new Dictionary<string, bool>(
-            stage01.Model.Conditions,
-            StringComparer.Ordinal),
+          Conditions = new Dictionary<string, bool>(stage01.Model.Conditions, StringComparer.Ordinal),
           Elements = evidence
         },
         catalog);
@@ -203,9 +268,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
         ResolvedRequest = resolvedRequest,
         Messages = new[]
         {
-          "已扫描 "
-            + preview.Elements.Count.ToString(CultureInfo.InvariantCulture)
-            + " 个规则相关构件。",
+          "已扫描 " + preview.Elements.Count.ToString(CultureInfo.InvariantCulture) + " 个规则相关构件。",
+          "识别方式：" + resolvedRequest.IdentificationMode,
           "预览 SHA-256：" + preview.PreviewHash
         }
       };
@@ -226,8 +290,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       {
         if (document.IsFamilyDocument) errors.Add("族文档不进入 Stage02。" );
         if (document.IsReadOnly) errors.Add("当前 RVT 为只读。" );
-        if (string.IsNullOrWhiteSpace(document.PathName))
-          errors.Add("请先保存 RVT 文件。" );
+        if (string.IsNullOrWhiteSpace(document.PathName)) errors.Add("请先保存 RVT 文件。" );
       }
       return errors;
     }
@@ -239,16 +302,14 @@ namespace BIMBaoGui.RevitAddin.Stage02
     {
       if (request.ScopeMode == NativeStage02ScopeMode.FullModel)
         return Array.Empty<string>();
-      string[] explicitIds = (request.CustomUniqueIds
-          ?? Array.Empty<string>())
+      string[] explicitIds = (request.CustomUniqueIds ?? Array.Empty<string>())
         .Where(value => !string.IsNullOrWhiteSpace(value))
         .Select(value => value.Trim())
         .Distinct(StringComparer.Ordinal)
         .OrderBy(value => value, StringComparer.Ordinal)
         .ToArray();
       if (explicitIds.Length > 0) return explicitIds;
-      if (uiDocument == null)
-        return Array.Empty<string>();
+      if (uiDocument == null) return Array.Empty<string>();
       return new ReadOnlyCollection<string>(
         uiDocument.Selection.GetElementIds()
           .Select(document.GetElement)
@@ -302,26 +363,22 @@ namespace BIMBaoGui.RevitAddin.Stage02
       InternalDefinition definition = shared?.GetDefinition();
       ElementBinding binding = definition == null
         ? null
-        : NativeStage02ParameterBindingService.FindBinding(
-          document.ParameterBindings,
-          definition);
+        : NativeStage02ParameterBindingService.FindBinding(document.ParameterBindings, definition);
       Parameter parameter = target.get_Parameter(property.ParameterGuid);
       var messages = new List<string>();
       bool compatible = true;
-      if (definition != null
-        && !string.Equals(
-          definition.Name,
-          property.ParameterName,
-          StringComparison.Ordinal))
+      if (definition != null && !string.Equals(
+        definition.Name,
+        property.ParameterName,
+        StringComparison.Ordinal))
       {
         compatible = false;
         messages.Add("固定 GUID 参数名称冲突。" );
       }
-      if (definition != null
-        && !string.Equals(
-          definition.ParameterType.ToString(),
-          property.ParameterType,
-          StringComparison.OrdinalIgnoreCase))
+      if (definition != null && !string.Equals(
+        definition.ParameterType.ToString(),
+        property.ParameterType,
+        StringComparison.OrdinalIgnoreCase))
       {
         compatible = false;
         messages.Add("固定 GUID 参数类型冲突。" );
@@ -329,21 +386,17 @@ namespace BIMBaoGui.RevitAddin.Stage02
       if (binding != null)
       {
         bool typeBinding = binding is TypeBinding;
-        bool expectedType = string.Equals(
-          property.BindingScope,
-          "TYPE",
-          StringComparison.Ordinal);
+        bool expectedType = string.Equals(property.BindingScope, "TYPE", StringComparison.Ordinal);
         if (typeBinding != expectedType)
         {
           compatible = false;
           messages.Add("固定 GUID 参数绑定范围冲突。" );
         }
       }
-      if (parameter != null
-        && !string.Equals(
-          parameter.StorageType.ToString(),
-          property.StorageType,
-          StringComparison.Ordinal))
+      if (parameter != null && !string.Equals(
+        parameter.StorageType.ToString(),
+        property.StorageType,
+        StringComparison.Ordinal))
       {
         compatible = false;
         messages.Add("固定 GUID 参数 StorageType 冲突。" );
@@ -352,10 +405,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       string current = string.Empty;
       if (parameter != null && compatible)
       {
-        try
-        {
-          current = NativeStage02ValueCodec.Read(parameter, property);
-        }
+        try { current = NativeStage02ValueCodec.Read(parameter, property); }
         catch (Exception exception)
         {
           compatible = false;
@@ -375,17 +425,16 @@ namespace BIMBaoGui.RevitAddin.Stage02
           string value = NativeStage02ValueCodec.Read(aliasParameter, property);
           if (!string.IsNullOrWhiteSpace(value)) aliases[alias] = value;
         }
-        catch
-        {
-        }
+        catch { }
       }
       return new NativeStage02ParameterEvidence
       {
         ParameterGuid = property.ParameterGuid,
         Exists = parameter != null,
         ContractCompatible = compatible,
-        BindingIncludesCategory = NativeStage02ParameterBindingService
-          .IncludesCategory(binding, element.Category),
+        BindingIncludesCategory = NativeStage02ParameterBindingService.IncludesCategory(
+          binding,
+          element.Category),
         IsReadOnly = parameter != null && parameter.IsReadOnly,
         CurrentCanonicalValue = current,
         AliasValues = aliases,
@@ -398,15 +447,12 @@ namespace BIMBaoGui.RevitAddin.Stage02
       Element element,
       string bindingScope)
     {
-      if (!string.Equals(bindingScope, "TYPE", StringComparison.Ordinal))
-        return element;
+      if (!string.Equals(bindingScope, "TYPE", StringComparison.Ordinal)) return element;
       ElementId typeId = element.GetTypeId();
       if (typeId == null || typeId == ElementId.InvalidElementId)
-        throw new InvalidOperationException(
-          "TYPE 参数目标元素没有有效 ElementType。" );
+        throw new InvalidOperationException("TYPE 参数目标元素没有有效 ElementType。" );
       return document.GetElement(typeId)
-        ?? throw new InvalidOperationException(
-          "无法解析 TYPE 参数目标 ElementType。" );
+        ?? throw new InvalidOperationException("无法解析 TYPE 参数目标 ElementType。" );
     }
 
     private static string ComputeDocumentFingerprint(
@@ -437,8 +483,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       if (element is Wall) return "Wall";
       if (element is Floor) return "Floor";
       if (element is RoofBase) return "Roof";
-      if (element is Autodesk.Revit.DB.Architecture.StairsRun)
-        return "StairsRun";
+      if (element is Autodesk.Revit.DB.Architecture.StairsRun) return "StairsRun";
       if (element is Autodesk.Revit.DB.Mechanical.Duct) return "Duct";
       if (element is FamilyInstance) return "FamilyInstance";
       return element.GetType().Name;
@@ -483,11 +528,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
     private static string LevelName(Document document, Element element)
     {
       FamilyInstance familyInstance = element as FamilyInstance;
-      if (familyInstance != null
-        && familyInstance.LevelId != ElementId.InvalidElementId)
-      {
+      if (familyInstance != null && familyInstance.LevelId != ElementId.InvalidElementId)
         return SafeName(document.GetElement(familyInstance.LevelId));
-      }
       BuiltInParameter[] parameters =
       {
         BuiltInParameter.INSTANCE_REFERENCE_LEVEL_PARAM,
@@ -497,8 +539,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       foreach (BuiltInParameter builtIn in parameters)
       {
         Parameter parameter = element.get_Parameter(builtIn);
-        if (parameter == null || parameter.StorageType != StorageType.ElementId)
-          continue;
+        if (parameter == null || parameter.StorageType != StorageType.ElementId) continue;
         ElementId levelId = parameter.AsElementId();
         if (levelId != null && levelId != ElementId.InvalidElementId)
           return SafeName(document.GetElement(levelId));
