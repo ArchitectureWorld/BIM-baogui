@@ -129,6 +129,7 @@ def test_stage02_is_dispatched_only_through_revit_external_event():
 
 def test_stage02_workspace_is_real_and_not_a_placeholder():
     view = read_stage02("NativeStage02View.cs")
+    request_policy = read_stage02("NativeStage02WorkbenchRequestPolicy.cs")
     workspace = (PROJECT / "WorkspaceControl.cs").read_text(encoding="utf-8")
     for text in (
         "全模型",
@@ -143,7 +144,8 @@ def test_stage02_workspace_is_real_and_not_a_placeholder():
     ):
         assert text in view
     assert "NativeStage02ManualRoleCatalog.Current" in view
-    assert "RoleOverrides" in view
+    assert "NativeStage02WorkbenchRequestPolicy.Build" in view
+    assert "RoleOverrides" in request_policy
     assert "NativeStage02RoleAssignmentPolicy.AutoOverrideRoleId" in view
     assert "_previewStale = true" in view
     assert "_resolvedRequest = null" in view
