@@ -15,9 +15,9 @@ namespace BIMBaoGui.RevitAddin.Tests
       NativeStage02ManualRoleCatalog catalog =
         NativeStage02ManualRoleCatalog.Current;
 
-      NativeStage02ManualRoleContract green =
-        Assert.Single(catalog.Roles.Where(value =>
-          value.RoleId == "SITE_GREEN_OBJECT"));
+      NativeStage02ManualRoleContract green = Assert.Single(
+        catalog.Roles,
+        value => value.RoleId == "SITE_GREEN_OBJECT");
       Assert.Equal("绿地", green.DisplayName);
       Assert.Equal(new[] { "总平模型" }, green.ModelFileTypes);
       Assert.Equal("site.green", green.ConditionId);

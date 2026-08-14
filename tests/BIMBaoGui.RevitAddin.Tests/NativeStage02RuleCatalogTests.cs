@@ -15,11 +15,15 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Equal("HBR-WUHAN-PLANNING", catalog.Identity.PackageId);
       Assert.Equal("1.0.0", catalog.Identity.PackageVersion);
       Assert.Equal(64, catalog.Identity.RulePackageSha256.Length);
-      Assert.Equal(14, catalog.CarrierRoles.Count);
-      Assert.Equal(14, catalog.CarrierRolesById.Count);
-      Assert.Equal(359, catalog.Properties.Count);
-      Assert.Equal(359, catalog.PropertiesById.Count);
-      Assert.Equal(359, catalog.PropertiesByParameterGuid.Count);
+      Assert.Equal(15, catalog.CarrierRoles.Count);
+      Assert.Equal(15, catalog.CarrierRolesById.Count);
+      Assert.True(catalog.CarrierRolesById.ContainsKey("SITE_GREEN_OBJECT"));
+      Assert.Equal(363, catalog.Properties.Count);
+      Assert.Equal(363, catalog.PropertiesById.Count);
+      Assert.Equal(363, catalog.PropertiesByParameterGuid.Count);
+      Assert.Equal(
+        4,
+        catalog.PropertiesForRole("SITE_GREEN_OBJECT").Count);
       Assert.Equal(57, catalog.Properties.Count(value =>
         value.RuntimeDecision.Status == NativeRuntimeStatuses.NotImplemented));
       Assert.Equal(302, catalog.Properties.Count(value =>
