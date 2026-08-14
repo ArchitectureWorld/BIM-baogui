@@ -153,6 +153,31 @@ namespace BIMBaoGui.RevitAddin.Tests
         decision.ErrorCode);
     }
 
+    [Fact]
+    public void PreviewRequestCloneDeepCopiesSemanticInputs()
+    {
+      var originalOverride = Override(" b ", " SITE_FIRE_FIELD ");
+      var request = new NativeStage02PreviewRequest
+      {
+        ScopeMode = NativeStage02ScopeMode.CustomSelection,
+        IdentificationMode = NativeStage02IdentificationMode.Manual,
+        CustomUniqueIds = new[] { " b ", "a", "a" },
+        BulkRoleId = " SITE_GREEN_OBJECT ",
+        RoleOverrides = new[] { originalOverride }
+      };
+
+      NativeStage02PreviewRequest clone = request.Clone();
+      originalOverride.RoleId = "CHANGED";
+
+      Assert.Equal(NativeStage02ScopeMode.CustomSelection, clone.ScopeMode);
+      Assert.Equal(NativeStage02IdentificationMode.Manual, clone.IdentificationMode);
+      Assert.Equal(new[] { "a", "b" }, clone.CustomUniqueIds);
+      Assert.Equal("SITE_GREEN_OBJECT", clone.BulkRoleId);
+      Assert.Single(clone.RoleOverrides);
+      Assert.Equal("b", clone.RoleOverrides[0].ElementUniqueId);
+      Assert.Equal("SITE_FIRE_FIELD", clone.RoleOverrides[0].RoleId);
+    }
+
     private static NativeStage02RoleAssignmentDecision Resolve(
       NativeStage02IdentificationMode mode,
       string[] selected,
