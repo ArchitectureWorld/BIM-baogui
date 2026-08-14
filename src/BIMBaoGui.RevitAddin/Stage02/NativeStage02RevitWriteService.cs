@@ -34,8 +34,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
     internal int WrittenElementCount { get; set; }
     internal int FailedParameterCount { get; set; }
     internal int FailedElementCount { get; set; }
-    internal IReadOnlyList<string> Messages { get; set; } =
-      Array.Empty<string>();
+    internal IReadOnlyList<string> Messages { get; set; } = Array.Empty<string>();
     internal NativeStage02Preview RefreshedPreview { get; set; }
     internal NativeStage02PreviewRequest ResolvedRequest { get; set; }
   }
@@ -46,13 +45,11 @@ namespace BIMBaoGui.RevitAddin.Stage02
       UIApplication uiApplication,
       NativeStage02WriteRequest request)
     {
-      if (uiApplication == null)
-        throw new ArgumentNullException(nameof(uiApplication));
+      if (uiApplication == null) throw new ArgumentNullException(nameof(uiApplication));
       if (request?.Preview == null || request.ResolvedRequest == null)
         return Failure(true, "写入请求缺少已确认的 Stage02 预览。" );
       Document document = uiApplication.ActiveUIDocument?.Document;
-      if (document == null)
-        return Failure(true, "当前没有活动 Revit 项目文档。" );
+      if (document == null) return Failure(true, "当前没有活动 Revit 项目文档。" );
 
       NativeStage02RevitPreviewResult rebuilt = RebuildPreview(
         uiApplication,
@@ -89,6 +86,36 @@ namespace BIMBaoGui.RevitAddin.Stage02
         };
       }
 
+      NativeStage02SemanticAssignmentStorageSnapshot storedSnapshot =
+        NativeStage02SemanticAssignmentStorage.Read(document);
+      string[] existingUniqueIds = new FilteredElementCollector(document)
+        .WhereElementIsNotElementType()
+        .Select(value => value.UniqueId)
+        .Where(value => !string.IsNullOrWhiteSpace(value))
+        .ToArray();
+      NativeStage02SemanticAssignmentStorageDecision storageDecision =
+        NativeStage02SemanticAssignmentStoragePolicy.Evaluate(
+          storedSnapshot,
+          existingUniqueIds);
+      if (storageDecision.State == NativeStage02SemanticAssignmentStorageState.Corrupt
+        || storageDecision.State == NativeStage02SemanticAssignmentStorageState.UnsupportedFuture)
+      {
+        return Failure(
+          true,
+          "Stage02 语义角色存储不可写：" + storageDecision.State,
+          storageDecision.Message);
+      }
+      NativeStage02SemanticAssignmentPayload assignmentPayload =
+        storageDecision.Payload ?? new NativeStage02SemanticAssignmentPayload
+        {
+          SchemaVersion = NativeStage02SemanticAssignmentSchema.Version,
+          RulePackageId = NativeStage02RuleCatalog.Current.Identity.PackageId,
+          RulePackageVersion = NativeStage02RuleCatalog.Current.Identity.PackageVersion,
+          Assignments = Array.Empty<NativeStage02SemanticAssignmentRecord>()
+        };
+      assignmentPayload.RulePackageId = NativeStage02RuleCatalog.Current.Identity.PackageId;
+      assignmentPayload.RulePackageVersion = NativeStage02RuleCatalog.Current.Identity.PackageVersion;
+
       var messages = new List<string>();
       var failedPropertyIds = new HashSet<string>(StringComparer.Ordinal);
       int preparedParameters = 0;
@@ -121,30 +148,32 @@ namespace BIMBaoGui.RevitAddin.Stage02
             failedParameters++;
             failedPropertyIds.Add(work.Property.PropertyId);
             messages.Add(
-              "参数准备失败｜"
-              + work.Property.IfcEntity
-              + " / "
-              + work.Property.IfcPropertySet
-              + " / "
-              + work.Property.IfcProperty
-              + "｜"
-              + exception.Message);
-            continue;
+              "参数准备失败｜" + work.Property.IfcEntity + " / "
+              + work.Property.IfcPropertySet + " / " + work.Property.IfcProperty
+              + "｜" + exception.Message);
           }
         }
       }
 
       int writtenElements = 0;
       int failedElements = 0;
+      bool manualRequest = rebuilt.ResolvedRequest?.IdentificationMode
+        == NativeStage02IdentificationMode.Manual;
       foreach (NativeStage02ElementPlan elementPlan in rebuilt.Preview.Elements
         .OrderBy(value => value.Element.UniqueId, StringComparer.Ordinal))
       {
         if (elementPlan.IsBlocked) continue;
+        bool saveManualAssignment = manualRequest
+          && !string.IsNullOrWhiteSpace(elementPlan.Element.AssignedRoleId);
         NativeStage02FieldPlan[] writes = elementPlan.Fields
           .Where(value => value.ValueAction == NativeStage02ValueAction.Set)
           .ToArray();
-        if (writes.Length == 0) continue;
-        if (writes.Any(value => failedPropertyIds.Contains(
+        NativeStage02FieldPlan[] requiredBindings = elementPlan.Fields
+          .Where(value => value.BindingAction == NativeStage02BindingAction.Create
+            || value.BindingAction == NativeStage02BindingAction.MergeCategories)
+          .ToArray();
+        if (!saveManualAssignment && writes.Length == 0) continue;
+        if (requiredBindings.Any(value => failedPropertyIds.Contains(
           value.Property.PropertyId)))
         {
           failedElements++;
@@ -159,12 +188,26 @@ namespace BIMBaoGui.RevitAddin.Stage02
         if (live == null)
         {
           failedElements++;
-          messages.Add(
-            "构件跳过｜UniqueId="
-            + elementPlan.Element.UniqueId
+          messages.Add("构件跳过｜UniqueId=" + elementPlan.Element.UniqueId
             + "｜确认写入时元素已不存在。" );
           continue;
         }
+
+        NativeStage02SemanticAssignmentPayload nextPayload = assignmentPayload;
+        if (saveManualAssignment)
+        {
+          nextPayload = NativeStage02SemanticAssignmentCanonicalizer.Upsert(
+            assignmentPayload,
+            new NativeStage02SemanticAssignmentRecord
+            {
+              ElementUniqueId = elementPlan.Element.UniqueId,
+              RoleId = elementPlan.Element.AssignedRoleId,
+              AssignmentMode = NativeStage02AssignmentMode.Manual,
+              CarrierCategory = elementPlan.Element.Category,
+              CarrierElementKind = elementPlan.Element.ElementKind
+            });
+        }
+
         using (Transaction transaction = new Transaction(
           document,
           "HBR Stage02 构件 " + elementPlan.Element.ElementId))
@@ -181,20 +224,50 @@ namespace BIMBaoGui.RevitAddin.Stage02
                 document,
                 live,
                 field.Property.BindingScope);
-              Parameter parameter = target.get_Parameter(
-                field.Property.ParameterGuid)
+              Parameter parameter = target.get_Parameter(field.Property.ParameterGuid)
                 ?? throw new InvalidOperationException(
-                  "绑定后仍无法取得固定 GUID 参数："
-                  + field.Property.ParameterName);
+                  "绑定后仍无法取得固定 GUID 参数：" + field.Property.ParameterName);
               NativeStage02ValueCodec.WriteAndVerify(
                 parameter,
                 field.Property,
                 field.ProposedCanonicalValue);
             }
+
+            if (saveManualAssignment)
+            {
+              NativeStage02SemanticAssignmentStorageSnapshot nextSnapshot =
+                NativeStage02SemanticAssignmentStoragePolicy.CreateSnapshot(
+                  nextPayload,
+                  DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
+              NativeStage02SemanticAssignmentStorage.Write(document, nextSnapshot);
+              NativeStage02SemanticAssignmentStorageSnapshot roundTrip =
+                NativeStage02SemanticAssignmentStorage.Read(document);
+              NativeStage02SemanticAssignmentStorageDecision roundTripDecision =
+                NativeStage02SemanticAssignmentStoragePolicy.Evaluate(
+                  roundTrip,
+                  existingUniqueIds);
+              if (roundTripDecision.State
+                != NativeStage02SemanticAssignmentStorageState.Current
+                || !roundTripDecision.Payload.Assignments.Any(value =>
+                  string.Equals(
+                    value.ElementUniqueId,
+                    elementPlan.Element.UniqueId,
+                    StringComparison.Ordinal)
+                  && string.Equals(
+                    value.RoleId,
+                    elementPlan.Element.AssignedRoleId,
+                    StringComparison.Ordinal)))
+              {
+                throw new InvalidOperationException(
+                  "SEMANTIC_ASSIGNMENT_READBACK_FAILED：角色记录写入后回读不一致。" );
+              }
+            }
+
             document.Regenerate();
             if (transaction.Commit() != TransactionStatus.Committed)
               throw new InvalidOperationException("构件写入事务未提交。" );
             started = false;
+            if (saveManualAssignment) assignmentPayload = nextPayload;
             writtenElements++;
           }
           catch (Exception exception)
@@ -204,9 +277,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
             messages.Add(
               "构件写入失败｜Id="
               + elementPlan.Element.ElementId.ToString(CultureInfo.InvariantCulture)
-              + "｜"
-              + exception.Message);
-            continue;
+              + "｜" + exception.Message);
           }
         }
       }
@@ -219,11 +290,9 @@ namespace BIMBaoGui.RevitAddin.Stage02
       if (messages.Count == 0)
       {
         messages.Add(
-          "参数准备="
-          + preparedParameters.ToString(CultureInfo.InvariantCulture)
-          + "，构件写入="
-          + writtenElements.ToString(CultureInfo.InvariantCulture)
-          + "。" );
+          "参数准备=" + preparedParameters.ToString(CultureInfo.InvariantCulture)
+          + "，构件写入/角色保存="
+          + writtenElements.ToString(CultureInfo.InvariantCulture) + "。" );
       }
       return new NativeStage02WriteResult
       {
@@ -232,9 +301,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
         RequiresNewPreview = !refreshed.Success,
         Status = !hasFailures
           ? "Stage02 写入完成"
-          : hasSuccess
-            ? "Stage02 部分成功"
-            : "Stage02 写入失败",
+          : hasSuccess ? "Stage02 部分成功" : "Stage02 写入失败",
         PreparedParameterCount = preparedParameters,
         WrittenElementCount = writtenElements,
         FailedParameterCount = failedParameters,
@@ -264,12 +331,10 @@ namespace BIMBaoGui.RevitAddin.Stage02
         foreach (NativeStage02FieldPlan field in element.Fields)
         {
           if (field.BindingAction != NativeStage02BindingAction.Create
-            && field.BindingAction
-              != NativeStage02BindingAction.MergeCategories)
+            && field.BindingAction != NativeStage02BindingAction.MergeCategories)
             continue;
-          if (!byProperty.TryGetValue(
-            field.Property.PropertyId,
-            out BindingWork work))
+          BindingWork work;
+          if (!byProperty.TryGetValue(field.Property.PropertyId, out work))
           {
             work = new BindingWork(field.Property);
             byProperty.Add(field.Property.PropertyId, work);
@@ -297,8 +362,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
 
     private sealed class BindingWork
     {
-      private readonly HashSet<string> _categoryKeys =
-        new HashSet<string>(StringComparer.Ordinal);
+      private readonly HashSet<string> _categoryKeys = new HashSet<string>(
+        StringComparer.Ordinal);
 
       internal BindingWork(NativeStage02PropertyDefinition property)
       {
@@ -312,8 +377,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
 
       internal void AddCategory(string categoryKey)
       {
-        if (!string.IsNullOrWhiteSpace(categoryKey))
-          _categoryKeys.Add(categoryKey);
+        if (!string.IsNullOrWhiteSpace(categoryKey)) _categoryKeys.Add(categoryKey);
       }
     }
   }
