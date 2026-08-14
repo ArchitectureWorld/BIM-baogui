@@ -1,0 +1,22 @@
+{
+  "schema_version": "BIMBAOGUI_REVIT_FUNCTIONAL_BASELINE_V2",
+  "source_commit": "d2fb951a8833dd50a890a56c9605ce328c823f44",
+  "roots": [
+    "src/BIMBaoGui.RevitAddin/Stage01",
+    "src/BIMBaoGui.RevitAddin/Stage02"
+  ],
+  "files": [
+    "src/BIMBaoGui.RevitAddin/McpBridge/McpStage01Adapter.cs"
+  ],
+  "product_line": "BIMBaoGui Revit 2020 Native + MCP",
+  "notes": [
+    "This baseline protects the v0.3.2 Stage01 and Stage02 business implementations while permitting intentional Stage03 integration changes to the workspace, dispatcher, MCP router and installer.",
+    "One canonical Revit product line with manual and MCP entry points.",
+    "Stage01 permits initialization of RVTs that already contain model elements.",
+    "Stage01 optional fields use one collapsed section per directory.",
+    "Stage01 and Stage02 detailed status regions have fixed heights.",
+    "Project conditions are the first required declaration step.",
+    "Users must select actual conditions or explicitly confirm that none apply.",
+    "Stage02 refuses legacy all-false condition payloads until the declaration is completed."
+  ]
+}

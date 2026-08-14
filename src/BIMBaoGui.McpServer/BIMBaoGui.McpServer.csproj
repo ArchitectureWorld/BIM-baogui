@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>BIMBaoGui.McpServer</AssemblyName>
+    <RootNamespace>BIMBaoGui.McpServer</RootNamespace>
+    <Version>0.4.1</Version>
+    <FileVersion>0.4.1.0</FileVersion>
+    <AssemblyVersion>0.4.1.0</AssemblyVersion>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" Version="1.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <ProjectReference Include="..\BIMBaoGui.McpContracts\BIMBaoGui.McpContracts.csproj" />
+  </ItemGroup>
+</Project>

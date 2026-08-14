@@ -1,0 +1,47 @@
+{
+  "schema_version": "BIMBAOGUI_REVIT_FUNCTIONAL_BASELINE_V2",
+  "source_commit": "2a486b00f9b9fd4dc3e2e362013f20f620a05609",
+  "product_line": "BIMBaoGui Revit 2020 Native + MCP",
+  "product_version": "0.4.0",
+  "roots": [
+    "src/BIMBaoGui.HifcCore",
+    "src/BIMBaoGui.RevitAddin/Stage01",
+    "src/BIMBaoGui.RevitAddin/Stage02",
+    "src/BIMBaoGui.RevitAddin/Stage03"
+  ],
+  "files": [
+    "src/BIMBaoGui.RevitAddin/App.cs",
+    "src/BIMBaoGui.RevitAddin/WorkspaceControl.cs",
+    "src/BIMBaoGui.RevitAddin/RevitExternalEventDispatcher.cs",
+    "src/BIMBaoGui.RevitAddin/McpBridge/McpStage01Adapter.cs",
+    "src/BIMBaoGui.RevitAddin/McpBridge/McpStage02Adapter.cs",
+    "src/BIMBaoGui.RevitAddin/McpBridge/McpStage03Adapter.cs",
+    "src/BIMBaoGui.RevitAddin/McpBridge/McpBridgeCommandRouter.cs",
+    "src/BIMBaoGui.McpContracts/ToolContracts.cs",
+    "src/BIMBaoGui.McpServer/BimBaoGuiTools.cs"
+  ],
+  "capabilities": [
+    "Stage01 project conditions are the first required declaration step.",
+    "Stage01 permits initialization of RVTs that already contain model elements.",
+    "Legacy Stage01 payloads receive newly introduced rule condition keys as explicit false values without inventing a user declaration.",
+    "Stage01 validation messages identify the exact field label and fixed field key.",
+    "Stage02 performs deterministic full-model or current-selection preparation.",
+    "Stage03 performs live Stage01 and Stage02 evidence reconstruction before export.",
+    "Stage03 treats missing Stage01 business values as business blockers, so forced-test mode can bypass them without bypassing technical corruption.",
+    "Stage03 defaults to strict mode and supports explicitly reasoned forced-test mode.",
+    "The native H-IFC core owns local source files and does not compile code from the GHA project.",
+    "Autodesk IFC4 RAW is exported without in-place mutation and is protected by SHA-256.",
+    "H-IFC is published only after candidate disk reread and exact Entity, Owner, Pset, Property, IFC type and value validation.",
+    "fields.json records expected and actual IFC types, typed tokens and STEP entity identifiers.",
+    "IFCFlux has no API; external status remains IFCFLUX_MANUAL_PENDING until user inspection.",
+    "Manual Revit UI and MCP use the same Stage01, Stage02 and Stage03 services.",
+    "The MCP surface contains 13 approved business tools and exposes no arbitrary Revit API execution.",
+    "Installer integrity and layout are guarded by dedicated installer contract and smoke tests rather than source-byte baseline comparison."
+  ],
+  "delivery": {
+    "single_revit_branch": "feat/revit-native-addin-mcp-v0.3",
+    "installer_artifact": "BIMBaoGui-Revit2020-Native-MCP-v0.4.0",
+    "target": "Autodesk Revit 2020",
+    "external_acceptance": "IFCFlux manual inspection"
+  }
+}

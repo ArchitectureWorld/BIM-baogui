@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>BIMBaoGui.HifcCore</AssemblyName>
+    <RootNamespace>BIMBaoGui.HifcCore</RootNamespace>
+    <Version>0.4.1</Version>
+    <FileVersion>0.4.1.0</FileVersion>
+    <AssemblyVersion>0.4.1.0</AssemblyVersion>
+    <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>1591</NoWarn>
+  </PropertyGroup>
+</Project>

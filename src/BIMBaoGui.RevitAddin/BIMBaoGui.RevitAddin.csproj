@@ -1,0 +1,81 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>BIMBaoGui.RevitAddin</AssemblyName>
+    <RootNamespace>BIMBaoGui.RevitAddin</RootNamespace>
+    <Version>0.4.1</Version>
+    <FileVersion>0.4.1.0</FileVersion>
+    <AssemblyVersion>0.4.1.0</AssemblyVersion>
+    <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>1591</NoWarn>
+    <HbrBuildNumber Condition="'$(HbrBuildNumber)' == ''">local</HbrBuildNumber>
+    <HbrCommitSha Condition="'$(HbrCommitSha)' == ''">unknown</HbrCommitSha>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <InformationalVersion>$(Version)+build.$(HbrBuildNumber).sha.$(HbrCommitSha)</InformationalVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <HbrPythonExe Condition="'$(HbrPythonExe)' == ''">python</HbrPythonExe>
+    <HbrRuleSource Condition="'$(HbrRuleSource)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'specs', 'hbr-rules', 'v1', 'source', 'hbr_rule_source.v1.json'))</HbrRuleSource>
+    <HbrRulePackCompiler Condition="'$(HbrRulePackCompiler)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'tools', 'build_hbr_rulepack.py'))</HbrRulePackCompiler>
+    <HbrCompatibilityBaseline Condition="'$(HbrCompatibilityBaseline)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '..', 'specs', 'hbr-rules', 'v1', 'compatibility', 'hbr_rule_compatibility_baseline.v1.json'))</HbrCompatibilityBaseline>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="HBR.BuildNumber" Value="$(HbrBuildNumber)" />
+    <AssemblyMetadata Include="HBR.CommitSha" Value="$(HbrCommitSha)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="2020.0.1" PrivateAssets="all" ExcludeAssets="runtime" />
+    <Reference Include="System.Web.Extensions" />
+    <ProjectReference Include="..\BIMBaoGui.HifcCore\BIMBaoGui.HifcCore.csproj" />
+    <ProjectReference Include="..\BIMBaoGui.McpContracts\BIMBaoGui.McpContracts.csproj" />
+  </ItemGroup>
+
+  <Target Name="InitializeHbrRulePackPath">
+    <PropertyGroup>
+      <HbrRulePack Condition="'$(HbrRulePack)' == ''">$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', 'HBR_RulePack.hbrpack'))</HbrRulePack>
+    </PropertyGroup>
+    <ItemGroup>
+      <UpToDateCheckInput Include="$(HbrRuleSource)" />
+      <UpToDateCheckInput Include="$(HbrRulePackCompiler)" />
+      <UpToDateCheckInput Include="$(HbrCompatibilityBaseline)" />
+      <UpToDateCheckBuilt Include="$(HbrRulePack)" Original="$(HbrRuleSource)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="PrepareHbrRulePackResource"
+          DependsOnTargets="InitializeHbrRulePackPath"
+          BeforeTargets="CollectUpToDateCheckInputDesignTime;CollectUpToDateCheckBuiltDesignTime" />
+
+  <Target Name="CompileHbrRulePack"
+          DependsOnTargets="InitializeHbrRulePackPath"
+          Condition="'$(DesignTimeBuild)' != 'true'"
+          Inputs="$(HbrRuleSource);$(HbrRulePackCompiler);$(HbrCompatibilityBaseline)"
+          Outputs="$(HbrRulePack)">
+    <Error Condition="!Exists('$(HbrRuleSource)')" Text="HBR rule source not found: $(HbrRuleSource)" />
+    <Error Condition="!Exists('$(HbrRulePackCompiler)')" Text="HBR rule-pack compiler not found: $(HbrRulePackCompiler)" />
+    <Error Condition="!Exists('$(HbrCompatibilityBaseline)')" Text="HBR compatibility baseline not found: $(HbrCompatibilityBaseline)" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)"
+          EnvironmentVariables="PYTHONUTF8=1"
+          Command="&quot;$(HbrPythonExe)&quot; &quot;$(HbrRulePackCompiler)&quot; --source &quot;$(HbrRuleSource)&quot; --baseline &quot;$(HbrCompatibilityBaseline)&quot; --output &quot;$(HbrRulePack)&quot;" />
+    <Error Condition="!Exists('$(HbrRulePack)')" Text="HBR rule-pack compiler exited without creating: $(HbrRulePack)" />
+  </Target>
+
+  <Target Name="RegisterHbrRulePackResource"
+          BeforeTargets="AssignTargetPaths"
+          DependsOnTargets="InitializeHbrRulePackPath;CompileHbrRulePack">
+    <ItemGroup>
+      <EmbeddedResource Include="$(HbrRulePack)"
+                        LogicalName="BIMBaoGui.RevitAddin.Resources.HBR_RulePack.hbrpack" />
+      <FileWrites Include="$(HbrRulePack)" />
+    </ItemGroup>
+  </Target>
+</Project>

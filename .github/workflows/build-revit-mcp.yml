@@ -1,0 +1,420 @@
+name: Build BIMBaoGui Revit MCP
+
+on:
+  push:
+    branches:
+      - feat/revit-native-addin-mcp-v0.3
+    paths:
+      - "src/BIMBaoGui.HifcCore/**"
+      - "src/BIMBaoGui.RevitAddin/**"
+      - "src/BIMBaoGui.McpContracts/**"
+      - "src/BIMBaoGui.McpServer/**"
+      - "tests/BIMBaoGui.HifcCore.Tests/**"
+      - "tests/BIMBaoGui.RevitAddin.Tests/**"
+      - "tests/BIMBaoGui.McpContracts.Tests/**"
+      - "tests/BIMBaoGui.McpServer.Tests/**"
+      - "tests/test_revit_addin_*.py"
+      - "tools/BIMBaoGui.McpSmoke/**"
+      - "installer/**"
+      - "docs/revit-addin/README.md"
+      - "specs/hbr-rules/**"
+      - "specs/revit-addin/**"
+      - "tools/build_hbr_rulepack.py"
+      - ".github/workflows/build-revit-mcp.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Install Python contract dependencies
+        shell: pwsh
+        run: python -m pip install --disable-pip-version-check pytest==8.3.5 jsonschema==4.23.0
+
+      - name: Verify native and MCP contracts
+        shell: pwsh
+        run: |
+          python -m pytest `
+            tests/test_revit_addin_mcp_non_regression.py `
+            tests/test_revit_addin_scaffold_contract.py `
+            tests/test_revit_addin_installer_contract.py `
+            tests/test_revit_addin_stage01_storage_contract.py `
+            tests/test_revit_addin_stage01_revit_contract.py `
+            tests/test_revit_addin_stage01_ui_contract.py `
+            tests/test_revit_addin_stage02_revit_contract.py `
+            tests/test_revit_addin_stage03_revit_contract.py `
+            tests/test_revit_addin_stage03_ui_contract.py `
+            tests/test_revit_addin_mcp_contract.py `
+            tests/test_revit_addin_mcp_stage03_contract.py `
+            tests/test_revit_addin_mcp_installer_contract.py `
+            tests/test_revit_addin_v041_plan_contract.py `
+            tests/test_revit_addin_v041_contract.py `
+            tests/test_revit_addin_v041_migration_contract.py `
+            tests/test_revit_addin_v041_authority_contract.py `
+            tests/test_revit_addin_v041_conditions_contract.py `
+            tests/test_revit_addin_v041_stage01_runtime_contract.py `
+            -q
+
+      - name: Restore shared rule-pack build dependency
+        shell: pwsh
+        run: dotnet restore src/BIMBaoGui.Stage01/BIMBaoGui.Stage01.csproj
+
+      - name: Verify shared HBR rule database
+        shell: pwsh
+        run: python -m pytest tests/test_hbr_rulepack_compiler.py tests/test_hbr_rules_manifest.py -q
+
+      - name: Restore production and test projects
+        shell: pwsh
+        run: |
+          dotnet restore src/BIMBaoGui.HifcCore/BIMBaoGui.HifcCore.csproj
+          dotnet restore tests/BIMBaoGui.HifcCore.Tests/BIMBaoGui.HifcCore.Tests.csproj
+          dotnet restore tests/BIMBaoGui.McpContracts.Tests/BIMBaoGui.McpContracts.Tests.csproj
+          dotnet restore src/BIMBaoGui.McpServer/BIMBaoGui.McpServer.csproj
+          dotnet restore src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj
+          dotnet restore tests/BIMBaoGui.RevitAddin.Tests/BIMBaoGui.RevitAddin.Tests.csproj
+          dotnet restore tools/BIMBaoGui.McpSmoke/BIMBaoGui.McpSmoke.csproj
+
+      - name: Run H-IFC core tests
+        shell: pwsh
+        run: dotnet test tests/BIMBaoGui.HifcCore.Tests/BIMBaoGui.HifcCore.Tests.csproj -c Release --no-restore --logger "console;verbosity=normal"
+
+      - name: Run MCP contracts tests
+        shell: pwsh
+        run: dotnet test tests/BIMBaoGui.McpContracts.Tests/BIMBaoGui.McpContracts.Tests.csproj -c Release --no-restore --logger "console;verbosity=normal"
+
+      - name: Run native domain tests
+        shell: pwsh
+        run: dotnet test tests/BIMBaoGui.RevitAddin.Tests/BIMBaoGui.RevitAddin.Tests.csproj -c Release --no-restore --logger "console;verbosity=normal" -p:HbrBuildNumber=${{ github.run_number }} -p:HbrCommitSha=${{ github.sha }}
+
+      - name: Build H-IFC core
+        shell: pwsh
+        run: dotnet build src/BIMBaoGui.HifcCore/BIMBaoGui.HifcCore.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true -p:TreatWarningsAsErrors=true
+
+      - name: Build native Revit add-in
+        shell: pwsh
+        run: dotnet build src/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true -p:TreatWarningsAsErrors=true -p:HbrBuildNumber=${{ github.run_number }} -p:HbrCommitSha=${{ github.sha }}
+
+      - name: Verify native Revit add-in identity
+        shell: pwsh
+        run: |
+          $dll = Resolve-Path "src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.RevitAddin.dll"
+          $assembly = [Reflection.Assembly]::LoadFile($dll.Path)
+          $metadata = @{}
+          foreach ($attribute in $assembly.GetCustomAttributesData()) {
+            if ($attribute.AttributeType.FullName -ne "System.Reflection.AssemblyMetadataAttribute") { continue }
+            $metadata[[string]$attribute.ConstructorArguments[0].Value] =
+              [string]$attribute.ConstructorArguments[1].Value
+          }
+          if ($metadata["HBR.BuildNumber"] -ne "${{ github.run_number }}") {
+            throw "Revit DLL build number metadata mismatch."
+          }
+          if ($metadata["HBR.CommitSha"] -ne "${{ github.sha }}") {
+            throw "Revit DLL commit metadata mismatch."
+          }
+          if ($assembly.GetName().Version.ToString() -ne "0.4.1.0") {
+            throw "Revit DLL assembly version mismatch."
+          }
+          $informational = $assembly.GetCustomAttributesData() |
+            Where-Object { $_.AttributeType.FullName -eq "System.Reflection.AssemblyInformationalVersionAttribute" } |
+            Select-Object -First 1
+          if ($null -eq $informational) {
+            throw "Revit DLL informational version metadata is missing."
+          }
+          $expectedInformation = "0.4.1+build.${{ github.run_number }}.sha.${{ github.sha }}"
+          if ([string]$informational.ConstructorArguments[0].Value -ne $expectedInformation) {
+            throw "Revit DLL informational version mismatch."
+          }
+
+      - name: Build MCP server
+        shell: pwsh
+        run: dotnet build src/BIMBaoGui.McpServer/BIMBaoGui.McpServer.csproj -c Release --no-restore -p:ContinuousIntegrationBuild=true -p:TreatWarningsAsErrors=true
+
+      - name: Verify unified product assembly versions
+        shell: pwsh
+        run: |
+          $assemblyPaths = @(
+            "src/BIMBaoGui.HifcCore/bin/Release/net48/BIMBaoGui.HifcCore.dll",
+            "src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.RevitAddin.dll",
+            "src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.McpContracts.dll",
+            "src/BIMBaoGui.McpServer/bin/Release/net8.0/win-x64/BIMBaoGui.McpServer.dll"
+          )
+          foreach ($path in $assemblyPaths) {
+            if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+              throw "Product assembly is missing: $path"
+            }
+            $assembly = [Reflection.AssemblyName]::GetAssemblyName(
+              (Resolve-Path -LiteralPath $path).Path)
+            if ($assembly.Version.ToString() -ne "0.4.1.0") {
+              throw "Product assembly version mismatch: $path => $($assembly.Version)"
+            }
+          }
+
+      - name: Publish self-contained MCP server
+        shell: pwsh
+        run: dotnet publish src/BIMBaoGui.McpServer/BIMBaoGui.McpServer.csproj -c Release -r win-x64 --self-contained true --no-restore -p:PublishSingleFile=true -p:PublishTrimmed=false -p:TreatWarningsAsErrors=true
+
+      - name: Build official SDK smoke client
+        shell: pwsh
+        run: dotnet build tools/BIMBaoGui.McpSmoke/BIMBaoGui.McpSmoke.csproj -c Release --no-restore -p:TreatWarningsAsErrors=true
+
+      - name: Initialize server, list tools and call a read-only tool
+        shell: pwsh
+        run: |
+          $server = "src/BIMBaoGui.McpServer/bin/Release/net8.0/win-x64/publish/BIMBaoGui.McpServer.exe"
+          dotnet run `
+            --project tools/BIMBaoGui.McpSmoke/BIMBaoGui.McpSmoke.csproj `
+            -c Release `
+            --no-build `
+            -- $server
+
+      - name: Probe published server without Revit
+        shell: pwsh
+        run: |
+          $server = "src/BIMBaoGui.McpServer/bin/Release/net8.0/win-x64/publish/BIMBaoGui.McpServer.exe"
+          $stdout = Join-Path $env:RUNNER_TEMP "bimbaogui-mcp-probe.stdout.json"
+          $stderr = Join-Path $env:RUNNER_TEMP "bimbaogui-mcp-probe.stderr.txt"
+          $process = Start-Process `
+            -FilePath $server `
+            -ArgumentList "--probe" `
+            -NoNewWindow `
+            -Wait `
+            -PassThru `
+            -RedirectStandardOutput $stdout `
+            -RedirectStandardError $stderr
+          $probeJson = Get-Content -LiteralPath $stdout -Raw
+          Write-Host $probeJson
+          if ($process.ExitCode -ne 2) {
+            throw "Expected REVIT_NOT_CONNECTED exit code 2, got $($process.ExitCode)."
+          }
+          $probe = $probeJson | ConvertFrom-Json
+          if ($probe.connected -ne $false -or $probe.status -ne "REVIT_NOT_CONNECTED") {
+            throw "Unexpected no-Revit probe payload: $probeJson"
+          }
+
+      - name: Verify single-file MCP publish
+        shell: pwsh
+        run: |
+          $publishRoot = "src/BIMBaoGui.McpServer/bin/Release/net8.0/win-x64/publish"
+          $server = Join-Path $publishRoot "BIMBaoGui.McpServer.exe"
+          if (-not (Test-Path -LiteralPath $server -PathType Leaf)) {
+            throw "Published MCP server executable is missing."
+          }
+          $unexpectedRuntimeFiles = Get-ChildItem -LiteralPath $publishRoot -File |
+            Where-Object {
+              $_.Name -notin @(
+                "BIMBaoGui.McpServer.exe",
+                "BIMBaoGui.McpServer.pdb",
+                "BIMBaoGui.McpContracts.pdb"
+              )
+            }
+          if ($unexpectedRuntimeFiles.Count -gt 0) {
+            throw "MCP publish is not single-file: $($unexpectedRuntimeFiles.Name -join ', ')"
+          }
+
+      - name: Prepare complete installable package
+        shell: pwsh
+        run: |
+          $artifactRoot = "artifacts"
+          $addinPayload = Join-Path $artifactRoot "BIMBaoGui.RevitAddin"
+          $mcpPayload = Join-Path $artifactRoot "BIMBaoGui.McpServer"
+          New-Item -ItemType Directory -Force -Path $addinPayload | Out-Null
+          New-Item -ItemType Directory -Force -Path $mcpPayload | Out-Null
+
+          Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.RevitAddin.dll $addinPayload/
+          Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.RevitAddin.pdb $addinPayload/ -ErrorAction SilentlyContinue
+          Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.McpContracts.dll $addinPayload/
+          Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.McpContracts.pdb $addinPayload/ -ErrorAction SilentlyContinue
+          Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.HifcCore.dll $addinPayload/
+          Copy-Item src/BIMBaoGui.RevitAddin/bin/Release/net48/BIMBaoGui.HifcCore.pdb $addinPayload/ -ErrorAction SilentlyContinue
+          Copy-Item src/BIMBaoGui.McpServer/bin/Release/net8.0/win-x64/publish/BIMBaoGui.McpServer.exe $mcpPayload/
+          Copy-Item src/BIMBaoGui.McpServer/bin/Release/net8.0/win-x64/publish/BIMBaoGui.McpServer.pdb $mcpPayload/ -ErrorAction SilentlyContinue
+
+          Copy-Item installer/BIMBaoGui.RevitAddin.addin $artifactRoot/
+          Copy-Item installer/Install-Revit2020.ps1 $artifactRoot/
+          Copy-Item installer/Install.cmd $artifactRoot/
+          Copy-Item installer/Uninstall.cmd $artifactRoot/
+          Copy-Item installer/McpProbe.cmd $artifactRoot/
+          Copy-Item installer/mcp-server-config.example.json $artifactRoot/
+          Copy-Item docs/revit-addin/README.md $artifactRoot/README.md
+
+          $hashLines = Get-ChildItem -LiteralPath $artifactRoot -Recurse -File |
+            Where-Object { $_.Name -ne "SHA256SUMS.txt" } |
+            Sort-Object FullName |
+            ForEach-Object {
+              $relative = [IO.Path]::GetRelativePath(
+                (Resolve-Path $artifactRoot).Path,
+                $_.FullName).Replace(
+                  [IO.Path]::DirectorySeparatorChar,
+                  [IO.Path]::AltDirectorySeparatorChar)
+              $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+              "$hash  $relative"
+            }
+          Set-Content -LiteralPath (Join-Path $artifactRoot "SHA256SUMS.txt") `
+            -Value $hashLines `
+            -Encoding utf8NoBOM
+
+      - name: Smoke-test complete installer and uninstall
+        shell: pwsh
+        run: |
+          $originalAppData = $env:APPDATA
+          $originalLocalAppData = $env:LOCALAPPDATA
+          $smokeRoot = Join-Path $env:RUNNER_TEMP "BIMBaoGuiMcpInstallerSmoke"
+          try {
+            $env:APPDATA = Join-Path $smokeRoot "AppData"
+            $env:LOCALAPPDATA = Join-Path $smokeRoot "LocalAppData"
+            $legacyRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.4.0"
+            New-Item -ItemType Directory -Force -Path $legacyRoot | Out-Null
+            Set-Content -LiteralPath (Join-Path $legacyRoot "legacy.marker") -Value "legacy"
+
+            & installer/Install-Revit2020.ps1 -SourceRoot "artifacts" -Force
+
+            $addinRoot = Join-Path $env:APPDATA "Autodesk\Revit\Addins\2020"
+            $manifestPath = Join-Path $addinRoot "BIMBaoGui.RevitAddin.addin"
+            $productRoot = Join-Path $addinRoot "BIMBaoGui.RevitAddin"
+            $installedDll = Join-Path $productRoot "BIMBaoGui.RevitAddin.dll"
+            $installedContracts = Join-Path $productRoot "BIMBaoGui.McpContracts.dll"
+            $installedHifcCore = Join-Path $productRoot "BIMBaoGui.HifcCore.dll"
+            $evidencePath = Join-Path $productRoot "install-evidence.json"
+            $mcpRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.4.1"
+            $mcpExe = Join-Path $mcpRoot "BIMBaoGui.McpServer.exe"
+            $mcpConfig = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\mcp-server-config.json"
+
+            if (Test-Path -LiteralPath $legacyRoot) {
+              throw "Installer left the superseded MCP version directory behind."
+            }
+            foreach ($path in @(
+              $manifestPath,
+              $installedDll,
+              $installedContracts,
+              $installedHifcCore,
+              $evidencePath,
+              $mcpExe,
+              $mcpConfig
+            )) {
+              if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+                throw "Installer smoke is missing: $path"
+              }
+            }
+
+            [xml]$manifest = Get-Content -LiteralPath $manifestPath -Raw
+            $assemblyPath = [string]$manifest.RevitAddIns.AddIn.Assembly
+            if (-not [IO.Path]::IsPathRooted($assemblyPath)) {
+              throw "Installed manifest Assembly path is not absolute."
+            }
+            $config = Get-Content -LiteralPath $mcpConfig -Raw | ConvertFrom-Json
+            $configuredCommand = [string]$config.mcpServers.'bimbaogui-revit'.command
+            if (-not [IO.Path]::IsPathRooted($configuredCommand) -or -not (Test-Path -LiteralPath $configuredCommand)) {
+              throw "Generated MCP config command is not an existing absolute path."
+            }
+
+            $evidence = Get-Content -LiteralPath $evidencePath -Raw | ConvertFrom-Json
+            if ($evidence.productVersion -ne "0.4.1") {
+              throw "Install evidence product version mismatch."
+            }
+            if ($evidence.buildNumber -ne "${{ github.run_number }}") {
+              throw "Install evidence build number mismatch."
+            }
+            if ($evidence.commitSha -ne "${{ github.sha }}") {
+              throw "Install evidence commit SHA mismatch."
+            }
+            $actualRevitHash = (Get-FileHash -LiteralPath $installedDll -Algorithm SHA256).Hash.ToLowerInvariant()
+            $actualContractsHash = (Get-FileHash -LiteralPath $installedContracts -Algorithm SHA256).Hash.ToLowerInvariant()
+            $actualHifcCoreHash = (Get-FileHash -LiteralPath $installedHifcCore -Algorithm SHA256).Hash.ToLowerInvariant()
+            $actualMcpHash = (Get-FileHash -LiteralPath $mcpExe -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actualRevitHash -ne $evidence.installedDllSha256) {
+              throw "Installed Revit DLL hash does not match evidence."
+            }
+            if ($actualContractsHash -ne $evidence.contractsDllSha256) {
+              throw "Installed contracts DLL hash does not match evidence."
+            }
+            if ($actualHifcCoreHash -ne $evidence.hifcCoreDllSha256) {
+              throw "Installed H-IFC core DLL hash does not match evidence."
+            }
+            if ($actualMcpHash -ne $evidence.mcpServerExeSha256) {
+              throw "Installed MCP EXE hash does not match evidence."
+            }
+
+            $probeOut = Join-Path $smokeRoot "installed-probe.json"
+            $probeErr = Join-Path $smokeRoot "installed-probe.err"
+            $probeProcess = Start-Process `
+              -FilePath $mcpExe `
+              -ArgumentList "--probe" `
+              -NoNewWindow `
+              -Wait `
+              -PassThru `
+              -RedirectStandardOutput $probeOut `
+              -RedirectStandardError $probeErr
+            if ($probeProcess.ExitCode -ne 2) {
+              throw "Installed MCP probe returned $($probeProcess.ExitCode), expected 2."
+            }
+
+            & installer/Install-Revit2020.ps1 -Uninstall -Force
+            foreach ($path in @($manifestPath, $productRoot, $mcpRoot, $mcpConfig)) {
+              if (Test-Path -LiteralPath $path) {
+                throw "Uninstall left product state behind: $path"
+              }
+            }
+          }
+          finally {
+            $env:APPDATA = $originalAppData
+            $env:LOCALAPPDATA = $originalLocalAppData
+            Remove-Item -LiteralPath $smokeRoot -Recurse -Force -ErrorAction SilentlyContinue
+          }
+
+      - name: Verify installable artifact layout and checksum paths
+        shell: pwsh
+        run: |
+          $required = @(
+            "artifacts/Install.cmd",
+            "artifacts/Uninstall.cmd",
+            "artifacts/McpProbe.cmd",
+            "artifacts/Install-Revit2020.ps1",
+            "artifacts/BIMBaoGui.RevitAddin.addin",
+            "artifacts/mcp-server-config.example.json",
+            "artifacts/BIMBaoGui.RevitAddin/BIMBaoGui.RevitAddin.dll",
+            "artifacts/BIMBaoGui.RevitAddin/BIMBaoGui.McpContracts.dll",
+            "artifacts/BIMBaoGui.RevitAddin/BIMBaoGui.HifcCore.dll",
+            "artifacts/BIMBaoGui.McpServer/BIMBaoGui.McpServer.exe",
+            "artifacts/README.md",
+            "artifacts/SHA256SUMS.txt"
+          )
+          foreach ($path in $required) {
+            if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+              throw "Installable artifact is missing: $path"
+            }
+          }
+          $checksumText = Get-Content -LiteralPath "artifacts/SHA256SUMS.txt" -Raw
+          if ($checksumText.Contains([IO.Path]::DirectorySeparatorChar)) {
+            throw "Checksum manifest contains a backslash path."
+          }
+
+      - name: Upload complete Revit MCP installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: BIMBaoGui-Revit2020-Native-MCP-v0.4.1
+          path: artifacts
+          if-no-files-found: error
+          retention-days: 30

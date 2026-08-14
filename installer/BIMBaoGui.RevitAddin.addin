@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>BIMBaoGui Revit Add-in</Name>
+    <Assembly>BIMBaoGui.RevitAddin\BIMBaoGui.RevitAddin.dll</Assembly>
+    <AddInId>6F3EE836-2A54-43C1-8B90-C9D291E9A8F1</AddInId>
+    <FullClassName>BIMBaoGui.RevitAddin.App</FullClassName>
+    <VendorId>ARWD</VendorId>
+    <VendorDescription>ArchitectureWorld BIM planning approval tools</VendorDescription>
+  </AddIn>
+</RevitAddIns>
