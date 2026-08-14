@@ -6,6 +6,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
 {
   internal static class NativeStage02RoleAssignmentPolicy
   {
+    internal const string AutoOverrideRoleId = "__AUTO__";
+
     internal static NativeStage02RoleAssignmentDecision Resolve(
       NativeStage02ScopeMode scopeMode,
       NativeStage02IdentificationMode identificationMode,
@@ -46,7 +48,6 @@ namespace BIMBaoGui.RevitAddin.Stage02
             "自动识别模式不得携带手动语义角色。",
             selected);
         }
-
         return NativeStage02RoleAssignmentDecision.Success(
           selected,
           Array.Empty<NativeStage02ResolvedAssignment>());
@@ -59,7 +60,6 @@ namespace BIMBaoGui.RevitAddin.Stage02
           "未知识别方式，无法建立语义角色分配。",
           selected);
       }
-
       if (!hasManualInput)
       {
         return NativeStage02RoleAssignmentDecision.Failure(
@@ -67,10 +67,19 @@ namespace BIMBaoGui.RevitAddin.Stage02
           "手动指定模式必须提供批量角色或至少一个逐项角色。",
           selected);
       }
+      if (string.Equals(
+        normalizedBulkRole,
+        AutoOverrideRoleId,
+        StringComparison.Ordinal))
+      {
+        return NativeStage02RoleAssignmentDecision.Failure(
+          NativeStage02RoleAssignmentCodes.RoleIdRequired,
+          "批量语义类型不能使用“恢复自动识别”；该动作仅允许逐构件设置。",
+          selected);
+      }
 
       var selectedSet = new HashSet<string>(selected, StringComparer.Ordinal);
-      var overrideByElement = new Dictionary<string, string>(
-        StringComparer.Ordinal);
+      var overrideByElement = new Dictionary<string, string>(StringComparer.Ordinal);
       foreach (NativeStage02RoleOverride item in overrides)
       {
         if (item.ElementUniqueId.Length == 0 || item.RoleId.Length == 0)
@@ -84,8 +93,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
         {
           return NativeStage02RoleAssignmentDecision.Failure(
             NativeStage02RoleAssignmentCodes.OverrideElementNotSelected,
-            "逐项改写指向了当前选择范围之外的构件："
-              + item.ElementUniqueId,
+            "逐项改写指向了当前选择范围之外的构件：" + item.ElementUniqueId,
             selected);
         }
         string existing;
@@ -95,8 +103,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
           {
             return NativeStage02RoleAssignmentDecision.Failure(
               NativeStage02RoleAssignmentCodes.RoleAssignmentConflict,
-              "同一构件存在互相冲突的手动角色："
-                + item.ElementUniqueId,
+              "同一构件存在互相冲突的手动角色：" + item.ElementUniqueId,
               selected);
           }
           continue;
@@ -110,12 +117,18 @@ namespace BIMBaoGui.RevitAddin.Stage02
         string overrideRole;
         if (overrideByElement.TryGetValue(uniqueId, out overrideRole))
         {
+          bool restoreAutomatic = string.Equals(
+            overrideRole,
+            AutoOverrideRoleId,
+            StringComparison.Ordinal);
           assignments.Add(new NativeStage02ResolvedAssignment
           {
             ElementUniqueId = uniqueId,
-            RoleId = overrideRole,
-            AssignmentMode = NativeStage02AssignmentMode.Manual,
-            Source = "Override"
+            RoleId = restoreAutomatic ? string.Empty : overrideRole,
+            AssignmentMode = restoreAutomatic
+              ? NativeStage02AssignmentMode.Auto
+              : NativeStage02AssignmentMode.Manual,
+            Source = restoreAutomatic ? "OverrideAuto" : "Override"
           });
           continue;
         }
@@ -133,9 +146,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
 
       return NativeStage02RoleAssignmentDecision.Success(
         selected,
-        assignments.OrderBy(
-          value => value.ElementUniqueId,
-          StringComparer.Ordinal));
+        assignments.OrderBy(value => value.ElementUniqueId, StringComparer.Ordinal));
     }
 
     private static string[] CanonicalizeIds(IEnumerable<string> values)
