@@ -1,0 +1,1186 @@
+{
+  "overlaySchemaVersion": "1.0.0",
+  "targetPackageId": "HBR-WUHAN-PLANNING",
+  "targetPackageVersion": "1.0.0",
+  "evidence": {
+    "officialIfcEntity": "IfcBuildingElementProxy",
+    "officialPropertySet": "Pset_绿地信息属性集",
+    "revit2020CarrierCategory": "OST_BuildingPad",
+    "revit2020CarrierElementKind": "BuildingPad"
+  },
+  "carrierRoles": [
+    {
+      "roleId": "SITE_GREEN_OBJECT",
+      "displayName": "绿地",
+      "modelFileTypes": [
+        "总平模型"
+      ],
+      "ifcEntity": "IfcBuildingElementProxy",
+      "revitCategories": [],
+      "allowedElementKinds": [],
+      "nameAliases": [
+        "绿地"
+      ],
+      "familyAliases": [],
+      "typeAliases": [
+        "集中绿地",
+        "宅旁绿地",
+        "水域",
+        "屋顶绿地",
+        "口袋公园",
+        "道路绿地",
+        "附属绿地",
+        "其它绿地"
+      ],
+      "cardinality": {
+        "min": 0,
+        "max": null
+      },
+      "selectionPolicy": "MANUAL_SEMANTIC_ASSIGNMENT",
+      "ifcOwnerStrategy": "BY_EXPORT_GUID",
+      "conditionId": "site.green",
+      "manualCarriers": [
+        {
+          "category": "OST_BuildingPad",
+          "elementKinds": [
+            "BuildingPad"
+          ]
+        }
+      ]
+    }
+  ],
+  "properties": [
+    {
+      "propertyId": "4d9d7775-e83c-5357-8f3e-1e6a6692e793",
+      "contractKind": "HIFC_EXTENSION",
+      "ifc": {
+        "entity": "IfcBuildingElementProxy",
+        "propertySet": "Pset_绿地信息属性集",
+        "property": "类型",
+        "declaredType": "IfcLabel",
+        "canonicalUnit": null
+      },
+      "revit": {
+        "parameterGuid": "4d9d7775-e83c-5357-8f3e-1e6a6692e793",
+        "parameterName": "HBR｜绿地对象属性集｜分类名称",
+        "legacyNames": [],
+        "visible": true,
+        "userModifiable": false,
+        "bindingScope": "INSTANCE",
+        "storageType": "String",
+        "parameterType": "Text"
+      },
+      "carrierRoleIds": [
+        "SITE_GREEN_OBJECT"
+      ],
+      "requirement": {
+        "level": "CONDITIONAL",
+        "conditionId": "site.green"
+      },
+      "stageOwnership": [
+        "STAGE02",
+        "STAGE03"
+      ],
+      "suggestion": {
+        "kind": "SYSTEM_FIXED",
+        "aliases": [
+          "绿地"
+        ]
+      },
+      "ifcWrite": {
+        "writeStrategy": "CREATE_OR_UPDATE_PSET",
+        "ownerStrategy": "BY_EXPORT_GUID"
+      }
+    },
+    {
+      "propertyId": "6cc053e3-891d-51b1-b861-af498733f73a",
+      "contractKind": "HIFC_EXTENSION",
+      "ifc": {
+        "entity": "IfcBuildingElementProxy",
+        "propertySet": "Pset_绿地信息属性集",
+        "property": "投影面积",
+        "declaredType": "IfcReal",
+        "canonicalUnit": "m2"
+      },
+      "revit": {
+        "parameterGuid": "6cc053e3-891d-51b1-b861-af498733f73a",
+        "parameterName": "HBR｜绿地对象属性集｜投影面积",
+        "legacyNames": [],
+        "visible": true,
+        "userModifiable": true,
+        "bindingScope": "INSTANCE",
+        "storageType": "Double",
+        "parameterType": "Area"
+      },
+      "carrierRoleIds": [
+        "SITE_GREEN_OBJECT"
+      ],
+      "requirement": {
+        "level": "CONDITIONAL",
+        "conditionId": "site.green"
+      },
+      "stageOwnership": [
+        "STAGE02",
+        "STAGE03"
+      ],
+      "suggestion": {
+        "kind": "APPROVED_REVIT_AREA",
+        "aliases": []
+      },
+      "ifcWrite": {
+        "writeStrategy": "CREATE_OR_UPDATE_PSET",
+        "ownerStrategy": "BY_EXPORT_GUID"
+      }
+    },
+    {
+      "propertyId": "3fd74b35-3164-5248-9fe9-c675992a4292",
+      "contractKind": "HIFC_EXTENSION",
+      "ifc": {
+        "entity": "IfcBuildingElementProxy",
+        "propertySet": "Pset_绿地信息属性集",
+        "property": "绿地类型",
+        "declaredType": "IfcLabel",
+        "canonicalUnit": null
+      },
+      "revit": {
+        "parameterGuid": "3fd74b35-3164-5248-9fe9-c675992a4292",
+        "parameterName": "HBR｜绿地对象属性集｜绿地类型",
+        "legacyNames": [],
+        "visible": true,
+        "userModifiable": true,
+        "bindingScope": "INSTANCE",
+        "storageType": "String",
+        "parameterType": "Text"
+      },
+      "carrierRoleIds": [
+        "SITE_GREEN_OBJECT"
+      ],
+      "requirement": {
+        "level": "CONDITIONAL",
+        "conditionId": "site.green"
+      },
+      "stageOwnership": [
+        "STAGE02",
+        "STAGE03"
+      ],
+      "suggestion": {
+        "kind": "EXACT_ENUM_FROM_TYPE",
+        "aliases": [
+          "集中绿地",
+          "宅旁绿地",
+          "水域",
+          "屋顶绿地",
+          "口袋公园",
+          "道路绿地",
+          "附属绿地",
+          "其它绿地"
+        ]
+      },
+      "ifcWrite": {
+        "writeStrategy": "CREATE_OR_UPDATE_PSET",
+        "ownerStrategy": "BY_EXPORT_GUID"
+      }
+    },
+    {
+      "propertyId": "a99a0961-05fe-56fd-b8a0-865410bfe72f",
+      "contractKind": "HIFC_EXTENSION",
+      "ifc": {
+        "entity": "IfcBuildingElementProxy",
+        "propertySet": "Pset_绿地信息属性集",
+        "property": "折算系数",
+        "declaredType": "IfcReal",
+        "canonicalUnit": null
+      },
+      "revit": {
+        "parameterGuid": "a99a0961-05fe-56fd-b8a0-865410bfe72f",
+        "parameterName": "HBR｜绿地对象属性集｜折算系数",
+        "legacyNames": [],
+        "visible": true,
+        "userModifiable": true,
+        "bindingScope": "INSTANCE",
+        "storageType": "Double",
+        "parameterType": "Number"
+      },
+      "carrierRoleIds": [
+        "SITE_GREEN_OBJECT"
+      ],
+      "requirement": {
+        "level": "CONDITIONAL",
+        "conditionId": "site.green"
+      },
+      "stageOwnership": [
+        "STAGE02",
+        "STAGE03"
+      ],
+      "suggestion": {
+        "kind": "PENDING_INPUT",
+        "aliases": []
+      },
+      "ifcWrite": {
+        "writeStrategy": "CREATE_OR_UPDATE_PSET",
+        "ownerStrategy": "BY_EXPORT_GUID"
+      }
+    }
+  ],
+  "nativeReporting": {
+    "schemaVersion": "1.0.0",
+    "profiles": [
+      {
+        "modelFileType": "总平模型",
+        "strictNoNotApplicable": true,
+        "taskIds": [
+          "SITE.SKELETON",
+          "SITE.TOTAL_LAND",
+          "SITE.NET_LAND",
+          "SITE.BUILDING_FOOTPRINT",
+          "SITE.OTHER_LAND",
+          "SITE.ROAD_REDLINE",
+          "SITE.ROAD_CENTERLINE",
+          "SITE.INTERNAL_ROADS",
+          "SITE.FIRE_LANE",
+          "SITE.FIRE_FIELD",
+          "SITE.GREEN",
+          "SITE.OUTDOOR_PARKING",
+          "SITE.CIVIL_DEFENSE",
+          "SITE.STRUCTURES",
+          "SITE.TARGET_CHECK"
+        ]
+      }
+    ],
+    "internalProperties": [
+      {
+        "propertyId": "2f9e7336-4758-55d6-8cbb-cee8bb254bd8",
+        "canonicalKey": "HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_TOTAL_LAND|用地类型",
+        "displayName": "规划总用地｜用地类型",
+        "valueKind": "TEXT",
+        "canonicalUnit": null,
+        "revit": {
+          "parameterGuid": "2f9e7336-4758-55d6-8cbb-cee8bb254bd8",
+          "parameterName": "HBR｜总平内部｜规划总用地｜用地类型",
+          "storageType": "String",
+          "parameterType": "Text",
+          "bindingScope": "INSTANCE"
+        },
+        "evidenceStatus": "INTERNAL_ONLY",
+        "officialExportVerified": false
+      },
+      {
+        "propertyId": "11ee1873-ad4c-526c-ad3c-4cc4847c43e0",
+        "canonicalKey": "HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_NET_LAND|用地类型",
+        "displayName": "规划净用地｜用地类型",
+        "valueKind": "TEXT",
+        "canonicalUnit": null,
+        "revit": {
+          "parameterGuid": "11ee1873-ad4c-526c-ad3c-4cc4847c43e0",
+          "parameterName": "HBR｜总平内部｜规划净用地｜用地类型",
+          "storageType": "String",
+          "parameterType": "Text",
+          "bindingScope": "INSTANCE"
+        },
+        "evidenceStatus": "INTERNAL_ONLY",
+        "officialExportVerified": false
+      },
+      {
+        "propertyId": "450f0c45-6024-598d-babd-98b05391c678",
+        "canonicalKey": "HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_ROAD_CENTERLINE|道路等级",
+        "displayName": "道路中心线｜道路等级",
+        "valueKind": "TEXT",
+        "canonicalUnit": null,
+        "revit": {
+          "parameterGuid": "450f0c45-6024-598d-babd-98b05391c678",
+          "parameterName": "HBR｜总平内部｜道路中心线｜道路等级",
+          "storageType": "String",
+          "parameterType": "Text",
+          "bindingScope": "INSTANCE"
+        },
+        "evidenceStatus": "INTERNAL_ONLY",
+        "officialExportVerified": false
+      },
+      {
+        "propertyId": "9d03bc4c-96da-53fb-95d1-9cbe5a4bf0ad",
+        "canonicalKey": "HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_INTERNAL_ROADS|道路名称",
+        "displayName": "区内道路｜道路名称",
+        "valueKind": "TEXT",
+        "canonicalUnit": null,
+        "revit": {
+          "parameterGuid": "9d03bc4c-96da-53fb-95d1-9cbe5a4bf0ad",
+          "parameterName": "HBR｜总平内部｜区内道路｜道路名称",
+          "storageType": "String",
+          "parameterType": "Text",
+          "bindingScope": "INSTANCE"
+        },
+        "evidenceStatus": "INTERNAL_ONLY",
+        "officialExportVerified": false
+      },
+      {
+        "propertyId": "277c9f25-38fd-5e4b-a18e-23cd05f4fd32",
+        "canonicalKey": "HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_FIRE_LANE|名称",
+        "displayName": "消防道路｜名称",
+        "valueKind": "TEXT",
+        "canonicalUnit": null,
+        "revit": {
+          "parameterGuid": "277c9f25-38fd-5e4b-a18e-23cd05f4fd32",
+          "parameterName": "HBR｜总平内部｜消防道路｜名称",
+          "storageType": "String",
+          "parameterType": "Text",
+          "bindingScope": "INSTANCE"
+        },
+        "evidenceStatus": "INTERNAL_ONLY",
+        "officialExportVerified": false
+      },
+      {
+        "propertyId": "8457b54b-8f9b-56b4-981c-3ee4038ab9ec",
+        "canonicalKey": "HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_FIRE_LANE|道路宽度",
+        "displayName": "消防道路｜道路宽度",
+        "valueKind": "LENGTH",
+        "canonicalUnit": "m",
+        "revit": {
+          "parameterGuid": "8457b54b-8f9b-56b4-981c-3ee4038ab9ec",
+          "parameterName": "HBR｜总平内部｜消防道路｜道路宽度",
+          "storageType": "Double",
+          "parameterType": "Length",
+          "bindingScope": "INSTANCE"
+        },
+        "evidenceStatus": "INTERNAL_ONLY",
+        "officialExportVerified": false
+      },
+      {
+        "propertyId": "dc79663b-0462-5d01-ae31-d160540086a4",
+        "canonicalKey": "HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_FIRE_LANE|转弯半径",
+        "displayName": "消防道路｜转弯半径",
+        "valueKind": "LENGTH",
+        "canonicalUnit": "m",
+        "revit": {
+          "parameterGuid": "dc79663b-0462-5d01-ae31-d160540086a4",
+          "parameterName": "HBR｜总平内部｜消防道路｜转弯半径",
+          "storageType": "Double",
+          "parameterType": "Length",
+          "bindingScope": "INSTANCE"
+        },
+        "evidenceStatus": "INTERNAL_ONLY",
+        "officialExportVerified": false
+      },
+      {
+        "propertyId": "1834163c-cefd-56a6-ba68-f8266cedf95e",
+        "canonicalKey": "HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_FIRE_FIELD|场地类型",
+        "displayName": "消防场地｜场地类型",
+        "valueKind": "TEXT",
+        "canonicalUnit": null,
+        "revit": {
+          "parameterGuid": "1834163c-cefd-56a6-ba68-f8266cedf95e",
+          "parameterName": "HBR｜总平内部｜消防场地｜场地类型",
+          "storageType": "String",
+          "parameterType": "Text",
+          "bindingScope": "INSTANCE"
+        },
+        "evidenceStatus": "INTERNAL_ONLY",
+        "officialExportVerified": false
+      },
+      {
+        "propertyId": "1d7fd3ce-080c-5448-bd13-7e1981b63758",
+        "canonicalKey": "HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_CIVIL_DEFENSE|人防类型",
+        "displayName": "人防区域｜人防类型",
+        "valueKind": "TEXT",
+        "canonicalUnit": null,
+        "revit": {
+          "parameterGuid": "1d7fd3ce-080c-5448-bd13-7e1981b63758",
+          "parameterName": "HBR｜总平内部｜人防区域｜人防类型",
+          "storageType": "String",
+          "parameterType": "Text",
+          "bindingScope": "INSTANCE"
+        },
+        "evidenceStatus": "INTERNAL_ONLY",
+        "officialExportVerified": false
+      },
+      {
+        "propertyId": "131f758e-4f80-5ec5-8cf7-cdc4537233a1",
+        "canonicalKey": "HBR_NATIVE_REPORTING_INTERNAL|1.0.0|SITE_STRUCTURES|数量",
+        "displayName": "室外构筑物与设施｜数量",
+        "valueKind": "INTEGER",
+        "canonicalUnit": "个",
+        "revit": {
+          "parameterGuid": "131f758e-4f80-5ec5-8cf7-cdc4537233a1",
+          "parameterName": "HBR｜总平内部｜室外构筑物与设施｜数量",
+          "storageType": "Integer",
+          "parameterType": "Integer",
+          "bindingScope": "INSTANCE"
+        },
+        "evidenceStatus": "INTERNAL_ONLY",
+        "officialExportVerified": false
+      }
+    ],
+    "semanticRoles": [
+      {
+        "roleId": "SITE_TOTAL_LAND",
+        "taskId": "SITE.TOTAL_LAND",
+        "displayName": "规划总用地",
+        "candidateAliases": [
+          "总用地",
+          "规划总用地"
+        ],
+        "internalCarrierStatus": "INTERNAL_ONLY",
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "attributeMappings": [
+          {
+            "attributeRequirement": "名称",
+            "internalPropertyId": "dc982a98-fc31-5e99-ac67-5ee489daeb86",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "用地类型",
+            "internalPropertyId": "2f9e7336-4758-55d6-8cbb-cee8bb254bd8",
+            "definitionSource": "NATIVE_INTERNAL_EXTENSION"
+          },
+          {
+            "attributeRequirement": "投影面积",
+            "internalPropertyId": "b970d6b1-92c9-51d2-8fac-187808a07801",
+            "definitionSource": "RULE_PROPERTY"
+          }
+        ]
+      },
+      {
+        "roleId": "SITE_NET_LAND",
+        "taskId": "SITE.NET_LAND",
+        "displayName": "规划净用地",
+        "candidateAliases": [
+          "净用地",
+          "规划净用地"
+        ],
+        "internalCarrierStatus": "INTERNAL_ONLY",
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "attributeMappings": [
+          {
+            "attributeRequirement": "名称",
+            "internalPropertyId": "81f745fe-f61f-55a1-922f-4a1fb05baaa0",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "用地类型",
+            "internalPropertyId": "11ee1873-ad4c-526c-ad3c-4cc4847c43e0",
+            "definitionSource": "NATIVE_INTERNAL_EXTENSION"
+          },
+          {
+            "attributeRequirement": "投影面积",
+            "internalPropertyId": "c42ea80f-4a12-5d4b-8bba-2374135d9d2a",
+            "definitionSource": "RULE_PROPERTY"
+          }
+        ]
+      },
+      {
+        "roleId": "SITE_BUILDING_FOOTPRINT",
+        "taskId": "SITE.BUILDING_FOOTPRINT",
+        "displayName": "建筑轮廓或建筑占地表达",
+        "candidateAliases": [
+          "建筑占地",
+          "建筑基底",
+          "建筑轮廓"
+        ],
+        "internalCarrierStatus": "INTERNAL_ONLY",
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "attributeMappings": [
+          {
+            "attributeRequirement": "建筑名称",
+            "internalPropertyId": "4225a5de-c942-54aa-874a-28a1e67ce39c",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "建筑编号",
+            "internalPropertyId": "6b9e1517-695c-54fc-bf8a-3800d18019a0",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "占地面积",
+            "internalPropertyId": "43b52fa7-4954-5409-9389-4eddb97807a2",
+            "definitionSource": "RULE_PROPERTY"
+          }
+        ]
+      },
+      {
+        "roleId": "SITE_OTHER_LAND",
+        "taskId": "SITE.OTHER_LAND",
+        "displayName": "其他分类用地",
+        "candidateAliases": [
+          "其他分类用地",
+          "其它用地"
+        ],
+        "internalCarrierStatus": "INTERNAL_ONLY",
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "attributeMappings": [
+          {
+            "attributeRequirement": "名称",
+            "internalPropertyId": "0c15f6bd-0dfb-545a-bd4f-8c773f7aa6b5",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "用地分类",
+            "internalPropertyId": "40f7e661-5c21-5ed0-afe2-def81322eb06",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "投影面积",
+            "internalPropertyId": "f1c6c634-887c-51bd-9b12-2b734d5aa7bd",
+            "definitionSource": "RULE_PROPERTY"
+          }
+        ]
+      },
+      {
+        "roleId": "SITE_ROAD_REDLINE",
+        "taskId": "SITE.ROAD_REDLINE",
+        "displayName": "道路红线",
+        "candidateAliases": [
+          "道路红线"
+        ],
+        "internalCarrierStatus": "INTERNAL_ONLY",
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "attributeMappings": [
+          {
+            "attributeRequirement": "名称",
+            "internalPropertyId": "2b251cbc-2dfb-5bd9-8013-d5be0d846e69",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "红线类型",
+            "internalPropertyId": "1b387099-43df-5c34-86eb-f6183395a934",
+            "definitionSource": "RULE_PROPERTY"
+          }
+        ]
+      },
+      {
+        "roleId": "SITE_ROAD_CENTERLINE",
+        "taskId": "SITE.ROAD_CENTERLINE",
+        "displayName": "道路中心线",
+        "candidateAliases": [
+          "道路中心线"
+        ],
+        "internalCarrierStatus": "INTERNAL_ONLY",
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "attributeMappings": [
+          {
+            "attributeRequirement": "名称",
+            "internalPropertyId": "9b49b6b0-545b-5280-9b00-bb338cdc2ef6",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "道路等级",
+            "internalPropertyId": "450f0c45-6024-598d-babd-98b05391c678",
+            "definitionSource": "NATIVE_INTERNAL_EXTENSION"
+          }
+        ]
+      },
+      {
+        "roleId": "SITE_INTERNAL_ROADS",
+        "taskId": "SITE.INTERNAL_ROADS",
+        "displayName": "区内道路",
+        "candidateAliases": [
+          "内部道路",
+          "区内道路"
+        ],
+        "internalCarrierStatus": "INTERNAL_ONLY",
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "attributeMappings": [
+          {
+            "attributeRequirement": "道路名称",
+            "internalPropertyId": "9d03bc4c-96da-53fb-95d1-9cbe5a4bf0ad",
+            "definitionSource": "NATIVE_INTERNAL_EXTENSION"
+          },
+          {
+            "attributeRequirement": "道路类型",
+            "internalPropertyId": "e931547d-497e-5582-849e-451eee359411",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "道路宽度",
+            "internalPropertyId": "5f1a2f9e-7fb5-56c2-b410-e094a079f40e",
+            "definitionSource": "RULE_PROPERTY"
+          }
+        ]
+      },
+      {
+        "roleId": "SITE_FIRE_LANE",
+        "taskId": "SITE.FIRE_LANE",
+        "displayName": "消防道路",
+        "candidateAliases": [
+          "消防车道",
+          "消防道路"
+        ],
+        "internalCarrierStatus": "INTERNAL_ONLY",
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "attributeMappings": [
+          {
+            "attributeRequirement": "名称",
+            "internalPropertyId": "277c9f25-38fd-5e4b-a18e-23cd05f4fd32",
+            "definitionSource": "NATIVE_INTERNAL_EXTENSION"
+          },
+          {
+            "attributeRequirement": "道路宽度",
+            "internalPropertyId": "8457b54b-8f9b-56b4-981c-3ee4038ab9ec",
+            "definitionSource": "NATIVE_INTERNAL_EXTENSION"
+          },
+          {
+            "attributeRequirement": "转弯半径",
+            "internalPropertyId": "dc79663b-0462-5d01-ae31-d160540086a4",
+            "definitionSource": "NATIVE_INTERNAL_EXTENSION"
+          }
+        ]
+      },
+      {
+        "roleId": "SITE_FIRE_FIELD",
+        "taskId": "SITE.FIRE_FIELD",
+        "displayName": "消防登高或操作场地",
+        "candidateAliases": [
+          "消防操作场地",
+          "消防登高场地"
+        ],
+        "internalCarrierStatus": "INTERNAL_ONLY",
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "attributeMappings": [
+          {
+            "attributeRequirement": "名称",
+            "internalPropertyId": "41a8f3ca-d057-5263-9dce-30bf795ae20d",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "场地类型",
+            "internalPropertyId": "1834163c-cefd-56a6-ba68-f8266cedf95e",
+            "definitionSource": "NATIVE_INTERNAL_EXTENSION"
+          },
+          {
+            "attributeRequirement": "投影面积",
+            "internalPropertyId": "ace69397-c24a-5c6a-a253-3bf5fc657cd0",
+            "definitionSource": "RULE_PROPERTY"
+          }
+        ]
+      },
+      {
+        "roleId": "SITE_GREEN_OBJECT",
+        "taskId": "SITE.GREEN",
+        "displayName": "绿地",
+        "candidateAliases": [
+          "绿地"
+        ],
+        "internalCarrierStatus": "INTERNAL_ONLY",
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "attributeMappings": [
+          {
+            "attributeRequirement": "绿地类型",
+            "internalPropertyId": "3fd74b35-3164-5248-9fe9-c675992a4292",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "投影面积",
+            "internalPropertyId": "6cc053e3-891d-51b1-b861-af498733f73a",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "折算系数",
+            "internalPropertyId": "a99a0961-05fe-56fd-b8a0-865410bfe72f",
+            "definitionSource": "RULE_PROPERTY"
+          }
+        ]
+      },
+      {
+        "roleId": "SITE_OUTDOOR_PARKING",
+        "taskId": "SITE.OUTDOOR_PARKING",
+        "displayName": "室外停车场或车位",
+        "candidateAliases": [
+          "室外停车场",
+          "室外车位"
+        ],
+        "internalCarrierStatus": "INTERNAL_ONLY",
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "attributeMappings": [
+          {
+            "attributeRequirement": "停车类型",
+            "internalPropertyId": "4f90183f-8105-58c4-93f6-e7525c4096b3",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "车位数量",
+            "internalPropertyId": "82dd52d2-1192-5d97-aa4b-a912cccb2709",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "投影面积",
+            "internalPropertyId": "f020407e-9400-5eab-bf3b-0e3bcc138ba6",
+            "definitionSource": "RULE_PROPERTY"
+          }
+        ]
+      },
+      {
+        "roleId": "SITE_CIVIL_DEFENSE",
+        "taskId": "SITE.CIVIL_DEFENSE",
+        "displayName": "人防区域",
+        "candidateAliases": [
+          "人防",
+          "人防区域"
+        ],
+        "internalCarrierStatus": "INTERNAL_ONLY",
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "attributeMappings": [
+          {
+            "attributeRequirement": "名称",
+            "internalPropertyId": "f2fafcc9-abfd-55de-a54a-30f05180351b",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "人防类型",
+            "internalPropertyId": "1d7fd3ce-080c-5448-bd13-7e1981b63758",
+            "definitionSource": "NATIVE_INTERNAL_EXTENSION"
+          },
+          {
+            "attributeRequirement": "投影面积",
+            "internalPropertyId": "5f9489f6-9809-5899-b949-2fa58d00cc1f",
+            "definitionSource": "RULE_PROPERTY"
+          }
+        ]
+      },
+      {
+        "roleId": "SITE_STRUCTURES",
+        "taskId": "SITE.STRUCTURES",
+        "displayName": "室外构筑物与设施",
+        "candidateAliases": [
+          "室外构筑物",
+          "室外设施"
+        ],
+        "internalCarrierStatus": "INTERNAL_ONLY",
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "attributeMappings": [
+          {
+            "attributeRequirement": "名称",
+            "internalPropertyId": "21ac8910-524a-5f61-9d0c-a0a7bdd0c1a3",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "设施类型",
+            "internalPropertyId": "1b1f9357-ac7a-5339-9c7f-770bb91ac10f",
+            "definitionSource": "RULE_PROPERTY"
+          },
+          {
+            "attributeRequirement": "数量",
+            "internalPropertyId": "131f758e-4f80-5ec5-8cf7-cdc4537233a1",
+            "definitionSource": "NATIVE_INTERNAL_EXTENSION"
+          }
+        ]
+      }
+    ],
+    "geometryEvaluationPolicies": [
+      {
+        "taskId": "SITE.SKELETON",
+        "ruleText": "项目基点与共享坐标有效",
+        "mode": "AUTO_SHARED_COORDINATE"
+      },
+      {
+        "taskId": "SITE.SKELETON",
+        "ruleText": "总平计算平面有效",
+        "mode": "AUTO_PLANAR_REFERENCE"
+      },
+      {
+        "taskId": "SITE.TOTAL_LAND",
+        "ruleText": "边界闭合",
+        "mode": "AUTO_CLOSED_BOUNDARY",
+        "subjectRoleId": "SITE_TOTAL_LAND"
+      },
+      {
+        "taskId": "SITE.TOTAL_LAND",
+        "ruleText": "无自交",
+        "mode": "AUTO_NO_SELF_INTERSECTION",
+        "subjectRoleId": "SITE_TOTAL_LAND"
+      },
+      {
+        "taskId": "SITE.TOTAL_LAND",
+        "ruleText": "面积大于零",
+        "mode": "AUTO_POSITIVE_AREA",
+        "subjectRoleId": "SITE_TOTAL_LAND"
+      },
+      {
+        "taskId": "SITE.NET_LAND",
+        "ruleText": "边界闭合",
+        "mode": "AUTO_CLOSED_BOUNDARY",
+        "subjectRoleId": "SITE_NET_LAND"
+      },
+      {
+        "taskId": "SITE.NET_LAND",
+        "ruleText": "位于规划总用地内",
+        "mode": "AUTO_CONTAINED_BY_ROLE",
+        "subjectRoleId": "SITE_NET_LAND",
+        "referenceRoleId": "SITE_TOTAL_LAND"
+      },
+      {
+        "taskId": "SITE.NET_LAND",
+        "ruleText": "面积大于零",
+        "mode": "AUTO_POSITIVE_AREA",
+        "subjectRoleId": "SITE_NET_LAND"
+      },
+      {
+        "taskId": "SITE.BUILDING_FOOTPRINT",
+        "ruleText": "轮廓闭合",
+        "mode": "AUTO_CLOSED_BOUNDARY",
+        "subjectRoleId": "SITE_BUILDING_FOOTPRINT"
+      },
+      {
+        "taskId": "SITE.BUILDING_FOOTPRINT",
+        "ruleText": "位于规划净用地内",
+        "mode": "AUTO_CONTAINED_BY_ROLE",
+        "subjectRoleId": "SITE_BUILDING_FOOTPRINT",
+        "referenceRoleId": "SITE_NET_LAND"
+      },
+      {
+        "taskId": "SITE.BUILDING_FOOTPRINT",
+        "ruleText": "建筑轮廓不重复",
+        "mode": "AUTO_NO_DUPLICATE_GEOMETRY",
+        "subjectRoleId": "SITE_BUILDING_FOOTPRINT"
+      },
+      {
+        "taskId": "SITE.OTHER_LAND",
+        "ruleText": "边界闭合",
+        "mode": "AUTO_CLOSED_BOUNDARY",
+        "subjectRoleId": "SITE_OTHER_LAND"
+      },
+      {
+        "taskId": "SITE.OTHER_LAND",
+        "ruleText": "用地关系有效",
+        "mode": "MANUAL_CURRENT_SNAPSHOT_REVIEW",
+        "subjectRoleId": "SITE_OTHER_LAND"
+      },
+      {
+        "taskId": "SITE.ROAD_REDLINE",
+        "ruleText": "曲线连续",
+        "mode": "AUTO_CONTINUOUS_CURVE_CHAIN",
+        "subjectRoleId": "SITE_ROAD_REDLINE"
+      },
+      {
+        "taskId": "SITE.ROAD_REDLINE",
+        "ruleText": "无无效短线",
+        "mode": "AUTO_MIN_SEGMENT_LENGTH",
+        "subjectRoleId": "SITE_ROAD_REDLINE",
+        "thresholdSource": "REVIT_APPLICATION_SHORT_CURVE_TOLERANCE"
+      },
+      {
+        "taskId": "SITE.ROAD_CENTERLINE",
+        "ruleText": "中心线连续",
+        "mode": "AUTO_CONTINUOUS_CURVE_CHAIN",
+        "subjectRoleId": "SITE_ROAD_CENTERLINE"
+      },
+      {
+        "taskId": "SITE.ROAD_CENTERLINE",
+        "ruleText": "与道路红线关系有效",
+        "mode": "MANUAL_CURRENT_SNAPSHOT_REVIEW",
+        "subjectRoleId": "SITE_ROAD_CENTERLINE",
+        "referenceRoleId": "SITE_ROAD_REDLINE"
+      },
+      {
+        "taskId": "SITE.INTERNAL_ROADS",
+        "ruleText": "道路范围闭合",
+        "mode": "AUTO_CLOSED_BOUNDARY",
+        "subjectRoleId": "SITE_INTERNAL_ROADS"
+      },
+      {
+        "taskId": "SITE.INTERNAL_ROADS",
+        "ruleText": "位于规划净用地内",
+        "mode": "AUTO_CONTAINED_BY_ROLE",
+        "subjectRoleId": "SITE_INTERNAL_ROADS",
+        "referenceRoleId": "SITE_NET_LAND"
+      },
+      {
+        "taskId": "SITE.FIRE_LANE",
+        "ruleText": "消防道路连续",
+        "mode": "AUTO_CONTINUOUS_CURVE_CHAIN",
+        "subjectRoleId": "SITE_FIRE_LANE"
+      },
+      {
+        "taskId": "SITE.FIRE_LANE",
+        "ruleText": "消防道路范围有效",
+        "mode": "MANUAL_CURRENT_SNAPSHOT_REVIEW",
+        "subjectRoleId": "SITE_FIRE_LANE"
+      },
+      {
+        "taskId": "SITE.FIRE_FIELD",
+        "ruleText": "场地边界闭合",
+        "mode": "AUTO_CLOSED_BOUNDARY",
+        "subjectRoleId": "SITE_FIRE_FIELD"
+      },
+      {
+        "taskId": "SITE.FIRE_FIELD",
+        "ruleText": "与服务建筑关系有效",
+        "mode": "MANUAL_CURRENT_SNAPSHOT_REVIEW",
+        "subjectRoleId": "SITE_FIRE_FIELD",
+        "referenceRoleId": "SITE_BUILDING_FOOTPRINT"
+      },
+      {
+        "taskId": "SITE.GREEN",
+        "ruleText": "绿地边界闭合",
+        "mode": "AUTO_CLOSED_BOUNDARY",
+        "subjectRoleId": "SITE_GREEN_OBJECT"
+      },
+      {
+        "taskId": "SITE.GREEN",
+        "ruleText": "绿地不越界",
+        "mode": "AUTO_CONTAINED_BY_ROLE",
+        "subjectRoleId": "SITE_GREEN_OBJECT",
+        "referenceRoleId": "SITE_NET_LAND"
+      },
+      {
+        "taskId": "SITE.GREEN",
+        "ruleText": "绿地不重复统计",
+        "mode": "AUTO_NO_DUPLICATE_GEOMETRY",
+        "subjectRoleId": "SITE_GREEN_OBJECT"
+      },
+      {
+        "taskId": "SITE.OUTDOOR_PARKING",
+        "ruleText": "停车范围有效",
+        "mode": "MANUAL_CURRENT_SNAPSHOT_REVIEW",
+        "subjectRoleId": "SITE_OUTDOOR_PARKING"
+      },
+      {
+        "taskId": "SITE.OUTDOOR_PARKING",
+        "ruleText": "车位不重复",
+        "mode": "AUTO_NO_DUPLICATE_GEOMETRY",
+        "subjectRoleId": "SITE_OUTDOOR_PARKING"
+      },
+      {
+        "taskId": "SITE.CIVIL_DEFENSE",
+        "ruleText": "人防范围闭合",
+        "mode": "AUTO_CLOSED_BOUNDARY",
+        "subjectRoleId": "SITE_CIVIL_DEFENSE"
+      },
+      {
+        "taskId": "SITE.CIVIL_DEFENSE",
+        "ruleText": "范围关系有效",
+        "mode": "MANUAL_CURRENT_SNAPSHOT_REVIEW",
+        "subjectRoleId": "SITE_CIVIL_DEFENSE"
+      },
+      {
+        "taskId": "SITE.STRUCTURES",
+        "ruleText": "设施位置位于项目范围内",
+        "mode": "AUTO_CONTAINED_BY_ROLE",
+        "subjectRoleId": "SITE_STRUCTURES",
+        "referenceRoleId": "SITE_TOTAL_LAND"
+      }
+    ],
+    "propertyEvaluationPolicies": [
+      {
+        "taskId": "SITE.TOTAL_LAND",
+        "ruleText": "投影面积与几何一致",
+        "mode": "AUTO_PROJECTED_AREA_MATCH",
+        "propertyId": "b970d6b1-92c9-51d2-8fac-187808a07801"
+      },
+      {
+        "taskId": "SITE.NET_LAND",
+        "ruleText": "投影面积与几何一致",
+        "mode": "AUTO_PROJECTED_AREA_MATCH",
+        "propertyId": "c42ea80f-4a12-5d4b-8bba-2374135d9d2a"
+      },
+      {
+        "taskId": "SITE.GREEN",
+        "ruleText": "折算面积计算有效",
+        "mode": "AUTO_GREEN_CONVERTED_AREA_FINITE",
+        "areaPropertyId": "6cc053e3-891d-51b1-b861-af498733f73a",
+        "factorPropertyId": "a99a0961-05fe-56fd-b8a0-865410bfe72f"
+      }
+    ],
+    "stage01FieldKeys": [
+      "HBR|FileIdentity|ModelFileType",
+      "HBR|FileIdentity|FileGuid",
+      "IfcProject|Pset_申报信息属性集|项目编号",
+      "IfcProject|Pset_申报信息属性集|项目名称",
+      "IfcProject|Pset_登记信息属性集|建设性质",
+      "IfcProject|Pset_登记信息属性集|建筑物编码",
+      "IfcProject|Pset_登记信息属性集|现状名称",
+      "IfcProject|Pset_登记信息属性集|审批名称",
+      "IfcProject|Pset_登记信息属性集|详细地址",
+      "IfcProject|Pset_登记信息属性集|不动产地址",
+      "IfcProject|Pset_登记信息属性集|建成时间",
+      "IfcProject|Pset_登记信息属性集|建筑状态",
+      "IfcProject|Pset_登记信息属性集|建设性质代码",
+      "IfcProject|Pset_申报信息属性集|经度",
+      "IfcProject|Pset_申报信息属性集|纬度",
+      "IfcProject|Pset_申报信息属性集|基点坐标X",
+      "IfcProject|Pset_申报信息属性集|基点坐标Y",
+      "IfcProject|Pset_申报信息属性集|基点高程",
+      "IfcProject|Pset_申报信息属性集|坐标系名称",
+      "IfcProject|Pset_申报信息属性集|高程系名称",
+      "HBR|SpatialReference|TrueNorthAngle",
+      "HBR|ProjectUnits|Length",
+      "HBR|ProjectUnits|Area",
+      "HBR|ProjectUnits|Angle"
+    ],
+    "planningTargetPropertyIds": [
+      "c94f1ae2-0a02-5479-aae4-c8f59af71fe0",
+      "35675fd2-c3d2-5553-8db6-855980a201a4",
+      "5d5f3dba-3ae9-59c6-9aee-aa24e88f312c",
+      "ddc7523d-e3aa-527e-9689-6ed93b2ba850",
+      "504e3237-da89-5de9-a39a-4e5df0008903",
+      "aef64f95-dc27-5aff-9f13-3121f6c896a0",
+      "11110e9f-aaae-5576-ac0d-447a6f4b8524",
+      "ce26e8a2-a98b-57b6-8c37-798d17c553cb",
+      "85c3a1fe-4965-53d3-828c-bdf2298f3db8",
+      "20c734f0-64ea-52a9-a73b-a335d6a811db"
+    ],
+    "stage02BMetrics": [
+      {
+        "sequence": 10,
+        "propertyId": "ca21e324-046b-5bfd-84c8-0d3470082303",
+        "identity": "IfcProject|Pset_登记信息属性集|总建筑面积",
+        "source": "MANUAL_INPUT",
+        "officialExportVerified": false,
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "officialProjectionCarrierId": "",
+        "officialCarrierProbeRef": "",
+        "officialEvidenceRef": ""
+      },
+      {
+        "sequence": 20,
+        "propertyId": "93e51676-237e-56a8-8f28-2da845422e2e",
+        "identity": "IfcSite|Pset_场地信息属性集|建筑密度",
+        "source": "MANUAL_INPUT",
+        "officialExportVerified": false,
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "officialProjectionCarrierId": "",
+        "officialCarrierProbeRef": "",
+        "officialEvidenceRef": ""
+      },
+      {
+        "sequence": 30,
+        "propertyId": "201a00ac-3672-5ded-83d2-ed96f81bfabf",
+        "identity": "IfcSite|Pset_场地信息属性集|容积率",
+        "source": "MANUAL_INPUT",
+        "officialExportVerified": false,
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "officialProjectionCarrierId": "",
+        "officialCarrierProbeRef": "",
+        "officialEvidenceRef": ""
+      },
+      {
+        "sequence": 40,
+        "propertyId": "f630ad47-b006-5127-badd-b1660cf996c3",
+        "identity": "IfcSite|Pset_场地信息属性集|绿地率",
+        "source": "MANUAL_INPUT",
+        "officialExportVerified": false,
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "officialProjectionCarrierId": "",
+        "officialCarrierProbeRef": "",
+        "officialEvidenceRef": ""
+      },
+      {
+        "sequence": 50,
+        "propertyId": "c62cfd5f-2a50-5230-9c5d-4037c39061bf",
+        "identity": "IfcSpatialZone|Pset_停车场信息属性集|机动车位数量",
+        "source": "MANUAL_INPUT",
+        "officialExportVerified": false,
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "officialProjectionCarrierId": "",
+        "officialCarrierProbeRef": "",
+        "officialEvidenceRef": ""
+      },
+      {
+        "sequence": 60,
+        "propertyId": "84df74c2-a7e5-5a98-a5e0-4458e49a3973",
+        "identity": "IfcSpatialZone|Pset_停车场信息属性集|非机动车位数量",
+        "source": "MANUAL_INPUT",
+        "officialExportVerified": false,
+        "officialCarrierStatus": "PENDING_GOLDEN_RVT",
+        "officialProjectionCarrierId": "",
+        "officialCarrierProbeRef": "",
+        "officialEvidenceRef": ""
+      }
+    ],
+    "officialProjectionCarriers": [],
+    "officialCarrierProbeRecords": [],
+    "officialEvidenceRecords": [],
+    "officialCarrierPolicies": [
+      {
+        "ifcEntity": "IfcProject",
+        "internalCarrier": "PROJECT_INFORMATION",
+        "projectionPolicy": "ALLOW_WITH_EXPORT_VERIFICATION_REQUIRED",
+        "officialExportVerified": false,
+        "evidenceStatus": "PENDING_GOLDEN_RVT",
+        "probeRefs": [],
+        "evidenceRefs": []
+      },
+      {
+        "ifcEntity": "IfcSite",
+        "internalCarrier": "",
+        "projectionPolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+        "officialExportVerified": false,
+        "evidenceStatus": "PENDING_GOLDEN_RVT",
+        "probeRefs": [],
+        "evidenceRefs": []
+      },
+      {
+        "ifcEntity": "IfcSpatialZone",
+        "internalCarrier": "",
+        "projectionPolicy": "BLOCK_PENDING_OFFICIAL_PLUGIN_CONTRACT",
+        "officialExportVerified": false,
+        "evidenceStatus": "PENDING_GOLDEN_RVT",
+        "probeRefs": [],
+        "evidenceRefs": []
+      }
+    ],
+    "systemChecks": [
+      {
+        "sequence": 90010,
+        "checkId": "CROSS.DOCUMENT_IDENTITY",
+        "displayName": "跨阶段文档身份一致",
+        "sourceStage": "CROSS_STAGE",
+        "applicableBasis": "当前文档的 01、02A、02B 结果必须同源",
+        "remediationTarget": "RECHECK_ALL"
+      },
+      {
+        "sequence": 90020,
+        "checkId": "CROSS.MODEL_PROFILE",
+        "displayName": "跨阶段模型类型一致",
+        "sourceStage": "CROSS_STAGE",
+        "applicableBasis": "模型类型仅来自 Stage01",
+        "remediationTarget": "OPEN_STAGE01"
+      },
+      {
+        "sequence": 90030,
+        "checkId": "CROSS.RULE_PACKAGE",
+        "displayName": "跨阶段规则包一致",
+        "sourceStage": "CROSS_STAGE",
+        "applicableBasis": "01、02A、02B 必须使用当前规则三元身份",
+        "remediationTarget": "RECHECK_ALL"
+      },
+      {
+        "sequence": 90040,
+        "checkId": "CROSS.RESULT_FRESHNESS",
+        "displayName": "跨阶段结果未过期",
+        "sourceStage": "CROSS_STAGE",
+        "applicableBasis": "输入快照与稳定 hash 必须为当前值",
+        "remediationTarget": "RECHECK_ALL"
+      },
+      {
+        "sequence": 91010,
+        "checkId": "EXPORT.REVIT_DOCUMENT",
+        "displayName": "Revit 文档可用于导出",
+        "sourceStage": "EXPORT_PREPARATION",
+        "applicableBasis": "活动文档有效且非族文档",
+        "remediationTarget": "STAY_STAGE03"
+      },
+      {
+        "sequence": 91020,
+        "checkId": "EXPORT.OUTPUT_DIRECTORY",
+        "displayName": "导出目录可写",
+        "sourceStage": "EXPORT_PREPARATION",
+        "applicableBasis": "输出目录存在或可创建且可写",
+        "remediationTarget": "STAY_STAGE03"
+      },
+      {
+        "sequence": 91030,
+        "checkId": "EXPORT.RAW_IFC_PIPELINE",
+        "displayName": "RAW IFC 与转译链可用",
+        "sourceStage": "EXPORT_PREPARATION",
+        "applicableBasis": "导出器、RAW 产物与转译依赖可用",
+        "remediationTarget": "STAY_STAGE03"
+      },
+      {
+        "sequence": 91040,
+        "checkId": "EXPORT.REPORT_WRITER",
+        "displayName": "证据报告可写",
+        "sourceStage": "EXPORT_PREPARATION",
+        "applicableBasis": "fields、validation 和 failure 报告可持久化",
+        "remediationTarget": "STAY_STAGE03"
+      }
+    ]
+  }
+}

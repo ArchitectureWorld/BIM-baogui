@@ -19,9 +19,13 @@ on:
       - "installer/**"
       - "docs/revit-addin/README.md"
       - "specs/hbr-rules/**"
+      - "specs/hbr-rules/v1/source/hbr_rule_source.v0.4.3-overlay.json"
       - "specs/revit-addin/**"
       - "tools/build_hbr_rulepack.py"
+      - "tools/build_hbr_rulepack_v042.py"
+      - "tools/build_hbr_rulepack_v043.py"
       - "tools/build_revit_functional_baseline.py"
+      - "tests/test_hbr_rulepack_v043.py"
       - ".github/workflows/build-revit-mcp.yml"
   workflow_dispatch:
 
@@ -86,7 +90,7 @@ jobs:
 
       - name: Verify shared HBR rule database
         shell: pwsh
-        run: python -m pytest tests/test_hbr_rulepack_compiler.py tests/test_hbr_rules_manifest.py -q
+        run: python -m pytest tests/test_hbr_rulepack_compiler.py tests/test_hbr_rules_manifest.py tests/test_hbr_rulepack_v043.py -q
 
       - name: Restore production and test projects
         shell: pwsh
