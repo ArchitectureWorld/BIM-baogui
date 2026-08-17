@@ -610,7 +610,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
           .ToArray());
     }
 
-    private static NativeStage02ElementSnapshot CreateSnapshot(
+    internal static NativeStage02ElementSnapshot CreateSnapshot(
       Document document,
       Element element,
       string documentFingerprint)

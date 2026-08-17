@@ -53,6 +53,41 @@ def test_probe_service_authorizes_before_transaction_and_saves_only_copy():
     assert "group.RollBack()" in source
 
 
+def test_probe_requires_committed_inner_transaction_and_assimilated_group():
+    source = read(ACCEPTANCE / "NativeOfficialCarrierProbeService.cs")
+    assert "NativeTransactionCommitPolicy.RequireCommitted(" in source
+    assert "transaction.Commit().ToString()," in source
+    assert "group.Assimilate().ToString()," in source
+    assert source.index("transaction.Commit().ToString(),") < source.index(
+        "group.Assimilate().ToString(),"
+    )
+    assert source.index("group.Assimilate().ToString(),") < source.index(
+        "document.Save()"
+    )
+    assert "if (group.GetStatus() == TransactionStatus.Started)" in source
+
+
+def test_probe_resolves_an_immutable_live_candidate_plan_before_any_transaction():
+    source = read(ACCEPTANCE / "NativeOfficialCarrierProbeService.cs")
+    execute = source[source.index("internal static string Execute") : source.index(
+        "private static NativeOfficialCarrierProbeResolvedPlan ResolvePreflightPlan"
+    )]
+    preflight = execute.index("ResolvePreflightPlan")
+    group = execute.index("new TransactionGroup")
+    assert preflight < group
+    assert execute.index("ValidateExistingSourceParameters") < preflight
+    transaction_scope = execute[group:]
+    assert "ResolveCandidate(document" not in transaction_scope
+    assert "CreateSourceProperty(" not in transaction_scope
+    assert "ReadExistingSourceParameters" not in transaction_scope
+    assert execute.index("group.Assimilate().ToString(),") < execute.index(
+        "CreateSeedItem"
+    )
+    models = read(ACCEPTANCE / "NativeOfficialCarrierProbeModels.cs")
+    assert "NativeOfficialCarrierProbeResolvedPlan" in models
+    assert "ReadOnlyCollection<NativeOfficialCarrierProbeResolved" in models
+
+
 def test_context_script_creates_a_new_copy_and_never_changes_source(tmp_path: Path):
     source = tmp_path / "golden.rvt"
     source.write_bytes(b"golden-rvt-content")

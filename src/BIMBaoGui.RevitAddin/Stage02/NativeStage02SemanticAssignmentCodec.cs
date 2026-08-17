@@ -23,6 +23,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       return new NativeStage02SemanticAssignmentPayload
       {
         SchemaVersion = dto.schemaVersion ?? string.Empty,
+        DocumentFingerprint = dto.documentFingerprint ?? string.Empty,
         RulePackageId = dto.rulePackageId ?? string.Empty,
         RulePackageVersion = dto.rulePackageVersion ?? string.Empty,
         Assignments = (dto.assignments ?? Array.Empty<AssignmentDto>())
@@ -50,6 +51,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
     private sealed class PayloadDto
     {
       public string schemaVersion { get; set; }
+      public string documentFingerprint { get; set; }
       public string rulePackageId { get; set; }
       public string rulePackageVersion { get; set; }
       public AssignmentDto[] assignments { get; set; }

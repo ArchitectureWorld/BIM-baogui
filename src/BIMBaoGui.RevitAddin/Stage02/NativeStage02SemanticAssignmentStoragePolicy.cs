@@ -62,10 +62,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
         };
       }
 
-      if (string.Equals(
-        Clean(snapshot.SchemaVersion),
-        NativeStage02SemanticAssignmentSchema.LegacyVersion,
-        StringComparison.Ordinal))
+      if (IsLegacyVersion(Clean(snapshot.SchemaVersion)))
       {
         if (snapshot.Payload == null)
           return Corrupt("Stage02 legacy Assignment Payload 无法解析。");
@@ -89,7 +86,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
         return new NativeStage02SemanticAssignmentStorageDecision
         {
           State = NativeStage02SemanticAssignmentStorageState.NeedsReconfirmation,
-          Message = "Stage02 1.0.0 角色记录已保留，必须按当前构件和规则重新确认。",
+          Message = "Stage02 旧版角色记录已保留，必须按当前文档、构件和规则重新确认。",
           Payload = legacy,
           StaleElementUniqueIds = StaleIds(
             legacy,
@@ -114,6 +111,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
       {
         normalized = NativeStage02SemanticAssignmentCanonicalizer.Normalize(
           snapshot.Payload);
+        if (string.IsNullOrWhiteSpace(normalized.DocumentFingerprint))
+          return Corrupt("Stage02 Assignment 缺少文档指纹。" );
         canonical = NativeStage02SemanticAssignmentCanonicalizer.SerializeCanonical(
           normalized);
       }
@@ -146,6 +145,18 @@ namespace BIMBaoGui.RevitAddin.Stage02
         Payload = normalized,
         StaleElementUniqueIds = StaleIds(normalized, existingElementUniqueIds)
       };
+    }
+
+    private static bool IsLegacyVersion(string version)
+    {
+      return string.Equals(
+          version,
+          NativeStage02SemanticAssignmentSchema.LegacyVersion,
+          StringComparison.Ordinal)
+        || string.Equals(
+          version,
+          NativeStage02SemanticAssignmentSchema.PreviousVersion,
+          StringComparison.Ordinal);
     }
 
     internal static NativeStage02SemanticAssignmentStorageSnapshot CreateSnapshot(
@@ -185,6 +196,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       return new NativeStage02SemanticAssignmentPayload
       {
         SchemaVersion = NativeStage02SemanticAssignmentSchema.Version,
+        DocumentFingerprint = string.Empty,
         RulePackageId = snapshot?.RulePackageId ?? string.Empty,
         RulePackageVersion = snapshot?.RulePackageVersion ?? string.Empty,
         Assignments = Array.Empty<NativeStage02SemanticAssignmentRecord>()

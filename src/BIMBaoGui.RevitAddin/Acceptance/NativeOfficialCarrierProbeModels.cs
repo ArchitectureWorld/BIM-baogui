@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using Autodesk.Revit.DB;
+using BIMBaoGui.RevitAddin.Rules;
+using BIMBaoGui.RevitAddin.Stage02;
 
 namespace BIMBaoGui.RevitAddin.Acceptance
 {
@@ -100,6 +104,59 @@ namespace BIMBaoGui.RevitAddin.Acceptance
     internal string ParameterGuid { get; set; } = string.Empty;
     internal string Sentinel { get; set; } = string.Empty;
     internal string Readback { get; set; } = string.Empty;
+  }
+
+  internal sealed class NativeOfficialCarrierProbeResolvedCandidate
+  {
+    internal NativeOfficialCarrierProbeResolvedCandidate(
+      NativeOfficialCarrierProbeSentinel sentinel,
+      Element element)
+    {
+      Sentinel = sentinel ?? throw new ArgumentNullException(nameof(sentinel));
+      Element = element ?? throw new ArgumentNullException(nameof(element));
+    }
+
+    internal NativeOfficialCarrierProbeSentinel Sentinel { get; }
+    internal Element Element { get; }
+  }
+
+  internal sealed class NativeOfficialCarrierProbeResolvedMetric
+  {
+    internal NativeOfficialCarrierProbeResolvedMetric(
+      NativeStage02PropertyDefinition sourceProperty,
+      IEnumerable<string> categories,
+      IEnumerable<NativeOfficialCarrierProbeResolvedCandidate> candidates)
+    {
+      SourceProperty = sourceProperty
+        ?? throw new ArgumentNullException(nameof(sourceProperty));
+      Categories = new ReadOnlyCollection<string>(
+        new List<string>(categories ?? Array.Empty<string>()));
+      Candidates =
+        new ReadOnlyCollection<NativeOfficialCarrierProbeResolvedCandidate>(
+          new List<NativeOfficialCarrierProbeResolvedCandidate>(candidates
+            ?? Array.Empty<NativeOfficialCarrierProbeResolvedCandidate>()));
+    }
+
+    internal NativeStage02PropertyDefinition SourceProperty { get; }
+    internal IReadOnlyList<string> Categories { get; }
+    internal IReadOnlyList<NativeOfficialCarrierProbeResolvedCandidate>
+      Candidates { get; }
+  }
+
+  internal sealed class NativeOfficialCarrierProbeResolvedPlan
+  {
+    internal NativeOfficialCarrierProbeResolvedPlan(
+      IEnumerable<NativeOfficialCarrierProbeResolvedMetric> metrics)
+    {
+      Metrics = new ReadOnlyCollection<NativeOfficialCarrierProbeResolvedMetric>(
+        new List<NativeOfficialCarrierProbeResolvedMetric>(metrics
+          ?? Array.Empty<NativeOfficialCarrierProbeResolvedMetric>()));
+    }
+
+    internal IReadOnlyList<NativeOfficialCarrierProbeResolvedMetric> Metrics
+    {
+      get;
+    }
   }
 
   internal sealed class NativeOfficialCarrierProbeSeedManifest

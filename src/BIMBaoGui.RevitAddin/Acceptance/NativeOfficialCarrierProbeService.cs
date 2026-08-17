@@ -81,7 +81,12 @@ namespace BIMBaoGui.RevitAddin.Acceptance
           "OFFICIAL_SOURCE_NAME_CONTRACT_MISMATCH");
       }
 
+      NativeOfficialCarrierProbeResolvedPlan resolvedPlan =
+        ResolvePreflightPlan(document, metrics, sentinels);
       var seedItems = new List<NativeOfficialCarrierProbeSeedItem>();
+      var readbacks = new Dictionary<
+        NativeOfficialCarrierProbeResolvedCandidate,
+        string>();
       using (var group = new TransactionGroup(
         document,
         "HBR Official Carrier Probe"))
@@ -94,63 +99,57 @@ namespace BIMBaoGui.RevitAddin.Acceptance
             "HBR Official Carrier Probe Seed"))
           {
             transaction.Start();
-            foreach (IGrouping<string, NativeOfficialCarrierProbeSentinel>
-              metricGroup in sentinels.GroupBy(
-                value => value.PropertyId,
-                StringComparer.Ordinal))
+            foreach (NativeOfficialCarrierProbeResolvedMetric metricPlan in
+              resolvedPlan.Metrics)
             {
-              NativeOfficialCarrierProbeSentinel definition =
-                metricGroup.First();
-              NativeStage02BMetricDefinition metric = metrics.Single(value =>
-                string.Equals(
-                  value.PropertyId,
-                  definition.PropertyId,
-                  StringComparison.Ordinal));
-              NativeStage02PropertyDefinition sourceProperty =
-                CreateSourceProperty(metric.Property, definition.ExactSourceName);
-              string[] categories = metricGroup
-                .Select(value => value.CategoryBuiltInId)
-                .Distinct(StringComparer.Ordinal)
-                .OrderBy(value => value, StringComparer.Ordinal)
-                .ToArray();
               NativeStage02ParameterBindingService.Ensure(
                 document,
-                sourceProperty,
-                categories);
-              foreach (NativeOfficialCarrierProbeSentinel sentinel in
-                metricGroup.OrderBy(
-                  value => value.CandidateIndex))
+                metricPlan.SourceProperty,
+                metricPlan.Categories);
+              foreach (NativeOfficialCarrierProbeResolvedCandidate candidate in
+                metricPlan.Candidates)
               {
-                Element candidate = ResolveCandidate(document, sentinel);
-                Parameter parameter = candidate.get_Parameter(
+                NativeOfficialCarrierProbeSentinel sentinel = candidate.Sentinel;
+                Parameter parameter = candidate.Element.get_Parameter(
                   sentinel.ParameterGuid);
                 NativeStage02ValueCodec.WriteAndVerify(
                   parameter,
-                  sourceProperty,
+                  metricPlan.SourceProperty,
                   sentinel.CanonicalValue);
                 string readback = NativeStage02ValueCodec.Read(
                   parameter,
-                  sourceProperty);
+                  metricPlan.SourceProperty);
                 if (!string.Equals(
                   readback,
                   sentinel.CanonicalValue,
                   StringComparison.Ordinal))
                   throw new InvalidOperationException(
                     "PROBE_SENTINEL_READBACK_MISMATCH");
-                seedItems.Add(CreateSeedItem(sentinel, readback));
+                readbacks.Add(candidate, readback);
               }
             }
             document.Regenerate();
-            transaction.Commit();
+            NativeTransactionCommitPolicy.RequireCommitted(
+              transaction.Commit().ToString(),
+              "PROBE_SEED_TRANSACTION_NOT_COMMITTED");
           }
-          group.Assimilate();
+          NativeTransactionCommitPolicy.RequireCommitted(
+            group.Assimilate().ToString(),
+            "PROBE_GROUP_NOT_ASSIMILATED");
         }
         catch
         {
-          group.RollBack();
+          if (group.GetStatus() == TransactionStatus.Started)
+            group.RollBack();
           throw;
         }
       }
+
+      foreach (NativeOfficialCarrierProbeResolvedMetric metricPlan in
+        resolvedPlan.Metrics)
+      foreach (NativeOfficialCarrierProbeResolvedCandidate candidate in
+        metricPlan.Candidates)
+        seedItems.Add(CreateSeedItem(candidate.Sentinel, readbacks[candidate]));
 
       // Authorization proves PathName is the probe copy and never the source.
       document.Save();
@@ -163,6 +162,44 @@ namespace BIMBaoGui.RevitAddin.Acceptance
         context,
         seedItems);
       return manifestPath;
+    }
+
+    private static NativeOfficialCarrierProbeResolvedPlan ResolvePreflightPlan(
+      Document document,
+      IReadOnlyList<NativeStage02BMetricDefinition> metrics,
+      IReadOnlyList<NativeOfficialCarrierProbeSentinel> sentinels)
+    {
+      var plans = new List<NativeOfficialCarrierProbeResolvedMetric>();
+      foreach (IGrouping<string, NativeOfficialCarrierProbeSentinel> metricGroup
+        in (sentinels ?? Array.Empty<NativeOfficialCarrierProbeSentinel>())
+          .GroupBy(value => value.PropertyId, StringComparer.Ordinal))
+      {
+        NativeOfficialCarrierProbeSentinel definition = metricGroup.First();
+        NativeStage02BMetricDefinition metric = metrics.Single(value =>
+          string.Equals(
+            value.PropertyId,
+            definition.PropertyId,
+            StringComparison.Ordinal));
+        NativeStage02PropertyDefinition sourceProperty = CreateSourceProperty(
+          metric.Property,
+          definition.ExactSourceName);
+        string[] categories = metricGroup
+          .Select(value => value.CategoryBuiltInId)
+          .Distinct(StringComparer.Ordinal)
+          .OrderBy(value => value, StringComparer.Ordinal)
+          .ToArray();
+        NativeOfficialCarrierProbeResolvedCandidate[] candidates = metricGroup
+          .OrderBy(value => value.CandidateIndex)
+          .Select(value => new NativeOfficialCarrierProbeResolvedCandidate(
+            value,
+            ResolveCandidate(document, value)))
+          .ToArray();
+        plans.Add(new NativeOfficialCarrierProbeResolvedMetric(
+          sourceProperty,
+          categories,
+          candidates));
+      }
+      return new NativeOfficialCarrierProbeResolvedPlan(plans);
     }
 
     internal static NativeOfficialCarrierProbeContext LoadContext(

@@ -10,7 +10,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
 {
   internal static class NativeStage02SemanticAssignmentSchema
   {
-    internal const string Version = "1.1.0";
+    internal const string Version = "1.2.0";
+    internal const string PreviousVersion = "1.1.0";
     internal const string LegacyVersion = "1.0.0";
   }
 
@@ -45,6 +46,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
   {
     internal string SchemaVersion { get; set; } =
       NativeStage02SemanticAssignmentSchema.Version;
+    internal string DocumentFingerprint { get; set; } = string.Empty;
     internal string RulePackageId { get; set; } = string.Empty;
     internal string RulePackageVersion { get; set; } = string.Empty;
     internal IReadOnlyList<NativeStage02SemanticAssignmentRecord> Assignments
@@ -98,6 +100,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       return new NativeStage02SemanticAssignmentPayload
       {
         SchemaVersion = Clean(payload.SchemaVersion),
+        DocumentFingerprint = Clean(payload.DocumentFingerprint),
         RulePackageId = Clean(payload.RulePackageId),
         RulePackageVersion = Clean(payload.RulePackageVersion),
         Assignments = new ReadOnlyCollection<NativeStage02SemanticAssignmentRecord>(
@@ -115,6 +118,17 @@ namespace BIMBaoGui.RevitAddin.Stage02
       var builder = new StringBuilder();
       builder.Append('{');
       AppendProperty(builder, "schemaVersion", normalized.SchemaVersion);
+      if (string.Equals(
+        normalized.SchemaVersion,
+        NativeStage02SemanticAssignmentSchema.Version,
+        StringComparison.Ordinal))
+      {
+        builder.Append(',');
+        AppendProperty(
+          builder,
+          "documentFingerprint",
+          normalized.DocumentFingerprint);
+      }
       builder.Append(',');
       AppendProperty(builder, "rulePackageId", normalized.RulePackageId);
       builder.Append(',');

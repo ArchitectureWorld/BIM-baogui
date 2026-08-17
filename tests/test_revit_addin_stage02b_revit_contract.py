@@ -38,6 +38,31 @@ def test_stage02b_write_is_metric_transactional_and_audits_failure_separately():
     assert re.search(r"NativeStage02BWriteBatchPolicy\s*\.Merge", source)
 
 
+def test_stage02b_requires_committed_status_before_emitting_any_success_evidence():
+    source = read(STAGE02B / "NativeStage02BRevitWriteService.cs")
+    assert re.search(
+        r"NativeTransactionCommitPolicy\.RequireCommitted\s*\(\s*"
+        r"transaction\.Commit\(\)\.ToString\(\)",
+        source,
+    )
+    assert re.search(
+        r"NativeTransactionCommitPolicy\.RequireCommitted\s*\(\s*"
+        r"auditTransaction\.Commit\(\)\.ToString\(\)",
+        source,
+    )
+    assert re.search(
+        r"NativeTransactionCommitPolicy\.RequireCommitted\s*\(\s*"
+        r"envelopeTransaction\.Commit\(\)\.ToString\(\)",
+        source,
+    )
+    assert source.index("transaction.Commit()") < source.index(
+        "outcomes.Add(new NativeStage02BMetricOutcome"
+    )
+    assert source.index("envelopeTransaction.Commit()") < source.index(
+        "result.WorkflowResult = envelope"
+    )
+
+
 def test_stage02b_pending_site_and_spatial_zone_never_bind_project_information():
     source = read(STAGE02B / "NativeStage02BRevitWriteService.cs")
     owner = read(STAGE02B / "NativeStage02BOwnerPolicy.cs")
@@ -47,6 +72,22 @@ def test_stage02b_pending_site_and_spatial_zone_never_bind_project_information()
     assert 'string.Equals(entity, "IfcSpatialZone"' in owner
     assert 'new[] { "OST_ProjectInformation" }' in source
     assert "owner.ProjectionMode == NativeStage02BProjectionMode.ProjectInformation" in source
+
+
+def test_verified_ifc_project_routes_through_the_structural_resolver():
+    source = read(STAGE02B / "NativeStage02BRevitWriteService.cs")
+    owner = read(STAGE02B / "NativeStage02BOwnerPolicy.cs")
+    project_branch = owner[
+        owner.index('string.Equals(entity, "IfcProject"') :
+        owner.index('string.Equals(entity, "IfcSite"')
+    ]
+    assert "status == NativeOfficialCarrierEvidenceStatus.Verified" in project_branch
+    assert "NativeStage02BProjectionMode.VerifiedElementParameter" in project_branch
+    resolver_branch = source.index(
+        "NativeStage02BProjectionMode.VerifiedElementParameter"
+    )
+    assert source.index("NativeStage02BProjectionCarrierResolver.Resolve", resolver_branch) > resolver_branch
+    assert source.index("NativeStage02ParameterBindingService.Ensure", resolver_branch) > resolver_branch
 
 
 def test_stage02b_result_is_rebuilt_from_full_six_metric_readback():
@@ -74,6 +115,18 @@ def test_stage02b_resolver_uses_only_structural_assignment_and_live_unique_id():
     assert "ElementId" not in source
     assert "ElementName" not in source
     assert "Legacy" not in source
+
+
+def test_stage02b_assignment_freshness_uses_persisted_document_and_task5_fact_hash():
+    source = read(STAGE02B / "NativeStage02BRevitWriteService.cs")
+    policy = read(STAGE02B / "NativeStage02BAssignmentFreshnessPolicy.cs")
+    task5_capture = read(PROJECT / "Stage02" / "NativeStage02RevitService.cs")
+    assert "storage?.Payload?.DocumentFingerprint" in policy
+    assert "NativeStage02ElementSnapshotCanonicalizer.Sha256" in policy
+    assert "NativeStage02RevitService.CreateSnapshot" in source
+    assert "NativeStage02BAssignmentFreshnessPolicy.Evaluate" in source
+    assert "internal static NativeStage02ElementSnapshot CreateSnapshot" in task5_capture
+    assert "AssignmentDocumentFingerprint = current" not in source
 
 
 def test_stage02b_ui_dispatches_deep_cloned_requests_only_through_external_event():

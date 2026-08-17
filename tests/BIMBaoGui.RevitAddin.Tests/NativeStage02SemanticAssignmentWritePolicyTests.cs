@@ -136,6 +136,7 @@ namespace BIMBaoGui.RevitAddin.Tests
       return new NativeStage02SemanticAssignmentPayload
       {
         SchemaVersion = NativeStage02SemanticAssignmentSchema.Version,
+        DocumentFingerprint = "document",
         RulePackageId = "HBR-WUHAN-PLANNING",
         RulePackageVersion = "1.0.0",
         Assignments = Array.Empty<NativeStage02SemanticAssignmentRecord>()

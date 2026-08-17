@@ -109,6 +109,24 @@ namespace BIMBaoGui.HifcCore.Tests
       Assert.Equal("PROBE_SENTINEL_IDENTITY_AMBIGUOUS", result.ErrorCode);
     }
 
+    [Fact]
+    public void Expected_and_wrong_owner_entities_for_one_sentinel_fail_closed()
+    {
+      OfficialCarrierProbeInspectionResult result =
+        OfficialCarrierProbeInspector.InspectText(
+          Ifc(
+            "#1=IFCPROJECT('owner-project',$,$,$,$,$,$,$,$);",
+            "#5=IFCSITE('owner-site',$,$,$,$,$,$,$,$,$,$,$,$,$);",
+            "#2=IFCPROPERTYSINGLEVALUE('RealValue',$,IFCREAL(701001.125),$);",
+            "#3=IFCPROPERTYSET('pset-one',$,'Pset_Test',$,(#2));",
+            "#4=IFCRELDEFINESBYPROPERTIES('rel-one',$,$,$,(#1,#5),#3);"),
+          Manifest(Seed("property-real", "IfcProject", "Pset_Test",
+            "RealValue", "IfcReal", "701001.125", "candidate-1")));
+
+      Assert.False(result.Success);
+      Assert.Equal("PROBE_SENTINEL_IDENTITY_AMBIGUOUS", result.ErrorCode);
+    }
+
     [Theory]
     [InlineData("IfcLabel", "  原 样  ", "  原 样  ")]
     [InlineData("IfcText", "line 1\nline 2", "line 1\nline 2")]
@@ -172,6 +190,43 @@ namespace BIMBaoGui.HifcCore.Tests
         Assert.Equal("FINAL_OWNER_VALUE_SET_MISMATCH",
           OfficialCarrierProbeInspector.ResolveFinalReadback(ownerMismatch)
             .ErrorCode);
+      }
+    }
+
+    [Fact]
+    public void Final_readback_rejects_tampered_manifest_content_with_old_hash()
+    {
+      using (var sandbox = new FinalReadbackSandbox())
+      {
+        OfficialPropertyReadbackRequest request = sandbox.Request();
+        request.Manifest.Definitions[0].IfcProperty = "TamperedValue";
+
+        OfficialPropertyReadbackResult result =
+          OfficialCarrierProbeInspector.ResolveFinalReadback(request);
+
+        Assert.False(result.Success);
+        Assert.Equal("FINAL_MANIFEST_SHA_MISMATCH", result.ErrorCode);
+      }
+    }
+
+    [Fact]
+    public void Manifest_content_hash_is_order_stable_and_excludes_its_own_field()
+    {
+      using (var sandbox = new FinalReadbackSandbox())
+      {
+        OfficialAcceptanceManifest manifest = sandbox.Request().Manifest;
+        string original = OfficialAcceptanceManifestCanonicalizer.ComputeSha256(
+          manifest);
+        manifest.Identity.ManifestSha256 = new string('f', 64);
+        manifest.Definitions = manifest.Definitions.Reverse().ToArray();
+        string reordered =
+          OfficialAcceptanceManifestCanonicalizer.ComputeSha256(manifest);
+        manifest.Definitions[0].CanonicalUnit = "m2";
+        string changed =
+          OfficialAcceptanceManifestCanonicalizer.ComputeSha256(manifest);
+
+        Assert.Equal(original, reordered);
+        Assert.NotEqual(original, changed);
       }
     }
 
@@ -248,37 +303,40 @@ namespace BIMBaoGui.HifcCore.Tests
         string realGuid = "11111111-1111-1111-1111-111111111111";
         string textGuid = "22222222-2222-2222-2222-222222222222";
         OfficialAcceptanceIdentity identity = Identity();
+        var manifest = new OfficialAcceptanceManifest
+        {
+          SchemaVersion = "HBR_OFFICIAL_ACCEPTANCE_MANIFEST_V1",
+          ManifestVersion = "1.0.0",
+          Identity = identity,
+          Definitions = new[]
+          {
+            new OfficialAcceptancePropertyDefinition
+            {
+              PropertyId = "property-real",
+              IfcEntity = "IfcProject",
+              IfcPropertySet = "Pset_Test",
+              IfcProperty = "RealValue",
+              DeclaredIfcType = "IfcReal",
+              ParameterGuid = realGuid
+            },
+            new OfficialAcceptancePropertyDefinition
+            {
+              PropertyId = "property-text",
+              IfcEntity = "IfcProject",
+              IfcPropertySet = "Pset_Test",
+              IfcProperty = "TextValue",
+              DeclaredIfcType = "IfcText",
+              ParameterGuid = textGuid
+            }
+          }
+        };
+        identity.ManifestSha256 =
+          OfficialAcceptanceManifestCanonicalizer.ComputeSha256(manifest);
         return new OfficialPropertyReadbackRequest
         {
           GoldenRvtPath = RvtPath,
           OfficialIfcPath = IfcPath,
-          Manifest = new OfficialAcceptanceManifest
-          {
-            SchemaVersion = "HBR_OFFICIAL_ACCEPTANCE_MANIFEST_V1",
-            ManifestVersion = "1.0.0",
-            Identity = identity,
-            Definitions = new[]
-            {
-              new OfficialAcceptancePropertyDefinition
-              {
-                PropertyId = "property-real",
-                IfcEntity = "IfcProject",
-                IfcPropertySet = "Pset_Test",
-                IfcProperty = "RealValue",
-                DeclaredIfcType = "IfcReal",
-                ParameterGuid = realGuid
-              },
-              new OfficialAcceptancePropertyDefinition
-              {
-                PropertyId = "property-text",
-                IfcEntity = "IfcProject",
-                IfcPropertySet = "Pset_Test",
-                IfcProperty = "TextValue",
-                DeclaredIfcType = "IfcText",
-                ParameterGuid = textGuid
-              }
-            }
-          },
+          Manifest = manifest,
           RevitReadbacks = new[]
           {
             new OfficialAcceptanceRevitReadback

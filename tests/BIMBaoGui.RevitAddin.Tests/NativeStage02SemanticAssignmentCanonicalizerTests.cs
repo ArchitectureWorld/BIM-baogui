@@ -31,6 +31,28 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
+    public void CurrentPayloadBindsDocumentFingerprintIntoCanonicalHash()
+    {
+      NativeStage02SemanticAssignmentPayload first = Payload(
+        Record("a", "SITE_GREEN_OBJECT"));
+      NativeStage02SemanticAssignmentPayload second = Payload(
+        Record("a", "SITE_GREEN_OBJECT"));
+      first.DocumentFingerprint = "document-a";
+      second.DocumentFingerprint = "document-b";
+
+      string firstJson = NativeStage02SemanticAssignmentCanonicalizer
+        .SerializeCanonical(first);
+      string secondJson = NativeStage02SemanticAssignmentCanonicalizer
+        .SerializeCanonical(second);
+
+      Assert.Contains("\"documentFingerprint\":\"document-a\"", firstJson);
+      Assert.NotEqual(firstJson, secondJson);
+      Assert.NotEqual(
+        NativeStage02SemanticAssignmentCanonicalizer.Sha256(firstJson),
+        NativeStage02SemanticAssignmentCanonicalizer.Sha256(secondJson));
+    }
+
+    [Fact]
     public void DuplicateEquivalentRecordIsDeduplicated()
     {
       NativeStage02SemanticAssignmentPayload normalized =
@@ -75,6 +97,7 @@ namespace BIMBaoGui.RevitAddin.Tests
       return new NativeStage02SemanticAssignmentPayload
       {
         SchemaVersion = NativeStage02SemanticAssignmentSchema.Version,
+        DocumentFingerprint = "document",
         RulePackageId = "HBR-WUHAN-PLANNING",
         RulePackageVersion = "1.0.0",
         Assignments = records ?? Array.Empty<NativeStage02SemanticAssignmentRecord>()

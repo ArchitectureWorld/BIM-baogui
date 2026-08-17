@@ -24,6 +24,37 @@ namespace BIMBaoGui.RevitAddin.Tests
         decision.OfficialCarrierStatus);
     }
 
+    [Fact]
+    public void VerifiedIfcProjectMustUseTheStructuralProjectInformationResolver()
+    {
+      NativeStage02BMetricDefinition metric = VerifiedMetric(
+        "ca21e324-046b-5bfd-84c8-0d3470082303",
+        "project-information-carrier",
+        "project-information-probe");
+
+      NativeStage02BOwnerDecision decision = NativeStage02BOwnerPolicy.Resolve(
+        metric,
+        VerifiedPolicy("IfcProject"),
+        new NativeOfficialProjectionCarrierDefinition
+        {
+          CarrierId = "project-information-carrier",
+          PropertyId = metric.PropertyId,
+          SelectorKind = "PROJECT_INFORMATION"
+        },
+        new NativeOfficialCarrierProbeRecord
+        {
+          ProbeId = "project-information-probe",
+          PropertyId = metric.PropertyId
+        },
+        null);
+
+      Assert.True(decision.ParameterProjectionAllowed);
+      Assert.Equal(NativeOfficialCarrierEvidenceStatus.Verified,
+        decision.OfficialCarrierStatus);
+      Assert.Equal(NativeStage02BProjectionMode.VerifiedElementParameter,
+        decision.ProjectionMode);
+    }
+
     [Theory]
     [InlineData("93e51676-237e-56a8-8f28-2da845422e2e", "IfcSite")]
     [InlineData("c62cfd5f-2a50-5230-9c5d-4037c39061bf", "IfcSpatialZone")]

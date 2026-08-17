@@ -136,10 +136,29 @@ namespace BIMBaoGui.RevitAddin.Stage02
           "Stage02 语义角色存储不可写：" + storageDecision.State,
           storageDecision.Message);
       }
+      NativeWorkflowIdentity currentIdentity = new NativeWorkflowIdentity
+      {
+        DocumentFingerprint = rebuilt.Preview.DocumentFingerprint,
+        ModelFileType = rebuilt.Preview.ModelProfile,
+        RulePackageId = rebuilt.Preview.RulePackageId,
+        RulePackageVersion = rebuilt.Preview.RulePackageVersion,
+        RulePackageSha256 = rebuilt.Preview.RulePackageSha256
+      };
       NativeStage02SemanticAssignmentPayload assignmentPayload =
-        storageDecision.Payload ?? new NativeStage02SemanticAssignmentPayload
+        storageDecision.State == NativeStage02SemanticAssignmentStorageState
+          .NeedsReconfirmation
+          ? new NativeStage02SemanticAssignmentPayload
+          {
+            SchemaVersion = NativeStage02SemanticAssignmentSchema.Version,
+            DocumentFingerprint = currentIdentity.DocumentFingerprint,
+            RulePackageId = NativeStage02RuleCatalog.Current.Identity.PackageId,
+            RulePackageVersion = NativeStage02RuleCatalog.Current.Identity.PackageVersion,
+            Assignments = Array.Empty<NativeStage02SemanticAssignmentRecord>()
+          }
+          : storageDecision.Payload ?? new NativeStage02SemanticAssignmentPayload
         {
           SchemaVersion = NativeStage02SemanticAssignmentSchema.Version,
+          DocumentFingerprint = currentIdentity.DocumentFingerprint,
           RulePackageId = NativeStage02RuleCatalog.Current.Identity.PackageId,
           RulePackageVersion = NativeStage02RuleCatalog.Current.Identity.PackageVersion,
           Assignments = Array.Empty<NativeStage02SemanticAssignmentRecord>()
@@ -147,6 +166,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       assignmentPayload.RulePackageId = NativeStage02RuleCatalog.Current.Identity.PackageId;
       assignmentPayload.RulePackageVersion = NativeStage02RuleCatalog.Current.Identity.PackageVersion;
       assignmentPayload.SchemaVersion = NativeStage02SemanticAssignmentSchema.Version;
+      assignmentPayload.DocumentFingerprint = currentIdentity.DocumentFingerprint;
 
       var messages = new List<string>();
       var failedPropertyIds = new HashSet<string>(StringComparer.Ordinal);
@@ -454,14 +474,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
             : rebuilt.Preview.RunId,
           "STAGE02A",
           "ELEMENT_PREPARATION",
-          new NativeWorkflowIdentity
-          {
-            DocumentFingerprint = rebuilt.Preview.DocumentFingerprint,
-            ModelFileType = rebuilt.Preview.ModelProfile,
-            RulePackageId = rebuilt.Preview.RulePackageId,
-            RulePackageVersion = rebuilt.Preview.RulePackageVersion,
-            RulePackageSha256 = rebuilt.Preview.RulePackageSha256
-          },
+          currentIdentity,
           inputSnapshotHash,
           workflowItems,
           workflowUpdatedUtc);

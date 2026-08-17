@@ -42,7 +42,9 @@ namespace BIMBaoGui.RevitAddin.Stage02B
         {
           InternalSaveAllowed = true,
           ParameterProjectionAllowed = true,
-          ProjectionMode = NativeStage02BProjectionMode.ProjectInformation,
+          ProjectionMode = status == NativeOfficialCarrierEvidenceStatus.Verified
+            ? NativeStage02BProjectionMode.VerifiedElementParameter
+            : NativeStage02BProjectionMode.ProjectInformation,
           OfficialCarrierStatus = status,
           Code = status == NativeOfficialCarrierEvidenceStatus.Verified
             ? string.Empty : "OFFICIAL_CARRIER_PENDING_GOLDEN_RVT"

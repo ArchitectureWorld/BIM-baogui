@@ -299,12 +299,6 @@ namespace BIMBaoGui.HifcCore
       {
         return Reject("PROBE_IFC_STRUCTURE_INVALID", exception.Message);
       }
-      string sentinelIdentityError = ValidateSentinelIdentities(
-        manifest.Items,
-        properties,
-        propertySets);
-      if (sentinelIdentityError.Length > 0)
-        return Reject(sentinelIdentityError);
       var ownersByPropertySet = new Dictionary<int, HashSet<int>>();
       try
       {
@@ -329,6 +323,14 @@ namespace BIMBaoGui.HifcCore
       {
         return Reject("PROBE_IFC_STRUCTURE_INVALID", exception.Message);
       }
+      string sentinelIdentityError = ValidateSentinelIdentities(
+        manifest.Items,
+        properties,
+        propertySets,
+        ownersByPropertySet,
+        document);
+      if (sentinelIdentityError.Length > 0)
+        return Reject(sentinelIdentityError);
 
       var results = new List<OfficialCarrierProbeInspectionItem>();
       foreach (OfficialCarrierProbeSeedItem seed in manifest.Items)
@@ -497,6 +499,29 @@ namespace BIMBaoGui.HifcCore
           manifestIdentity,
           request.OfficialExportIdentity))
         return "FINAL_IDENTITY_MISMATCH";
+      string actualManifestSha256;
+      try
+      {
+        actualManifestSha256 = OfficialAcceptanceManifestCanonicalizer
+          .ComputeSha256(request.Manifest);
+      }
+      catch
+      {
+        return "FINAL_MANIFEST_INVALID";
+      }
+      if (!string.Equals(
+          actualManifestSha256,
+          manifestIdentity.ManifestSha256,
+          StringComparison.Ordinal)
+        || !string.Equals(
+          actualManifestSha256,
+          request.StrictValidationIdentity.ManifestSha256,
+          StringComparison.Ordinal)
+        || !string.Equals(
+          actualManifestSha256,
+          request.OfficialExportIdentity.ManifestSha256,
+          StringComparison.Ordinal))
+        return "FINAL_MANIFEST_SHA_MISMATCH";
       if (string.IsNullOrWhiteSpace(request.GoldenRvtPath)
         || string.IsNullOrWhiteSpace(request.OfficialIfcPath)
         || !File.Exists(request.GoldenRvtPath)
@@ -741,7 +766,9 @@ namespace BIMBaoGui.HifcCore
     private static string ValidateSentinelIdentities(
       IReadOnlyList<OfficialCarrierProbeSeedItem> seeds,
       IReadOnlyDictionary<int, IfcStepEntity> properties,
-      IReadOnlyList<PropertySet> propertySets)
+      IReadOnlyList<PropertySet> propertySets,
+      IReadOnlyDictionary<int, HashSet<int>> ownersByPropertySet,
+      IfcStepDocument document)
     {
       foreach (OfficialCarrierProbeSeedItem seed in seeds
         ?? Array.Empty<OfficialCarrierProbeSeedItem>())
@@ -793,6 +820,22 @@ namespace BIMBaoGui.HifcCore
                 seed.IfcProperty,
                 StringComparison.Ordinal))
               return "PROBE_SENTINEL_IDENTITY_AMBIGUOUS";
+            if (ownersByPropertySet.TryGetValue(
+              pset.Id,
+              out HashSet<int> ownerIds))
+            {
+              foreach (int ownerId in ownerIds)
+              {
+                if (document == null
+                  || !document.TryGetEntity(ownerId, out IfcStepEntity owner))
+                  return "PROBE_IFC_STRUCTURE_INVALID";
+                if (!string.Equals(
+                  owner.Type,
+                  seed.IfcEntity,
+                  StringComparison.OrdinalIgnoreCase))
+                  return "PROBE_SENTINEL_IDENTITY_AMBIGUOUS";
+              }
+            }
           }
         }
       }

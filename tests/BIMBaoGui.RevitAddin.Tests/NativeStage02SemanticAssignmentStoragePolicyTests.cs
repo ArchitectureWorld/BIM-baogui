@@ -40,6 +40,39 @@ namespace BIMBaoGui.RevitAddin.Tests
         decision.State);
       Assert.Equal(new[] { "stale" }, decision.StaleElementUniqueIds);
       Assert.Equal(2, decision.Payload.Assignments.Count);
+      Assert.Equal("document", decision.Payload.DocumentFingerprint);
+    }
+
+    [Fact]
+    public void VersionElevenPayloadIsReadableButAlwaysNeedsReconfirmation()
+    {
+      NativeStage02SemanticAssignmentPayload legacy = Payload(Record("alive"));
+      legacy.SchemaVersion = NativeStage02SemanticAssignmentSchema.PreviousVersion;
+      legacy.DocumentFingerprint = string.Empty;
+      string canonical = NativeStage02SemanticAssignmentCanonicalizer
+        .SerializeCanonical(legacy);
+      var snapshot = new NativeStage02SemanticAssignmentStorageSnapshot
+      {
+        SchemaVersion = NativeStage02SemanticAssignmentSchema.PreviousVersion,
+        RulePackageId = legacy.RulePackageId,
+        RulePackageVersion = legacy.RulePackageVersion,
+        CanonicalJson = canonical,
+        PayloadSha256 = NativeStage02SemanticAssignmentCanonicalizer.Sha256(
+          canonical),
+        UpdatedUtc = "2026-08-14T00:00:00Z",
+        Payload = legacy
+      };
+
+      NativeStage02SemanticAssignmentStorageDecision decision =
+        NativeStage02SemanticAssignmentStoragePolicy.Evaluate(
+          snapshot,
+          new[] { "alive" });
+
+      Assert.Equal("1.2.0", NativeStage02SemanticAssignmentSchema.Version);
+      Assert.Equal(
+        NativeStage02SemanticAssignmentStorageState.NeedsReconfirmation,
+        decision.State);
+      Assert.Equal(string.Empty, decision.Payload.DocumentFingerprint);
     }
 
     [Fact]
@@ -120,6 +153,7 @@ namespace BIMBaoGui.RevitAddin.Tests
       return new NativeStage02SemanticAssignmentPayload
       {
         SchemaVersion = NativeStage02SemanticAssignmentSchema.Version,
+        DocumentFingerprint = "document",
         RulePackageId = "HBR-WUHAN-PLANNING",
         RulePackageVersion = "1.0.0",
         Assignments = records ?? Array.Empty<NativeStage02SemanticAssignmentRecord>()

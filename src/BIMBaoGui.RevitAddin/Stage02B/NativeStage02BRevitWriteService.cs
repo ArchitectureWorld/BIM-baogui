@@ -123,7 +123,9 @@ namespace BIMBaoGui.RevitAddin.Stage02B
               validation.CanonicalValue, StringComparison.Ordinal))
               throw new InvalidDataException("READBACK_FAILED");
           }
-          transaction.Commit();
+          NativeTransactionCommitPolicy.RequireCommitted(
+            transaction.Commit().ToString(),
+            "STAGE02B_METRIC_TRANSACTION_NOT_COMMITTED");
           outcomes.Add(new NativeStage02BMetricOutcome
           {
             PropertyId = metric.PropertyId,
@@ -188,7 +190,9 @@ namespace BIMBaoGui.RevitAddin.Stage02B
           try
           {
             NativeWorkflowResultStorage.Write(document, envelope);
-            envelopeTransaction.Commit();
+            NativeTransactionCommitPolicy.RequireCommitted(
+              envelopeTransaction.Commit().ToString(),
+              "STAGE02B_ENVELOPE_TRANSACTION_NOT_COMMITTED");
             result.WorkflowResult = envelope;
           }
           catch
@@ -222,7 +226,9 @@ namespace BIMBaoGui.RevitAddin.Stage02B
         {
           auditTransaction.Start();
           NativeStage02BStorage.WriteMetric(document, audit);
-          auditTransaction.Commit();
+          NativeTransactionCommitPolicy.RequireCommitted(
+            auditTransaction.Commit().ToString(),
+            "STAGE02B_AUDIT_TRANSACTION_NOT_COMMITTED");
           saved = true;
         }
         catch (Exception exception)
@@ -286,20 +292,20 @@ namespace BIMBaoGui.RevitAddin.Stage02B
         .Select(value => value.ElementUniqueId).ToArray();
       NativeStage02SemanticAssignmentStorageDecision decision =
         NativeStage02SemanticAssignmentStoragePolicy.Evaluate(stored, live);
-      bool current = decision.State
-          == NativeStage02SemanticAssignmentStorageState.Current
-        && decision.StaleElementUniqueIds.Count == 0
-        && records.All(value => string.Equals(
-          value.RulePackageSha256, identity.RulePackageSha256,
-          StringComparison.Ordinal));
-      return new NativeStage02SemanticAssignmentSnapshot
-      {
-        Current = current,
-        CurrentDocumentFingerprint = identity.DocumentFingerprint,
-        AssignmentDocumentFingerprint = current
-          ? identity.DocumentFingerprint : string.Empty,
-        Assignments = records
-      };
+      NativeStage02ElementSnapshot[] liveSnapshots = records
+        .Select(value => document.GetElement(value.ElementUniqueId))
+        .Where(value => value != null)
+        .Select(value => NativeStage02RevitService.CreateSnapshot(
+          document,
+          value,
+          identity.DocumentFingerprint))
+        .Where(value => value != null)
+        .ToArray();
+      return NativeStage02BAssignmentFreshnessPolicy.Evaluate(
+        decision,
+        identity.DocumentFingerprint,
+        identity.RulePackageSha256,
+        liveSnapshots);
     }
 
     private static NativeStage02BMetricRecord SuccessRecord(
@@ -392,6 +398,7 @@ namespace BIMBaoGui.RevitAddin.Stage02B
         "OFFICIAL_CARRIER_AMBIGUOUS",
         "OFFICIAL_CARRIER_TYPE_MISMATCH",
         "OFFICIAL_CARRIER_CONTRACT_MISMATCH",
+        "STAGE02B_METRIC_TRANSACTION_NOT_COMMITTED",
         "READBACK_FAILED"
       };
       return stable.Contains(message, StringComparer.Ordinal)
