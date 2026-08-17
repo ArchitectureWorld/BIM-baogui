@@ -198,6 +198,58 @@ def test_existing_double_click_install_and_uninstall_entrypoints_remain():
     assert '-Uninstall' in uninstall
 
 
+def test_installer_source_and_packaged_copy_parse_in_windows_powershell_51(
+    tmp_path: Path,
+):
+    packaged_installer = tmp_path / "artifacts" / INSTALLER.name
+    packaged_installer.parent.mkdir()
+    packaged_installer.write_bytes(INSTALLER.read_bytes())
+    powershell = (
+        Path(os.environ["SystemRoot"])
+        / "System32"
+        / "WindowsPowerShell"
+        / "v1.0"
+        / "powershell.exe"
+    )
+    parser_command = (
+        "$tokens = $null; $errors = $null; "
+        "[System.Management.Automation.Language.Parser]::ParseFile("
+        "$env:BIMBAOGUI_INSTALLER_UNDER_TEST, [ref]$tokens, [ref]$errors) "
+        "| Out-Null; "
+        "if ($errors.Count -gt 0) { "
+        "$errors | ForEach-Object { Write-Error $_.Message }; exit 1 }"
+    )
+
+    for label, installer in (
+        ("source", INSTALLER),
+        ("packaged", packaged_installer),
+    ):
+        environment = os.environ.copy()
+        environment["BIMBAOGUI_INSTALLER_UNDER_TEST"] = str(installer)
+        result = subprocess.run(
+            [
+                str(powershell),
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                parser_command,
+            ],
+            cwd=ROOT,
+            env=environment,
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=15,
+        )
+
+        assert result.returncode == 0, (
+            f"{label} installer does not parse in Windows PowerShell 5.1:\n"
+            f"{result.stdout}{result.stderr}"
+        )
+
+
 def test_only_unified_workflow_owns_official_sdk_stdio_verification():
     workflow = read(WORKFLOW)
     assert not STDIO_WORKFLOW.exists()
