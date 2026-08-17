@@ -38,6 +38,8 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Equal(Path.Combine(_root,
         scan.ScanHash + "-stage03-scan-evidence.json"), path);
       Dictionary<string, object> json = ReadObject(path);
+      AssertSharedIdentityProjection(scan, json, "STAGE03_SCAN", true, false,
+        NativeStage03ChecklistStatus.Failed);
       Assert.Equal("STAGE03_SCAN", json["report_kind"]);
       Assert.True((bool)json["is_test_export"]);
       Assert.False((bool)json["counts_as_normal_export_pass"]);
@@ -74,7 +76,8 @@ namespace BIMBaoGui.RevitAddin.Tests
       Dictionary<string, object> manifest = Object(json,
         "official_acceptance_manifest");
       Assert.Equal("1.0.0", manifest["schema_version"]);
-      Assert.Equal(new string('d', 64), manifest["sha256"]);
+      Assert.Equal(ManifestSha(scan.OfficialAcceptanceManifest.Properties),
+        manifest["sha256"]);
       object[] properties = ObjectArray(manifest, "properties");
       Assert.Equal(2, properties.Length);
       Assert.Equal("11111111-1111-1111-1111-111111111111",
@@ -164,6 +167,7 @@ namespace BIMBaoGui.RevitAddin.Tests
       NativeStage03ScanResult scan = Scan(NativeStage03Mode.Strict,
         NativeStage03ChecklistStatus.Passed);
       scan.AllowExport = true;
+      scan.ExportFields = new[] { new HifcFieldRequest() };
       scan.OfficialAcceptanceManifest.Sha256 = ManifestSha(
         scan.OfficialAcceptanceManifest.Properties);
       scan.ScanHash = NativeStage03Canonicalizer.ComputeHash(scan);
@@ -179,6 +183,8 @@ namespace BIMBaoGui.RevitAddin.Tests
         scan.ScanHash + "-validation.json");
       Assert.Equal(validationPath, paths.ValidationReportPath);
       Dictionary<string, object> validation = ReadObject(validationPath);
+      AssertSharedIdentityProjection(scan, validation, "VALIDATION", false,
+        true, NativeStage03ChecklistStatus.Passed);
       Assert.Equal("VALIDATION", validation["report_kind"]);
       Assert.Equal("STRICT", validation["execution_mode"]);
       Assert.True((bool)validation["export_succeeded"]);
@@ -209,6 +215,50 @@ namespace BIMBaoGui.RevitAddin.Tests
         NativeStage03ReportWriter.WriteSuccess(paths, scan, Raw(paths),
           Translation(paths),
           System.Array.Empty<NativeStage03FieldEvidence>()));
+      Assert.False(File.Exists(Path.Combine(paths.RunDirectory,
+        scan.ScanHash + "-validation.json")));
+    }
+
+    [Fact]
+    public void Strict_success_rejects_a_red_checklist_with_forged_zero_counts()
+    {
+      NativeStage03ScanResult scan = Scan(NativeStage03Mode.Strict,
+        NativeStage03ChecklistStatus.Failed);
+      scan.AllowExport = true;
+      scan.FailedCount = 0;
+      scan.ExportFields = new[] { new HifcFieldRequest() };
+      scan.OfficialAcceptanceManifest.Sha256 = ManifestSha(
+        scan.OfficialAcceptanceManifest.Properties);
+      scan.ScanHash = NativeStage03Canonicalizer.ComputeHash(scan);
+      NativeStage03RunPaths paths = Paths(scan);
+
+      NativeStage03ReportException failure = Assert.Throws<
+        NativeStage03ReportException>(() =>
+          NativeStage03ReportWriter.WriteSuccess(paths, scan, Raw(paths),
+            Translation(paths), Array.Empty<NativeStage03FieldEvidence>()));
+
+      Assert.Equal(NativeStage03Codes.FieldNotReady, failure.Code);
+      Assert.False(File.Exists(Path.Combine(paths.RunDirectory,
+        scan.ScanHash + "-validation.json")));
+    }
+
+    [Fact]
+    public void Strict_success_rejects_zero_export_fields_even_when_counts_are_green()
+    {
+      NativeStage03ScanResult scan = Scan(NativeStage03Mode.Strict,
+        NativeStage03ChecklistStatus.Passed);
+      scan.AllowExport = true;
+      scan.OfficialAcceptanceManifest.Sha256 = ManifestSha(
+        scan.OfficialAcceptanceManifest.Properties);
+      scan.ScanHash = NativeStage03Canonicalizer.ComputeHash(scan);
+      NativeStage03RunPaths paths = Paths(scan);
+
+      NativeStage03ReportException failure = Assert.Throws<
+        NativeStage03ReportException>(() =>
+          NativeStage03ReportWriter.WriteSuccess(paths, scan, Raw(paths),
+            Translation(paths), Array.Empty<NativeStage03FieldEvidence>()));
+
+      Assert.Equal(NativeStage03Codes.FieldNotReady, failure.Code);
       Assert.False(File.Exists(Path.Combine(paths.RunDirectory,
         scan.ScanHash + "-validation.json")));
     }
@@ -247,6 +297,8 @@ namespace BIMBaoGui.RevitAddin.Tests
         "TRANSLATOR_DEPENDENCY_UNAVAILABLE", "translator missing");
 
       Dictionary<string, object> failure = ReadObject(paths.FailureReportPath);
+      AssertSharedIdentityProjection(scan, failure, "FAILURE", true, false,
+        NativeStage03ChecklistStatus.Failed);
       Assert.Equal("FAILURE", failure["report_kind"]);
       Assert.True((bool)failure["is_test_export"]);
       Assert.False((bool)failure["counts_as_normal_export_pass"]);
@@ -280,6 +332,40 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Equal(NativeStage03Codes.ScanExpired, failure.Code);
       Assert.False(File.Exists(Path.Combine(paths.RunDirectory,
         scan.ScanHash + "-validation.json")));
+    }
+
+    [Fact]
+    public void Scan_evidence_fails_closed_for_each_confirmed_identity_mutation()
+    {
+      NativeStage03ScanResult manifest = Scan(NativeStage03Mode.ForcedTest,
+        NativeStage03ChecklistStatus.Failed);
+      manifest.OfficialAcceptanceManifest.Properties[0].Identity =
+        "IfcBuilding|Pset_Building|Tampered";
+      Assert.Equal(NativeStage03Codes.ReportWriterUnavailable,
+        Assert.Throws<NativeStage03ReportException>(() =>
+          NativeStage03ReportWriter.WriteScanEvidence(manifest)).Code);
+
+      NativeStage03ScanResult readback = Scan(NativeStage03Mode.ForcedTest,
+        NativeStage03ChecklistStatus.Failed);
+      readback.OfficialAcceptanceRevitReadbacks[0].Values[0].CanonicalValue =
+        "tampered";
+      Assert.Equal(NativeStage03Codes.ScanExpired,
+        Assert.Throws<NativeStage03ReportException>(() =>
+          NativeStage03ReportWriter.WriteScanEvidence(readback)).Code);
+
+      NativeStage03ScanResult runtime = Scan(NativeStage03Mode.ForcedTest,
+        NativeStage03ChecklistStatus.Failed);
+      runtime.PluginRuntime.ProductVersion = "tampered";
+      Assert.Equal(NativeStage03Codes.RuntimeArtifactChanged,
+        Assert.Throws<NativeStage03ReportException>(() =>
+          NativeStage03ReportWriter.WriteScanEvidence(runtime)).Code);
+
+      NativeStage03ScanResult dll = Scan(NativeStage03Mode.ForcedTest,
+        NativeStage03ChecklistStatus.Failed);
+      dll.PluginRuntime.AddinDllSha256 = new string('f', 64);
+      Assert.Equal(NativeStage03Codes.RuntimeArtifactChanged,
+        Assert.Throws<NativeStage03ReportException>(() =>
+          NativeStage03ReportWriter.WriteScanEvidence(dll)).Code);
     }
 
     [Fact]
@@ -329,7 +415,7 @@ namespace BIMBaoGui.RevitAddin.Tests
         OfficialAcceptanceManifest = new NativeOfficialAcceptanceManifest
         {
           SchemaVersion = "1.0.0",
-          Sha256 = new string('d', 64),
+          Sha256 = string.Empty,
           Properties = new[]
           {
             ManifestEntry("22222222-2222-2222-2222-222222222222",
@@ -405,6 +491,8 @@ namespace BIMBaoGui.RevitAddin.Tests
           ? new[] { "MISSING_DATA" }
           : System.Array.Empty<string>()
       };
+      result.OfficialAcceptanceManifest.Sha256 = ManifestSha(
+        result.OfficialAcceptanceManifest.Properties);
       result.ScanHash = NativeStage03Canonicalizer.ComputeHash(result);
       return result;
     }
@@ -580,6 +668,245 @@ namespace BIMBaoGui.RevitAddin.Tests
       string key)
     {
       return Assert.IsType<object[]>(parent[key]);
+    }
+
+    private void AssertSharedIdentityProjection(
+      NativeStage03ScanResult scan,
+      IDictionary<string, object> actual,
+      string reportKind,
+      bool isTestExport,
+      bool countsAsNormalExportPass,
+      NativeStage03ChecklistStatus checklistStatus)
+    {
+      var expected = new Dictionary<string, object>(StringComparer.Ordinal)
+      {
+        ["report_kind"] = reportKind,
+        ["is_test_export"] = isTestExport,
+        ["counts_as_normal_export_pass"] = countsAsNormalExportPass,
+        ["official_acceptance_status"] = "PENDING",
+        ["checklist_counts"] = new Dictionary<string, object>
+        {
+          ["passed"] = checklistStatus == NativeStage03ChecklistStatus.Passed
+            ? 1 : 0,
+          ["failed"] = checklistStatus == NativeStage03ChecklistStatus.Failed
+            ? 1 : 0,
+          ["warning"] = 0,
+          ["not_checked"] = 0
+        },
+        ["workflow_results"] = new Dictionary<string, object>
+        {
+          ["stage01"] = ExpectedWorkflow("RUN-01", '1', '4'),
+          ["stage02a"] = ExpectedWorkflow("RUN-02A", '2', '5'),
+          ["stage02b"] = ExpectedWorkflow("RUN-02B", '3', '6')
+        },
+        ["rule_package"] = new Dictionary<string, object>
+        {
+          ["id"] = "HBR-WUHAN-PLANNING",
+          ["version"] = "1.0.0",
+          ["sha256"] = new string('a', 64)
+        },
+        ["document_fingerprint"] = "DOC-FINGERPRINT",
+        ["document_path"] = Path.GetFullPath(Path.Combine(_root,
+          "current.rvt")),
+        ["plugin_runtime"] = ExpectedRuntime(RuntimeIdentity()),
+        ["official_acceptance_manifest"] = ExpectedManifest(),
+        ["official_acceptance_revit_readbacks"] = ExpectedReadbacks(),
+        ["checklist"] = ExpectedChecklist(checklistStatus),
+        ["revit_version"] = "2020",
+        ["scan_hash"] = scan.ScanHash,
+        ["normalized_output_directory"] = _root,
+        ["preflight_hash"] = new string('c', 64),
+        ["technical_fatals"] = Array.Empty<object>()
+      };
+      var projected = new Dictionary<string, object>(StringComparer.Ordinal);
+      foreach (string key in expected.Keys) projected[key] = actual[key];
+      AssertJsonGraph(expected, projected, "identity");
+    }
+
+    private static Dictionary<string, object> ExpectedWorkflow(
+      string runId, char result, char input)
+    {
+      return new Dictionary<string, object>
+      {
+        ["run_id"] = runId,
+        ["result_hash"] = new string(result, 64),
+        ["input_snapshot_hash"] = new string(input, 64)
+      };
+    }
+
+    private static Dictionary<string, object> ExpectedRuntime(
+      NativePluginRuntimeIdentity runtime)
+    {
+      return new Dictionary<string, object>
+      {
+        ["product_version"] = runtime.ProductVersion,
+        ["assembly_version"] = runtime.AssemblyVersion,
+        ["informational_version"] = runtime.InformationalVersion,
+        ["commit_sha"] = runtime.CommitSha,
+        ["addin_dll_path"] = runtime.AddinDllPath,
+        ["addin_dll_sha256"] = runtime.AddinDllSha256
+      };
+    }
+
+    private static Dictionary<string, object> ExpectedManifest()
+    {
+      return new Dictionary<string, object>
+      {
+        ["schema_version"] = "1.0.0",
+        ["sha256"] = ManifestSha(new[]
+        {
+          ManifestEntry("22222222-2222-2222-2222-222222222222",
+            "IfcBuilding|Pset_Building|Height", "IfcReal", "m",
+            NativeReportingSourceStage.Stage02B),
+          ManifestEntry("11111111-1111-1111-1111-111111111111",
+            "IfcProject|Pset_Project|ProjectName", "IfcLabel", "",
+            NativeReportingSourceStage.Stage01)
+        }),
+        ["properties"] = new object[]
+        {
+          new Dictionary<string, object>
+          {
+            ["property_id"] = "11111111-1111-1111-1111-111111111111",
+            ["identity"] = "IfcProject|Pset_Project|ProjectName",
+            ["declared_ifc_type"] = "IfcLabel",
+            ["canonical_unit"] = "",
+            ["parameter_guid"] = "11111111-1111-1111-1111-111111111111",
+            ["binding_scope"] = "INSTANCE",
+            ["source_stage"] = "STAGE01"
+          },
+          new Dictionary<string, object>
+          {
+            ["property_id"] = "22222222-2222-2222-2222-222222222222",
+            ["identity"] = "IfcBuilding|Pset_Building|Height",
+            ["declared_ifc_type"] = "IfcReal",
+            ["canonical_unit"] = "m",
+            ["parameter_guid"] = "22222222-2222-2222-2222-222222222222",
+            ["binding_scope"] = "INSTANCE",
+            ["source_stage"] = "STAGE02B"
+          }
+        }
+      };
+    }
+
+    private static object[] ExpectedReadbacks()
+    {
+      return new object[]
+      {
+        new Dictionary<string, object>
+        {
+          ["property_id"] = "11111111-1111-1111-1111-111111111111",
+          ["source_stage"] = "STAGE01",
+          ["source_result_hash"] = new string('1', 64),
+          ["values"] = new object[]
+          {
+            ExpectedOwner("owner-b", "gid-a", "Project B"),
+            ExpectedOwner("owner-a", "gid-b", "Project A")
+          }
+        },
+        new Dictionary<string, object>
+        {
+          ["property_id"] = "22222222-2222-2222-2222-222222222222",
+          ["source_stage"] = "STAGE02B",
+          ["source_result_hash"] = new string('3', 64),
+          ["values"] = new object[]
+          {
+            ExpectedOwner("owner-c", "gid-c", "42.5")
+          }
+        }
+      };
+    }
+
+    private static Dictionary<string, object> ExpectedOwner(
+      string uniqueId, string globalId, string value)
+    {
+      return new Dictionary<string, object>
+      {
+        ["revit_unique_id"] = uniqueId,
+        ["expected_ifc_global_id"] = globalId,
+        ["canonical_value"] = value
+      };
+    }
+
+    private static object[] ExpectedChecklist(
+      NativeStage03ChecklistStatus status)
+    {
+      return new object[]
+      {
+        new Dictionary<string, object>
+        {
+          ["check_id"] = "CHECK-RED",
+          ["check_kind"] = "PropertyConsistency",
+          ["display_name"] = "官方载体证据",
+          ["source_stage"] = "STAGE02B",
+          ["applicable_basis"] = "RULE-001",
+          ["current_value"] = "",
+          ["unit"] = "m",
+          ["status"] = status.ToString(),
+          ["issue_code"] = "MISSING_DATA",
+          ["remediation_target"] = "02B",
+          ["field_key"] = "building_height",
+          ["property_id"] = "22222222-2222-2222-2222-222222222222",
+          ["role_id"] = "BUILDING",
+          ["rule_text"] = "建筑高度必须有官方载体证据",
+          ["target_key"] = "height_limit",
+          ["element_id"] = 20,
+          ["element_unique_id"] = "element-b",
+          ["elements"] = new object[]
+          {
+            new Dictionary<string, object>
+            {
+              ["element_id"] = 10,
+              ["element_unique_id"] = "element-a",
+              ["element_name"] = "A",
+              ["category_name"] = "Mass"
+            },
+            new Dictionary<string, object>
+            {
+              ["element_id"] = 20,
+              ["element_unique_id"] = "element-b",
+              ["element_name"] = "B",
+              ["category_name"] = "Mass"
+            }
+          },
+          ["official_carrier_status"] = "PendingGoldenRvt",
+          ["official_projection_carrier_id"] = "carrier-02b",
+          ["official_carrier_probe_ref"] = "probe-02b",
+          ["official_evidence_ref"] = "evidence-02b"
+        }
+      };
+    }
+
+    private static void AssertJsonGraph(object expected, object actual,
+      string path)
+    {
+      var expectedObject = expected as IDictionary<string, object>;
+      var actualObject = actual as IDictionary<string, object>;
+      if (expectedObject != null || actualObject != null)
+      {
+        Assert.NotNull(expectedObject);
+        Assert.NotNull(actualObject);
+        Assert.Equal(expectedObject.Keys.OrderBy(value => value,
+          StringComparer.Ordinal), actualObject.Keys.OrderBy(value => value,
+          StringComparer.Ordinal));
+        foreach (string key in expectedObject.Keys)
+          AssertJsonGraph(expectedObject[key], actualObject[key],
+            path + "." + key);
+        return;
+      }
+      object[] expectedArray = expected as object[];
+      object[] actualArray = actual as object[];
+      if (expectedArray != null || actualArray != null)
+      {
+        Assert.NotNull(expectedArray);
+        Assert.NotNull(actualArray);
+        Assert.Equal(expectedArray.Length, actualArray.Length);
+        for (int index = 0; index < expectedArray.Length; index++)
+          AssertJsonGraph(expectedArray[index], actualArray[index],
+            path + "[" + index + "]");
+        return;
+      }
+      Assert.True(object.Equals(expected, actual),
+        path + " expected=" + expected + " actual=" + actual);
     }
 
     private static void AssertWorkflow(

@@ -24,6 +24,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
     {
       if (scan == null) throw new ArgumentNullException(nameof(scan));
       ValidateConfirmedIdentity(scan);
+      ValidateManifest(scan.OfficialAcceptanceManifest);
       ValidateConfirmedScanHash(scan);
       string outputDirectory = Path.GetFullPath(
         scan.NormalizedOutputDirectory);
@@ -68,9 +69,8 @@ namespace BIMBaoGui.RevitAddin.Stage03
       ValidateConfirmedScanHash(scan);
       ValidateManifest(scan.OfficialAcceptanceManifest);
       if (scan.Mode == NativeStage03Mode.Strict
-        && (scan.FailedCount != 0
-          || scan.NotCheckedCount != 0
-          || (scan.TechnicalFatalCodes?.Count ?? 0) != 0))
+        && !NativeStage03StrictSuccessPolicy.IsSatisfied(
+          scan, translation.Success, translation.InternalStatus))
       {
         throw new NativeStage03ReportException(
           NativeStage03Codes.FieldNotReady,
@@ -118,13 +118,8 @@ namespace BIMBaoGui.RevitAddin.Stage03
         raw,
         translation));
 
-      bool normalPass = scan.Mode == NativeStage03Mode.Strict
-        && translation.Success
-        && string.Equals(translation.InternalStatus,
-          HifcCoreStatus.InternalValidated, StringComparison.Ordinal)
-        && scan.FailedCount == 0
-        && scan.NotCheckedCount == 0
-        && (scan.TechnicalFatalCodes?.Count ?? 0) == 0;
+      bool normalPass = NativeStage03StrictSuccessPolicy.IsSatisfied(
+        scan, translation.Success, translation.InternalStatus);
       Dictionary<string, object> validation = SharedIdentity(
         scan, "VALIDATION", normalPass);
       validation["schema"] = "HBR_NATIVE_STAGE03_VALIDATION_V1";

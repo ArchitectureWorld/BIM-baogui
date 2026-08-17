@@ -352,11 +352,11 @@ namespace BIMBaoGui.RevitAddin.Stage03
         throw new ArgumentNullException(nameof(execution));
       bool isTest = scan.Mode == NativeStage03Mode.ForcedTest;
       execution.IsTestExport = isTest;
-      execution.CountsAsNormalExportPass = execution.Success
-        && !isTest
-        && scan.FailedCount == 0
-        && scan.NotCheckedCount == 0
-        && (scan.TechnicalFatalCodes?.Count ?? 0) == 0;
+      execution.CountsAsNormalExportPass =
+        NativeStage03StrictSuccessPolicy.IsSatisfied(
+          scan,
+          execution.Success,
+          execution.InternalValidationStatus);
       execution.OfficialAcceptanceStatus = "PENDING";
       execution.OfficialAcceptanceManifest = scan.OfficialAcceptanceManifest;
       execution.OfficialAcceptanceRevitReadbacks =
@@ -364,6 +364,46 @@ namespace BIMBaoGui.RevitAddin.Stage03
         ?? Array.Empty<NativeOfficialAcceptancePropertyReadback>();
       execution.Checklist = scan.Checklist
         ?? Array.Empty<NativeStage03ChecklistItem>();
+    }
+  }
+
+  internal static class NativeStage03StrictSuccessPolicy
+  {
+    internal static bool IsSatisfied(
+      NativeStage03ScanResult scan,
+      bool exportSucceeded,
+      string internalValidationStatus)
+    {
+      if (scan == null
+        || scan.Mode != NativeStage03Mode.Strict
+        || !exportSucceeded
+        || !scan.AllowExport
+        || (scan.ExportFields?.Count ?? 0) == 0
+        || (scan.TechnicalFatalCodes?.Count ?? 0) != 0
+        || !string.Equals(internalValidationStatus,
+          HifcCoreStatus.InternalValidated, StringComparison.Ordinal))
+      {
+        return false;
+      }
+
+      NativeStage03ChecklistItem[] checklist = (scan.Checklist
+        ?? Array.Empty<NativeStage03ChecklistItem>())
+        .Where(value => value != null)
+        .ToArray();
+      int passed = checklist.Count(value =>
+        value.Status == NativeStage03ChecklistStatus.Passed);
+      int failed = checklist.Count(value =>
+        value.Status == NativeStage03ChecklistStatus.Failed);
+      int warning = checklist.Count(value =>
+        value.Status == NativeStage03ChecklistStatus.Warning);
+      int notChecked = checklist.Count(value =>
+        value.Status == NativeStage03ChecklistStatus.NotChecked);
+      return scan.PassedCount == passed
+        && scan.FailedCount == failed
+        && scan.WarningCount == warning
+        && scan.NotCheckedCount == notChecked
+        && failed == 0
+        && notChecked == 0;
     }
   }
 }

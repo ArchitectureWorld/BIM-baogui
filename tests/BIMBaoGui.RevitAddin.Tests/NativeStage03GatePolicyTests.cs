@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
+using BIMBaoGui.HifcCore;
 using BIMBaoGui.RevitAddin.McpBridge;
 using BIMBaoGui.RevitAddin.Rules;
 using BIMBaoGui.RevitAddin.Stage03;
@@ -115,6 +116,38 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Same(failedChecklistItem, Assert.Single(execution.Checklist));
       Assert.Equal(NativeStage03ChecklistStatus.Failed,
         execution.Checklist[0].Status);
+    }
+
+    [Fact]
+    public void Strict_execution_identity_recomputes_checklist_counts_before_normal_pass()
+    {
+      var scan = new NativeStage03ScanResult
+      {
+        Mode = NativeStage03Mode.Strict,
+        AllowExport = true,
+        ExportFields = new[] { new HifcFieldRequest() },
+        Checklist = new[]
+        {
+          new NativeStage03ChecklistItem
+          {
+            CheckId = "CHECK-RED-BUT-STORED-ZERO",
+            Status = NativeStage03ChecklistStatus.Failed,
+            IssueCode = "MISSING_DATA"
+          }
+        },
+        FailedCount = 0,
+        NotCheckedCount = 0,
+        TechnicalFatalCodes = Array.Empty<string>()
+      };
+      var execution = new NativeStage03ExecutionResult
+      {
+        Success = true,
+        InternalValidationStatus = HifcCoreStatus.InternalValidated
+      };
+
+      NativeStage03ExecutionIdentityPolicy.Apply(scan, execution);
+
+      Assert.False(execution.CountsAsNormalExportPass);
     }
 
     [Fact]
