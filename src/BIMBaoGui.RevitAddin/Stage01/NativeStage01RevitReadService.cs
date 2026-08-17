@@ -6,6 +6,7 @@ using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using BIMBaoGui.RevitAddin.Rules;
+using BIMBaoGui.RevitAddin.Workflow;
 
 namespace BIMBaoGui.RevitAddin.Stage01
 {
@@ -24,6 +25,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
     internal string SourcePayloadVersion { get; set; } = string.Empty;
     internal IReadOnlyList<string> Messages { get; set; } =
       Array.Empty<string>();
+    internal NativeWorkflowResultEnvelope WorkflowResult { get; set; }
+    internal NativeWorkflowResultEnvelope Stage02BResult { get; set; }
   }
 
   internal static class NativeStage01RevitReadService
@@ -85,7 +88,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
             model,
             liveEvidence);
           messages.Add(
-            "当前 RVT 没有 Stage01 记录；已将 Revit 项目信息、X（南北）、Y（东西）、高程和真北作为新表单初值；单位保持工作流目标 m / m² / °，当前 RVT 单位仅用于差异对账。" );
+            "当前 RVT 没有 Stage01 记录；已将 Revit 项目信息、经纬度、X（南北）、Y（东西）、高程和真北作为新表单初值；单位保持工作流目标 m / m² / °，当前 RVT 单位仅用于差异对账。" );
           break;
 
         case NativeStage01StorageState.Current:
@@ -136,6 +139,23 @@ namespace BIMBaoGui.RevitAddin.Stage01
 
       NativeStage01ValidationResult validation =
         NativeStage01Validator.Validate(model, catalog);
+      NativeWorkflowResultEnvelope workflowResult = ReadWorkflowResult(
+        document,
+        "STAGE01",
+        messages);
+      NativeWorkflowResultEnvelope stage02BResult = ReadWorkflowResult(
+        document,
+        "STAGE02B",
+        messages);
+      FilterCurrentWorkflowResults(
+        application,
+        catalog,
+        model,
+        stored,
+        storageDecision,
+        messages,
+        ref workflowResult,
+        ref stage02BResult);
       bool environmentReady = string.Equals(
           application.Application.VersionNumber,
           "2020",
@@ -167,6 +187,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
         Drifts = drifts,
         RequiresMigrationConfirmation = requiresMigrationConfirmation,
         SourcePayloadVersion = sourcePayloadVersion,
+        WorkflowResult = workflowResult,
+        Stage02BResult = stage02BResult,
         Messages = new ReadOnlyCollection<string>(messages)
       };
     }
@@ -221,6 +243,20 @@ namespace BIMBaoGui.RevitAddin.Stage01
       }
       try
       {
+        SiteLocation site = document.SiteLocation;
+        evidence.Longitude = NativeStage01GeoLocationPolicy.FormatDegrees(
+          site.Longitude);
+        evidence.Latitude = NativeStage01GeoLocationPolicy.FormatDegrees(
+          site.Latitude);
+        evidence.GeoLocationAvailable = true;
+        messages.Add("已读取 Revit SiteLocation 经纬度现场值。" );
+      }
+      catch (Exception exception)
+      {
+        messages.Add("读取 SiteLocation 经纬度现场证据失败：" + exception.Message);
+      }
+      try
+      {
         Units units = document.GetUnits();
         evidence.LengthUnit = DescribeUnit(
           units.GetFormatOptions(UnitType.UT_Length).DisplayUnits,
@@ -241,6 +277,94 @@ namespace BIMBaoGui.RevitAddin.Stage01
         messages.Add("读取项目单位现场证据失败：" + exception.Message);
       }
       return evidence;
+    }
+
+    private static NativeWorkflowResultEnvelope ReadWorkflowResult(
+      Document document,
+      string sourceFeature,
+      ICollection<string> messages)
+    {
+      try
+      {
+        return NativeWorkflowResultStorage.Read(document, sourceFeature);
+      }
+      catch (Exception exception)
+      {
+        messages.Add(
+          "读取 " + sourceFeature + " workflow result 失败：" + exception.Message);
+        return null;
+      }
+    }
+
+    private static void FilterCurrentWorkflowResults(
+      UIApplication application,
+      NativeRuleCatalog catalog,
+      NativeStage01Model model,
+      NativeStoredInitialization stored,
+      NativeStage01StorageDecision storageDecision,
+      ICollection<string> messages,
+      ref NativeWorkflowResultEnvelope stage01Result,
+      ref NativeWorkflowResultEnvelope stage02BResult)
+    {
+      if (storageDecision?.State != NativeStage01StorageState.Current
+        || stored == null
+        || string.IsNullOrWhiteSpace(stored.FileGuid)
+        || string.IsNullOrWhiteSpace(storageDecision.ActualPayloadHash)
+        || string.IsNullOrWhiteSpace(
+          model.GetValue(NativeStage01Keys.ModelFileType)))
+      {
+        stage01Result = null;
+        stage02BResult = null;
+        return;
+      }
+      NativeWorkflowIdentity identity;
+      try
+      {
+        identity = NativeWorkflowIdentityFactory.Create(
+          application,
+          model.GetValue(NativeStage01Keys.ModelFileType),
+          stored.FileGuid,
+          storageDecision.ActualPayloadHash,
+          catalog.Identity);
+      }
+      catch (Exception exception)
+      {
+        messages.Add("无法建立当前 Stage01 workflow identity：" + exception.Message);
+        stage01Result = null;
+        stage02BResult = null;
+        return;
+      }
+      stage01Result = KeepCurrent(
+        stage01Result,
+        identity,
+        storageDecision.ActualPayloadHash,
+        "STAGE01",
+        messages);
+      stage02BResult = KeepCurrent(
+        stage02BResult,
+        identity,
+        stage02BResult?.InputSnapshotHash,
+        "STAGE02B",
+        messages);
+    }
+
+    private static NativeWorkflowResultEnvelope KeepCurrent(
+      NativeWorkflowResultEnvelope result,
+      NativeWorkflowIdentity identity,
+      string currentInputHash,
+      string sourceFeature,
+      ICollection<string> messages)
+    {
+      if (result == null) return null;
+      NativeWorkflowFreshnessDecision decision =
+        NativeWorkflowFreshnessPolicy.Evaluate(
+          result,
+          identity,
+          currentInputHash ?? string.Empty);
+      if (decision.State == NativeWorkflowFreshnessState.Current) return result;
+      messages.Add(
+        sourceFeature + " workflow result 已拒绝作为当前值：" + decision.Code);
+      return null;
     }
 
     private static NativeStage01Model CreateBlockedModel(

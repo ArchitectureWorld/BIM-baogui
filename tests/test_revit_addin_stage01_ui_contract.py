@@ -63,6 +63,21 @@ def test_stage01_required_fields_precede_one_remembered_optional_expander():
     assert "NativeStage01ViewModel.ConditionsGroup" in source
 
 
+def test_total_plan_field_cards_expose_fixed_sections_and_status_sources():
+    source = read(PROJECT / "Stage01" / "NativeStage01View.cs")
+    for label in (
+        "项目登记信息",
+        "项目位置与坐标",
+        "规划目标与限值",
+        "其他项目输入",
+    ):
+        assert label in source
+    assert "规划目标/限值" in source
+    assert "转到 02B 填写" in source
+    assert "presentation.Source" in source
+    assert "presentation.ReadbackState" in source
+
+
 def test_stage_status_regions_cannot_grow_and_displace_the_workspace():
     stage01 = read(PROJECT / "Stage01" / "NativeStage01View.cs")
     workspace = read(PROJECT / "WorkspaceControl.cs")

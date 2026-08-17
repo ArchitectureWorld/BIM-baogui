@@ -30,7 +30,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
           "IfcProject",
           StringComparison.Ordinal))
         .Where(field => !string.IsNullOrWhiteSpace(
-          model.GetValue(field.FieldKey)))
+          GetProjectionValue(model, field)))
         .OrderBy(field => field.ParameterGuid.Value)
         .ToArray();
       if (fields.Length == 0) return Array.Empty<string>();
@@ -39,7 +39,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
       ProjectInfo target = document.ProjectInformation
         ?? throw new InvalidOperationException("当前文档缺少 ProjectInformation。");
       foreach (NativeStage01FieldDefinition field in fields)
-        WriteValue(target, field, model.GetValue(field.FieldKey));
+        WriteValue(target, field, GetProjectionValue(model, field));
 
       IReadOnlyList<string> errors = Verify(document, model, catalog);
       if (errors.Count > 0)
@@ -81,7 +81,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
           StringComparison.Ordinal))
         .OrderBy(field => field.ParameterGuid.Value))
       {
-        string expected = model.GetValue(field.FieldKey);
+        string expected = GetProjectionValue(model, field);
         if (string.IsNullOrWhiteSpace(expected)) continue;
         Parameter parameter = target.get_Parameter(field.ParameterGuid.Value);
         if (parameter == null)
@@ -100,6 +100,23 @@ namespace BIMBaoGui.RevitAddin.Stage01
         }
       }
       return errors;
+    }
+
+    private static string GetProjectionValue(
+      NativeStage01Model model,
+      NativeStage01FieldDefinition field)
+    {
+      if (NativeStage01FieldPresentationPolicy.IsPlanningTarget(field))
+      {
+        NativePlanningTargetValue target;
+        if (model.PlanningTargets.TryGetValue(field.PropertyId, out target)
+          && target != null)
+        {
+          return target.Value1 ?? string.Empty;
+        }
+        return string.Empty;
+      }
+      return model.GetValue(field.FieldKey);
     }
 
     private static void EnsureBindings(

@@ -23,6 +23,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
     internal const string InvalidEmail = "INVALID_EMAIL";
     internal const string InvalidCreditCode = "INVALID_CREDIT_CODE";
     internal const string TrueNorthOutOfRange = "TRUE_NORTH_OUT_OF_RANGE";
+    internal const string InvalidGeoLocation = "INVALID_GEOLOCATION";
+    internal const string InvalidPlanningTarget = "INVALID_PLANNING_TARGET";
     internal const string UnknownModelProfile = "UNKNOWN_MODEL_PROFILE";
     internal const string PayloadVersionMismatch =
       "PAYLOAD_VERSION_MISMATCH";
@@ -153,6 +155,9 @@ namespace BIMBaoGui.RevitAddin.Stage01
         }
       }
 
+      ValidateGeoLocation(model, messages);
+      ValidatePlanningTargets(model, catalog, messages);
+
       string modelFileType = model.GetValue(
         NativeStage01Keys.ModelFileType).Trim();
       if (modelFileType.Length > 0
@@ -214,6 +219,84 @@ namespace BIMBaoGui.RevitAddin.Stage01
       }
 
       return new NativeStage01ValidationResult(messages);
+    }
+
+    private static void ValidateGeoLocation(
+      NativeStage01Model model,
+      ICollection<NativeStage01ValidationMessage> messages)
+    {
+      string longitude = model.GetValue(NativeStage01Keys.Longitude).Trim();
+      string latitude = model.GetValue(NativeStage01Keys.Latitude).Trim();
+      if (longitude.Length == 0 && latitude.Length == 0) return;
+      if (longitude.Length == 0 || latitude.Length == 0)
+      {
+        string missingKey = longitude.Length == 0
+          ? NativeStage01Keys.Longitude
+          : NativeStage01Keys.Latitude;
+        Add(
+          messages,
+          NativeStage01ValidationCodes.InvalidGeoLocation,
+          missingKey,
+          "经度和纬度必须成对填写；不得只写其中一个。" );
+        return;
+      }
+      try
+      {
+        NativeStage01GeoLocationPolicy.Parse(longitude, latitude);
+      }
+      catch (ArgumentException exception)
+      {
+        string fieldKey = string.Equals(
+          exception.ParamName,
+          "latitudeDegrees",
+          StringComparison.Ordinal)
+            ? NativeStage01Keys.Latitude
+            : NativeStage01Keys.Longitude;
+        Add(
+          messages,
+          NativeStage01ValidationCodes.InvalidGeoLocation,
+          fieldKey,
+          "经纬度无效：" + exception.Message);
+      }
+    }
+
+    private static void ValidatePlanningTargets(
+      NativeStage01Model model,
+      NativeRuleCatalog catalog,
+      ICollection<NativeStage01ValidationMessage> messages)
+    {
+      foreach (NativeStage01FieldDefinition field in catalog.Stage01Fields
+        .Where(NativeStage01FieldPresentationPolicy.IsPlanningTarget))
+      {
+        NativePlanningTargetValue target;
+        if (!model.PlanningTargets.TryGetValue(field.PropertyId, out target)
+          || target == null)
+        {
+          continue;
+        }
+        bool operatorValid = string.Equals(
+            target.Operator,
+            "LessOrEqual",
+            StringComparison.Ordinal)
+          || string.Equals(
+            target.Operator,
+            "GreaterOrEqual",
+            StringComparison.Ordinal)
+          || string.Equals(target.Operator, "Equal", StringComparison.Ordinal)
+          || string.Equals(target.Operator, "Range", StringComparison.Ordinal);
+        bool firstValid = TryDouble(target.Value1, out double _);
+        bool secondValid = !string.Equals(
+            target.Operator,
+            "Range",
+            StringComparison.Ordinal)
+          || TryDouble(target.Value2, out double _);
+        if (operatorValid && firstValid && secondValid) continue;
+        Add(
+          messages,
+          NativeStage01ValidationCodes.InvalidPlanningTarget,
+          field.FieldKey,
+          field.Label + "规划目标/限值必须使用有效操作符和数值；区间必须填写两个端点。" );
+      }
     }
 
     private static void ValidateValue(

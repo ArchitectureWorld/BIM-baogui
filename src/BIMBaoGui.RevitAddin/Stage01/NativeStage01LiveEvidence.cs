@@ -10,6 +10,9 @@ namespace BIMBaoGui.RevitAddin.Stage01
     internal string BaseY { get; set; } = string.Empty;
     internal string BaseElevation { get; set; } = string.Empty;
     internal string TrueNorthAngle { get; set; } = string.Empty;
+    internal bool GeoLocationAvailable { get; set; }
+    internal string Longitude { get; set; } = string.Empty;
+    internal string Latitude { get; set; } = string.Empty;
     internal bool UnitsAvailable { get; set; }
     internal string LengthUnit { get; set; } = string.Empty;
     internal string AreaUnit { get; set; } = string.Empty;
@@ -27,6 +30,9 @@ namespace BIMBaoGui.RevitAddin.Stage01
         BaseY = BaseY,
         BaseElevation = BaseElevation,
         TrueNorthAngle = TrueNorthAngle,
+        GeoLocationAvailable = GeoLocationAvailable,
+        Longitude = Longitude,
+        Latitude = Latitude,
         UnitsAvailable = UnitsAvailable,
         LengthUnit = LengthUnit,
         AreaUnit = AreaUnit,
@@ -43,6 +49,9 @@ namespace BIMBaoGui.RevitAddin.Stage01
       string baseY,
       string baseElevation,
       string trueNorthAngle,
+      bool geoLocationAvailable,
+      string longitude,
+      string latitude,
       bool unitsAvailable,
       string lengthUnit,
       string areaUnit,
@@ -58,6 +67,9 @@ namespace BIMBaoGui.RevitAddin.Stage01
         BaseY = baseY ?? string.Empty,
         BaseElevation = baseElevation ?? string.Empty,
         TrueNorthAngle = trueNorthAngle ?? string.Empty,
+        GeoLocationAvailable = geoLocationAvailable,
+        Longitude = longitude ?? string.Empty,
+        Latitude = latitude ?? string.Empty,
         UnitsAvailable = unitsAvailable,
         LengthUnit = lengthUnit ?? string.Empty,
         AreaUnit = areaUnit ?? string.Empty,

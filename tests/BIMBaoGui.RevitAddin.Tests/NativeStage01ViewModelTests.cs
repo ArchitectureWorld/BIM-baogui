@@ -21,7 +21,10 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Equal(
         NativeStage01ViewModel.ConditionsGroup,
         viewModel.ActiveGroup);
-      Assert.Contains("01_文件与项目身份", viewModel.Groups);
+      Assert.Contains(NativeStage01ViewModel.RegistrationGroup, viewModel.Groups);
+      Assert.Contains(NativeStage01ViewModel.LocationGroup, viewModel.Groups);
+      Assert.Contains(NativeStage01ViewModel.PlanningGroup, viewModel.Groups);
+      Assert.Contains(NativeStage01ViewModel.OtherInputsGroup, viewModel.Groups);
       Assert.NotEmpty(viewModel.Conditions);
       Assert.Equal(1, viewModel.GetMissingRequiredCount(
         NativeStage01ViewModel.ConditionsGroup));
@@ -136,7 +139,8 @@ namespace BIMBaoGui.RevitAddin.Tests
       viewModel.SetFieldValue(optionalField, InvalidValue(optionalField));
       viewModel.Validate();
 
-      Assert.True(viewModel.HasOptionalValidationError(optionalField.UiGroup));
+      Assert.True(viewModel.HasOptionalValidationError(
+        NativeStage01ViewModel.GroupForField(optionalField)));
       Assert.Contains(
         viewModel.Validation.Messages,
         message => message.FieldKey == optionalField.FieldKey);

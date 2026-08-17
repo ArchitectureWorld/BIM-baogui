@@ -7,6 +7,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using BIMBaoGui.RevitAddin.Rules;
 using BIMBaoGui.RevitAddin.Runtime;
+using BIMBaoGui.RevitAddin.Workflow;
 
 namespace BIMBaoGui.RevitAddin.Stage01
 {
@@ -28,12 +29,16 @@ namespace BIMBaoGui.RevitAddin.Stage01
       = Array.Empty<NativeStage01PreflightBlocker>();
     internal IReadOnlyList<string> Messages { get; set; } =
       Array.Empty<string>();
+    internal IReadOnlyList<NativeStage01FieldOutcome> FieldOutcomes { get; set; }
+      = Array.Empty<NativeStage01FieldOutcome>();
+    internal NativeWorkflowResultEnvelope WorkflowResult { get; set; }
   }
 
   internal static class NativeStage01RevitService
   {
     private const double CoordinateToleranceMeters = 0.0001;
     private const double AngleToleranceDegrees = 0.0001;
+    private const double GeoLocationToleranceRadians = 1e-10;
 
     internal static NativeStage01WriteResult Execute(
       UIApplication uiApplication,
@@ -129,8 +134,14 @@ namespace BIMBaoGui.RevitAddin.Stage01
       }
       string payloadJson = NativeStage01Canonicalizer.ToJson(model);
       string payloadHash = NativeStage01Canonicalizer.Sha256(payloadJson);
+      string updatedUtc = DateTimeOffset.UtcNow.ToString(
+        "O",
+        CultureInfo.InvariantCulture);
       var messages = new List<string>();
       bool transactionRolledBack = false;
+      IReadOnlyList<NativeStage01FieldOutcome> fieldOutcomes =
+        Array.Empty<NativeStage01FieldOutcome>();
+      NativeWorkflowResultEnvelope workflowResult = null;
 
       using (var group = new TransactionGroup(
         document,
@@ -154,6 +165,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
             ApplyUnits(document);
             operationStage = "PROJECT_POSITION";
             ApplyProjectPosition(document, model);
+            operationStage = "GEOLOCATION";
+            ApplyGeoLocation(document, model);
             operationStage = "PROJECT_INFORMATION";
             ApplyProjectInformation(document, model);
             operationStage = "INTERNAL_STORAGE";
@@ -165,9 +178,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
               FileGuid = fileGuid,
               WorkflowVersion =
                 NativeStage01Canonicalizer.PayloadSchemaVersion,
-              InitializedUtc = DateTimeOffset.UtcNow.ToString(
-                "O",
-                CultureInfo.InvariantCulture)
+              InitializedUtc = updatedUtc
             });
             operationStage = "PARAMETER_PROJECTION";
             messages.AddRange(
@@ -188,7 +199,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
             model,
             payloadJson,
             payloadHash,
-            catalog);
+            catalog,
+            out IReadOnlyList<NativeStage01FieldOutcome> readbackFailures);
           if (readbackErrors.Count > 0)
           {
             transactionRolledBack =
@@ -199,6 +211,12 @@ namespace BIMBaoGui.RevitAddin.Stage01
               Status = "初始化失败｜回读不一致",
               PayloadJson = payloadJson,
               PayloadHash = payloadHash,
+              FieldOutcomes = BuildRolledBackOutcomes(
+                model,
+                catalog,
+                "STAGE01_READBACK_FAILED",
+                "Stage01 任一回读失败，事务组已整体回滚。",
+                readbackFailures),
               Messages = new[]
               {
                 transactionRolledBack
@@ -206,6 +224,29 @@ namespace BIMBaoGui.RevitAddin.Stage01
                   : "写入后回读不一致，事务组回滚状态未确认。"
               }.Concat(readbackErrors).ToArray()
             };
+          }
+
+          operationStage = "WORKFLOW_RESULT";
+          fieldOutcomes = BuildFieldOutcomes(model, catalog);
+          workflowResult = BuildWorkflowResult(
+            uiApplication,
+            model,
+            catalog,
+            fileGuid,
+            payloadHash,
+            updatedUtc,
+            fieldOutcomes);
+          using (var resultTransaction = new Transaction(
+            document,
+            "保存原生 Stage01 workflow result"))
+          {
+            if (resultTransaction.Start() != TransactionStatus.Started)
+              throw new InvalidOperationException(
+                "无法启动 Stage01 workflow result 事务。" );
+            NativeWorkflowResultStorage.Write(document, workflowResult);
+            if (resultTransaction.Commit() != TransactionStatus.Committed)
+              throw new InvalidOperationException(
+                "Stage01 workflow result 事务未成功提交。" );
           }
 
           operationStage = "TRANSACTION_GROUP_ASSIMILATE";
@@ -223,6 +264,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
             Status = "初始化通过",
             PayloadJson = payloadJson,
             PayloadHash = payloadHash,
+            FieldOutcomes = fieldOutcomes,
+            WorkflowResult = workflowResult,
             Messages = new ReadOnlyCollection<string>(messages)
           };
         }
@@ -267,6 +310,23 @@ namespace BIMBaoGui.RevitAddin.Stage01
             Status = "初始化技术失败",
             PayloadJson = payloadJson,
             PayloadHash = payloadHash,
+            FieldOutcomes = string.Equals(
+                operationStage,
+                "GEOLOCATION",
+                StringComparison.Ordinal)
+              ? BuildRolledBackOutcomes(
+                model,
+                catalog,
+                "STAGE01_TRANSACTION_ROLLED_BACK",
+                exception.Message,
+                BuildGeoLocationFailures(model, "GEOLOCATION_WRITE_FAILED"))
+              : BuildRolledBackOutcomes(
+                model,
+                catalog,
+                "STAGE01_TRANSACTION_ROLLED_BACK",
+                exception.Message,
+                Array.Empty<NativeStage01FieldOutcome>()),
+            WorkflowResult = null,
             FailureReportPath = report.ReportPath,
             Messages = new[]
             {
@@ -342,14 +402,33 @@ namespace BIMBaoGui.RevitAddin.Stage01
       information.Name = model.GetValue(NativeStage01Keys.ProjectName);
     }
 
+    private static void ApplyGeoLocation(
+      Document document,
+      NativeStage01Model model)
+    {
+      string longitude = model.GetValue(NativeStage01Keys.Longitude).Trim();
+      string latitude = model.GetValue(NativeStage01Keys.Latitude).Trim();
+      if (longitude.Length == 0 && latitude.Length == 0) return;
+      NativeGeoLocationValue geo = NativeStage01GeoLocationPolicy.Parse(
+        longitude,
+        latitude);
+      SiteLocation site = document.SiteLocation
+        ?? throw new InvalidOperationException("当前文档缺少 SiteLocation。" );
+      site.Longitude = geo.LongitudeRadians;
+      site.Latitude = geo.LatitudeRadians;
+      document.Regenerate();
+    }
+
     private static IReadOnlyList<string> VerifyReadback(
       Document document,
       NativeStage01Model model,
       string expectedPayload,
       string expectedHash,
-      NativeRuleCatalog catalog)
+      NativeRuleCatalog catalog,
+      out IReadOnlyList<NativeStage01FieldOutcome> fieldFailures)
     {
       var errors = new List<string>();
+      var failures = new List<NativeStage01FieldOutcome>();
       Units units = document.GetUnits();
       if (units.GetFormatOptions(UnitType.UT_Length).DisplayUnits
         != DisplayUnitType.DUT_METERS)
@@ -399,6 +478,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
         position.Angle * 180.0 / Math.PI,
         AngleToleranceDegrees);
 
+      VerifyGeoLocationReadback(document, model, errors, failures);
+
       ProjectInfo information = document.ProjectInformation;
       if (information == null)
       {
@@ -445,7 +526,214 @@ namespace BIMBaoGui.RevitAddin.Stage01
           document,
           model,
           catalog));
+      fieldFailures = new ReadOnlyCollection<NativeStage01FieldOutcome>(
+        failures);
       return errors;
+    }
+
+    private static void VerifyGeoLocationReadback(
+      Document document,
+      NativeStage01Model model,
+      ICollection<string> errors,
+      ICollection<NativeStage01FieldOutcome> failures)
+    {
+      string longitude = model.GetValue(NativeStage01Keys.Longitude).Trim();
+      string latitude = model.GetValue(NativeStage01Keys.Latitude).Trim();
+      if (longitude.Length == 0 && latitude.Length == 0) return;
+      NativeGeoLocationValue geo = NativeStage01GeoLocationPolicy.Parse(
+        longitude,
+        latitude);
+      SiteLocation site = document.SiteLocation
+        ?? throw new InvalidOperationException("当前文档缺少 SiteLocation。" );
+      bool longitudeMatches = Math.Abs(
+        site.Longitude - geo.LongitudeRadians) <= GeoLocationToleranceRadians;
+      bool latitudeMatches = Math.Abs(
+        site.Latitude - geo.LatitudeRadians) <= GeoLocationToleranceRadians;
+      if (longitudeMatches && latitudeMatches) return;
+      if (!longitudeMatches) errors.Add("经度 SiteLocation 回读不一致。" );
+      if (!latitudeMatches) errors.Add("纬度 SiteLocation 回读不一致。" );
+      foreach (NativeStage01FieldOutcome failure in BuildGeoLocationFailures(
+        model,
+        "GEOLOCATION_READBACK_MISMATCH"))
+      {
+        failures.Add(failure);
+      }
+    }
+
+    private static IReadOnlyList<NativeStage01FieldOutcome> BuildFieldOutcomes(
+      NativeStage01Model model,
+      NativeRuleCatalog catalog)
+    {
+      return new ReadOnlyCollection<NativeStage01FieldOutcome>(
+        catalog.Stage01Fields
+          .OrderBy(field => field.FieldKey, StringComparer.Ordinal)
+          .Select(field =>
+          {
+            string value = GetFieldValue(model, field);
+            bool deferred = field.Deferred;
+            bool attempted = !deferred && !string.IsNullOrWhiteSpace(value);
+            return new NativeStage01FieldOutcome
+            {
+              FieldKey = field.FieldKey,
+              Identity = field.FieldKey,
+              CurrentValue = value,
+              Unit = field.CanonicalUnit,
+              Source = deferred
+                ? "STAGE02B_REFERENCE"
+                : NativeStage01FieldPresentationPolicy.IsPlanningTarget(field)
+                  ? "STAGE01_PLANNING_TARGET"
+                  : "STAGE01",
+              WriteState = attempted
+                ? NativeStage01FieldOperationState.Succeeded
+                : NativeStage01FieldOperationState.NotAttempted,
+              ReadbackState = attempted
+                ? NativeStage01FieldOperationState.Succeeded
+                : NativeStage01FieldOperationState.NotAttempted
+            };
+          })
+          .ToArray());
+    }
+
+    private static NativeWorkflowResultEnvelope BuildWorkflowResult(
+      UIApplication uiApplication,
+      NativeStage01Model model,
+      NativeRuleCatalog catalog,
+      string fileGuid,
+      string payloadHash,
+      string updatedUtc,
+      IReadOnlyList<NativeStage01FieldOutcome> outcomes)
+    {
+      NativeWorkflowIdentity identity = NativeWorkflowIdentityFactory.Create(
+        uiApplication,
+        model.GetValue(NativeStage01Keys.ModelFileType),
+        fileGuid,
+        payloadHash,
+        catalog.Identity);
+      NativeWorkflowItemEvidence[] items = (outcomes
+          ?? Array.Empty<NativeStage01FieldOutcome>())
+        .Select(outcome => new NativeWorkflowItemEvidence
+        {
+          Identity = outcome.Identity,
+          CurrentValue = outcome.CurrentValue,
+          Unit = outcome.Unit,
+          Source = string.IsNullOrWhiteSpace(outcome.Source)
+            ? "STAGE01"
+            : outcome.Source,
+          WriteSucceeded = outcome.WriteState
+            == NativeStage01FieldOperationState.Succeeded,
+          ReadbackSucceeded = outcome.ReadbackState
+            == NativeStage01FieldOperationState.Succeeded,
+          InputHash = payloadHash,
+          UpdatedUtc = updatedUtc,
+          ErrorCode = outcome.ErrorCode
+        })
+        .ToArray();
+      return NativeWorkflowResultCanonicalizer.Build(
+        "stage01-" + Guid.NewGuid().ToString("N"),
+        "STAGE01",
+        "PROJECT_INPUT",
+        identity,
+        payloadHash,
+        items,
+        updatedUtc);
+    }
+
+    private static IReadOnlyList<NativeStage01FieldOutcome>
+      BuildGeoLocationFailures(
+        NativeStage01Model model,
+        string errorCode)
+    {
+      return new[]
+      {
+        new NativeStage01FieldOutcome
+        {
+          FieldKey = NativeStage01Keys.Longitude,
+          Identity = NativeStage01Keys.Longitude,
+          CurrentValue = model.GetValue(NativeStage01Keys.Longitude),
+          Unit = "°",
+          Source = "REVIT_SITE_LOCATION",
+          WriteState = NativeStage01FieldOperationState.Failed,
+          ReadbackState = NativeStage01FieldOperationState.Failed,
+          ErrorCode = errorCode,
+          Message = "经度写入或回读失败，Stage01 事务组已回滚。"
+        },
+        new NativeStage01FieldOutcome
+        {
+          FieldKey = NativeStage01Keys.Latitude,
+          Identity = NativeStage01Keys.Latitude,
+          CurrentValue = model.GetValue(NativeStage01Keys.Latitude),
+          Unit = "°",
+          Source = "REVIT_SITE_LOCATION",
+          WriteState = NativeStage01FieldOperationState.Failed,
+          ReadbackState = NativeStage01FieldOperationState.Failed,
+          ErrorCode = errorCode,
+          Message = "纬度写入或回读失败，Stage01 事务组已回滚。"
+        }
+      };
+    }
+
+    private static IReadOnlyList<NativeStage01FieldOutcome>
+      BuildRolledBackOutcomes(
+        NativeStage01Model model,
+        NativeRuleCatalog catalog,
+        string errorCode,
+        string message,
+        IReadOnlyList<NativeStage01FieldOutcome> specificFailures)
+    {
+      var overrides = (specificFailures ?? Array.Empty<NativeStage01FieldOutcome>())
+        .Where(value => value != null)
+        .GroupBy(value => value.FieldKey, StringComparer.Ordinal)
+        .ToDictionary(
+          group => group.Key,
+          group => group.Last(),
+          StringComparer.Ordinal);
+      NativeStage01FieldOutcome[] rolledBack = BuildFieldOutcomes(model, catalog)
+        .Select(outcome =>
+        {
+          NativeStage01FieldOutcome specific;
+          if (overrides.TryGetValue(outcome.FieldKey, out specific))
+            return specific;
+          if (outcome.WriteState != NativeStage01FieldOperationState.Succeeded)
+            return outcome;
+          return new NativeStage01FieldOutcome
+          {
+            FieldKey = outcome.FieldKey,
+            Identity = outcome.Identity,
+            CurrentValue = outcome.CurrentValue,
+            Unit = outcome.Unit,
+            Source = outcome.Source,
+            WriteState = NativeStage01FieldOperationState.Failed,
+            ReadbackState = NativeStage01FieldOperationState.Failed,
+            ErrorCode = errorCode,
+            Message = message ?? string.Empty
+          };
+        })
+        .ToArray();
+      return new ReadOnlyCollection<NativeStage01FieldOutcome>(rolledBack);
+    }
+
+    private static string GetFieldValue(
+      NativeStage01Model model,
+      NativeStage01FieldDefinition field)
+    {
+      if (NativeStage01FieldPresentationPolicy.IsPlanningTarget(field))
+      {
+        NativePlanningTargetValue target;
+        return model.PlanningTargets.TryGetValue(field.PropertyId, out target)
+          ? target?.MvdText ?? string.Empty
+          : string.Empty;
+      }
+      if (field.IsOrganization)
+      {
+        return string.Join(
+          " | ",
+          model.Organizations
+            .Select((_, index) => model.GetOrganizationValue(
+              index,
+              field.FieldKey))
+            .Where(value => !string.IsNullOrWhiteSpace(value)));
+      }
+      return model.GetValue(field.FieldKey);
     }
 
     private static double ParseNumber(

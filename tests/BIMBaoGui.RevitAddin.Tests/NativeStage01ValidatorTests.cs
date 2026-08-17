@@ -136,6 +136,53 @@ namespace BIMBaoGui.RevitAddin.Tests
         && value.FieldKey == NativeStage01Keys.BaseX);
     }
 
+    [Fact]
+    public void LongitudeAndLatitudeMustBeAValidCompletePair()
+    {
+      NativeStage01Model incomplete = CreateValidModel();
+      incomplete.SetValue(NativeStage01Keys.Longitude, "114.3");
+
+      NativeStage01ValidationResult incompleteResult =
+        NativeStage01Validator.Validate(incomplete, NativeRuleCatalog.Current);
+
+      Assert.Contains(incompleteResult.Messages, value =>
+        value.Code == NativeStage01ValidationCodes.InvalidGeoLocation
+        && value.FieldKey == NativeStage01Keys.Latitude);
+
+      NativeStage01Model outOfRange = CreateValidModel();
+      outOfRange.SetValue(NativeStage01Keys.Longitude, "181");
+      outOfRange.SetValue(NativeStage01Keys.Latitude, "30.6");
+
+      NativeStage01ValidationResult outOfRangeResult =
+        NativeStage01Validator.Validate(outOfRange, NativeRuleCatalog.Current);
+
+      Assert.Contains(outOfRangeResult.Messages, value =>
+        value.Code == NativeStage01ValidationCodes.InvalidGeoLocation
+        && value.FieldKey == NativeStage01Keys.Longitude);
+    }
+
+    [Fact]
+    public void PlanningTargetsRejectInvalidNumericOrIncompleteRangeValues()
+    {
+      NativeStage01Model model = CreateValidModel();
+      NativeStage01FieldDefinition target = NativeRuleCatalog.Current
+        .Stage01Fields.First(NativeStage01FieldPresentationPolicy.IsPlanningTarget);
+      model.PlanningTargets[target.PropertyId] = new NativePlanningTargetValue(
+        "Range",
+        "not-number",
+        string.Empty,
+        target.CanonicalUnit,
+        "USER_INPUT",
+        "not-number–");
+
+      NativeStage01ValidationResult result =
+        NativeStage01Validator.Validate(model, NativeRuleCatalog.Current);
+
+      Assert.Contains(result.Messages, value =>
+        value.Code == NativeStage01ValidationCodes.InvalidPlanningTarget
+        && value.FieldKey == target.FieldKey);
+    }
+
     private static NativeStage01Model CreateValidModel()
     {
       NativeRuleCatalog catalog = NativeRuleCatalog.Current;

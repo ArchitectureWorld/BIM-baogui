@@ -34,6 +34,10 @@ namespace BIMBaoGui.RevitAddin.Stage01
       "IfcProject|Pset_申报信息属性集|坐标系名称";
     internal const string ElevationSystem =
       "IfcProject|Pset_申报信息属性集|高程系名称";
+    internal const string Longitude =
+      "IfcProject|Pset_申报信息属性集|经度";
+    internal const string Latitude =
+      "IfcProject|Pset_申报信息属性集|纬度";
   }
 
   internal sealed class NativePlanningTargetValue

@@ -32,6 +32,28 @@ def test_project_position_freezes_x_as_northing_and_y_as_easting():
     assert "position.EastWest" in source
 
 
+def test_stage01_geolocation_is_written_and_read_back_in_radians():
+    write_source = read("NativeStage01RevitService.cs")
+    read_source = read("NativeStage01RevitReadService.cs")
+    assert "document.SiteLocation" in write_source
+    assert "site.Longitude = geo.LongitudeRadians" in write_source
+    assert "site.Latitude = geo.LatitudeRadians" in write_source
+    assert "site.Longitude" in read_source
+    assert "site.Latitude" in read_source
+    assert "NativeStage01GeoLocationPolicy.FormatDegrees" in read_source
+
+
+def test_stage01_persists_field_outcomes_and_workflow_result_in_same_group():
+    source = read("NativeStage01RevitService.cs")
+    assert "FieldOutcomes" in source
+    assert "WorkflowResult" in source
+    assert "NativeWorkflowResultCanonicalizer.Build" in source
+    assert "NativeWorkflowResultStorage.Write" in source
+    assert source.index("new TransactionGroup(") < source.index(
+        "NativeWorkflowResultStorage.Write"
+    ) < source.index("group.Assimilate()")
+
+
 def test_stage01_parameter_projection_is_database_driven_and_guid_exact():
     source = read("NativeStage01ParameterProjectionService.cs")
     assert "catalog.Stage01Fields" in source
@@ -42,6 +64,8 @@ def test_stage01_parameter_projection_is_database_driven_and_guid_exact():
     assert "IfcProject" in source
     assert "GetOrganizationValue" not in source
     assert "Fixture" not in source
+    assert "model.PlanningTargets" in source
+    assert "target.Value1" in source
 
 
 def test_stage01_failure_report_is_atomic_and_records_transaction_truth():

@@ -10,6 +10,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
 {
   internal sealed class NativeStage01View : UserControl
   {
+    private const string TotalPlanSections =
+      "项目登记信息｜项目位置与坐标｜规划目标与限值｜其他项目输入";
     private readonly NativeStage01ViewModel _viewModel;
     private readonly StackPanel _directoryPanel;
     private readonly StackPanel _formPanel;
@@ -190,7 +192,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
               out NativeStage01FieldDefinition found)
               ? found
               : null;
-          if (field != null) _viewModel.SetActiveGroup(field.UiGroup);
+          if (field != null)
+            _viewModel.SetActiveGroup(NativeStage01ViewModel.GroupForField(field));
         }
         ExpandOptionalSectionsWithErrors();
         RenderAll();
@@ -263,7 +266,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
       }
       if (result.Success)
       {
-        _viewModel.MarkSaved();
+        _viewModel.MarkSaved(result);
         _allowReinitialize.IsChecked = false;
       }
       ExpandOptionalSectionsWithErrors();
@@ -300,6 +303,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
     {
       _summaryText.Text = "当前目录："
         + DisplayName(_viewModel.ActiveGroup)
+        + "｜总平分区：" + TotalPlanSections
         + "｜未填必填项："
         + _viewModel.GetMissingRequiredCount(_viewModel.ActiveGroup)
         + "｜现场差异："
@@ -654,10 +658,15 @@ namespace BIMBaoGui.RevitAddin.Stage01
       NativeStage01FieldDefinition field)
     {
       bool required = NativeStage01Validator.IsRequired(field);
+      NativeStage01FieldPresentation presentation =
+        _viewModel.GetFieldPresentation(field);
+      bool planningTarget =
+        NativeStage01FieldPresentationPolicy.IsPlanningTarget(field);
       var panel = new StackPanel();
       var label = new TextBlock
       {
         Text = field.Label
+          + (planningTarget ? "  · 规划目标/限值" : string.Empty)
           + (required ? "  *" : "  （可选）")
           + (field.Deferred ? "  · 后续阶段计算" : string.Empty),
         FontWeight = required ? FontWeights.SemiBold : FontWeights.Normal,
@@ -666,8 +675,43 @@ namespace BIMBaoGui.RevitAddin.Stage01
       };
       panel.Children.Add(label);
 
-      FrameworkElement editor = CreateEditor(field);
+      FrameworkElement editor = string.Equals(
+        presentation.NavigationTarget,
+        "02B",
+        StringComparison.Ordinal)
+          ? CreateStage02BReferenceEditor(presentation)
+          : planningTarget
+            ? CreatePlanningTargetEditor(field)
+            : CreateEditor(field);
       panel.Children.Add(editor);
+      panel.Children.Add(new TextBlock
+      {
+        Text = "当前状态值：" + DisplayEvidenceValue(presentation.CurrentValue)
+          + "｜来源：" + presentation.Source
+          + "｜回读：" + presentation.ReadbackState
+          + "｜当前清单：" + (presentation.InCurrentChecklist ? "是" : "否")
+          + (string.IsNullOrWhiteSpace(presentation.Unit)
+            ? string.Empty
+            : "｜单位：" + presentation.Unit),
+        FontSize = 11,
+        Foreground = presentation.ReadbackState
+          == NativeStage01FieldOperationState.Failed
+            ? Brushes.DarkRed
+            : Brushes.DimGray,
+        TextWrapping = TextWrapping.Wrap,
+        Margin = new Thickness(0, 3, 0, 0)
+      });
+      if (!string.IsNullOrWhiteSpace(presentation.IssueMessage))
+      {
+        panel.Children.Add(new TextBlock
+        {
+          Text = presentation.IssueCode + "：" + presentation.IssueMessage,
+          Foreground = Brushes.DarkRed,
+          FontSize = 11,
+          TextWrapping = TextWrapping.Wrap,
+          Margin = new Thickness(0, 3, 0, 0)
+        });
+      }
       panel.Children.Add(new TextBlock
       {
         Text = "示例：" + Example(field)
@@ -704,6 +748,98 @@ namespace BIMBaoGui.RevitAddin.Stage01
           ? new SolidColorBrush(Color.FromRgb(248, 249, 250))
           : Brushes.White
       };
+    }
+
+    private FrameworkElement CreateStage02BReferenceEditor(
+      NativeStage01FieldPresentation presentation)
+    {
+      var panel = new StackPanel { Margin = new Thickness(0, 6, 0, 0) };
+      panel.Children.Add(new TextBlock
+      {
+        Text = string.IsNullOrWhiteSpace(presentation.CurrentValue)
+          ? "尚未取得 02B 当前值"
+          : presentation.CurrentValue
+            + (string.IsNullOrWhiteSpace(presentation.Unit)
+              ? string.Empty
+              : " " + presentation.Unit),
+        FontWeight = FontWeights.SemiBold,
+        TextWrapping = TextWrapping.Wrap
+      });
+      var button = SmallButton("转到 02B 填写", () => SetStatus(
+        "请在 02 构件与属性准备的 02B 指标区填写总建筑面积。" ));
+      button.IsEnabled = !_busy;
+      panel.Children.Add(button);
+      return panel;
+    }
+
+    private FrameworkElement CreatePlanningTargetEditor(
+      NativeStage01FieldDefinition field)
+    {
+      NativePlanningTargetValue current = _viewModel.GetPlanningTarget(field);
+      string[] operators = { "≤", "≥", "=", "区间" };
+      var panel = new Grid { Margin = new Thickness(0, 6, 0, 0) };
+      panel.ColumnDefinitions.Add(new ColumnDefinition
+      {
+        Width = new GridLength(90)
+      });
+      panel.ColumnDefinitions.Add(new ColumnDefinition
+      {
+        Width = new GridLength(1, GridUnitType.Star)
+      });
+      panel.ColumnDefinitions.Add(new ColumnDefinition
+      {
+        Width = new GridLength(1, GridUnitType.Star)
+      });
+      var operatorBox = new ComboBox
+      {
+        ItemsSource = operators,
+        SelectedItem = DisplayPlanningOperator(current?.Operator),
+        IsEnabled = !_busy,
+        MinHeight = 28,
+        Margin = new Thickness(0, 0, 6, 0)
+      };
+      var value1 = new TextBox
+      {
+        Text = current?.Value1 ?? string.Empty,
+        IsEnabled = !_busy,
+        MinHeight = 28,
+        Padding = new Thickness(5),
+        Margin = new Thickness(0, 0, 6, 0)
+      };
+      var value2 = new TextBox
+      {
+        Text = current?.Value2 ?? string.Empty,
+        IsEnabled = !_busy,
+        MinHeight = 28,
+        Padding = new Thickness(5)
+      };
+      Action update = () => _viewModel.SetPlanningTarget(
+        field,
+        Convert.ToString(operatorBox.SelectedItem) ?? "≤",
+        value1.Text,
+        value2.Text,
+        field.CanonicalUnit);
+      operatorBox.SelectionChanged += (_, __) => update();
+      value1.LostFocus += (_, __) => update();
+      value2.LostFocus += (_, __) => update();
+      Grid.SetColumn(operatorBox, 0);
+      Grid.SetColumn(value1, 1);
+      Grid.SetColumn(value2, 2);
+      panel.Children.Add(operatorBox);
+      panel.Children.Add(value1);
+      panel.Children.Add(value2);
+      return panel;
+    }
+
+    private static string DisplayPlanningOperator(string value)
+    {
+      switch (value)
+      {
+        case "GreaterOrEqual": return "≥";
+        case "Equal": return "=";
+        case "Range": return "区间";
+        default: return "≤";
+      }
     }
 
     private FrameworkElement CreateEditor(NativeStage01FieldDefinition field)

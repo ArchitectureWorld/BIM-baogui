@@ -118,6 +118,26 @@ namespace BIMBaoGui.RevitAddin.Stage01
       },
       new Contract
       {
+        FieldKey = NativeStage01Keys.Longitude,
+        ApplyAsInitial = true,
+        Label = "经度",
+        AuthoritySource = "REVIT_SITE_LOCATION",
+        IsAvailable = value => value.GeoLocationAvailable,
+        ReadLive = value => value.Longitude,
+        NumericTolerance = 1e-10
+      },
+      new Contract
+      {
+        FieldKey = NativeStage01Keys.Latitude,
+        ApplyAsInitial = true,
+        Label = "纬度",
+        AuthoritySource = "REVIT_SITE_LOCATION",
+        IsAvailable = value => value.GeoLocationAvailable,
+        ReadLive = value => value.Latitude,
+        NumericTolerance = 1e-10
+      },
+      new Contract
+      {
         FieldKey = NativeStage01Keys.LengthUnit,
         ApplyAsInitial = false,
         Label = "长度单位",
