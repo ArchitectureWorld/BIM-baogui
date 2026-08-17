@@ -256,9 +256,13 @@ namespace BIMBaoGui.RevitAddin.Stage03
           generation.OfficialAcceptanceManifest,
           stage02?.Preview,
           stage02B,
+          currentIdentity,
           stage01Result,
+          stage01InputHash,
           stage02AResult,
+          stage02AInputHash,
           stage02BResult,
+          stage02BInputHash,
           checklist);
       NativeStage03BlockerClassification blockers =
         NativeStage03BlockerPolicy.Classify(technical, checklist);
@@ -389,9 +393,13 @@ namespace BIMBaoGui.RevitAddin.Stage03
         NativeOfficialAcceptanceManifest manifest,
         NativeStage02Preview stage02A,
         NativeStage02BReadResult stage02B,
+        NativeWorkflowIdentity currentIdentity,
         NativeWorkflowResultEnvelope stage01Result,
+        string stage01CurrentInputSnapshotHash,
         NativeWorkflowResultEnvelope stage02AResult,
+        string stage02ACurrentInputSnapshotHash,
         NativeWorkflowResultEnvelope stage02BResult,
+        string stage02BCurrentInputSnapshotHash,
         ICollection<NativeStage03ChecklistItem> checklist)
     {
       var readbacks = new List<NativeOfficialAcceptancePropertyReadback>();
@@ -415,6 +423,15 @@ namespace BIMBaoGui.RevitAddin.Stage03
           .ToArray();
         string sourceHash = SourceResultHash(
           entry.SourceStage, stage01Result, stage02AResult, stage02BResult);
+        string freshnessCode = OfficialReadbackFreshnessCode(
+          entry.SourceStage,
+          currentIdentity,
+          stage01Result,
+          stage01CurrentInputSnapshotHash,
+          stage02AResult,
+          stage02ACurrentInputSnapshotHash,
+          stage02BResult,
+          stage02BCurrentInputSnapshotHash);
         readbacks.Add(new NativeOfficialAcceptancePropertyReadback
         {
           PropertyId = entry.PropertyId,
@@ -424,6 +441,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
             NativeOfficialAcceptanceOwnerReadback>(values)
         });
         bool complete = property != null
+          && freshnessCode.Length == 0
           && !string.IsNullOrWhiteSpace(sourceHash)
           && values.Length > 0
           && values.All(value =>
@@ -444,9 +462,13 @@ namespace BIMBaoGui.RevitAddin.Stage03
             ? NativeStage03ChecklistStatus.Passed
             : NativeStage03ChecklistStatus.Failed,
           IssueCode = complete ? string.Empty
-            : OfficialReadbackFailureCode(entry, stage02B),
+            : freshnessCode.Length > 0
+              ? freshnessCode
+              : OfficialReadbackFailureCode(entry, stage02B),
           IssueMessage = complete ? string.Empty
-            : OfficialReadbackFailureCode(entry, stage02B),
+            : freshnessCode.Length > 0
+              ? freshnessCode
+              : OfficialReadbackFailureCode(entry, stage02B),
           RemediationTarget = entry.SourceStage
             == NativeReportingSourceStage.Stage02B
               ? "OPEN_STAGE02B"
@@ -618,6 +640,42 @@ namespace BIMBaoGui.RevitAddin.Stage03
         default:
           return string.Empty;
       }
+    }
+
+    internal static string OfficialReadbackFreshnessCode(
+      NativeReportingSourceStage source,
+      NativeWorkflowIdentity currentIdentity,
+      NativeWorkflowResultEnvelope stage01Result,
+      string stage01CurrentInputSnapshotHash,
+      NativeWorkflowResultEnvelope stage02AResult,
+      string stage02ACurrentInputSnapshotHash,
+      NativeWorkflowResultEnvelope stage02BResult,
+      string stage02BCurrentInputSnapshotHash)
+    {
+      NativeWorkflowResultEnvelope result;
+      string inputSnapshotHash;
+      switch (source)
+      {
+        case NativeReportingSourceStage.Stage01:
+          result = stage01Result;
+          inputSnapshotHash = stage01CurrentInputSnapshotHash;
+          break;
+        case NativeReportingSourceStage.Stage02A:
+          result = stage02AResult;
+          inputSnapshotHash = stage02ACurrentInputSnapshotHash;
+          break;
+        case NativeReportingSourceStage.Stage02B:
+          result = stage02BResult;
+          inputSnapshotHash = stage02BCurrentInputSnapshotHash;
+          break;
+        default:
+          return "WORKFLOW_RESULT_UNKNOWN";
+      }
+      NativeWorkflowFreshnessDecision decision = NativeWorkflowFreshnessPolicy
+        .Evaluate(result, currentIdentity, inputSnapshotHash);
+      return decision.State == NativeWorkflowFreshnessState.Current
+        ? string.Empty
+        : decision.Code;
     }
 
     private static NativePluginRuntimeIdentity CapturePluginRuntime()

@@ -276,6 +276,30 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Equal("WORKFLOW_RESULT_HASH_MISMATCH", item.IssueCode);
     }
 
+    [Fact]
+    public void Skeleton_geometry_rejects_old_stage02a_success_after_live_input_changes()
+    {
+      NativeReportingCheckDefinition definition = NativeReportingRuleCatalog
+        .Current.GetChecks("总平模型")
+        .First(value => value.TaskId == "SITE.SKELETON"
+          && value.CheckKind == NativeReportingCheckKind.Geometry);
+      NativeStage02ElementPlan plan = ConfirmedElement(definition,
+        NativeStage02GeometryCheckState.Passed,
+        "GEOMETRY_CHECK_PASSED");
+      NativeStage03SourceEvidenceBundle evidence = CurrentBundle(plan);
+      evidence.Stage02AResult = Result(
+        evidence.CurrentIdentity,
+        new string('f', 64),
+        GeometryItem(definition, true));
+
+      NativeStage03ChecklistItem item = Assert.Single(
+        NativeStage03ChecklistEvaluator.Evaluate(
+          new[] { definition }, evidence));
+
+      Assert.Equal(NativeStage03ChecklistStatus.Failed, item.Status);
+      Assert.Equal("WORKFLOW_INPUT_STALE", item.IssueCode);
+    }
+
     private static NativeReportingCheckDefinition RoleDefinition()
     {
       return new NativeReportingCheckDefinition
@@ -452,7 +476,7 @@ namespace BIMBaoGui.RevitAddin.Tests
         TaskGeometry = definition == null ? null :
           new NativeStage02TaskGeometryEvaluation
           {
-            TaskId = TaskId,
+            TaskId = definition.TaskId,
             ElementUniqueId = ElementUniqueId,
             Checks = new[]
             {

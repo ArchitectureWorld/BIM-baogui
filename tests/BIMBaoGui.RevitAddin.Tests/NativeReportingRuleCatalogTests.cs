@@ -93,8 +93,14 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Contains(checks, value => value.CheckId == "EXPORT.REPORT_WRITER");
       Assert.All(
         checks.Where(value => value.TaskId == "SITE.SKELETON"
-          && value.CheckKind == NativeReportingCheckKind.Geometry),
-        value => Assert.Equal(NativeReportingSourceStage.Stage01, value.SourceStage));
+          && (value.CheckKind == NativeReportingCheckKind.AttributeRequirement
+            || value.CheckKind == NativeReportingCheckKind.Geometry
+            || value.CheckKind == NativeReportingCheckKind.PropertyConsistency)),
+        value =>
+        {
+          Assert.Equal(NativeReportingSourceStage.Stage02A, value.SourceStage);
+          Assert.Equal("OPEN_STAGE02A", value.RemediationTarget);
+        });
 
       foreach (string taskId in reporting.GetTaskIds("总平模型"))
       {

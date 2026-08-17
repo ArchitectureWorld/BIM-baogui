@@ -931,9 +931,7 @@ namespace BIMBaoGui.RevitAddin.Rules
             ModelFileType = modelFileType,
             Sequence = 35000 + taskIndex * 100 + ruleIndex,
             DisplayName = ruleText,
-            SourceStage = string.Equals(task.TaskId, "SITE.SKELETON", StringComparison.Ordinal)
-              ? NativeReportingSourceStage.Stage01
-              : NativeReportingSourceStage.Stage02A,
+            SourceStage = NativeReportingSourceStage.Stage02A,
             CheckKind = NativeReportingCheckKind.AttributeRequirement,
             ConditionId = task.ConditionId,
             TaskId = task.TaskId,
@@ -942,9 +940,7 @@ namespace BIMBaoGui.RevitAddin.Rules
             InternalCarrierStatus = internalStatus,
             RuleText = ruleText,
             OfficialCarrierStatus = officialStatus,
-            RemediationTarget = string.Equals(task.TaskId, "SITE.SKELETON", StringComparison.Ordinal)
-              ? "OPEN_STAGE01"
-              : "OPEN_STAGE02A"
+            RemediationTarget = "OPEN_STAGE02A"
           });
         }
         AddRuleChecks(
@@ -1050,22 +1046,12 @@ namespace BIMBaoGui.RevitAddin.Rules
           ModelFileType = task.ModelFileType,
           Sequence = sequenceBase + taskIndex * 100 + ruleIndex,
           DisplayName = ruleText,
-          SourceStage = string.Equals(
-            task.TaskId,
-            "SITE.SKELETON",
-            StringComparison.Ordinal)
-              ? NativeReportingSourceStage.Stage01
-              : NativeReportingSourceStage.Stage02A,
+          SourceStage = NativeReportingSourceStage.Stage02A,
           CheckKind = kind,
           ConditionId = task.ConditionId,
           TaskId = task.TaskId,
           RuleText = ruleText,
-          RemediationTarget = string.Equals(
-            task.TaskId,
-            "SITE.SKELETON",
-            StringComparison.Ordinal)
-              ? "OPEN_STAGE01"
-              : "OPEN_STAGE02A"
+          RemediationTarget = "OPEN_STAGE02A"
         });
       }
     }
