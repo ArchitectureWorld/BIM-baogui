@@ -3,8 +3,8 @@
 ## 唯一 Revit 产品线
 
 ```text
-产品版本：0.4.2
-唯一开发分支：feat/revit-native-addin-mcp-v0.3
+产品版本：0.4.3
+唯一开发分支：feat/revit-native-total-plan-phase1-v0.4.3
 目标软件：Autodesk Revit 2020
 ```
 
@@ -218,7 +218,7 @@ Install.cmd
 %APPDATA%\Autodesk\Revit\Addins\2020\BIMBaoGui.RevitAddin\BIMBaoGui.HifcCore.dll
 %APPDATA%\Autodesk\Revit\Addins\2020\BIMBaoGui.RevitAddin\BIMBaoGui.McpContracts.dll
 
-%LOCALAPPDATA%\BIMBaoGui\McpServer\0.4.2\BIMBaoGui.McpServer.exe
+%LOCALAPPDATA%\BIMBaoGui\McpServer\0.4.3\BIMBaoGui.McpServer.exe
 %LOCALAPPDATA%\BIMBaoGui\McpServer\mcp-server-config.json
 %LOCALAPPDATA%\BIMBaoGui\RevitAddin\stage03-output-directories.json（首次记忆导出目录后生成）
 ```

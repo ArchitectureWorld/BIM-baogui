@@ -5,9 +5,13 @@ on:
     branches:
       - feat/revit-native-addin-mcp-v0.3
       - feat/revit-stage02-manual-semantic-v0.4.2
+      - feat/revit-native-total-plan-phase1-v0.4.3
     paths:
       - "src/BIMBaoGui.HifcCore/**"
       - "src/BIMBaoGui.RevitAddin/**"
+      - "src/BIMBaoGui.RevitAddin/Stage02B/**"
+      - "src/BIMBaoGui.RevitAddin/Workflow/**"
+      - "src/BIMBaoGui.RevitAddin/Issues/**"
       - "src/BIMBaoGui.McpContracts/**"
       - "src/BIMBaoGui.McpServer/**"
       - "tests/BIMBaoGui.HifcCore.Tests/**"
@@ -76,6 +80,10 @@ jobs:
             tests/test_revit_addin_mcp_contract.py `
             tests/test_revit_addin_mcp_stage03_contract.py `
             tests/test_revit_addin_mcp_installer_contract.py `
+            tests/test_revit_addin_workflow_result_contract.py `
+            tests/test_revit_addin_stage02b_revit_contract.py `
+            tests/test_revit_addin_stage02b_ui_contract.py `
+            tests/test_revit_addin_v043_contract.py `
             tests/test_revit_addin_v041_plan_contract.py `
             tests/test_revit_addin_v042_contract.py `
             tests/test_revit_addin_v041_migration_contract.py `
@@ -140,7 +148,7 @@ jobs:
           if ($metadata["HBR.CommitSha"] -ne "${{ github.sha }}") {
             throw "Revit DLL commit metadata mismatch."
           }
-          if ($assembly.GetName().Version.ToString() -ne "0.4.2.0") {
+          if ($assembly.GetName().Version.ToString() -ne "0.4.3.0") {
             throw "Revit DLL assembly version mismatch."
           }
           $informational = $assembly.GetCustomAttributesData() |
@@ -149,7 +157,7 @@ jobs:
           if ($null -eq $informational) {
             throw "Revit DLL informational version metadata is missing."
           }
-          $expectedInformation = "0.4.2+build.${{ github.run_number }}.sha.${{ github.sha }}"
+          $expectedInformation = "0.4.3+build.${{ github.run_number }}.sha.${{ github.sha }}"
           if ([string]$informational.ConstructorArguments[0].Value -ne $expectedInformation) {
             throw "Revit DLL informational version mismatch."
           }
@@ -173,7 +181,7 @@ jobs:
             }
             $assembly = [Reflection.AssemblyName]::GetAssemblyName(
               (Resolve-Path -LiteralPath $path).Path)
-            if ($assembly.Version.ToString() -ne "0.4.2.0") {
+            if ($assembly.Version.ToString() -ne "0.4.3.0") {
               throw "Product assembly version mismatch: $path => $($assembly.Version)"
             }
           }
@@ -297,6 +305,13 @@ jobs:
             $previousRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.4.1"
             New-Item -ItemType Directory -Force -Path $previousRoot | Out-Null
             Set-Content -LiteralPath (Join-Path $previousRoot "previous.marker") -Value "previous"
+            $supersededRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.4.2"
+            New-Item -ItemType Directory -Force -Path $supersededRoot | Out-Null
+            Set-Content -LiteralPath (Join-Path $supersededRoot "superseded.marker") -Value "superseded"
+            $sentinelRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\9.9.9"
+            New-Item -ItemType Directory -Force -Path $sentinelRoot | Out-Null
+            $sentinelPath = Join-Path $sentinelRoot "must-survive.marker"
+            Set-Content -LiteralPath $sentinelPath -Value "sentinel"
 
             & installer/Install-Revit2020.ps1 -SourceRoot "artifacts" -Force
 
@@ -307,7 +322,7 @@ jobs:
             $installedContracts = Join-Path $productRoot "BIMBaoGui.McpContracts.dll"
             $installedHifcCore = Join-Path $productRoot "BIMBaoGui.HifcCore.dll"
             $evidencePath = Join-Path $productRoot "install-evidence.json"
-            $mcpRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.4.2"
+            $mcpRoot = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\0.4.3"
             $mcpExe = Join-Path $mcpRoot "BIMBaoGui.McpServer.exe"
             $mcpConfig = Join-Path $env:LOCALAPPDATA "BIMBaoGui\McpServer\mcp-server-config.json"
 
@@ -316,6 +331,12 @@ jobs:
             }
             if (Test-Path -LiteralPath $previousRoot) {
               throw "Installer left the previous MCP version directory behind."
+            }
+            if (Test-Path -LiteralPath $supersededRoot) {
+              throw "Installer left the 0.4.2 MCP version directory behind."
+            }
+            if (-not (Test-Path -LiteralPath $sentinelPath -PathType Leaf)) {
+              throw "Installer removed the unrelated 9.9.9 sentinel."
             }
             foreach ($path in @(
               $manifestPath,
@@ -343,7 +364,7 @@ jobs:
             }
 
             $evidence = Get-Content -LiteralPath $evidencePath -Raw | ConvertFrom-Json
-            if ($evidence.productVersion -ne "0.4.2") {
+            if ($evidence.productVersion -ne "0.4.3") {
               throw "Install evidence product version mismatch."
             }
             if ($evidence.buildNumber -ne "${{ github.run_number }}") {
@@ -368,6 +389,21 @@ jobs:
             if ($actualMcpHash -ne $evidence.mcpServerExeSha256) {
               throw "Installed MCP EXE hash does not match evidence."
             }
+            foreach ($pair in @(
+              @($evidence.sourceDll, $evidence.installedDll, $evidence.sourceDllSha256, $evidence.installedDllSha256),
+              @($evidence.sourceContractsDll, $evidence.installedContractsDll, $evidence.sourceContractsDllSha256, $evidence.installedContractsDllSha256),
+              @($evidence.sourceHifcCoreDll, $evidence.installedHifcCoreDll, $evidence.sourceHifcCoreDllSha256, $evidence.installedHifcCoreDllSha256),
+              @($evidence.sourceMcpServerExe, $evidence.installedMcpServerExe, $evidence.sourceMcpServerExeSha256, $evidence.installedMcpServerExeSha256)
+            )) {
+              if (-not [IO.Path]::IsPathRooted([string]$pair[0]) -or -not [IO.Path]::IsPathRooted([string]$pair[1])) {
+                throw "Install evidence source or installed path is not absolute."
+              }
+              $sourceHash = (Get-FileHash -LiteralPath $pair[0] -Algorithm SHA256).Hash.ToLowerInvariant()
+              $installedHash = (Get-FileHash -LiteralPath $pair[1] -Algorithm SHA256).Hash.ToLowerInvariant()
+              if ($sourceHash -ne $pair[2] -or $installedHash -ne $pair[3] -or $sourceHash -ne $installedHash) {
+                throw "Install evidence source and installed SHA-256 values differ."
+              }
+            }
 
             $probeOut = Join-Path $smokeRoot "installed-probe.json"
             $probeErr = Join-Path $smokeRoot "installed-probe.err"
@@ -388,6 +424,9 @@ jobs:
               if (Test-Path -LiteralPath $path) {
                 throw "Uninstall left product state behind: $path"
               }
+            }
+            if (-not (Test-Path -LiteralPath $sentinelPath -PathType Leaf)) {
+              throw "Uninstall removed the unrelated 9.9.9 sentinel."
             }
           }
           finally {
@@ -426,7 +465,7 @@ jobs:
       - name: Upload complete Revit MCP installer
         uses: actions/upload-artifact@v7
         with:
-          name: BIMBaoGui-Revit2020-Native-MCP-v0.4.2
+          name: BIMBaoGui-Revit2020-Native-MCP-v0.4.3
           path: artifacts
           if-no-files-found: error
           retention-days: 30

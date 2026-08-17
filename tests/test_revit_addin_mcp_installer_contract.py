@@ -22,7 +22,7 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def test_product_and_install_paths_are_uniformly_versioned_042():
+def test_product_and_install_paths_are_uniformly_versioned_043():
     installer = read(INSTALLER)
     addin_project = read(ADDIN_PROJECT)
     hifc_project = read(HIFC_PROJECT)
@@ -30,12 +30,12 @@ def test_product_and_install_paths_are_uniformly_versioned_042():
     probe = read(PROBE_CMD)
     example = read(CONFIG_EXAMPLE)
     for project in (addin_project, hifc_project, mcp_project):
-        assert "<Version>0.4.2</Version>" in project
-        assert "<AssemblyVersion>0.4.2.0</AssemblyVersion>" in project
-    assert '$mcpVersion = "0.4.2"' in installer
+        assert "<Version>0.4.3</Version>" in project
+        assert "<AssemblyVersion>0.4.3.0</AssemblyVersion>" in project
+    assert '$mcpVersion = "0.4.3"' in installer
     assert 'Join-Path $mcpBaseRoot $mcpVersion' in installer
-    assert "McpServer\\0.4.2" in probe
-    assert "McpServer\\\\0.4.2" in example
+    assert "McpServer\\0.4.3" in probe
+    assert "McpServer\\\\0.4.3" in example
 
 
 def test_installer_keeps_revit_user_addin_and_adds_stage03_dependencies():
@@ -43,7 +43,7 @@ def test_installer_keeps_revit_user_addin_and_adds_stage03_dependencies():
     assert '$env:APPDATA' in source
     assert '"Autodesk\\Revit\\Addins\\2020"' in source
     assert '$env:LOCALAPPDATA' in source
-    assert '$mcpVersion = "0.4.2"' in source
+    assert '$mcpVersion = "0.4.3"' in source
     assert 'Join-Path $mcpBaseRoot $mcpVersion' in source
     assert '"BIMBaoGui.McpServer.exe"' in source
     assert '"BIMBaoGui.McpContracts.dll"' in source
@@ -52,22 +52,33 @@ def test_installer_keeps_revit_user_addin_and_adds_stage03_dependencies():
     assert "hifcCoreDllSha256" in source
 
 
-def test_installer_removes_superseded_mcp_version_directories():
+def test_installer_removes_only_explicitly_supported_legacy_mcp_versions():
     source = read(INSTALLER)
-    assert 'Get-ChildItem -LiteralPath $mcpBaseRoot -Directory' in source
-    assert "'^\\d+\\.\\d+\\.\\d+$'" in source
-    assert 'Remove-Item -LiteralPath $_.FullName -Recurse -Force' in source
+    assert "$legacyMcpVersions = @('0.4.0', '0.4.1', '0.4.2')" in source
+    assert "foreach ($legacyMcpVersion in $legacyMcpVersions)" in source
+    assert "Join-Path $mcpBaseRoot $legacyMcpVersion" in source
+    assert "'^\\d+\\.\\d+\\.\\d+$'" not in source
+    assert 'Remove-Item -LiteralPath $_.FullName -Recurse -Force' not in source
 
 
 def test_uninstall_waits_for_a_transient_mcp_executable_lock(tmp_path: Path):
     app_data = tmp_path / "AppData"
     local_app_data = tmp_path / "LocalAppData"
     mcp_root = (
-        local_app_data / "BIMBaoGui" / "McpServer" / "0.4.2"
+        local_app_data / "BIMBaoGui" / "McpServer" / "0.4.3"
     )
     mcp_root.mkdir(parents=True)
     executable = mcp_root / "BIMBaoGui.McpServer.exe"
     executable.write_bytes(b"locked smoke payload")
+    sentinel = (
+        local_app_data
+        / "BIMBaoGui"
+        / "McpServer"
+        / "9.9.9"
+        / "must-survive.marker"
+    )
+    sentinel.parent.mkdir(parents=True)
+    sentinel.write_text("sentinel", encoding="utf-8")
 
     create_file = ctypes.windll.kernel32.CreateFileW
     create_file.argtypes = (
@@ -131,6 +142,7 @@ def test_uninstall_waits_for_a_transient_mcp_executable_lock(tmp_path: Path):
 
     assert result.returncode == 0, result.stdout + result.stderr
     assert not mcp_root.exists()
+    assert sentinel.read_text(encoding="utf-8") == "sentinel"
 
 
 def test_installer_generates_absolute_mcp_client_configuration():
@@ -152,6 +164,7 @@ def test_uninstall_removes_only_product_roots_and_stale_bridge_discovery():
     assert 'Remove-Item -LiteralPath $mcpServerRoot -Recurse -Force' in source
     assert 'Remove-Item -LiteralPath $mcpConfigPath -Force' in source
     assert 'Get-ChildItem -LiteralPath $bridgeDiscoveryRoot' in source
+    assert 'Get-ChildItem -LiteralPath $mcpBaseRoot -Directory' not in source
     assert 'claude_desktop_config' not in source.lower()
     assert 'codex' not in source.lower()
 
@@ -209,14 +222,14 @@ def test_mcp_workflow_builds_one_complete_stage03_installable_zip():
         'BIMBaoGui.McpServer.exe',
         'Install-Revit2020.ps1',
         'SHA256SUMS.txt',
-        'name: BIMBaoGui-Revit2020-Native-MCP-v0.4.2',
+        'name: BIMBaoGui-Revit2020-Native-MCP-v0.4.3',
     ):
         assert text in workflow
 
 
 def test_readme_states_stage03_and_ifcflux_manual_boundary():
     source = read(README)
-    assert "产品版本：0.4.2" in source
+    assert "产品版本：0.4.3" in source
     assert "项目条件" in source
     assert "无上述项目条件（已确认）" in source
     assert "Stage03" in source

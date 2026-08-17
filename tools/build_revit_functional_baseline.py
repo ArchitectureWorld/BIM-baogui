@@ -15,18 +15,16 @@ ROOTS = (
     "src/BIMBaoGui.McpContracts",
     "src/BIMBaoGui.McpServer",
 )
-CAPABILITIES = (
-    "Stage01 project conditions remain explicit user business declarations; none is never auto-confirmed.",
-    "Stage01 payload 0.9.0 is validated before an in-memory 0.9.1 migration candidate is created.",
-    "Revit-native fields use per-field authority and drift evidence instead of one global overwrite priority.",
-    "Stage02 Preview V2 hashes frozen effective roles, sorted overrides, and semantic Assignment evidence.",
-    "Stage02 semantic Assignment create, update, delete, and readback verification commit atomically per element.",
-    "The manual workbench and controlled MCP Stage02 entry use the same automatic, bulk, and per-element override semantics.",
-    "Stage03 resolves SITE_GREEN_OBJECT owners by Revit export GUID and requires exact IFC entity plus GlobalId matching.",
-    "Stage02 and Stage03 consume only Current Stage01 storage, never an unconfirmed migration candidate.",
-    "IFCFlux external status remains IFCFLUX_MANUAL_PENDING until user inspection.",
-    "The MCP surface contains 13 approved business tools and exposes no arbitrary Revit API execution.",
-)
+CAPABILITIES_BY_VERSION = {
+    "0.4.3": (
+        "Stage01 freezes total-plan registration, coordinates, and planning objectives.",
+        "Stage02A freezes whole-model or user-selected processing, explicit semantic confirmation, reliable element area, and per-rule geometry evidence.",
+        "Stage02B freezes six manually entered actual indicators with per-indicator partial success and no project-level automatic aggregation.",
+        "Stage03 freezes four-state strict checklist, issue traceability, and reasoned forced test export.",
+        "The MCP surface contains exactly 13 approved business tools and exposes no arbitrary Revit API execution.",
+        "Official carrier projection is fail-closed by propertyId.",
+    ),
+}
 
 
 def sha256(data: bytes) -> str:
@@ -59,6 +57,8 @@ def build_manifest(version: str, branch: str) -> dict[str, object]:
         raise ValueError("version must use major.minor.patch format")
     if not branch.strip():
         raise ValueError("branch must not be empty")
+    if version not in CAPABILITIES_BY_VERSION:
+        raise ValueError(f"unsupported functional baseline version: {version}")
 
     hashes = {
         path: sha256((ROOT / path).read_bytes())
@@ -68,9 +68,11 @@ def build_manifest(version: str, branch: str) -> dict[str, object]:
         f"{path}\0{digest}\n" for path, digest in hashes.items()
     ).encode("utf-8")
     return {
-        "capabilities": list(CAPABILITIES),
+        "capabilities": list(CAPABILITIES_BY_VERSION[version]),
         "delivery": {
-            "external_acceptance": "IFCFlux manual inspection",
+            "external_acceptance": (
+                "Golden RVT -> official HIFCTool -> IFCFlux exact identity"
+            ),
             "installer_artifact": (
                 f"BIMBaoGui-Revit2020-Native-MCP-v{version}"
             ),
@@ -81,7 +83,7 @@ def build_manifest(version: str, branch: str) -> dict[str, object]:
         "product_line": "BIMBaoGui Revit 2020 Native + MCP",
         "product_version": version,
         "roots": list(ROOTS),
-        "schema_version": "BIMBAOGUI_REVIT_FUNCTIONAL_BASELINE_V3",
+        "schema_version": "BIMBAOGUI_REVIT_FUNCTIONAL_BASELINE_V4",
         "sha256_by_path": hashes,
         "source_branch": branch,
         "source_snapshot_sha256": sha256(snapshot),

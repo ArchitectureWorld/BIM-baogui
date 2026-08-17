@@ -11,9 +11,9 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>BIMBaoGui.McpServer</AssemblyName>
     <RootNamespace>BIMBaoGui.McpServer</RootNamespace>
-    <Version>0.4.2</Version>
-    <FileVersion>0.4.2.0</FileVersion>
-    <AssemblyVersion>0.4.2.0</AssemblyVersion>
+    <Version>0.4.3</Version>
+    <FileVersion>0.4.3.0</FileVersion>
+    <AssemblyVersion>0.4.3.0</AssemblyVersion>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
   <ItemGroup>

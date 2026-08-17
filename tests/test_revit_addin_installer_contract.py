@@ -48,6 +48,21 @@ def test_installer_publishes_machine_readable_install_evidence():
     assert "installedUtc" in source
 
 
+def test_installer_evidence_records_each_source_and_installed_payload_path():
+    source = read(SCRIPT)
+    for field in (
+        "sourceDll",
+        "sourceContractsDll",
+        "sourceHifcCoreDll",
+        "sourceMcpServerExe",
+        "installedDll",
+        "installedContractsDll",
+        "installedHifcCoreDll",
+        "installedMcpServerExe",
+    ):
+        assert field in source
+
+
 def test_double_click_wrappers_use_their_own_extracted_directory():
     install = read(INSTALL_CMD)
     uninstall = read(UNINSTALL_CMD)
@@ -87,6 +102,7 @@ def test_unified_workflow_smoke_tests_install_and_uninstall_on_windows():
     assert "-Uninstall -Force" in workflow
     assert "install-evidence.json" in workflow
     assert "IsPathRooted" in workflow
+    assert "9.9.9" in workflow
 
 
 def test_unified_workflow_tracks_packaged_readme_as_an_artifact_input():

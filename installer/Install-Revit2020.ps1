@@ -17,7 +17,8 @@ if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
 
 $productName = "BIMBaoGui.RevitAddin"
 $mcpProductName = "BIMBaoGui.McpServer"
-$mcpVersion = "0.4.2"
+$mcpVersion = "0.4.3"
+$legacyMcpVersions = @('0.4.0', '0.4.1', '0.4.2')
 $addinRoot = Join-Path $env:APPDATA "Autodesk\Revit\Addins\2020"
 $productRoot = Join-Path $addinRoot "BIMBaoGui.RevitAddin"
 $manifestPath = Join-Path $addinRoot "BIMBaoGui.RevitAddin.addin"
@@ -78,13 +79,6 @@ if ($Uninstall) {
   }
   if (Test-Path -LiteralPath $mcpServerRoot) {
     Remove-ControlledPathWithRetry -Path $mcpServerRoot -Recurse
-  }
-  if (Test-Path -LiteralPath $mcpBaseRoot) {
-    Get-ChildItem -LiteralPath $mcpBaseRoot -Directory -ErrorAction SilentlyContinue |
-      Where-Object { $_.Name -match '^\d+\.\d+\.\d+$' } |
-      ForEach-Object {
-        Remove-Item -LiteralPath $_.FullName -Recurse -Force
-      }
   }
   if (Test-Path -LiteralPath $mcpConfigPath) {
     Remove-Item -LiteralPath $mcpConfigPath -Force
@@ -270,12 +264,11 @@ try {
   if (Test-Path -LiteralPath $mcpServerRoot) {
     Remove-Item -LiteralPath $mcpServerRoot -Recurse -Force
   }
-  if (Test-Path -LiteralPath $mcpBaseRoot) {
-    Get-ChildItem -LiteralPath $mcpBaseRoot -Directory -ErrorAction SilentlyContinue |
-      Where-Object { $_.Name -match '^\d+\.\d+\.\d+$' } |
-      ForEach-Object {
-        Remove-Item -LiteralPath $_.FullName -Recurse -Force
-      }
+  foreach ($legacyMcpVersion in $legacyMcpVersions) {
+    $legacyMcpRoot = Join-Path $mcpBaseRoot $legacyMcpVersion
+    if (Test-Path -LiteralPath $legacyMcpRoot) {
+      Remove-ControlledPathWithRetry -Path $legacyMcpRoot -Recurse
+    }
   }
   Move-Item -LiteralPath $stagingRoot -Destination $productRoot
   Move-Item -LiteralPath $mcpStagingRoot -Destination $mcpServerRoot
@@ -338,12 +331,21 @@ try {
     sourceDll = $sourceDll
     sourceDllSha256 = $sourceHash
     installedDll = $installedDllPath
-    installedDllSha256 = $sourceHash
+    installedDllSha256 = Get-LowerSha256 $installedDllPath
+    sourceContractsDll = $sourceContractsDll
+    sourceContractsDllSha256 = $contractsDllSha256
     installedContractsDll = $installedContractsPath
+    installedContractsDllSha256 = Get-LowerSha256 $installedContractsPath
     contractsDllSha256 = $contractsDllSha256
+    sourceHifcCoreDll = $sourceHifcCoreDll
+    sourceHifcCoreDllSha256 = $hifcCoreDllSha256
     installedHifcCoreDll = $installedHifcCorePath
+    installedHifcCoreDllSha256 = Get-LowerSha256 $installedHifcCorePath
     hifcCoreDllSha256 = $hifcCoreDllSha256
+    sourceMcpServerExe = $sourceMcpServerExe
+    sourceMcpServerExeSha256 = $mcpServerExeSha256
     installedMcpServerExe = $installedMcpServerPath
+    installedMcpServerExeSha256 = Get-LowerSha256 $installedMcpServerPath
     mcpServerExeSha256 = $mcpServerExeSha256
     manifestPath = [IO.Path]::GetFullPath($manifestPath)
     mcpConfigPath = [IO.Path]::GetFullPath($mcpConfigPath)
