@@ -137,6 +137,31 @@ namespace BIMBaoGui.RevitAddin.Tests
         second.Elements.Select(value => value.UniqueId));
     }
 
+    [Fact]
+    public void New_selection_modes_never_fall_back_to_full_model_when_empty()
+    {
+      NativeStage02ScopeMode[] scopes =
+      {
+        NativeStage02ScopeMode.CurrentSelection,
+        NativeStage02ScopeMode.InteractiveSelection
+      };
+      foreach (NativeStage02ScopeMode scope in scopes)
+      {
+        NativeStage02InventoryDecision decision =
+          NativeStage02InventoryPolicy.Resolve(
+            scope,
+            new[] { Element("eligible", "OST_GenericModel", "Generic") },
+            Array.Empty<string>(),
+            new[] { "OST_GenericModel" });
+
+        Assert.False(decision.Accepted);
+        Assert.Equal(
+          NativeStage02InventoryCodes.SelectionEmpty,
+          decision.ErrorCode);
+        Assert.Empty(decision.Elements);
+      }
+    }
+
     private static NativeStage02ElementSnapshot Element(
       string uniqueId,
       string category,

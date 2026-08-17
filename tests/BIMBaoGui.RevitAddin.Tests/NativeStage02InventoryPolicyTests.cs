@@ -91,6 +91,35 @@ namespace BIMBaoGui.RevitAddin.Tests
         decision.ErrorCode);
     }
 
+    [Fact]
+    public void Every_explicit_selection_scope_uses_the_fixed_unique_id_snapshot()
+    {
+      NativeStage02ScopeMode[] scopes =
+      {
+        NativeStage02ScopeMode.CustomSelection,
+        NativeStage02ScopeMode.CurrentSelection,
+        NativeStage02ScopeMode.InteractiveSelection
+      };
+      foreach (NativeStage02ScopeMode scope in scopes)
+      {
+        NativeStage02InventoryDecision decision =
+          NativeStage02InventoryPolicy.Resolve(
+            scope,
+            new[]
+            {
+              Element("b", "OUTSIDE_AUTO_WHITELIST", "Generic"),
+              Element("a", "OUTSIDE_AUTO_WHITELIST", "Generic")
+            },
+            new[] { "b", "a", "b" },
+            new[] { "OST_Doors" });
+
+        Assert.True(decision.Accepted);
+        Assert.Equal(
+          new[] { "a", "b" },
+          decision.Elements.Select(value => value.UniqueId));
+      }
+    }
+
     private static NativeStage02ElementSnapshot Element(
       string uniqueId,
       string category,

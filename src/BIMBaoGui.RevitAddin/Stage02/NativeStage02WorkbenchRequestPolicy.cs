@@ -14,7 +14,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       IReadOnlyDictionary<string, string> overrides,
       IReadOnlyList<NativeStage02RoleConfirmation> confirmations = null)
     {
-      bool manual = scope == NativeStage02ScopeMode.CustomSelection
+      bool manual = scope != NativeStage02ScopeMode.FullModel
         && identificationMode == NativeStage02IdentificationMode.Manual;
       NativeStage02RoleOverride[] canonicalOverrides = manual
         ? (overrides ?? new Dictionary<string, string>(StringComparer.Ordinal))

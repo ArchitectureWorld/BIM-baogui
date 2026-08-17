@@ -127,6 +127,30 @@ def test_stage02_is_dispatched_only_through_revit_external_event():
     assert "NativeStage02RevitWriteService.Execute" in source
 
 
+def test_stage02_pick_and_issue_navigation_are_external_event_requests():
+    source = (PROJECT / "RevitExternalEventDispatcher.cs").read_text(encoding="utf-8")
+    assert "RequestStage02PickElements" in source
+    assert "NativeStage02InteractionService.PickElements" in source
+    assert "RequestIssueNavigation" in source
+    assert "NativeRevitIssueNavigationService.Execute" in source
+
+
+def test_issue_navigation_resolves_unique_id_before_checking_element_id():
+    source = (
+        PROJECT / "Issues" / "NativeRevitIssueNavigationService.cs"
+    ).read_text(encoding="utf-8")
+    unique_lookup = source.index("document.GetElement(reference.UniqueId)")
+    integer_check = source.index("live.Id.IntegerValue != reference.ElementId")
+    assert unique_lookup < integer_check
+    assert '"ISSUE_ELEMENT_STALE"' in source
+    assert "document.GetElement(reference.ElementId)" not in source
+    assert "Selection.SetElementIds" in source
+    assert "ShowElements" in source
+    assert "IsolateElementsTemporary" in source
+    assert "DisableTemporaryViewMode" in source
+    assert source.count("new Transaction(") >= 2
+
+
 def test_stage02_workspace_is_real_and_not_a_placeholder():
     view = read_stage02("NativeStage02View.cs")
     request_policy = read_stage02("NativeStage02WorkbenchRequestPolicy.cs")

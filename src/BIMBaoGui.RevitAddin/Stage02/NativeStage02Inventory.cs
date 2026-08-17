@@ -8,7 +8,9 @@ namespace BIMBaoGui.RevitAddin.Stage02
   internal enum NativeStage02ScopeMode
   {
     FullModel,
-    CustomSelection
+    CustomSelection,
+    CurrentSelection,
+    InteractiveSelection
   }
 
   internal static class NativeStage02InventoryCodes
@@ -119,7 +121,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
         .Where(value => value != null)
         .ToArray();
 
-      if (scopeMode == NativeStage02ScopeMode.CustomSelection)
+      if (scopeMode != NativeStage02ScopeMode.FullModel)
       {
         return NativeStage02SelectionInventoryPolicy.Resolve(
           all,

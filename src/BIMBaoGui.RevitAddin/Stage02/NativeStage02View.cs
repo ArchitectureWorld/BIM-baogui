@@ -5,13 +5,18 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using BIMBaoGui.RevitAddin.Issues;
 
 namespace BIMBaoGui.RevitAddin.Stage02
 {
   internal sealed class NativeStage02View : UserControl
   {
+    private static readonly NativeIssueHub SharedIssueHub =
+      new NativeIssueHub();
     private readonly RadioButton _fullModel;
     private readonly RadioButton _currentSelection;
+    private readonly RadioButton _interactiveSelection;
+    private readonly Button _pickElementsButton;
     private readonly RadioButton _automatic;
     private readonly RadioButton _manual;
     private readonly ComboBox _manualRole;
@@ -25,6 +30,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
     private readonly TextBlock _statusText;
     private readonly ListBox _elementList;
     private readonly StackPanel _fieldPanel;
+    private readonly NativeIssueCenterView _issueCenter;
     private readonly Dictionary<string, string> _roleOverrides =
       new Dictionary<string, string>(StringComparer.Ordinal);
     private readonly Dictionary<string, NativeStage02RoleConfirmation>
@@ -34,6 +40,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
     private readonly IReadOnlyList<ManualRoleChoice> _manualRoleChoices;
     private NativeStage02Preview _preview;
     private NativeStage02PreviewRequest _resolvedRequest;
+    private IReadOnlyList<string> _interactiveUniqueIds =
+      Array.Empty<string>();
     private bool _busy;
     private bool _previewStale;
 
@@ -50,6 +58,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       {
         Height = new GridLength(1, GridUnitType.Star)
       });
+      root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(170) });
       root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(96) });
 
       var heading = new StackPanel { Margin = new Thickness(0, 0, 0, 10) };
@@ -90,6 +99,13 @@ namespace BIMBaoGui.RevitAddin.Stage02
         Margin = new Thickness(0, 8, 14, 0),
         VerticalAlignment = VerticalAlignment.Center
       };
+      _interactiveSelection = new RadioButton
+      {
+        Content = "自主点选",
+        Margin = new Thickness(0, 8, 8, 0),
+        VerticalAlignment = VerticalAlignment.Center
+      };
+      _pickElementsButton = ActionButton("选择构件");
       _previewButton = ActionButton("生成候选");
       _batchAcceptButton = ActionButton("批量接受当前候选");
       _refreshPreviewButton = ActionButton("刷新写入预览");
@@ -104,6 +120,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
         VerticalAlignment = VerticalAlignment.Center
       };
       _previewButton.Click += (_, __) => RequestPreview();
+      _pickElementsButton.Click += (_, __) => RequestInteractiveSelection();
       _batchAcceptButton.Click += (_, __) => BatchAcceptCandidates();
       _refreshPreviewButton.Click += (_, __) => RequestPreview();
       _writeButton.Click += (_, __) => RequestWrite();
@@ -111,8 +128,11 @@ namespace BIMBaoGui.RevitAddin.Stage02
       _problemOnly.Unchecked += (_, __) => RenderElements();
       _fullModel.Checked += (_, __) => ScopeChanged();
       _currentSelection.Checked += (_, __) => ScopeChanged();
+      _interactiveSelection.Checked += (_, __) => ScopeChanged();
       actions.Children.Add(_fullModel);
       actions.Children.Add(_currentSelection);
+      actions.Children.Add(_interactiveSelection);
+      actions.Children.Add(_pickElementsButton);
       actions.Children.Add(_previewButton);
       actions.Children.Add(_batchAcceptButton);
       actions.Children.Add(_refreshPreviewButton);
@@ -201,6 +221,13 @@ namespace BIMBaoGui.RevitAddin.Stage02
       Grid.SetRow(workspace, 3);
       root.Children.Add(workspace);
 
+      _issueCenter = new NativeIssueCenterView(
+        SharedIssueHub,
+        NavigateToSource,
+        RequestRevitAction);
+      Grid.SetRow(_issueCenter, 4);
+      root.Children.Add(_issueCenter);
+
       _statusText = new TextBlock
       {
         Text = "状态：等待生成预览",
@@ -215,7 +242,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
         Margin = new Thickness(0, 8, 0, 0),
         Background = new SolidColorBrush(Color.FromRgb(245, 247, 250))
       };
-      Grid.SetRow(statusScroll, 4);
+      Grid.SetRow(statusScroll, 5);
       root.Children.Add(statusScroll);
       Content = root;
       UpdateSemanticControls();
@@ -248,18 +275,19 @@ namespace BIMBaoGui.RevitAddin.Stage02
     private void UpdateSemanticControls()
     {
       if (_automatic == null || _manual == null || _manualRole == null) return;
-      bool currentSelection = _currentSelection?.IsChecked == true;
-      _automatic.IsEnabled = currentSelection && !_busy;
-      _manual.IsEnabled = currentSelection && !_busy;
-      _manualRole.IsEnabled = currentSelection
+      bool explicitSelection = _currentSelection?.IsChecked == true
+        || _interactiveSelection?.IsChecked == true;
+      _automatic.IsEnabled = explicitSelection && !_busy;
+      _manual.IsEnabled = explicitSelection && !_busy;
+      _manualRole.IsEnabled = explicitSelection
         && _manual.IsChecked == true
         && !_busy
         && _manualRoleChoices.Count > 0;
-      _manualHint.Text = currentSelection
+      _manualHint.Text = explicitSelection
         ? _manualRoleChoices.Count == 0
           ? "当前 embedded HBR 规则包没有可用的手动语义角色。"
           : "手动角色来自 embedded HBR 规则目录；具体载体和 Stage01 条件在预览时严格校验。"
-        : "全模型保持自动识别；手动指定仅对当前 Revit 选择开放。";
+        : "全模型保持自动识别；手动指定仅对显式选择范围开放。";
     }
 
     private void SemanticInputChanged(string message)
@@ -279,12 +307,23 @@ namespace BIMBaoGui.RevitAddin.Stage02
       NativeStage02ManualReviewCommand manualReview = null)
     {
       if (_busy) return;
-      bool currentSelection = _currentSelection.IsChecked == true;
-      bool manual = currentSelection && _manual.IsChecked == true;
+      NativeStage02ScopeMode scope = _fullModel.IsChecked == true
+        ? NativeStage02ScopeMode.FullModel
+        : _interactiveSelection.IsChecked == true
+          ? NativeStage02ScopeMode.InteractiveSelection
+          : NativeStage02ScopeMode.CurrentSelection;
+      bool explicitSelection = scope != NativeStage02ScopeMode.FullModel;
+      bool manual = explicitSelection && _manual.IsChecked == true;
       ManualRoleChoice bulkRole = _manualRole.SelectedItem as ManualRoleChoice;
       if (manual && bulkRole == null)
       {
         SetStatus("手动指定模式需要选择一个批量语义类型。" );
+        return;
+      }
+      if (scope == NativeStage02ScopeMode.InteractiveSelection
+        && _interactiveUniqueIds.Count == 0)
+      {
+        SetStatus("请先自主点选至少一个报规构件。" );
         return;
       }
       _preview = null;
@@ -293,15 +332,22 @@ namespace BIMBaoGui.RevitAddin.Stage02
       _writeButton.IsEnabled = false;
       NativeStage02PreviewRequest request =
         NativeStage02WorkbenchRequestPolicy.Build(
-          currentSelection
-            ? NativeStage02ScopeMode.CustomSelection
-            : NativeStage02ScopeMode.FullModel,
+          scope,
           manual
             ? NativeStage02IdentificationMode.Manual
             : NativeStage02IdentificationMode.Automatic,
           manual ? bulkRole.RoleId : string.Empty,
           _roleOverrides,
           _confirmations.Values.ToArray());
+      if (scope == NativeStage02ScopeMode.InteractiveSelection)
+      {
+        request.CustomUniqueIds = _interactiveUniqueIds
+          .Where(value => !string.IsNullOrWhiteSpace(value))
+          .Select(value => value.Trim())
+          .Distinct(StringComparer.Ordinal)
+          .OrderBy(value => value, StringComparer.Ordinal)
+          .ToArray();
+      }
       request.ManualReview = manualReview?.Clone();
       SetBusy(true, "正在通过 Revit ExternalEvent 读取构件、语义角色与参数证据……" );
       try
@@ -312,6 +358,44 @@ namespace BIMBaoGui.RevitAddin.Stage02
           ApplyFailure);
       }
       catch (Exception exception) { ApplyFailure(exception); }
+    }
+
+    private void RequestInteractiveSelection()
+    {
+      if (_busy) return;
+      SetBusy(true, "正在等待 Revit 自主点选报规构件……" );
+      try
+      {
+        RevitExternalEventDispatcher.RequestStage02PickElements(
+          ApplySelectionResult,
+          ApplyFailure);
+      }
+      catch (Exception exception) { ApplyFailure(exception); }
+    }
+
+    private void ApplySelectionResult(NativeStage02SelectionResult result)
+    {
+      if (!Dispatcher.CheckAccess())
+      {
+        Dispatcher.BeginInvoke(
+          new Action<NativeStage02SelectionResult>(ApplySelectionResult),
+          result);
+        return;
+      }
+      SetBusy(false, string.Empty);
+      if (result == null || !result.Succeeded)
+      {
+        SetStatus("自主点选未完成：" + (result?.Code ?? "SELECTION_FAILED"));
+        return;
+      }
+      _interactiveUniqueIds = result.ElementUniqueIds
+        .Where(value => !string.IsNullOrWhiteSpace(value))
+        .Select(value => value.Trim())
+        .Distinct(StringComparer.Ordinal)
+        .OrderBy(value => value, StringComparer.Ordinal)
+        .ToArray();
+      _interactiveSelection.IsChecked = true;
+      SetStatus("已固定自主点选快照：" + _interactiveUniqueIds.Count + " 个构件。" );
     }
 
     private void RequestWrite()
@@ -394,6 +478,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
       }
       _preview = result.Preview;
       _resolvedRequest = result.ResolvedRequest;
+      SharedIssueHub.ResetForDocument(_preview.DocumentFingerprint);
+      SharedIssueHub.Replace("STAGE02A", _preview.Issues);
       _confirmations.Clear();
       foreach (NativeStage02RoleConfirmation confirmation in
         _resolvedRequest?.Confirmations
@@ -406,6 +492,52 @@ namespace BIMBaoGui.RevitAddin.Stage02
       _writeButton.IsEnabled = _preview.Elements.All(value => !value.IsBlocked);
       RenderElements();
       SetStatus(result.Status + "｜" + string.Join(" ", result.Messages));
+    }
+
+    private void NavigateToSource(NativeIssueRecord issue)
+    {
+      if (issue == null) return;
+      string uniqueId = issue.Elements?.FirstOrDefault()?.UniqueId;
+      if (!string.IsNullOrWhiteSpace(uniqueId))
+      {
+        ElementListItem match = _elementList.Items.Cast<ElementListItem>()
+          .FirstOrDefault(value => string.Equals(
+            value.Plan?.Element?.UniqueId,
+            uniqueId,
+            StringComparison.Ordinal));
+        if (match != null) _elementList.SelectedItem = match;
+      }
+      SetStatus("去哪里补：" + issue.Route + "｜" + issue.Remediation);
+    }
+
+    private void RequestRevitAction(NativeIssueNavigationRequest request)
+    {
+      if (_busy || request == null) return;
+      SetBusy(true, "正在通过 Revit ExternalEvent 执行问题定位……" );
+      try
+      {
+        RevitExternalEventDispatcher.RequestIssueNavigation(
+          request,
+          ApplyNavigationResult,
+          ApplyFailure);
+      }
+      catch (Exception exception) { ApplyFailure(exception); }
+    }
+
+    private void ApplyNavigationResult(NativeIssueNavigationResult result)
+    {
+      if (!Dispatcher.CheckAccess())
+      {
+        Dispatcher.BeginInvoke(
+          new Action<NativeIssueNavigationResult>(ApplyNavigationResult),
+          result);
+        return;
+      }
+      SetBusy(false, string.Empty);
+      SetStatus(result != null && result.Succeeded
+        ? "问题定位完成：" + result.Action
+          + "｜构件=" + result.AffectedElementIds.Count
+        : "问题定位失败：" + (result?.Code ?? "ISSUE_NAVIGATION_FAILED"));
     }
 
     private void ApplyWriteResult(NativeStage02WriteResult result)
@@ -827,6 +959,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
         && _preview.Elements.All(value => !value.IsBlocked);
       _fullModel.IsEnabled = !busy;
       _currentSelection.IsEnabled = !busy;
+      _interactiveSelection.IsEnabled = !busy;
+      _pickElementsButton.IsEnabled = !busy;
       _problemOnly.IsEnabled = !busy;
       UpdateSemanticControls();
       if (!string.IsNullOrWhiteSpace(status)) SetStatus(status);

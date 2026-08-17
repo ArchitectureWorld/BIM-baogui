@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using BIMBaoGui.RevitAddin.Issues;
 using BIMBaoGui.RevitAddin.Stage01;
 using BIMBaoGui.RevitAddin.Stage02;
 using BIMBaoGui.RevitAddin.Stage03;
@@ -143,6 +144,29 @@ namespace BIMBaoGui.RevitAddin
       Enqueue(
         application => completed?.Invoke(
           NativeStage02RevitWriteService.Execute(application, snapshot)),
+        failed);
+    }
+
+    internal static void RequestStage02PickElements(
+      Action<NativeStage02SelectionResult> completed,
+      Action<Exception> failed)
+    {
+      Enqueue(
+        application => completed?.Invoke(
+          NativeStage02InteractionService.PickElements(application)),
+        failed);
+    }
+
+    internal static void RequestIssueNavigation(
+      NativeIssueNavigationRequest request,
+      Action<NativeIssueNavigationResult> completed,
+      Action<Exception> failed)
+    {
+      if (request == null) throw new ArgumentNullException(nameof(request));
+      NativeIssueNavigationRequest snapshot = request.Clone();
+      Enqueue(
+        application => completed?.Invoke(
+          NativeRevitIssueNavigationService.Execute(application, snapshot)),
         failed);
     }
 

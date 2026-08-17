@@ -100,3 +100,55 @@ def test_batch_accept_only_updates_confirmations_and_refreshes_preview():
     assert "Confirmations" in body
     assert "CreatePreview" in body or "RequestPreview" in body
     assert "RequestStage02Write" not in body
+
+
+def test_stage02_explicit_selection_modes_keep_sorted_unique_id_snapshots():
+    text = source()
+    interaction = (
+        ROOT
+        / "src"
+        / "BIMBaoGui.RevitAddin"
+        / "Stage02"
+        / "NativeStage02InteractionService.cs"
+    ).read_text(encoding="utf-8")
+    for label in (
+        "当前 Revit 选择",
+        "自主点选",
+        "请选择报规构件，完成后点击完成",
+    ):
+        assert label in text or label in interaction
+    assert "NativeStage02ScopeMode.CurrentSelection" in text
+    assert "NativeStage02ScopeMode.InteractiveSelection" in text
+    assert "RequestStage02PickElements" in text
+    assert "ElementUniqueIds" in text
+    assert "CustomUniqueIds" in text
+    assert "Selection.GetElementIds" in interaction
+    assert "PickObjects" in interaction
+    assert '"SELECTION_CANCELLED"' in interaction
+    assert '"SELECTION_EMPTY"' in interaction
+
+
+def test_stage02_embeds_shared_issue_center_and_revit_actions():
+    text = source()
+    center = (
+        ROOT
+        / "src"
+        / "BIMBaoGui.RevitAddin"
+        / "Issues"
+        / "NativeIssueCenterView.cs"
+    ).read_text(encoding="utf-8")
+    assert "NativeIssueHub" in text
+    assert "NativeIssueCenterView" in text
+    assert "RequestIssueNavigation" in text
+    for label in (
+        "构件名",
+        "类别",
+        "缺什么",
+        "影响什么",
+        "去哪里补",
+        "选中",
+        "缩放",
+        "隔离",
+        "恢复",
+    ):
+        assert label in center
