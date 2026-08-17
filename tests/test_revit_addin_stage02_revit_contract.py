@@ -171,14 +171,19 @@ def test_visible_stage02_tracks_revit_view_activated_without_polling_or_leaks():
         encoding="utf-8"
     )
     view = read_stage02("NativeStage02View.cs")
+    hub = (PROJECT / "Issues" / "NativeIssueHub.cs").read_text(encoding="utf-8")
     assert "ViewActivated" in dispatcher
     assert "DocumentBoundaryChanged" in dispatcher
     assert "ObserveApplication" in dispatcher
-    assert "_observedApplication.ViewActivated -= OnViewActivated" in dispatcher
+    assert "application.ViewActivated -= OnViewActivated" in dispatcher
     assert "NativeIssueHubLifecycle" in view
     assert ".Activate()" in view
     assert ".Deactivate()" in view
-    assert "ApplyDocumentBoundaryFailure" in view
+    assert view.count("NativeIssueSnapshotRequest.Execute") >= 2
+    assert "lifecycle.ApplySnapshotFailure(exception, failed)" in hub
+    assert "NativeDocumentBoundarySubscriptionRegistry" in dispatcher
+    assert "BoundarySubscriptions.Add(value)" in dispatcher
+    assert "BoundarySubscriptions.Remove(value)" in dispatcher
     assert "DispatcherTimer" not in view
 
 

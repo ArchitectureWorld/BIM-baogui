@@ -104,6 +104,29 @@ namespace BIMBaoGui.RevitAddin.Issues
     }
   }
 
+  internal static class NativeIssueSnapshotRequest
+  {
+    internal static void Execute(
+      Action<Action<CurrentDocumentSnapshot>, Action<Exception>> request,
+      NativeIssueHubLifecycle lifecycle,
+      Action<CurrentDocumentSnapshot> completed,
+      Action<Exception> failed)
+    {
+      if (request == null) throw new ArgumentNullException(nameof(request));
+      if (lifecycle == null) throw new ArgumentNullException(nameof(lifecycle));
+      Action<Exception> failClosed = exception =>
+        lifecycle.ApplySnapshotFailure(exception, failed);
+      try
+      {
+        request(completed, failClosed);
+      }
+      catch (Exception exception)
+      {
+        failClosed(exception);
+      }
+    }
+  }
+
   internal sealed class NativeIssueHub
   {
     private readonly object _syncRoot = new object();

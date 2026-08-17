@@ -65,29 +65,166 @@ namespace BIMBaoGui.RevitAddin
     }
   }
 
+  internal sealed class NativeDocumentBoundarySubscriptionRegistry
+  {
+    private readonly object _syncRoot = new object();
+    private readonly Action<object> _attach;
+    private readonly Action<object> _detach;
+    private readonly System.Collections.Generic.List<
+      Action<CurrentDocumentSnapshot>> _subscribers =
+        new System.Collections.Generic.List<Action<CurrentDocumentSnapshot>>();
+    private object _source;
+    private bool _attached;
+
+    internal NativeDocumentBoundarySubscriptionRegistry(
+      Action<object> attach,
+      Action<object> detach)
+    {
+      _attach = attach ?? throw new ArgumentNullException(nameof(attach));
+      _detach = detach ?? throw new ArgumentNullException(nameof(detach));
+    }
+
+    internal int SubscriberCount
+    {
+      get
+      {
+        lock (_syncRoot) return _subscribers.Count;
+      }
+    }
+
+    internal bool IsAttached
+    {
+      get
+      {
+        lock (_syncRoot) return _attached;
+      }
+    }
+
+    internal object CurrentSource
+    {
+      get
+      {
+        lock (_syncRoot) return _source;
+      }
+    }
+
+    internal void SetSource(object source)
+    {
+      lock (_syncRoot)
+      {
+        if (!ReferenceEquals(_source, source))
+        {
+          DetachIfNeeded();
+          _source = source;
+        }
+        AttachIfNeeded();
+      }
+    }
+
+    internal void Add(Action<CurrentDocumentSnapshot> subscriber)
+    {
+      if (subscriber == null) return;
+      lock (_syncRoot)
+      {
+        _subscribers.Add(subscriber);
+        AttachIfNeeded();
+      }
+    }
+
+    internal void Remove(Action<CurrentDocumentSnapshot> subscriber)
+    {
+      if (subscriber == null) return;
+      lock (_syncRoot)
+      {
+        int index = _subscribers.FindLastIndex(value => value == subscriber);
+        if (index < 0) return;
+        _subscribers.RemoveAt(index);
+        if (_subscribers.Count == 0) DetachIfNeeded();
+      }
+    }
+
+    internal void Publish(CurrentDocumentSnapshot snapshot)
+    {
+      Action<CurrentDocumentSnapshot>[] subscribers;
+      lock (_syncRoot) subscribers = _subscribers.ToArray();
+      foreach (Action<CurrentDocumentSnapshot> subscriber in subscribers)
+      {
+        try
+        {
+          subscriber(snapshot);
+        }
+        catch
+        {
+        }
+      }
+    }
+
+    internal void Clear()
+    {
+      lock (_syncRoot)
+      {
+        DetachIfNeeded();
+        _subscribers.Clear();
+        _source = null;
+      }
+    }
+
+    private void AttachIfNeeded()
+    {
+      if (_attached || _source == null || _subscribers.Count == 0) return;
+      _attach(_source);
+      _attached = true;
+    }
+
+    private void DetachIfNeeded()
+    {
+      if (!_attached) return;
+      _detach(_source);
+      _attached = false;
+    }
+  }
+
   internal static class RevitExternalEventDispatcher
   {
     private static readonly object SyncRoot = new object();
     private static readonly ConcurrentQueue<RevitRequest> Queue =
       new ConcurrentQueue<RevitRequest>();
+    private static readonly NativeDocumentBoundarySubscriptionRegistry
+      BoundarySubscriptions = new NativeDocumentBoundarySubscriptionRegistry(
+        AttachObservedApplication,
+        DetachObservedApplication);
     private static ExternalEvent _externalEvent;
     private static UIApplication _observedApplication;
     private static int _disposed;
 
     internal static event Action<CurrentDocumentSnapshot>
-      DocumentBoundaryChanged;
+      DocumentBoundaryChanged
+    {
+      add { BoundarySubscriptions.Add(value); }
+      remove { BoundarySubscriptions.Remove(value); }
+    }
 
     internal static void ObserveApplication(UIApplication application)
     {
       if (application == null) return;
-      lock (SyncRoot)
-      {
-        if (ReferenceEquals(_observedApplication, application)) return;
-        if (_observedApplication != null)
-          _observedApplication.ViewActivated -= OnViewActivated;
-        _observedApplication = application;
-        _observedApplication.ViewActivated += OnViewActivated;
-      }
+      BoundarySubscriptions.SetSource(application);
+    }
+
+    private static void AttachObservedApplication(object source)
+    {
+      UIApplication application = source as UIApplication;
+      if (application == null) return;
+      _observedApplication = application;
+      _observedApplication.ViewActivated += OnViewActivated;
+    }
+
+    private static void DetachObservedApplication(object source)
+    {
+      UIApplication application = source as UIApplication;
+      if (application != null)
+        application.ViewActivated -= OnViewActivated;
+      if (ReferenceEquals(_observedApplication, application))
+        _observedApplication = null;
     }
 
     private static void OnViewActivated(
@@ -96,9 +233,7 @@ namespace BIMBaoGui.RevitAddin
     {
       UIApplication application = sender as UIApplication;
       if (application == null)
-      {
-        lock (SyncRoot) application = _observedApplication;
-      }
+        application = BoundarySubscriptions.CurrentSource as UIApplication;
       CurrentDocumentSnapshot snapshot;
       try
       {
@@ -120,19 +255,7 @@ namespace BIMBaoGui.RevitAddin
     private static void PublishDocumentBoundary(
       CurrentDocumentSnapshot snapshot)
     {
-      Delegate[] subscribers = DocumentBoundaryChanged?
-        .GetInvocationList()
-        ?? Array.Empty<Delegate>();
-      foreach (Delegate subscriber in subscribers)
-      {
-        try
-        {
-          ((Action<CurrentDocumentSnapshot>)subscriber)(snapshot);
-        }
-        catch
-        {
-        }
-      }
+      BoundarySubscriptions.Publish(snapshot);
     }
 
     internal static void EnsureInitialized()
@@ -302,12 +425,7 @@ namespace BIMBaoGui.RevitAddin
       if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
       lock (SyncRoot)
       {
-        if (_observedApplication != null)
-        {
-          _observedApplication.ViewActivated -= OnViewActivated;
-          _observedApplication = null;
-        }
-        DocumentBoundaryChanged = null;
+        BoundarySubscriptions.Clear();
         _externalEvent?.Dispose();
         _externalEvent = null;
         while (Queue.TryDequeue(out _))

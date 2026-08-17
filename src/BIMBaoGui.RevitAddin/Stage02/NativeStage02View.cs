@@ -331,13 +331,11 @@ namespace BIMBaoGui.RevitAddin.Stage02
       if (_busy) return;
       SetBusy(true, "正在核对当前 Revit 文档身份……" );
       NativeStage02ManualReviewCommand snapshot = manualReview?.Clone();
-      try
-      {
-        RevitExternalEventDispatcher.RequestDocumentSnapshot(
-          document => ApplyDocumentBoundaryAndContinue(document, snapshot),
-          ApplyDocumentBoundaryFailure);
-      }
-      catch (Exception exception) { ApplyFailure(exception); }
+      NativeIssueSnapshotRequest.Execute(
+        RevitExternalEventDispatcher.RequestDocumentSnapshot,
+        _issueLifecycle,
+        document => ApplyDocumentBoundaryAndContinue(document, snapshot),
+        ApplyFailure);
     }
 
     private void ContinuePreview(
@@ -441,13 +439,11 @@ namespace BIMBaoGui.RevitAddin.Stage02
     private void RequestDocumentBoundary()
     {
       if (_busy) return;
-      try
-      {
-        RevitExternalEventDispatcher.RequestDocumentSnapshot(
-          ApplyDocumentBoundary,
-          ApplyDocumentBoundaryFailure);
-      }
-      catch (Exception exception) { ApplyFailure(exception); }
+      NativeIssueSnapshotRequest.Execute(
+        RevitExternalEventDispatcher.RequestDocumentSnapshot,
+        _issueLifecycle,
+        ApplyDocumentBoundary,
+        ApplyFailure);
     }
 
     private void ApplyDocumentBoundary(CurrentDocumentSnapshot snapshot)
@@ -462,11 +458,6 @@ namespace BIMBaoGui.RevitAddin.Stage02
       _issueLifecycle.ApplySnapshot(
         snapshot,
         () => ContinuePreview(manualReview));
-    }
-
-    private void ApplyDocumentBoundaryFailure(Exception exception)
-    {
-      _issueLifecycle.ApplySnapshotFailure(exception, ApplyFailure);
     }
 
     private void DispatchToUi(Action action)

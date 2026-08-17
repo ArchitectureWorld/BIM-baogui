@@ -270,6 +270,75 @@ namespace BIMBaoGui.RevitAddin.Tests
         order);
     }
 
+    [Fact]
+    public void Synchronous_snapshot_request_throw_uses_fail_closed_wrapper()
+    {
+      var hub = new NativeIssueHub();
+      hub.ResetForDocument("doc-a");
+      hub.Replace("STAGE02A", new[]
+      {
+        Issue("a", NativeIssueSeverity.Blocker, "CHECK", document: "doc-a")
+      });
+      var order = new System.Collections.Generic.List<string>();
+      var lifecycle = new NativeIssueHubLifecycle(
+        hub,
+        new FakeDocumentBoundarySource(),
+        () => order.Add("refresh"));
+
+      NativeIssueSnapshotRequest.Execute(
+        (completed, failed) => throw new InvalidOperationException("raise failed"),
+        lifecycle,
+        snapshot => order.Add("completed"),
+        error => order.Add("failure:" + error.Message));
+
+      Assert.Equal(string.Empty, hub.DocumentFingerprint);
+      Assert.Empty(hub.Snapshot());
+      Assert.Equal(
+        new[] { "refresh", "failure:raise failed" },
+        order);
+    }
+
+    [Fact]
+    public void Boundary_registry_refcounts_real_source_attachment()
+    {
+      var transitions = new System.Collections.Generic.List<string>();
+      var source = new object();
+      var registry = new NativeDocumentBoundarySubscriptionRegistry(
+        value => transitions.Add("attach"),
+        value => transitions.Add("detach"));
+      Action<CurrentDocumentSnapshot> first = snapshot => { };
+      Action<CurrentDocumentSnapshot> second = snapshot => { };
+
+      registry.SetSource(source);
+      registry.Add(first);
+      registry.Add(second);
+      Assert.True(registry.IsAttached);
+      Assert.Equal(2, registry.SubscriberCount);
+      Assert.Equal(new[] { "attach" }, transitions);
+
+      registry.Remove(first);
+      Assert.True(registry.IsAttached);
+      Assert.Equal(1, registry.SubscriberCount);
+      Assert.Equal(new[] { "attach" }, transitions);
+
+      registry.Remove(second);
+      Assert.False(registry.IsAttached);
+      Assert.Equal(0, registry.SubscriberCount);
+      Assert.Equal(new[] { "attach", "detach" }, transitions);
+
+      registry.Add(first);
+      Assert.True(registry.IsAttached);
+      Assert.Equal(1, registry.SubscriberCount);
+      Assert.Equal(new[] { "attach", "detach", "attach" }, transitions);
+
+      registry.Clear();
+      Assert.False(registry.IsAttached);
+      Assert.Equal(0, registry.SubscriberCount);
+      Assert.Equal(
+        new[] { "attach", "detach", "attach", "detach" },
+        transitions);
+    }
+
     private static NativeIssueNavigationRequest Request(
       NativeIssueNavigationAction action)
     {
