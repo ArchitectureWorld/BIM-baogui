@@ -75,6 +75,9 @@ namespace BIMBaoGui.RevitAddin.Rules
       Array.Empty<string>();
     internal string WriteStrategy { get; set; } = string.Empty;
     internal string OwnerStrategy { get; set; } = string.Empty;
+    internal string OfficialPropertyEvidenceStatus { get; set; } = string.Empty;
+    internal bool OfficialExportVerified { get; set; }
+    internal string OfficialCarrierCandidate { get; set; } = string.Empty;
     internal NativeRuntimeStatusDecision RuntimeDecision { get; set; }
   }
 
@@ -328,6 +331,16 @@ namespace BIMBaoGui.RevitAddin.Rules
           : Freeze(value.suggestion.aliases),
         WriteStrategy = value.ifcWrite.writeStrategy ?? string.Empty,
         OwnerStrategy = value.ifcWrite.ownerStrategy ?? string.Empty,
+        OfficialPropertyEvidenceStatus = value.officialPlugin == null
+          ? "NO_OFFICIAL_PLUGIN_EVIDENCE"
+          : Required(
+            value.officialPlugin.evidenceStatus,
+            "properties.officialPlugin.evidenceStatus"),
+        OfficialExportVerified = false,
+        OfficialCarrierCandidate = value.officialPlugin == null
+          || value.officialPlugin.legacyProjection == null
+          ? string.Empty
+          : value.officialPlugin.legacyProjection.carrier ?? string.Empty,
         RuntimeDecision = runtime
       };
     }
@@ -488,6 +501,7 @@ namespace BIMBaoGui.RevitAddin.Rules
       public string[] stageOwnership { get; set; }
       public SuggestionDto suggestion { get; set; }
       public IfcWriteDto ifcWrite { get; set; }
+      public OfficialPluginDto officialPlugin { get; set; }
     }
 
     private sealed class IfcDto
@@ -527,6 +541,17 @@ namespace BIMBaoGui.RevitAddin.Rules
     {
       public string writeStrategy { get; set; }
       public string ownerStrategy { get; set; }
+    }
+
+    private sealed class OfficialPluginDto
+    {
+      public string evidenceStatus { get; set; }
+      public LegacyProjectionDto legacyProjection { get; set; }
+    }
+
+    private sealed class LegacyProjectionDto
+    {
+      public string carrier { get; set; }
     }
   }
 }

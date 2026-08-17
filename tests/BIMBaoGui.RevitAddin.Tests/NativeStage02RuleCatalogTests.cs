@@ -70,6 +70,9 @@ namespace BIMBaoGui.RevitAddin.Tests
         Assert.False(string.IsNullOrWhiteSpace(property.ParameterName));
         Assert.False(string.IsNullOrWhiteSpace(property.StorageType));
         Assert.False(string.IsNullOrWhiteSpace(property.ParameterType));
+        Assert.False(string.IsNullOrWhiteSpace(
+          property.OfficialPropertyEvidenceStatus));
+        Assert.False(property.OfficialExportVerified);
         Assert.NotEmpty(property.CarrierRoleIds);
         Assert.Contains("STAGE02", property.StageOwnership);
       }

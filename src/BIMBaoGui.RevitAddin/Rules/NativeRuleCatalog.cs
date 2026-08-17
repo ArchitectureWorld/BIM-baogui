@@ -61,6 +61,32 @@ namespace BIMBaoGui.RevitAddin.Rules
   internal sealed class NativeModelProfile
   {
     internal string ProfileId { get; set; } = string.Empty;
+    internal IReadOnlyList<string> TaskIds { get; set; } = Array.Empty<string>();
+    internal IReadOnlyList<string> ActivationRuleIds { get; set; } =
+      Array.Empty<string>();
+  }
+
+  internal sealed class NativeTaskDefinition
+  {
+    internal string TaskId { get; set; } = string.Empty;
+    internal string ModelFileType { get; set; } = string.Empty;
+    internal string Name { get; set; } = string.Empty;
+    internal string ObjectCode { get; set; } = string.Empty;
+    internal string Requirement { get; set; } = string.Empty;
+    internal string ConditionId { get; set; } = string.Empty;
+    internal int Sequence { get; set; }
+    internal bool SkeletonTask { get; set; }
+    internal IReadOnlyList<string> AttributeRequirements { get; set; } =
+      Array.Empty<string>();
+    internal IReadOnlyList<string> Dependencies { get; set; } =
+      Array.Empty<string>();
+    internal IReadOnlyList<string> GeometryChecks { get; set; } =
+      Array.Empty<string>();
+    internal IReadOnlyList<string> PropertyChecks { get; set; } =
+      Array.Empty<string>();
+    internal IReadOnlyList<string> TargetComparisons { get; set; } =
+      Array.Empty<string>();
+    internal string Source { get; set; } = string.Empty;
   }
 
   internal sealed class NativeSpatialMapping
@@ -81,6 +107,7 @@ namespace BIMBaoGui.RevitAddin.Rules
       IEnumerable<NativeStage01FieldDefinition> stage01Fields,
       IEnumerable<NativeConditionDefinition> conditions,
       IEnumerable<NativeModelProfile> modelProfiles,
+      IEnumerable<NativeTaskDefinition> tasks,
       IEnumerable<NativeSpatialMapping> spatialMappings,
       string defaultActiveGroup)
     {
@@ -115,6 +142,38 @@ namespace BIMBaoGui.RevitAddin.Rules
         throw new InvalidDataException("HBR model profile 重复。");
       }
 
+      NativeTaskDefinition[] taskArray = (tasks
+        ?? Array.Empty<NativeTaskDefinition>()).ToArray();
+      var tasksById = new Dictionary<string, NativeTaskDefinition>(
+        StringComparer.Ordinal);
+      foreach (NativeTaskDefinition task in taskArray)
+      {
+        if (task == null || string.IsNullOrWhiteSpace(task.TaskId)
+          || string.IsNullOrWhiteSpace(task.ModelFileType)
+          || tasksById.ContainsKey(task.TaskId))
+        {
+          throw new InvalidDataException("HBR taskId 无效或重复。");
+        }
+        tasksById.Add(task.TaskId, task);
+      }
+      foreach (NativeModelProfile profile in profileArray)
+      {
+        foreach (string taskId in profile.TaskIds)
+        {
+          if (!tasksById.TryGetValue(taskId, out NativeTaskDefinition task))
+            throw new InvalidDataException(
+              "HBR model profile 引用了未知 taskId：" + taskId);
+          if (!string.Equals(
+            task.ModelFileType,
+            profile.ProfileId,
+            StringComparison.Ordinal))
+          {
+            throw new InvalidDataException(
+              "HBR model profile 引用了其他模型的 taskId：" + taskId);
+          }
+        }
+      }
+
       if (string.IsNullOrWhiteSpace(defaultActiveGroup))
         throw new InvalidDataException("HBR Stage01 defaultActiveGroup 为空。");
 
@@ -127,6 +186,9 @@ namespace BIMBaoGui.RevitAddin.Rules
         conditionArray);
       ModelProfiles = new ReadOnlyCollection<NativeModelProfile>(
         profileArray);
+      Tasks = new ReadOnlyCollection<NativeTaskDefinition>(taskArray);
+      TasksById = new ReadOnlyDictionary<string, NativeTaskDefinition>(
+        tasksById);
       SpatialMappings = new ReadOnlyCollection<NativeSpatialMapping>(
         (spatialMappings ?? Array.Empty<NativeSpatialMapping>()).ToArray());
       DefaultActiveGroup = defaultActiveGroup;
@@ -143,6 +205,11 @@ namespace BIMBaoGui.RevitAddin.Rules
       Stage01FieldsByKey { get; }
     internal IReadOnlyList<NativeConditionDefinition> Conditions { get; }
     internal IReadOnlyList<NativeModelProfile> ModelProfiles { get; }
+    internal IReadOnlyList<NativeTaskDefinition> Tasks { get; }
+    internal IReadOnlyDictionary<string, NativeTaskDefinition> TasksById
+    {
+      get;
+    }
     internal IReadOnlyList<NativeSpatialMapping> SpatialMappings { get; }
     internal string DefaultActiveGroup { get; }
 
@@ -370,7 +437,28 @@ namespace BIMBaoGui.RevitAddin.Rules
         ?? Array.Empty<ModelProfileDto>())
         .Select(value => new NativeModelProfile
         {
-          ProfileId = Required(value.profileId, "modelProfiles.profileId")
+          ProfileId = Required(value.profileId, "modelProfiles.profileId"),
+          TaskIds = FreezeStrings(value.taskIds),
+          ActivationRuleIds = FreezeStrings(value.activationRuleIds)
+        })
+        .ToArray();
+      NativeTaskDefinition[] tasks = (dto.tasks ?? Array.Empty<TaskDto>())
+        .Select(value => new NativeTaskDefinition
+        {
+          TaskId = Required(value.taskId, "tasks.taskId"),
+          ModelFileType = Required(value.modelFileType, "tasks.modelFileType"),
+          Name = value.name ?? string.Empty,
+          ObjectCode = value.objectCode ?? string.Empty,
+          Requirement = value.requirement ?? string.Empty,
+          ConditionId = value.conditionId ?? string.Empty,
+          Sequence = value.sequence,
+          SkeletonTask = value.skeletonTask,
+          AttributeRequirements = FreezeStrings(value.attributeRequirements),
+          Dependencies = FreezeStrings(value.dependencies),
+          GeometryChecks = FreezeStrings(value.geometryChecks),
+          PropertyChecks = FreezeStrings(value.propertyChecks),
+          TargetComparisons = FreezeStrings(value.targetComparisons),
+          Source = value.source ?? string.Empty
         })
         .ToArray();
       NativeSpatialMapping[] spatialMappings = (dto.stage01.spatialMappings
@@ -389,6 +477,7 @@ namespace BIMBaoGui.RevitAddin.Rules
         fields,
         conditions,
         profiles,
+        tasks,
         spatialMappings,
         Required(
           dto.stage01.defaultActiveGroup,
@@ -444,6 +533,7 @@ namespace BIMBaoGui.RevitAddin.Rules
       public string packageVersion { get; set; }
       public RulePropertyDto[] properties { get; set; }
       public ModelProfileDto[] modelProfiles { get; set; }
+      public TaskDto[] tasks { get; set; }
       public ConditionDto[] conditions { get; set; }
       public Stage01Dto stage01 { get; set; }
     }
@@ -475,6 +565,26 @@ namespace BIMBaoGui.RevitAddin.Rules
     private sealed class ModelProfileDto
     {
       public string profileId { get; set; }
+      public string[] taskIds { get; set; }
+      public string[] activationRuleIds { get; set; }
+    }
+
+    private sealed class TaskDto
+    {
+      public string taskId { get; set; }
+      public string modelFileType { get; set; }
+      public string name { get; set; }
+      public string objectCode { get; set; }
+      public string requirement { get; set; }
+      public string conditionId { get; set; }
+      public int sequence { get; set; }
+      public bool skeletonTask { get; set; }
+      public string[] attributeRequirements { get; set; }
+      public string[] dependencies { get; set; }
+      public string[] geometryChecks { get; set; }
+      public string[] propertyChecks { get; set; }
+      public string[] targetComparisons { get; set; }
+      public string source { get; set; }
     }
 
     private sealed class ConditionDto

@@ -32,6 +32,16 @@ namespace BIMBaoGui.RevitAddin.Tests
           StringComparison.Ordinal)));
       Assert.Equal(14, catalog.Conditions.Count);
       Assert.Equal(3, catalog.ModelProfiles.Count);
+      Assert.Equal(28, catalog.Tasks.Count);
+      Assert.Equal(28, catalog.TasksById.Count);
+      NativeModelProfile totalPlan = catalog.ModelProfiles.Single(value =>
+        value.ProfileId == "总平模型");
+      Assert.Equal(15, totalPlan.TaskIds.Count);
+      Assert.Equal(7, totalPlan.ActivationRuleIds.Count);
+      Assert.Equal(
+        totalPlan.TaskIds,
+        totalPlan.TaskIds.OrderBy(
+          value => catalog.TasksById[value].Sequence));
       Assert.Equal("01_文件与项目身份", catalog.DefaultActiveGroup);
     }
 
