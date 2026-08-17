@@ -71,6 +71,13 @@ namespace BIMBaoGui.RevitAddin.Tests
             new NativeStage02ElementEvidence
             {
               Element = ProjectInformationCandidate(),
+              RoleConfirmation = new NativeStage02RoleConfirmationDecision
+              {
+                Confirmed = true,
+                Code = "ROLE_CONFIRMED",
+                ResolvedRoleId = string.Join("+", ProjectInformationRoleIds),
+                Source = "TestFixture"
+              },
               Parameters = parameterEvidence
             }
           }

@@ -181,8 +181,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       NativeStage02ElementEvidence evidence,
       IReadOnlyDictionary<string, bool> conditions)
     {
-      if (evidence.RoleConfirmation != null
-        && !evidence.RoleConfirmation.Confirmed)
+      if (evidence.RoleConfirmation?.Confirmed != true)
       {
         return Plan(
           property,
@@ -192,7 +191,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
           string.Empty,
           string.Empty,
           string.Empty,
-          evidence.RoleConfirmation.Code + "：候选角色必须先显式确认。",
+          (evidence.RoleConfirmation?.Code ?? "ROLE_CONFIRMATION_REQUIRED")
+            + "：候选角色必须先显式确认。",
           false);
       }
       NativeRuntimeStatusDecision runtime = property.RuntimeDecision;

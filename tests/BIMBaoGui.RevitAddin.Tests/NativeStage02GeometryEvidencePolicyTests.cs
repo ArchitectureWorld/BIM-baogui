@@ -449,6 +449,160 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
+    public void Contains_rejects_an_edge_crossing_a_concave_reference_boundary()
+    {
+      var subject = new NativeStage02ElementSnapshot
+      {
+        DocumentFingerprint = "doc",
+        UniqueId = "subject",
+        ElementId = 1,
+        Category = "OST_BuildingPad",
+        ElementKind = "BuildingPad",
+        AssignedRoleId = "SITE_GREEN_OBJECT",
+        IsModelElement = true,
+        Geometry = new NativeStage02GeometryEvidence
+        {
+          PlanarLoopsMetres = new IReadOnlyList<double>[]
+          {
+            new double[] { 0.5, 3, 3.5, 3, 2, 0.5, 0.5, 3 }
+          },
+          EvidenceHash = new string('1', 64)
+        }
+      };
+      var reference = new NativeStage02ElementSnapshot
+      {
+        DocumentFingerprint = "doc",
+        UniqueId = "reference",
+        ElementId = 2,
+        Category = "OST_BuildingPad",
+        ElementKind = "BuildingPad",
+        AssignedRoleId = "SITE_NET_LAND",
+        IsModelElement = true,
+        Geometry = new NativeStage02GeometryEvidence
+        {
+          PlanarLoopsMetres = new IReadOnlyList<double>[]
+          {
+            new double[]
+            {
+              0, 0, 4, 0, 4, 4, 3, 4, 3, 1,
+              1, 1, 1, 4, 0, 4, 0, 0
+            }
+          },
+          EvidenceHash = new string('2', 64)
+        }
+      };
+
+      NativeStage02TaskGeometryEvaluation result =
+        NativeStage02GeometryEvidencePolicy.Evaluate(
+          new NativeTaskDefinition
+          {
+            TaskId = "SITE.GREEN",
+            GeometryChecks = new[] { "绿地不越界" }
+          },
+          subject,
+          subject.Geometry,
+          new Dictionary<Guid, NativeStage02ParameterEvidence>(),
+          new NativeStage02GeometryEvaluationContext
+          {
+            Identity = new NativeWorkflowIdentity
+            {
+              DocumentFingerprint = "doc",
+              ModelFileType = "总平模型",
+              RulePackageId = "HBR-WUHAN-PLANNING",
+              RulePackageVersion = "1.0.0",
+              RulePackageSha256 = new string('a', 64)
+            },
+            ConfirmedElements = new[] { subject, reference },
+            ManualReviews = Array.Empty<NativeStage02ManualReviewRecord>(),
+            ScopeComplete = true
+          });
+
+      NativeStage02GeometryCheckEvidence check = Assert.Single(result.Checks);
+      Assert.Equal(NativeStage02GeometryCheckState.Failed, check.State);
+      Assert.Equal("GEOMETRY_BOUNDARY_CROSSING", check.Code);
+    }
+
+    [Fact]
+    public void Closed_accepts_independent_planar_outer_and_hole_rings()
+    {
+      var element = new NativeStage02ElementSnapshot
+      {
+        DocumentFingerprint = "doc",
+        UniqueId = "land",
+        ElementId = 1,
+        Category = "OST_BuildingPad",
+        ElementKind = "BuildingPad",
+        AssignedRoleId = "SITE_TOTAL_LAND",
+        IsModelElement = true,
+        Geometry = new NativeStage02GeometryEvidence
+        {
+          PlanarLoopsMetres = new IReadOnlyList<double>[]
+          {
+            new double[] { 0, 0, 10, 0, 10, 10, 0, 10, 0, 0 },
+            new double[] { 3, 3, 3, 7, 7, 7, 7, 3, 3, 3 }
+          },
+          EvidenceHash = new string('1', 64)
+        }
+      };
+
+      NativeStage02TaskGeometryEvaluation result =
+        NativeStage02GeometryEvidencePolicy.Evaluate(
+          new NativeTaskDefinition
+          {
+            TaskId = "SITE.TOTAL_LAND",
+            GeometryChecks = new[] { "边界闭合" }
+          },
+          element,
+          element.Geometry,
+          new Dictionary<Guid, NativeStage02ParameterEvidence>(),
+          new NativeStage02GeometryEvaluationContext());
+
+      Assert.Equal(
+        NativeStage02GeometryCheckState.Passed,
+        Assert.Single(result.Checks).State);
+    }
+
+    [Fact]
+    public void Closed_rejects_disconnected_curve_chain_fragments()
+    {
+      var element = new NativeStage02ElementSnapshot
+      {
+        DocumentFingerprint = "doc",
+        UniqueId = "road",
+        ElementId = 1,
+        Category = "OST_Lines",
+        ElementKind = "CurveElement",
+        AssignedRoleId = "SITE_TOTAL_LAND",
+        IsModelElement = true,
+        Geometry = new NativeStage02GeometryEvidence
+        {
+          CurveChainsMetres = new IReadOnlyList<double>[]
+          {
+            new double[] { 0, 0, 0.5, 0, 1, 0 },
+            new double[] { 2, 0, 1, 1, 0, 0 }
+          },
+          EvidenceHash = new string('2', 64)
+        }
+      };
+
+      NativeStage02TaskGeometryEvaluation result =
+        NativeStage02GeometryEvidencePolicy.Evaluate(
+          new NativeTaskDefinition
+          {
+            TaskId = "SITE.TOTAL_LAND",
+            GeometryChecks = new[] { "边界闭合" }
+          },
+          element,
+          element.Geometry,
+          new Dictionary<Guid, NativeStage02ParameterEvidence>(),
+          new NativeStage02GeometryEvaluationContext());
+
+      NativeStage02GeometryCheckEvidence check = Assert.Single(result.Checks);
+      Assert.Equal(NativeStage02GeometryCheckState.Failed, check.State);
+      Assert.Equal("GEOMETRY_CHAIN_DISCONTINUITY", check.Code);
+    }
+
+    [Fact]
     public void Property_evaluators_use_exact_area_tolerance_and_finite_green_formula()
     {
       Guid areaGuid = new Guid("6cc053e3-891d-51b1-b861-af498733f73a");

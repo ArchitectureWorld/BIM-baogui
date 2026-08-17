@@ -180,20 +180,28 @@ namespace BIMBaoGui.RevitAddin.Stage02
       string ruleText,
       NativeStage02GeometryEvidence geometry)
     {
-      IReadOnlyList<IReadOnlyList<double>> sources =
-        (geometry.PlanarLoopsMetres?.Count ?? 0) > 0
-          ? geometry.PlanarLoopsMetres
-          : geometry.CurveChainsMetres;
+      bool planarLoops = (geometry.PlanarLoopsMetres?.Count ?? 0) > 0;
+      IReadOnlyList<IReadOnlyList<double>> sources = planarLoops
+        ? geometry.PlanarLoopsMetres
+        : geometry.CurveChainsMetres;
       Point[][] chains = ParseChains(sources);
-      if (chains.Length == 0 || chains.Any(value => value.Length < 3))
+      if (chains.Length == 0
+        || chains.Any(value => value.Length < (planarLoops ? 3 : 2)))
         return Fail(taskId, ruleText, "GEOMETRY_TOPOLOGY_MISSING");
-      if (chains.Any(value => !Equal(value[0], value[value.Length - 1])))
-        return Fail(taskId, ruleText, "GEOMETRY_BOUNDARY_OPEN");
+      if (planarLoops)
+      {
+        return chains.Any(value => !Equal(value[0], value[value.Length - 1]))
+          ? Fail(taskId, ruleText, "GEOMETRY_BOUNDARY_OPEN")
+          : Pass(taskId, ruleText, geometry.TopologySource);
+      }
       for (int index = 1; index < chains.Length; index++)
       {
         if (!Equal(chains[index - 1][chains[index - 1].Length - 1], chains[index][0]))
           return Fail(taskId, ruleText, "GEOMETRY_CHAIN_DISCONTINUITY");
       }
+      if (!Equal(chains[0][0], chains[chains.Length - 1][
+        chains[chains.Length - 1].Length - 1]))
+        return Fail(taskId, ruleText, "GEOMETRY_BOUNDARY_OPEN");
       return Pass(taskId, ruleText, geometry.TopologySource);
     }
 
@@ -253,6 +261,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
         return Fail(taskId, ruleText, "GEOMETRY_TOPOLOGY_MISSING");
       if (subject.Any(point => !InsideOrBoundary(point, reference)))
         return Fail(taskId, ruleText, "GEOMETRY_NOT_CONTAINED");
+      if (BoundariesProperlyCross(subject, reference))
+        return Fail(taskId, ruleText, "GEOMETRY_BOUNDARY_CROSSING");
       return Pass(taskId, ruleText, "REFERENCE_ROLE:" + referenceRoleId);
     }
 
@@ -558,6 +568,41 @@ namespace BIMBaoGui.RevitAddin.Stage02
         || Math.Abs(o2) <= PointTolerance && OnSegment(a, d, b)
         || Math.Abs(o3) <= PointTolerance && OnSegment(c, a, d)
         || Math.Abs(o4) <= PointTolerance && OnSegment(c, b, d);
+    }
+
+    private static bool BoundariesProperlyCross(Point[] subject, Point[] reference)
+    {
+      int subjectSegments = Math.Max(0, subject.Length - 1);
+      int referenceSegments = Math.Max(0, reference.Length - 1);
+      for (int left = 0; left < subjectSegments; left++)
+      {
+        for (int right = 0; right < referenceSegments; right++)
+        {
+          if (SegmentsProperlyIntersect(
+            subject[left],
+            subject[left + 1],
+            reference[right],
+            reference[right + 1]))
+            return true;
+        }
+      }
+      return false;
+    }
+
+    private static bool SegmentsProperlyIntersect(
+      Point a,
+      Point b,
+      Point c,
+      Point d)
+    {
+      double o1 = Cross(a, b, c);
+      double o2 = Cross(a, b, d);
+      double o3 = Cross(c, d, a);
+      double o4 = Cross(c, d, b);
+      return ((o1 > PointTolerance && o2 < -PointTolerance)
+          || (o1 < -PointTolerance && o2 > PointTolerance))
+        && ((o3 > PointTolerance && o4 < -PointTolerance)
+          || (o3 < -PointTolerance && o4 > PointTolerance));
     }
 
     private static bool OnSegment(Point a, Point point, Point b)

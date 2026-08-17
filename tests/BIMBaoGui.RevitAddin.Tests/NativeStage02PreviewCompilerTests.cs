@@ -296,6 +296,26 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.True(element.IsBlocked);
     }
 
+    [Fact]
+    public void Matched_role_with_null_confirmation_is_pending_and_blocked()
+    {
+      NativeStage02PropertyDefinition property = Property();
+      NativeStage02ElementEvidence evidence = Evidence(
+        Role(property),
+        property,
+        "A",
+        false);
+      evidence.RoleConfirmation = null;
+
+      NativeStage02Preview preview = Compile(property, evidence);
+      NativeStage02ElementPlan element = Assert.Single(preview.Elements);
+      NativeStage02FieldPlan field = Assert.Single(element.Fields);
+
+      Assert.Equal(NativeStage02FieldStatus.PendingConfirmation, field.Status);
+      Assert.True(element.IsBlocked);
+      Assert.Contains("ROLE_CONFIRMATION_REQUIRED", field.Message);
+    }
+
     private static string Hash(NativeStage02Preview preview)
     {
       return NativeStage02PreviewCanonicalizer.Sha256(
@@ -339,6 +359,13 @@ namespace BIMBaoGui.RevitAddin.Tests
           TypeName = role.DisplayName,
           AssignedRoleId = role.RoleId,
           IsModelElement = true
+        },
+        RoleConfirmation = new NativeStage02RoleConfirmationDecision
+        {
+          Confirmed = true,
+          Code = "ROLE_CONFIRMED",
+          ResolvedRoleId = role.RoleId,
+          Source = "TestFixture"
         },
         Parameters = new Dictionary<Guid, NativeStage02ParameterEvidence>
         {

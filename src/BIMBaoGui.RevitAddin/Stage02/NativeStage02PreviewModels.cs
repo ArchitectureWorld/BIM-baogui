@@ -148,7 +148,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
 
     internal bool IsBlocked =>
       RoleMatchStatus != NativeStage02RoleMatchStatus.Matched
-      || (RoleConfirmation != null && !RoleConfirmation.Confirmed)
+      || RoleConfirmation?.Confirmed != true
       || Fields.Any(value =>
         value.Status == NativeStage02FieldStatus.Blocked
         || value.Status == NativeStage02FieldStatus.PendingConfirmation
