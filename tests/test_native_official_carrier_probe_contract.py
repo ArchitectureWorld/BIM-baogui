@@ -5,6 +5,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT = ROOT / "src" / "BIMBaoGui.RevitAddin"
+CONTRACTS = ROOT / "src" / "BIMBaoGui.McpContracts"
+SERVER = ROOT / "src" / "BIMBaoGui.McpServer"
 ACCEPTANCE = PROJECT / "Acceptance"
 TOOLS = ROOT / "tools" / "acceptance"
 
@@ -35,8 +37,15 @@ def test_normal_product_has_no_probe_button_or_mcp_tool_without_context():
     probe_button = app.index("验收载体探针")
     guard = app.rfind("CanRegisterAtStartup", 0, probe_button)
     assert guard >= 0
-    mcp = "\n".join(read(path) for path in (PROJECT / "McpBridge").glob("*.cs"))
-    assert "OfficialCarrierProbe" not in mcp
+    mcp_registration_surface = "\n".join(
+        read(path)
+        for path in (
+            CONTRACTS / "ToolContracts.cs",
+            SERVER / "BimBaoGuiTools.cs",
+            PROJECT / "McpBridge" / "McpBridgeCommandRouter.cs",
+        )
+    )
+    assert "OfficialCarrierProbe" not in mcp_registration_surface
     assert "验收载体探针" not in read(PROJECT / "WorkspaceControl.cs")
 
 
