@@ -7,6 +7,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using BIMBaoGui.RevitAddin.Rules;
 using BIMBaoGui.RevitAddin.Stage01;
+using BIMBaoGui.RevitAddin.Workflow;
 
 namespace BIMBaoGui.RevitAddin.Stage02
 {
@@ -105,10 +106,13 @@ namespace BIMBaoGui.RevitAddin.Stage02
           StringComparer.Ordinal)))
         return Failure("Stage02 模型类型阻断", "Stage01 模型文件类型不属于当前 HBR 数据库。" );
 
-      string documentFingerprint = ComputeDocumentFingerprint(
-        uiApplication,
-        document,
-        stage01);
+      string documentFingerprint =
+        NativeWorkflowIdentityFactory.ComputeDocumentFingerprint(
+          document.PathName,
+          document.Title,
+          uiApplication.Application.VersionNumber,
+          stage01.Model.GetValue(NativeStage01Keys.FileGuid),
+          stage01.StorageDecision.ActualPayloadHash);
       IReadOnlyList<string> resolvedCustomIds = ResolveCustomIds(
         uiDocument,
         document,
@@ -576,22 +580,6 @@ namespace BIMBaoGui.RevitAddin.Stage02
         throw new InvalidOperationException("TYPE 参数目标元素没有有效 ElementType。" );
       return document.GetElement(typeId)
         ?? throw new InvalidOperationException("无法解析 TYPE 参数目标 ElementType。" );
-    }
-
-    private static string ComputeDocumentFingerprint(
-      UIApplication uiApplication,
-      Document document,
-      NativeStage01ReadResult stage01)
-    {
-      string raw = string.Join("|", new[]
-      {
-        document.PathName ?? string.Empty,
-        document.Title ?? string.Empty,
-        uiApplication.Application.VersionNumber ?? string.Empty,
-        stage01.Model.GetValue(NativeStage01Keys.FileGuid),
-        stage01.StorageDecision.ActualPayloadHash ?? string.Empty
-      });
-      return NativeStage02PreviewCanonicalizer.Sha256(raw);
     }
 
     private static string CategoryKey(Category category)
