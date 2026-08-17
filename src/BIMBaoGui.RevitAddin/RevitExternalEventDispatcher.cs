@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using Autodesk.Revit.UI.Events;
 using BIMBaoGui.RevitAddin.Issues;
 using BIMBaoGui.RevitAddin.Stage01;
 using BIMBaoGui.RevitAddin.Stage02;
@@ -53,6 +54,7 @@ namespace BIMBaoGui.RevitAddin
 
     public void Execute(UIApplication application)
     {
+      RevitExternalEventDispatcher.ObserveApplication(application);
       while (_queue.TryDequeue(out RevitRequest request))
         request.Execute(application);
     }
@@ -69,7 +71,69 @@ namespace BIMBaoGui.RevitAddin
     private static readonly ConcurrentQueue<RevitRequest> Queue =
       new ConcurrentQueue<RevitRequest>();
     private static ExternalEvent _externalEvent;
+    private static UIApplication _observedApplication;
     private static int _disposed;
+
+    internal static event Action<CurrentDocumentSnapshot>
+      DocumentBoundaryChanged;
+
+    internal static void ObserveApplication(UIApplication application)
+    {
+      if (application == null) return;
+      lock (SyncRoot)
+      {
+        if (ReferenceEquals(_observedApplication, application)) return;
+        if (_observedApplication != null)
+          _observedApplication.ViewActivated -= OnViewActivated;
+        _observedApplication = application;
+        _observedApplication.ViewActivated += OnViewActivated;
+      }
+    }
+
+    private static void OnViewActivated(
+      object sender,
+      ViewActivatedEventArgs args)
+    {
+      UIApplication application = sender as UIApplication;
+      if (application == null)
+      {
+        lock (SyncRoot) application = _observedApplication;
+      }
+      CurrentDocumentSnapshot snapshot;
+      try
+      {
+        snapshot = RevitDocumentSnapshotService.Capture(application);
+      }
+      catch
+      {
+        snapshot = new CurrentDocumentSnapshot
+        {
+          HasDocument = application?.ActiveUIDocument?.Document != null,
+          RevitVersion = application?.Application?.VersionNumber
+            ?? string.Empty,
+          DocumentFingerprint = string.Empty
+        };
+      }
+      PublishDocumentBoundary(snapshot);
+    }
+
+    private static void PublishDocumentBoundary(
+      CurrentDocumentSnapshot snapshot)
+    {
+      Delegate[] subscribers = DocumentBoundaryChanged?
+        .GetInvocationList()
+        ?? Array.Empty<Delegate>();
+      foreach (Delegate subscriber in subscribers)
+      {
+        try
+        {
+          ((Action<CurrentDocumentSnapshot>)subscriber)(snapshot);
+        }
+        catch
+        {
+        }
+      }
+    }
 
     internal static void EnsureInitialized()
     {
@@ -238,6 +302,12 @@ namespace BIMBaoGui.RevitAddin
       if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
       lock (SyncRoot)
       {
+        if (_observedApplication != null)
+        {
+          _observedApplication.ViewActivated -= OnViewActivated;
+          _observedApplication = null;
+        }
+        DocumentBoundaryChanged = null;
         _externalEvent?.Dispose();
         _externalEvent = null;
         while (Queue.TryDequeue(out _))

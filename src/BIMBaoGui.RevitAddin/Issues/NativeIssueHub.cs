@@ -5,6 +5,105 @@ using System.Linq;
 
 namespace BIMBaoGui.RevitAddin.Issues
 {
+  internal interface INativeDocumentBoundarySource
+  {
+    event Action<CurrentDocumentSnapshot> DocumentBoundaryChanged;
+  }
+
+  internal sealed class NativeRevitDocumentBoundarySource
+    : INativeDocumentBoundarySource
+  {
+    internal static NativeRevitDocumentBoundarySource Instance { get; } =
+      new NativeRevitDocumentBoundarySource();
+
+    private NativeRevitDocumentBoundarySource()
+    {
+    }
+
+    public event Action<CurrentDocumentSnapshot> DocumentBoundaryChanged
+    {
+      add
+      {
+        RevitExternalEventDispatcher.DocumentBoundaryChanged += value;
+      }
+      remove
+      {
+        RevitExternalEventDispatcher.DocumentBoundaryChanged -= value;
+      }
+    }
+  }
+
+  internal sealed class NativeIssueHubLifecycle
+  {
+    private readonly object _syncRoot = new object();
+    private readonly NativeIssueHub _hub;
+    private readonly INativeDocumentBoundarySource _source;
+    private readonly Action _refresh;
+    private readonly Action<Action> _dispatch;
+    private bool _active;
+
+    internal NativeIssueHubLifecycle(
+      NativeIssueHub hub,
+      INativeDocumentBoundarySource source,
+      Action refresh,
+      Action<Action> dispatch = null)
+    {
+      _hub = hub ?? throw new ArgumentNullException(nameof(hub));
+      _source = source ?? throw new ArgumentNullException(nameof(source));
+      _refresh = refresh ?? throw new ArgumentNullException(nameof(refresh));
+      _dispatch = dispatch ?? (action => action());
+    }
+
+    internal void Activate()
+    {
+      lock (_syncRoot)
+      {
+        if (_active) return;
+        _source.DocumentBoundaryChanged += ApplySnapshot;
+        _active = true;
+      }
+    }
+
+    internal void Deactivate()
+    {
+      lock (_syncRoot)
+      {
+        if (!_active) return;
+        _source.DocumentBoundaryChanged -= ApplySnapshot;
+        _active = false;
+      }
+    }
+
+    internal void ApplySnapshot(CurrentDocumentSnapshot snapshot)
+    {
+      ApplySnapshot(snapshot, null);
+    }
+
+    internal void ApplySnapshot(
+      CurrentDocumentSnapshot snapshot,
+      Action completed)
+    {
+      _dispatch(() =>
+      {
+        _hub.ResetForDocument(snapshot);
+        _refresh();
+        completed?.Invoke();
+      });
+    }
+
+    internal void ApplySnapshotFailure(
+      Exception exception,
+      Action<Exception> failed)
+    {
+      _dispatch(() =>
+      {
+        _hub.ResetForDocument(string.Empty);
+        _refresh();
+        failed?.Invoke(exception);
+      });
+    }
+  }
+
   internal sealed class NativeIssueHub
   {
     private readonly object _syncRoot = new object();

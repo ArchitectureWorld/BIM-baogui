@@ -31,6 +31,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
     private readonly ListBox _elementList;
     private readonly StackPanel _fieldPanel;
     private readonly NativeIssueCenterView _issueCenter;
+    private readonly NativeIssueHubLifecycle _issueLifecycle;
     private readonly Dictionary<string, string> _roleOverrides =
       new Dictionary<string, string>(StringComparer.Ordinal);
     private readonly Dictionary<string, NativeStage02RoleConfirmation>
@@ -224,6 +225,11 @@ namespace BIMBaoGui.RevitAddin.Stage02
         SharedIssueHub,
         NavigateToSource,
         RequestRevitAction);
+      _issueLifecycle = new NativeIssueHubLifecycle(
+        SharedIssueHub,
+        NativeRevitDocumentBoundarySource.Instance,
+        _issueCenter.Refresh,
+        DispatchToUi);
       Grid.SetRow(_issueCenter, 4);
       root.Children.Add(_issueCenter);
 
@@ -244,9 +250,22 @@ namespace BIMBaoGui.RevitAddin.Stage02
       Grid.SetRow(statusScroll, 5);
       root.Children.Add(statusScroll);
       Content = root;
+      Loaded += (_, __) =>
+      {
+        if (IsVisible) _issueLifecycle.Activate();
+      };
+      Unloaded += (_, __) => _issueLifecycle.Deactivate();
       IsVisibleChanged += (_, __) =>
       {
-        if (IsVisible) RequestDocumentBoundary();
+        if (IsVisible)
+        {
+          _issueLifecycle.Activate();
+          RequestDocumentBoundary();
+        }
+        else
+        {
+          _issueLifecycle.Deactivate();
+        }
       };
       UpdateSemanticControls();
       RenderElements();
@@ -316,7 +335,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       {
         RevitExternalEventDispatcher.RequestDocumentSnapshot(
           document => ApplyDocumentBoundaryAndContinue(document, snapshot),
-          ApplyFailure);
+          ApplyDocumentBoundaryFailure);
       }
       catch (Exception exception) { ApplyFailure(exception); }
     }
@@ -426,35 +445,35 @@ namespace BIMBaoGui.RevitAddin.Stage02
       {
         RevitExternalEventDispatcher.RequestDocumentSnapshot(
           ApplyDocumentBoundary,
-          ApplyFailure);
+          ApplyDocumentBoundaryFailure);
       }
       catch (Exception exception) { ApplyFailure(exception); }
     }
 
     private void ApplyDocumentBoundary(CurrentDocumentSnapshot snapshot)
     {
-      if (!Dispatcher.CheckAccess())
-      {
-        Dispatcher.BeginInvoke(
-          new Action<CurrentDocumentSnapshot>(ApplyDocumentBoundary),
-          snapshot);
-        return;
-      }
-      SharedIssueHub.ResetForDocument(snapshot);
+      _issueLifecycle.ApplySnapshot(snapshot);
     }
 
     private void ApplyDocumentBoundaryAndContinue(
       CurrentDocumentSnapshot snapshot,
       NativeStage02ManualReviewCommand manualReview)
     {
-      if (!Dispatcher.CheckAccess())
-      {
-        Dispatcher.BeginInvoke(new Action(() =>
-          ApplyDocumentBoundaryAndContinue(snapshot, manualReview)));
-        return;
-      }
-      ApplyDocumentBoundary(snapshot);
-      ContinuePreview(manualReview);
+      _issueLifecycle.ApplySnapshot(
+        snapshot,
+        () => ContinuePreview(manualReview));
+    }
+
+    private void ApplyDocumentBoundaryFailure(Exception exception)
+    {
+      _issueLifecycle.ApplySnapshotFailure(exception, ApplyFailure);
+    }
+
+    private void DispatchToUi(Action action)
+    {
+      if (action == null) return;
+      if (Dispatcher.CheckAccess()) action();
+      else Dispatcher.BeginInvoke(action);
     }
 
     private void RequestInteractiveSelection()

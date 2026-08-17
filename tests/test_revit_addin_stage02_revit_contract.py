@@ -156,12 +156,30 @@ def test_issue_hub_document_boundary_is_captured_before_preview_completion():
         encoding="utf-8"
     )
     view = read_stage02("NativeStage02View.cs")
+    hub = (PROJECT / "Issues" / "NativeIssueHub.cs").read_text(encoding="utf-8")
     assert "DocumentFingerprint" in dispatcher
     assert "TryCurrentDocumentFingerprint" in dispatcher
     assert "RequestDocumentSnapshot" in view
     assert "ApplyDocumentBoundary" in view
-    assert "SharedIssueHub.ResetForDocument(snapshot)" in view
+    assert "_issueLifecycle.ApplySnapshot(snapshot)" in view
+    assert "_hub.ResetForDocument(snapshot)" in hub
     assert "ContinuePreview" in view
+
+
+def test_visible_stage02_tracks_revit_view_activated_without_polling_or_leaks():
+    dispatcher = (PROJECT / "RevitExternalEventDispatcher.cs").read_text(
+        encoding="utf-8"
+    )
+    view = read_stage02("NativeStage02View.cs")
+    assert "ViewActivated" in dispatcher
+    assert "DocumentBoundaryChanged" in dispatcher
+    assert "ObserveApplication" in dispatcher
+    assert "_observedApplication.ViewActivated -= OnViewActivated" in dispatcher
+    assert "NativeIssueHubLifecycle" in view
+    assert ".Activate()" in view
+    assert ".Deactivate()" in view
+    assert "ApplyDocumentBoundaryFailure" in view
+    assert "DispatcherTimer" not in view
 
 
 def test_stage02_workspace_is_real_and_not_a_placeholder():

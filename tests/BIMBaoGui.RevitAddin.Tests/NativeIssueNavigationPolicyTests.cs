@@ -205,6 +205,71 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Empty(hub.Snapshot());
     }
 
+    [Fact]
+    public void Visible_stage02_lifecycle_clears_old_issues_on_active_document_boundary()
+    {
+      var hub = new NativeIssueHub();
+      hub.ResetForDocument("doc-a");
+      hub.Replace("STAGE02A", new[]
+      {
+        Issue("a", NativeIssueSeverity.Blocker, "CHECK", document: "doc-a")
+      });
+      var source = new FakeDocumentBoundarySource();
+      int refreshCount = 0;
+      var lifecycle = new NativeIssueHubLifecycle(
+        hub,
+        source,
+        () => refreshCount++);
+
+      lifecycle.Activate();
+      source.Raise(new CurrentDocumentSnapshot
+      {
+        HasDocument = true,
+        DocumentFingerprint = "doc-b"
+      });
+
+      Assert.Equal(1, source.SubscriberCount);
+      Assert.Equal("doc-b", hub.DocumentFingerprint);
+      Assert.Empty(hub.Snapshot());
+      Assert.Equal(1, refreshCount);
+
+      lifecycle.Deactivate();
+      source.Raise(new CurrentDocumentSnapshot
+      {
+        HasDocument = true,
+        DocumentFingerprint = "doc-c"
+      });
+      Assert.Equal(0, source.SubscriberCount);
+      Assert.Equal("doc-b", hub.DocumentFingerprint);
+    }
+
+    [Fact]
+    public void Snapshot_failure_clears_and_refreshes_before_reporting_error()
+    {
+      var hub = new NativeIssueHub();
+      hub.ResetForDocument("doc-a");
+      hub.Replace("STAGE02A", new[]
+      {
+        Issue("a", NativeIssueSeverity.Blocker, "CHECK", document: "doc-a")
+      });
+      var order = new System.Collections.Generic.List<string>();
+      var lifecycle = new NativeIssueHubLifecycle(
+        hub,
+        new FakeDocumentBoundarySource(),
+        () => order.Add("refresh"));
+      var failure = new InvalidOperationException("snapshot failed");
+
+      lifecycle.ApplySnapshotFailure(
+        failure,
+        error => order.Add("failure:" + error.Message));
+
+      Assert.Equal(string.Empty, hub.DocumentFingerprint);
+      Assert.Empty(hub.Snapshot());
+      Assert.Equal(
+        new[] { "refresh", "failure:snapshot failed" },
+        order);
+    }
+
     private static NativeIssueNavigationRequest Request(
       NativeIssueNavigationAction action)
     {
@@ -224,6 +289,20 @@ namespace BIMBaoGui.RevitAddin.Tests
           }
         }
       };
+    }
+
+    private sealed class FakeDocumentBoundarySource
+      : INativeDocumentBoundarySource
+    {
+      internal int SubscriberCount =>
+        DocumentBoundaryChanged?.GetInvocationList().Length ?? 0;
+
+      public event Action<CurrentDocumentSnapshot> DocumentBoundaryChanged;
+
+      internal void Raise(CurrentDocumentSnapshot snapshot)
+      {
+        DocumentBoundaryChanged?.Invoke(snapshot);
+      }
     }
 
     private static NativeIssueRecord Issue(
