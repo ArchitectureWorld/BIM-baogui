@@ -199,13 +199,47 @@ namespace BIMBaoGui.HifcCore.Tests
       using (var sandbox = new FinalReadbackSandbox())
       {
         OfficialPropertyReadbackRequest request = sandbox.Request();
-        request.Manifest.Definitions[0].IfcProperty = "TamperedValue";
+        request.Manifest.Definitions[0].Identity = "TamperedIdentity";
 
         OfficialPropertyReadbackResult result =
           OfficialCarrierProbeInspector.ResolveFinalReadback(request);
 
         Assert.False(result.Success);
         Assert.Equal("FINAL_MANIFEST_SHA_MISMATCH", result.ErrorCode);
+      }
+    }
+
+    [Fact]
+    public void Final_readback_rejects_ifc_fields_that_disagree_with_identity()
+    {
+      using (var sandbox = new FinalReadbackSandbox())
+      {
+        OfficialPropertyReadbackRequest request = sandbox.Request();
+        request.Manifest.Definitions[0].IfcProperty = "TamperedValue";
+
+        OfficialPropertyReadbackResult result =
+          OfficialCarrierProbeInspector.ResolveFinalReadback(request);
+
+        Assert.False(result.Success);
+        Assert.Equal("FINAL_MANIFEST_INVALID", result.ErrorCode);
+      }
+    }
+
+    [Fact]
+    public void Final_readback_rejects_readback_source_stage_different_from_manifest()
+    {
+      using (var sandbox = new FinalReadbackSandbox())
+      {
+        OfficialPropertyReadbackRequest request = sandbox.Request();
+        request.RevitReadbacks[0].SourceStage = "STAGE01";
+        request.RevitReadbacks[0].SourceResultHash =
+          request.Manifest.Identity.Stage01ResultHash;
+
+        OfficialPropertyReadbackResult result =
+          OfficialCarrierProbeInspector.ResolveFinalReadback(request);
+
+        Assert.False(result.Success);
+        Assert.Equal("FINAL_REVIT_READBACK_INVALID", result.ErrorCode);
       }
     }
 
@@ -228,6 +262,69 @@ namespace BIMBaoGui.HifcCore.Tests
         Assert.Equal(original, reordered);
         Assert.NotEqual(original, changed);
       }
+    }
+
+    [Fact]
+    public void Manifest_canonical_bytes_use_fixed_line_contract_only()
+    {
+      var manifest = new OfficialAcceptanceManifest
+      {
+        SchemaVersion = "HBR_OFFICIAL_ACCEPTANCE_MANIFEST_V1",
+        ManifestVersion = "1.0.0",
+        Identity = new OfficialAcceptanceIdentity
+        {
+          DocumentFingerprint = "must-not-enter-manifest-content",
+          RulePackageSha256 = new string('a', 64),
+          Stage01ResultHash = new string('b', 64),
+          Stage02AResultHash = new string('c', 64),
+          Stage02BResultHash = new string('d', 64),
+          ManifestSha256 = new string('e', 64),
+          GoldenRvtSha256 = new string('f', 64),
+          OfficialIfcSha256 = new string('0', 64)
+        },
+        Definitions = new[]
+        {
+          new OfficialAcceptancePropertyDefinition
+          {
+            PropertyId = "property-b",
+            Identity = "IfcSite|Pset_B|B",
+            IfcEntity = "IfcSite",
+            IfcPropertySet = "Pset_B",
+            IfcProperty = "B",
+            DeclaredIfcType = "IfcText",
+            CanonicalUnit = string.Empty,
+            ParameterGuid = "22222222-2222-2222-2222-222222222222",
+            BindingScope = "INSTANCE",
+            SourceStage = "STAGE02B"
+          },
+          new OfficialAcceptancePropertyDefinition
+          {
+            PropertyId = "property-a",
+            Identity = "IfcProject|Pset_A|A",
+            IfcEntity = "IfcProject",
+            IfcPropertySet = "Pset_A",
+            IfcProperty = "A",
+            DeclaredIfcType = "IfcReal",
+            CanonicalUnit = "m2",
+            ParameterGuid = "11111111-1111-1111-1111-111111111111",
+            BindingScope = "INSTANCE",
+            SourceStage = "STAGE01"
+          }
+        }
+      };
+
+      string canonical = OfficialAcceptanceManifestCanonicalizer
+        .SerializeCanonical(manifest);
+
+      Assert.Equal(
+        "BIMBAOGUI_OFFICIAL_ACCEPTANCE_MANIFEST|1.0.0\n"
+          + "property-a\u001fIfcProject|Pset_A|A\u001fIfcReal\u001fm2\u001f"
+          + "11111111-1111-1111-1111-111111111111\u001fINSTANCE\u001fSTAGE01\n"
+          + "property-b\u001fIfcSite|Pset_B|B\u001fIfcText\u001f\u001f"
+          + "22222222-2222-2222-2222-222222222222\u001fINSTANCE\u001fSTAGE02B\n",
+        canonical);
+      Assert.DoesNotContain("must-not-enter-manifest-content", canonical);
+      Assert.DoesNotContain("\"definitions\"", canonical);
     }
 
     private static OfficialCarrierProbeSeedManifest Manifest(
@@ -313,20 +410,26 @@ namespace BIMBaoGui.HifcCore.Tests
             new OfficialAcceptancePropertyDefinition
             {
               PropertyId = "property-real",
+              Identity = "IfcProject|Pset_Test|RealValue",
               IfcEntity = "IfcProject",
               IfcPropertySet = "Pset_Test",
               IfcProperty = "RealValue",
               DeclaredIfcType = "IfcReal",
-              ParameterGuid = realGuid
+              ParameterGuid = realGuid,
+              BindingScope = "INSTANCE",
+              SourceStage = "STAGE02B"
             },
             new OfficialAcceptancePropertyDefinition
             {
               PropertyId = "property-text",
+              Identity = "IfcProject|Pset_Test|TextValue",
               IfcEntity = "IfcProject",
               IfcPropertySet = "Pset_Test",
               IfcProperty = "TextValue",
               DeclaredIfcType = "IfcText",
-              ParameterGuid = textGuid
+              ParameterGuid = textGuid,
+              BindingScope = "INSTANCE",
+              SourceStage = "STAGE02B"
             }
           }
         };

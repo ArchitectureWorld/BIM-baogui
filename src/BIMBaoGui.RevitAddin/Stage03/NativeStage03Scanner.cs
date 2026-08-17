@@ -1,9 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
@@ -11,6 +16,8 @@ using BIMBaoGui.HifcCore;
 using BIMBaoGui.RevitAddin.Rules;
 using BIMBaoGui.RevitAddin.Stage01;
 using BIMBaoGui.RevitAddin.Stage02;
+using BIMBaoGui.RevitAddin.Stage02B;
+using BIMBaoGui.RevitAddin.Workflow;
 
 namespace BIMBaoGui.RevitAddin.Stage03
 {
@@ -26,8 +33,11 @@ namespace BIMBaoGui.RevitAddin.Stage03
         ?? new NativeStage03ScanRequest();
       Document document = uiApplication.ActiveUIDocument?.Document;
       var technical = new SortedSet<string>(StringComparer.Ordinal);
-      var business = new SortedSet<string>(StringComparer.Ordinal);
       var messages = new List<string>();
+      NativeStage03TechnicalPreflightEvidence preflight =
+        NativeStage03TechnicalPreflightService.Probe(
+          uiApplication, safeRequest.OutputDirectory);
+      foreach (string code in preflight.FatalCodes) technical.Add(code);
 
       if (!string.Equals(
         uiApplication.Application.VersionNumber,
@@ -47,6 +57,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
       }
 
       NativeStage01ReadResult stage01 = null;
+      bool stage01Current = false;
       if (document != null)
       {
         stage01 = NativeStage01RevitReadService.Read(uiApplication);
@@ -70,14 +81,13 @@ namespace BIMBaoGui.RevitAddin.Stage03
         }
         else
         {
+          stage01Current = true;
           NativeStage03Stage01ValidationClassification stage01Validation =
             NativeStage03Stage01ValidationPolicy.Classify(
               stage01.Validation,
               NativeRuleCatalog.Current);
           foreach (string code in stage01Validation.TechnicalFatalCodes)
             technical.Add(code);
-          foreach (string code in stage01Validation.BusinessBlockers)
-            business.Add(code);
           messages.AddRange(stage01Validation.Messages);
 
           NativeProjectConditionDeclarationDecision declaration =
@@ -93,8 +103,39 @@ namespace BIMBaoGui.RevitAddin.Stage03
         }
       }
 
+      string modelFileType = stage01?.Model?.GetValue(
+        NativeStage01Keys.ModelFileType) ?? string.Empty;
+      NativeStage03ChecklistGenerationResult generation =
+        NativeStage03ChecklistGenerator.Generate(
+          modelFileType,
+          stage01?.Model?.Conditions,
+          NativeReportingRuleCatalog.Current);
+      if (!generation.Supported)
+        technical.Add(NativeStage03Codes.ModelProfileNotImplemented);
+
+      NativeWorkflowIdentity currentIdentity = null;
+      if (stage01Current && generation.Supported && document != null)
+      {
+        try
+        {
+          NativeStoredInitialization stored = NativeStage01Storage.Read(document);
+          currentIdentity = NativeWorkflowIdentityFactory.Create(
+            uiApplication,
+            modelFileType,
+            stored.FileGuid,
+            stage01.StorageDecision.ActualPayloadHash,
+            NativeRuleCatalog.Current.Identity);
+        }
+        catch (Exception exception)
+        {
+          technical.Add("WORKFLOW_DOCUMENT_MISMATCH");
+          messages.Add("无法建立 Stage03 当前 workflow identity："
+            + exception.Message);
+        }
+      }
+
       NativeStage02RevitPreviewResult stage02 = null;
-      if (technical.Count == 0)
+      if (stage01Current && generation.Supported && document != null)
       {
         stage02 = NativeStage02RevitService.CreatePreview(
           uiApplication,
@@ -112,10 +153,61 @@ namespace BIMBaoGui.RevitAddin.Stage03
         }
       }
 
+      NativeStage02BReadResult stage02B = null;
+      NativeStage02BStorageSnapshot stage02BSnapshot = null;
+      if (stage01Current && generation.Supported && document != null)
+      {
+        try
+        {
+          stage02B = NativeStage02BRevitReadService.Read(uiApplication);
+          stage02BSnapshot = NativeStage02BStorage.Read(document);
+        }
+        catch (Exception exception)
+        {
+          messages.Add("Stage02B 当前结果读取失败：" + exception.Message);
+        }
+      }
+
+      NativeWorkflowResultEnvelope stage01Result = ReadWorkflowResult(
+        document, "STAGE01", technical, messages);
+      NativeWorkflowResultEnvelope stage02AResult = ReadWorkflowResult(
+        document, "STAGE02A", technical, messages);
+      NativeWorkflowResultEnvelope stage02BResult = ReadWorkflowResult(
+        document, "STAGE02B", technical, messages);
+      string stage01InputHash = stage01?.StorageDecision?.ActualPayloadHash
+        ?? string.Empty;
+      string stage02AInputHash = CurrentStage02AInputHash(stage02?.Preview);
+      string stage02BInputHash = stage02BSnapshot?.SnapshotHash ?? string.Empty;
+      var evidence = new NativeStage03SourceEvidenceBundle
+      {
+        ScanExecuted = true,
+        CurrentIdentity = currentIdentity,
+        Stage01 = stage01,
+        Stage01CurrentInputSnapshotHash = stage01InputHash,
+        Stage01Result = stage01Result,
+        Stage02A = stage02?.Preview,
+        Stage02ACurrentInputSnapshotHash = stage02AInputHash,
+        Stage02AResult = stage02AResult,
+        Stage02B = stage02B,
+        Stage02BCurrentInputSnapshotHash = stage02BInputHash,
+        Stage02BResult = stage02BResult,
+        TechnicalPreflight = preflight,
+        TechnicalFatalCodes = Freeze(technical)
+      };
+      var checklist = new List<NativeStage03ChecklistItem>(generation.Supported
+        ? NativeStage03ChecklistEvaluator.Evaluate(
+          generation.Definitions, evidence)
+        : Array.Empty<NativeStage03ChecklistItem>());
+      foreach (NativeStage03ChecklistItem item in checklist.Where(value =>
+        value.Status == NativeStage03ChecklistStatus.Failed
+        && IsTechnicalWorkflowCode(value.IssueCode)))
+        technical.Add(item.IssueCode);
+
       var fields = new List<NativeStage03FieldEvidence>();
       var exportFields = new List<HifcFieldRequest>();
       NativeStage02RuleCatalog catalog = NativeStage02RuleCatalog.Current;
-      if (technical.Count == 0 && stage02?.Preview != null)
+      var legacyBusiness = new SortedSet<string>(StringComparer.Ordinal);
+      if (stage02?.Preview != null && document != null)
       {
         foreach (NativeStage02ElementPlan elementPlan in stage02.Preview.Elements
           .OrderBy(value => value.Element.UniqueId, StringComparer.Ordinal))
@@ -123,7 +215,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
           if (elementPlan.RoleMatchStatus
             != NativeStage02RoleMatchStatus.Matched)
           {
-            business.Add(Code(
+            legacyBusiness.Add(Code(
               NativeStage03Codes.CarrierBlocked,
               elementPlan.Element.ElementId,
               elementPlan.Element.UniqueId));
@@ -145,7 +237,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
               elementPlan,
               fieldPlan,
               catalog,
-              business);
+              legacyBusiness);
             fields.Add(field);
             if ((safeRequest.Mode == NativeStage03Mode.Strict
                 && field.StrictExportReady)
@@ -158,14 +250,28 @@ namespace BIMBaoGui.RevitAddin.Stage03
         }
       }
 
+      IReadOnlyList<NativeOfficialAcceptancePropertyReadback> readbacks =
+        BuildOfficialReadbacks(
+          document,
+          generation.OfficialAcceptanceManifest,
+          stage02?.Preview,
+          stage02B,
+          stage01Result,
+          stage02AResult,
+          stage02BResult,
+          checklist);
+      NativeStage03BlockerClassification blockers =
+        NativeStage03BlockerPolicy.Classify(technical, checklist);
+
       NativeStage03GateDecision gate = NativeStage03GatePolicy.Evaluate(
         safeRequest.Mode,
         safeRequest.ForceReason,
-        technical,
-        business,
+        blockers.TechnicalFatalCodes,
+        blockers.BusinessBlockers,
         exportFields.Count);
       RulePackageIdentity identity = catalog.Identity;
-      string fingerprint = stage02?.Preview?.DocumentFingerprint
+      string fingerprint = currentIdentity?.DocumentFingerprint
+        ?? stage02?.Preview?.DocumentFingerprint
         ?? string.Empty;
       string stage01Hash = stage01?.StorageDecision?.ActualPayloadHash
         ?? string.Empty;
@@ -186,10 +292,31 @@ namespace BIMBaoGui.RevitAddin.Stage03
         RulePackageSha256 = identity.RulePackageSha256,
         DocumentFingerprint = fingerprint,
         DocumentTitle = document?.Title ?? string.Empty,
-        DocumentPath = document?.PathName ?? string.Empty,
+        DocumentPath = NormalizeDocumentPath(document?.PathName),
+        ModelFileType = modelFileType,
+        RevitVersion = uiApplication.Application.VersionNumber ?? string.Empty,
+        NormalizedOutputDirectory = preflight.NormalizedOutputDirectory,
+        PreflightHash = preflight.ProbeHash,
+        Stage02ACurrentInputSnapshotHash = stage02AInputHash,
         Stage01PayloadSha256 = stage01Hash,
-        TechnicalFatalCodes = Freeze(technical),
-        BusinessBlockers = Freeze(business),
+        Stage01WorkflowResult = stage01Result,
+        Stage02AWorkflowResult = stage02AResult,
+        Stage02BWorkflowResult = stage02BResult,
+        PluginRuntime = CapturePluginRuntime(),
+        OfficialAcceptanceManifest = generation.OfficialAcceptanceManifest,
+        OfficialAcceptanceRevitReadbacks = readbacks,
+        Checklist = new ReadOnlyCollection<NativeStage03ChecklistItem>(
+          checklist.ToArray()),
+        PassedCount = checklist.Count(value =>
+          value.Status == NativeStage03ChecklistStatus.Passed),
+        FailedCount = checklist.Count(value =>
+          value.Status == NativeStage03ChecklistStatus.Failed),
+        WarningCount = checklist.Count(value =>
+          value.Status == NativeStage03ChecklistStatus.Warning),
+        NotCheckedCount = checklist.Count(value =>
+          value.Status == NativeStage03ChecklistStatus.NotChecked),
+        TechnicalFatalCodes = blockers.TechnicalFatalCodes,
+        BusinessBlockers = blockers.BusinessBlockers,
         Messages = Freeze(messages
           .Concat(gate.Blockers.Select(value => "BLOCKER：" + value))
           .Concat(gate.BypassedBusinessBlockers.Select(value =>
@@ -206,6 +333,352 @@ namespace BIMBaoGui.RevitAddin.Stage03
       };
       result.ScanHash = NativeStage03Canonicalizer.ComputeHash(result);
       return result;
+    }
+
+    private static NativeWorkflowResultEnvelope ReadWorkflowResult(
+      Document document,
+      string sourceFeature,
+      ISet<string> technical,
+      ICollection<string> messages)
+    {
+      if (document == null) return null;
+      try
+      {
+        return NativeWorkflowResultStorage.Read(document, sourceFeature);
+      }
+      catch (Exception exception)
+      {
+        technical.Add("WORKFLOW_RESULT_HASH_MISMATCH");
+        messages.Add(sourceFeature + " workflow result 读取失败："
+          + exception.Message);
+        return null;
+      }
+    }
+
+    private static string CurrentStage02AInputHash(NativeStage02Preview preview)
+    {
+      if (preview == null) return string.Empty;
+      return NativeStage02SemanticAssignmentCanonicalizer.Sha256(string.Join(
+        "\u001f",
+        (preview.Elements ?? Array.Empty<NativeStage02ElementPlan>())
+        .Where(value => value?.Element != null)
+        .OrderBy(value => value.Element.UniqueId, StringComparer.Ordinal)
+        .Select(value => string.IsNullOrWhiteSpace(value.ElementSnapshotHash)
+          ? NativeStage02ElementSnapshotCanonicalizer.Sha256(value.Element)
+          : value.ElementSnapshotHash)));
+    }
+
+    private static bool IsTechnicalWorkflowCode(string code)
+    {
+      switch (code ?? string.Empty)
+      {
+        case "WORKFLOW_SCHEMA_MISMATCH":
+        case "WORKFLOW_RESULT_HASH_MISMATCH":
+        case "WORKFLOW_DOCUMENT_MISMATCH":
+        case "WORKFLOW_MODEL_TYPE_MISMATCH":
+        case "WORKFLOW_RULE_PACKAGE_MISMATCH":
+          return true;
+        default:
+          return false;
+      }
+    }
+
+    private static IReadOnlyList<NativeOfficialAcceptancePropertyReadback>
+      BuildOfficialReadbacks(
+        Document document,
+        NativeOfficialAcceptanceManifest manifest,
+        NativeStage02Preview stage02A,
+        NativeStage02BReadResult stage02B,
+        NativeWorkflowResultEnvelope stage01Result,
+        NativeWorkflowResultEnvelope stage02AResult,
+        NativeWorkflowResultEnvelope stage02BResult,
+        ICollection<NativeStage03ChecklistItem> checklist)
+    {
+      var readbacks = new List<NativeOfficialAcceptancePropertyReadback>();
+      foreach (NativeOfficialAcceptanceManifestEntry entry in
+        (manifest?.Properties
+          ?? Array.Empty<NativeOfficialAcceptanceManifestEntry>())
+        .OrderBy(value => value.PropertyId, StringComparer.Ordinal))
+      {
+        NativeStage02PropertyDefinition property = null;
+        NativeStage02RuleCatalog.Current.PropertiesById.TryGetValue(
+          entry.PropertyId, out property);
+        Element[] owners = ResolveReadbackOwners(
+          document, entry, stage02A, stage02B);
+        NativeOfficialAcceptanceOwnerReadback[] values = owners
+          .Select(owner => ReadOwner(document, owner, property, entry))
+          .GroupBy(value => (value.ExpectedIfcGlobalId ?? string.Empty) + "\n"
+            + (value.RevitUniqueId ?? string.Empty), StringComparer.Ordinal)
+          .Select(group => group.First())
+          .OrderBy(value => value.ExpectedIfcGlobalId, StringComparer.Ordinal)
+          .ThenBy(value => value.RevitUniqueId, StringComparer.Ordinal)
+          .ToArray();
+        string sourceHash = SourceResultHash(
+          entry.SourceStage, stage01Result, stage02AResult, stage02BResult);
+        readbacks.Add(new NativeOfficialAcceptancePropertyReadback
+        {
+          PropertyId = entry.PropertyId,
+          SourceStage = entry.SourceStage,
+          SourceResultHash = sourceHash,
+          Values = new ReadOnlyCollection<
+            NativeOfficialAcceptanceOwnerReadback>(values)
+        });
+        bool complete = property != null
+          && !string.IsNullOrWhiteSpace(sourceHash)
+          && values.Length > 0
+          && values.All(value =>
+            !string.IsNullOrWhiteSpace(value.ExpectedIfcGlobalId)
+            && !string.IsNullOrWhiteSpace(value.RevitUniqueId)
+            && !string.IsNullOrWhiteSpace(value.CanonicalValue));
+        checklist.Add(new NativeStage03ChecklistItem
+        {
+          CheckId = "OFFICIAL.READBACK." + entry.PropertyId,
+          DisplayName = entry.Identity,
+          SourceStage = entry.SourceStage,
+          CheckKind = NativeReportingCheckKind.System,
+          PropertyId = entry.PropertyId,
+          CurrentValue = complete
+            ? string.Join(" | ", values.Select(value => value.CanonicalValue))
+            : string.Empty,
+          Status = complete
+            ? NativeStage03ChecklistStatus.Passed
+            : NativeStage03ChecklistStatus.Failed,
+          IssueCode = complete ? string.Empty
+            : OfficialReadbackFailureCode(entry, stage02B),
+          IssueMessage = complete ? string.Empty
+            : OfficialReadbackFailureCode(entry, stage02B),
+          RemediationTarget = entry.SourceStage
+            == NativeReportingSourceStage.Stage02B
+              ? "OPEN_STAGE02B"
+              : entry.SourceStage == NativeReportingSourceStage.Stage02A
+                ? "OPEN_STAGE02A"
+                : "OPEN_STAGE01",
+          Elements = new ReadOnlyCollection<
+            BIMBaoGui.RevitAddin.Issues.NativeIssueElementReference>(owners
+            .Where(value => value != null)
+            .GroupBy(value => value.UniqueId, StringComparer.Ordinal)
+            .Select(group => group.First())
+            .OrderBy(value => value.UniqueId, StringComparer.Ordinal)
+            .Select(value => new BIMBaoGui.RevitAddin.Issues
+              .NativeIssueElementReference
+            {
+              ElementId = value.Id.IntegerValue,
+              UniqueId = value.UniqueId,
+              ElementName = SafeElementName(value),
+              CategoryName = value.Category?.Name ?? string.Empty
+            }).ToArray()),
+          InternalValidationPassed = complete,
+          OfficialAcceptancePassed = false
+        });
+      }
+      return new ReadOnlyCollection<NativeOfficialAcceptancePropertyReadback>(
+        readbacks.ToArray());
+    }
+
+    private static Element[] ResolveReadbackOwners(
+      Document document,
+      NativeOfficialAcceptanceManifestEntry entry,
+      NativeStage02Preview stage02A,
+      NativeStage02BReadResult stage02B)
+    {
+      if (document == null || entry == null) return Array.Empty<Element>();
+      if (entry.SourceStage == NativeReportingSourceStage.Stage01)
+        return document.ProjectInformation == null
+          ? Array.Empty<Element>()
+          : new Element[] { document.ProjectInformation };
+      if (entry.SourceStage == NativeReportingSourceStage.Stage02A)
+      {
+        return (stage02A?.Elements ?? Array.Empty<NativeStage02ElementPlan>())
+          .Where(value => value?.Element != null
+            && (value.Fields ?? Array.Empty<NativeStage02FieldPlan>())
+              .Any(field => field?.Property != null
+                && string.Equals(field.Property.PropertyId, entry.PropertyId,
+                  StringComparison.Ordinal)))
+          .Select(value => document.GetElement(value.Element.UniqueId))
+          .Where(value => value != null)
+          .GroupBy(value => value.UniqueId, StringComparer.Ordinal)
+          .Select(group => group.First())
+          .OrderBy(value => value.UniqueId, StringComparer.Ordinal)
+          .ToArray();
+      }
+      if (entry.SourceStage != NativeReportingSourceStage.Stage02B)
+        return Array.Empty<Element>();
+      NativeStage02BMetricDefinition metric = NativeReportingRuleCatalog.Current
+        .Stage02BMetrics.SingleOrDefault(value => string.Equals(
+          value.PropertyId, entry.PropertyId, StringComparison.Ordinal));
+      if (metric == null) return Array.Empty<Element>();
+      if (string.Equals(metric.Property.IfcEntity, "IfcProject",
+        StringComparison.Ordinal))
+        return document.ProjectInformation == null
+          ? Array.Empty<Element>()
+          : new Element[] { document.ProjectInformation };
+      NativeStage02BMetricRecord record = (stage02B?.Records
+          ?? Array.Empty<NativeStage02BMetricRecord>())
+        .SingleOrDefault(value => value != null && string.Equals(
+          value.PropertyId, entry.PropertyId, StringComparison.Ordinal));
+      if (record?.OfficialCarrierStatus
+        != NativeOfficialCarrierEvidenceStatus.Verified
+        || string.IsNullOrWhiteSpace(record.OfficialProjectionCarrierId))
+        return Array.Empty<Element>();
+      NativeOfficialProjectionCarrierDefinition carrier;
+      try
+      {
+        carrier = NativeReportingRuleCatalog.Current.GetProjectionCarrier(
+          record.OfficialProjectionCarrierId);
+      }
+      catch
+      {
+        return Array.Empty<Element>();
+      }
+      if (string.Equals(carrier.SelectorKind, "PROJECT_INFORMATION",
+        StringComparison.Ordinal))
+        return document.ProjectInformation == null
+          ? Array.Empty<Element>()
+          : new Element[] { document.ProjectInformation };
+      return (stage02A?.Elements ?? Array.Empty<NativeStage02ElementPlan>())
+        .Where(value => value?.Element != null
+          && string.Equals(value.EffectiveRoleId.Length > 0
+              ? value.EffectiveRoleId
+              : value.RoleId,
+            carrier.RoleId,
+            StringComparison.Ordinal))
+        .Select(value => document.GetElement(value.Element.UniqueId))
+        .Where(value => value != null)
+        .GroupBy(value => value.UniqueId, StringComparer.Ordinal)
+        .Select(group => group.First())
+        .OrderBy(value => value.UniqueId, StringComparer.Ordinal)
+        .ToArray();
+    }
+
+    private static NativeOfficialAcceptanceOwnerReadback ReadOwner(
+      Document document,
+      Element owner,
+      NativeStage02PropertyDefinition property,
+      NativeOfficialAcceptanceManifestEntry entry)
+    {
+      string uniqueId = owner?.UniqueId ?? string.Empty;
+      string globalId = string.Empty;
+      string currentValue = string.Empty;
+      if (document != null && owner != null && property != null)
+      {
+        try
+        {
+          Guid exportId = ExportUtils.GetExportId(document, owner.Id);
+          if (exportId != Guid.Empty) globalId = IfcGlobalId.Encode(exportId);
+        }
+        catch { }
+        try
+        {
+          Element target = NativeStage02RevitService.ResolveTarget(
+            document, owner, entry.BindingScope);
+          Parameter parameter = target?.get_Parameter(property.ParameterGuid);
+          currentValue = NativeStage02ValueCodec.Read(parameter, property);
+        }
+        catch { }
+      }
+      return new NativeOfficialAcceptanceOwnerReadback
+      {
+        RevitUniqueId = uniqueId,
+        ExpectedIfcGlobalId = globalId,
+        CanonicalValue = currentValue ?? string.Empty
+      };
+    }
+
+    private static string OfficialReadbackFailureCode(
+      NativeOfficialAcceptanceManifestEntry entry,
+      NativeStage02BReadResult stage02B)
+    {
+      if (entry.SourceStage == NativeReportingSourceStage.Stage02B)
+      {
+        NativeStage02BMetricRecord record = (stage02B?.Records
+            ?? Array.Empty<NativeStage02BMetricRecord>())
+          .SingleOrDefault(value => value != null && string.Equals(
+            value.PropertyId, entry.PropertyId, StringComparison.Ordinal));
+        if (record?.OfficialCarrierStatus
+          == NativeOfficialCarrierEvidenceStatus.PendingGoldenRvt)
+          return "OFFICIAL_CARRIER_PENDING_GOLDEN_RVT";
+      }
+      return "READBACK_FAILED";
+    }
+
+    private static string SourceResultHash(
+      NativeReportingSourceStage source,
+      NativeWorkflowResultEnvelope stage01,
+      NativeWorkflowResultEnvelope stage02A,
+      NativeWorkflowResultEnvelope stage02B)
+    {
+      switch (source)
+      {
+        case NativeReportingSourceStage.Stage01:
+          return stage01?.ResultHash ?? string.Empty;
+        case NativeReportingSourceStage.Stage02A:
+          return stage02A?.ResultHash ?? string.Empty;
+        case NativeReportingSourceStage.Stage02B:
+          return stage02B?.ResultHash ?? string.Empty;
+        default:
+          return string.Empty;
+      }
+    }
+
+    private static NativePluginRuntimeIdentity CapturePluginRuntime()
+    {
+      Assembly assembly = Assembly.GetExecutingAssembly();
+      string location = string.Empty;
+      try
+      {
+        if (!string.IsNullOrWhiteSpace(assembly.Location))
+          location = Path.GetFullPath(assembly.Location);
+      }
+      catch { }
+      string informational = assembly.GetCustomAttribute<
+        AssemblyInformationalVersionAttribute>()?.InformationalVersion
+        ?? string.Empty;
+      Match commit = Regex.Match(informational,
+        @"(?:^|\.)sha\.([0-9a-fA-F]{40})(?:$|\.)",
+        RegexOptions.CultureInvariant);
+      FileVersionInfo file = null;
+      try
+      {
+        if (location.Length > 0) file = FileVersionInfo.GetVersionInfo(location);
+      }
+      catch { }
+      string dllSha = string.Empty;
+      try
+      {
+        if (location.Length > 0 && File.Exists(location))
+          dllSha = HifcCoreService.ComputeSha256(location);
+      }
+      catch { }
+      return new NativePluginRuntimeIdentity
+      {
+        ProductVersion = file?.ProductVersion ?? string.Empty,
+        AssemblyVersion = assembly.GetName().Version?.ToString() ?? string.Empty,
+        InformationalVersion = informational,
+        CommitSha = commit.Success
+          ? commit.Groups[1].Value.ToLowerInvariant()
+          : string.Empty,
+        AddinDllPath = location,
+        AddinDllSha256 = dllSha
+      };
+    }
+
+    private static string NormalizeDocumentPath(string path)
+    {
+      if (string.IsNullOrWhiteSpace(path)) return string.Empty;
+      try
+      {
+        return Path.GetFullPath(path);
+      }
+      catch
+      {
+        return path ?? string.Empty;
+      }
+    }
+
+    private static string SafeElementName(Element element)
+    {
+      try { return element?.Name ?? string.Empty; }
+      catch { return string.Empty; }
     }
 
     private static NativeStage03FieldEvidence BuildField(
@@ -462,7 +935,12 @@ namespace BIMBaoGui.RevitAddin.Stage03
 
     internal static string ComputeHash(NativeStage03ScanResult result)
     {
-      return HifcCoreService.ComputeSha256(WriteTemporaryCanonical(result));
+      using (SHA256 algorithm = SHA256.Create())
+      {
+        byte[] bytes = new UTF8Encoding(false).GetBytes(ToJson(result));
+        return string.Concat(algorithm.ComputeHash(bytes).Select(value =>
+          value.ToString("x2", CultureInfo.InvariantCulture)));
+      }
     }
 
     internal static string ToJson(NativeStage03ScanResult result)
@@ -470,7 +948,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
       if (result == null) throw new ArgumentNullException(nameof(result));
       var builder = new StringBuilder(32768);
       builder.Append('{');
-      Property(builder, "schema", "HBR_NATIVE_STAGE03_SCAN_V1", false);
+      Property(builder, "schema", "HBR_NATIVE_STAGE03_SCAN_V2", false);
       Property(builder, "mode", result.Mode.ToString(), true);
       Property(builder, "forceReason", result.ForceReason, true);
       Property(builder, "rulePackageId", result.RulePackageId, true);
@@ -478,71 +956,107 @@ namespace BIMBaoGui.RevitAddin.Stage03
       Property(builder, "rulePackageSha256", result.RulePackageSha256, true);
       Property(builder, "documentFingerprint", result.DocumentFingerprint, true);
       Property(builder, "documentPath", result.DocumentPath, true);
-      Property(builder, "stage01PayloadSha256", result.Stage01PayloadSha256, true);
+      Property(builder, "modelFileType", result.ModelFileType, true);
+      Property(builder, "revitVersion", result.RevitVersion, true);
+      NativePluginRuntimeIdentity runtime = result.PluginRuntime
+        ?? new NativePluginRuntimeIdentity();
+      builder.Append(",\"pluginRuntime\":{");
+      Property(builder, "productVersion", runtime.ProductVersion, false);
+      Property(builder, "assemblyVersion", runtime.AssemblyVersion, true);
+      Property(builder, "informationalVersion", runtime.InformationalVersion, true);
+      Property(builder, "commitSha", runtime.CommitSha, true);
+      Property(builder, "addinDllPath", runtime.AddinDllPath, true);
+      Property(builder, "addinDllSha256", runtime.AddinDllSha256, true);
+      builder.Append('}');
+      Property(builder, "normalizedOutputDirectory",
+        result.NormalizedOutputDirectory, true);
+      Property(builder, "preflightHash", result.PreflightHash, true);
+      Property(builder, "stage02ACurrentInputSnapshotHash",
+        result.Stage02ACurrentInputSnapshotHash, true);
+      Property(builder, "officialAcceptanceManifestSha256",
+        result.OfficialAcceptanceManifest?.Sha256, true);
+      Property(builder, "stage01ResultHash",
+        result.Stage01WorkflowResult?.ResultHash, true);
+      Property(builder, "stage02AResultHash",
+        result.Stage02AWorkflowResult?.ResultHash, true);
+      Property(builder, "stage02BResultHash",
+        result.Stage02BWorkflowResult?.ResultHash, true);
       ArrayProperty(builder, "technical", result.TechnicalFatalCodes);
-      ArrayProperty(builder, "business", result.BusinessBlockers);
-      builder.Append(",\"fields\":[");
+      builder.Append(",\"officialAcceptanceRevitReadbacks\":[");
       bool first = true;
-      foreach (NativeStage03FieldEvidence field in result.Fields
-        .OrderBy(value => value.PropertyId, StringComparer.Ordinal)
-        .ThenBy(value => value.RoleId, StringComparer.Ordinal)
-        .ThenBy(value => value.ElementId)
-        .ThenBy(value => value.OwnerUniqueId, StringComparer.Ordinal))
+      foreach (NativeOfficialAcceptancePropertyReadback readback in
+        (result.OfficialAcceptanceRevitReadbacks
+          ?? Array.Empty<NativeOfficialAcceptancePropertyReadback>())
+        .OrderBy(value => value.PropertyId, StringComparer.Ordinal))
       {
         if (!first) builder.Append(',');
         first = false;
         builder.Append('{');
-        Property(builder, "propertyId", field.PropertyId, false);
-        Property(builder, "roleId", field.RoleId, true);
-        Property(builder, "entity", field.Entity, true);
-        Property(builder, "propertySet", field.PropertySet, true);
-        Property(builder, "property", field.IfcProperty, true);
-        Property(builder, "declaredType", field.DeclaredIfcType, true);
-        Property(builder, "unit", field.CanonicalUnit, true);
-        Property(builder, "requirement", field.Requirement, true);
-        Property(builder, "runtimeStatus", field.RuntimeStatus, true);
-        builder.Append(",\"elementId\":")
-          .Append(field.ElementId.ToString(CultureInfo.InvariantCulture));
-        Property(builder, "ownerUniqueId", field.OwnerUniqueId, true);
-        Property(builder, "ownerStrategy", field.OwnerStrategy, true);
-        Property(builder, "ownerExportGuid", field.OwnerExportGuid, true);
-        Property(builder, "ownerGlobalId", field.OwnerGlobalId, true);
-        Property(
-          builder,
-          "ownerResolutionStatus",
-          field.OwnerResolutionStatus,
-          true);
-        Property(builder, "value", field.CanonicalValue, true);
-        Property(builder, "status", field.Status, true);
-        builder.Append(",\"strictReady\":")
-          .Append(field.StrictExportReady ? "true" : "false")
-          .Append(",\"forcedReady\":")
-          .Append(field.ExportableInForcedMode ? "true" : "false")
-          .Append('}');
+        Property(builder, "propertyId", readback.PropertyId, false);
+        Property(builder, "sourceStage", readback.SourceStage.ToString(), true);
+        Property(builder, "sourceResultHash", readback.SourceResultHash, true);
+        builder.Append(",\"values\":[");
+        bool firstValue = true;
+        foreach (NativeOfficialAcceptanceOwnerReadback value in
+          (readback.Values ?? Array.Empty<NativeOfficialAcceptanceOwnerReadback>())
+          .OrderBy(item => item.ExpectedIfcGlobalId, StringComparer.Ordinal)
+          .ThenBy(item => item.RevitUniqueId, StringComparer.Ordinal))
+        {
+          if (!firstValue) builder.Append(',');
+          firstValue = false;
+          builder.Append('{');
+          Property(builder, "expectedIfcGlobalId",
+            value.ExpectedIfcGlobalId, false);
+          Property(builder, "revitUniqueId", value.RevitUniqueId, true);
+          Property(builder, "canonicalValue", value.CanonicalValue, true);
+          builder.Append('}');
+        }
+        builder.Append("]}");
+      }
+      builder.Append("],\"checklist\":[");
+      first = true;
+      foreach (NativeStage03ChecklistItem item in (result.Checklist
+          ?? Array.Empty<NativeStage03ChecklistItem>())
+        .OrderBy(value => value.CheckId, StringComparer.Ordinal))
+      {
+        if (!first) builder.Append(',');
+        first = false;
+        builder.Append('{');
+        Property(builder, "checkId", item.CheckId, false);
+        Property(builder, "kind", item.CheckKind.ToString(), true);
+        Property(builder, "source", item.SourceStage.ToString(), true);
+        Property(builder, "status", item.Status.ToString(), true);
+        Property(builder, "fieldKey", item.FieldKey, true);
+        Property(builder, "propertyId", item.PropertyId, true);
+        Property(builder, "roleId", item.RoleId, true);
+        Property(builder, "ruleText", item.RuleText, true);
+        Property(builder, "targetKey", item.TargetKey, true);
+        builder.Append(",\"elementUniqueIds\":[");
+        bool firstElement = true;
+        foreach (string uniqueId in (item.Elements
+            ?? Array.Empty<BIMBaoGui.RevitAddin.Issues.NativeIssueElementReference>())
+          .Where(value => value != null)
+          .Select(value => value.UniqueId)
+          .Where(value => !string.IsNullOrWhiteSpace(value))
+          .Distinct(StringComparer.Ordinal)
+          .OrderBy(value => value, StringComparer.Ordinal))
+        {
+          if (!firstElement) builder.Append(',');
+          firstElement = false;
+          builder.Append(Quote(uniqueId));
+        }
+        builder.Append(']');
+        Property(builder, "officialCarrierStatus",
+          item.OfficialCarrierStatus.ToString(), true);
+        Property(builder, "officialProjectionCarrierId",
+          item.OfficialProjectionCarrierId, true);
+        Property(builder, "officialCarrierProbeRef",
+          item.OfficialCarrierProbeRef, true);
+        Property(builder, "officialEvidenceRef", item.OfficialEvidenceRef, true);
+        builder.Append('}');
       }
       builder.Append("]}");
       return builder.ToString();
-    }
-
-    private static string WriteTemporaryCanonical(NativeStage03ScanResult result)
-    {
-      string path = System.IO.Path.Combine(
-        System.IO.Path.GetTempPath(),
-        "BIMBaoGui.Stage03.Scan."
-          + Guid.NewGuid().ToString("N") + ".json");
-      try
-      {
-        System.IO.File.WriteAllText(
-          path,
-          ToJson(result),
-          new UTF8Encoding(false));
-        return path;
-      }
-      finally
-      {
-        // ComputeSha256 opens the path synchronously before control returns.
-        // Deletion is intentionally performed by the caller below.
-      }
     }
 
     private static void ArrayProperty(

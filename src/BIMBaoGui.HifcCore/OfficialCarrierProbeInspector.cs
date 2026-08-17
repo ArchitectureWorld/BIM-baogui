@@ -67,12 +67,15 @@ namespace BIMBaoGui.HifcCore
   public sealed class OfficialAcceptancePropertyDefinition
   {
     public string PropertyId { get; set; } = string.Empty;
+    public string Identity { get; set; } = string.Empty;
     public string IfcEntity { get; set; } = string.Empty;
     public string IfcPropertySet { get; set; } = string.Empty;
     public string IfcProperty { get; set; } = string.Empty;
     public string DeclaredIfcType { get; set; } = string.Empty;
     public string CanonicalUnit { get; set; } = string.Empty;
     public string ParameterGuid { get; set; } = string.Empty;
+    public string BindingScope { get; set; } = string.Empty;
+    public string SourceStage { get; set; } = string.Empty;
   }
 
   public sealed class OfficialAcceptanceManifest
@@ -522,6 +525,12 @@ namespace BIMBaoGui.HifcCore
           request.OfficialExportIdentity.ManifestSha256,
           StringComparison.Ordinal))
         return "FINAL_MANIFEST_SHA_MISMATCH";
+      if (definitions.Any(value => !string.Equals(
+        value.Identity,
+        value.IfcEntity + "|" + value.IfcPropertySet + "|"
+          + value.IfcProperty,
+        StringComparison.Ordinal)))
+        return "FINAL_MANIFEST_INVALID";
       if (string.IsNullOrWhiteSpace(request.GoldenRvtPath)
         || string.IsNullOrWhiteSpace(request.OfficialIfcPath)
         || !File.Exists(request.GoldenRvtPath)
@@ -562,7 +571,11 @@ namespace BIMBaoGui.HifcCore
             definition.ParameterGuid,
             StringComparison.OrdinalIgnoreCase)
           || !string.Equals(
-            ExpectedSourceHash(value.SourceStage, manifestIdentity),
+            value.SourceStage,
+            definition.SourceStage,
+            StringComparison.Ordinal)
+          || !string.Equals(
+            ExpectedSourceHash(definition.SourceStage, manifestIdentity),
             value.SourceResultHash,
             StringComparison.Ordinal))
         || definitions.Any(definition => !readbacks.Any(value => string.Equals(

@@ -246,7 +246,8 @@ namespace BIMBaoGui.RevitAddin.Stage03
           new NativeStage03ScanRequest
           {
             Mode = mode,
-            ForceReason = string.Empty
+            ForceReason = string.Empty,
+            OutputDirectory = _outputDirectory.Text ?? string.Empty
           },
           ApplyScanResult,
           ApplyFailure);

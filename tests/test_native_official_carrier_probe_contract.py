@@ -161,3 +161,31 @@ def test_final_readback_script_has_no_property_id_injection_surface():
     assert "official_acceptance_manifest" in source
     assert "official_acceptance_revit_readbacks" in source
     assert "ResolveFinalReadback" in source
+
+
+def test_final_readback_flattens_task9_grouped_owner_values():
+    source = read(TOOLS / "Resolve-NativeOfficialPropertyReadback.ps1")
+    compact = " ".join(source.split())
+    group_loop = "foreach ($group in $readbacksRaw)"
+    value_loop = "foreach ($raw in @(Get-RequiredValue $group @('values')))"
+    assert group_loop in source
+    assert value_loop in source
+    assert source.index(group_loop) < source.index(value_loop)
+    assert "'expectedIfcGlobalId', 'expected_ifc_global_id'" in compact
+    assert "'revitUniqueId', 'revit_unique_id'" in compact
+    assert "$readback.ParameterGuid = $definition.ParameterGuid" in source
+    assert "$readback.SourceStage = $sourceStage" in source
+    assert "$readback.SourceResultHash = $sourceResultHash" in source
+
+
+def test_final_readback_consumes_task9_manifest_and_separate_report_identity():
+    source = read(TOOLS / "Resolve-NativeOfficialPropertyReadback.ps1")
+    compact = " ".join(source.split())
+    assert "@('properties', 'definitions')" in compact
+    assert "New-ReportIdentity" in source
+    assert "@('workflow_results')" in source
+    assert "@('rule_package')" in source
+    assert "'schema_version', 'manifestVersion', 'manifest_version'" in compact
+    assert "'canonicalUnit', 'canonical_unit'" in compact
+    assert "$manifest.SchemaVersion = 'HBR_OFFICIAL_ACCEPTANCE_MANIFEST_V1'" in source
+    assert ".Split('|')" in source

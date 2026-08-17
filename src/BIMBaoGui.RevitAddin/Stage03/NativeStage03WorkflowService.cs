@@ -32,12 +32,32 @@ namespace BIMBaoGui.RevitAddin.Stage03
         return Failure(null, NativeStage03Codes.ScanExpired,
           "导出请求缺少已确认的 Stage03 预检。" );
       NativeStage03ScanResult confirmed = request.ConfirmedScan;
+      if (string.IsNullOrWhiteSpace(request.OutputDirectory)
+        || !Path.IsPathRooted(request.OutputDirectory))
+      {
+        return Failure(
+          null,
+          NativeStage03Codes.InvalidOutputDirectory,
+          "Stage03 输出目录必须是绝对路径。" );
+      }
+      string outputRoot = Path.GetFullPath(request.OutputDirectory);
+      if (!string.Equals(
+        confirmed.NormalizedOutputDirectory,
+        outputRoot,
+        StringComparison.OrdinalIgnoreCase))
+      {
+        return Failure(
+          null,
+          NativeStage03Codes.ScanExpired,
+          "导出目录与已确认扫描不一致，必须使用新目录重新扫描。" );
+      }
       NativeStage03ScanResult current = NativeStage03Scanner.Scan(
         application,
         new NativeStage03ScanRequest
         {
           Mode = confirmed.Mode,
-          ForceReason = confirmed.ForceReason
+          ForceReason = confirmed.ForceReason,
+          OutputDirectory = outputRoot
         });
       NativeStage03SessionStore.StoreScan(current);
       if (!string.Equals(
@@ -59,20 +79,10 @@ namespace BIMBaoGui.RevitAddin.Stage03
           "当前 Stage03 门禁不允许导出："
             + string.Join(" ", current.Messages));
       }
-      if (string.IsNullOrWhiteSpace(request.OutputDirectory)
-        || !Path.IsPathRooted(request.OutputDirectory))
-      {
-        return Failure(
-          null,
-          NativeStage03Codes.InvalidOutputDirectory,
-          "Stage03 输出目录必须是绝对路径。" );
-      }
-
       Document document = application.ActiveUIDocument?.Document;
       if (document == null)
         return Failure(null, NativeStage03Codes.DocumentUnavailable,
           "当前没有活动 Revit 项目文档。" );
-      string outputRoot = Path.GetFullPath(request.OutputDirectory);
       Directory.CreateDirectory(outputRoot);
       NativeStage03RunPaths paths = NativeStage03OutputPathPolicy.Create(
         outputRoot,

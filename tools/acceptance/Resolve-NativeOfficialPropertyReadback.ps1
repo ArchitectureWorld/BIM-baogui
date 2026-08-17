@@ -37,6 +37,20 @@ function Get-RequiredValue {
   throw ('FINAL_REQUIRED_VALUE_MISSING: ' + ($Names -join '|'))
 }
 
+function Get-OptionalValue {
+  param(
+    [Parameter(Mandatory = $true)][object]$Object,
+    [Parameter(Mandatory = $true)][string[]]$Names
+  )
+  foreach ($name in $Names) {
+    $property = $Object.PSObject.Properties[$name]
+    if ($null -ne $property -and $null -ne $property.Value) {
+      return $property.Value
+    }
+  }
+  return $null
+}
+
 function New-Identity {
   param(
     [Parameter(Mandatory = $true)][object]$Raw,
@@ -51,6 +65,36 @@ function New-Identity {
   $value.ManifestSha256 = [string](Get-RequiredValue $Raw @('manifestSha256', 'manifest_sha256'))
   $value.GoldenRvtSha256 = [string](Get-RequiredValue $Raw @('goldenRvtSha256', 'golden_rvt_sha256'))
   $value.OfficialIfcSha256 = [string](Get-RequiredValue $Raw @('officialIfcSha256', 'official_ifc_sha256'))
+  return $value
+}
+
+function New-ReportIdentity {
+  param(
+    [Parameter(Mandatory = $true)][object]$Raw,
+    [Parameter(Mandatory = $true)][type]$IdentityType,
+    [Parameter(Mandatory = $true)][string]$GoldenRvtSha256,
+    [Parameter(Mandatory = $true)][string]$OfficialIfcSha256
+  )
+  $workflow = Get-RequiredValue $Raw @('workflow_results')
+  $rulePackage = Get-RequiredValue $Raw @('rule_package')
+  $reportManifest = Get-RequiredValue $Raw @('official_acceptance_manifest')
+  $stage01 = Get-RequiredValue $workflow @('stage01')
+  $stage02A = Get-RequiredValue $workflow @('stage02a', 'stage02A')
+  $stage02B = Get-RequiredValue $workflow @('stage02b', 'stage02B')
+  $value = [System.Activator]::CreateInstance($IdentityType)
+  $value.DocumentFingerprint = [string](Get-RequiredValue $Raw @(
+    'document_fingerprint', 'documentFingerprint'))
+  $value.RulePackageSha256 = [string](Get-RequiredValue $rulePackage @('sha256'))
+  $value.Stage01ResultHash = [string](Get-RequiredValue $stage01 @(
+    'result_hash', 'resultHash'))
+  $value.Stage02AResultHash = [string](Get-RequiredValue $stage02A @(
+    'result_hash', 'resultHash'))
+  $value.Stage02BResultHash = [string](Get-RequiredValue $stage02B @(
+    'result_hash', 'resultHash'))
+  $value.ManifestSha256 = [string](Get-RequiredValue $reportManifest @(
+    'sha256', 'manifestSha256', 'manifest_sha256'))
+  $value.GoldenRvtSha256 = $GoldenRvtSha256
+  $value.OfficialIfcSha256 = $OfficialIfcSha256
   return $value
 }
 
@@ -72,6 +116,31 @@ $scan = Get-Content -LiteralPath $ScanEvidencePath -Raw -Encoding UTF8 | Convert
 $strict = Get-Content -LiteralPath $StrictValidationPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $official = Get-Content -LiteralPath $OfficialExportResultPath -Raw -Encoding UTF8 | ConvertFrom-Json
 
+$goldenRvtPath = Get-OptionalValue $official @('goldenRvtPath', 'golden_rvt_path')
+if ($null -eq $goldenRvtPath) {
+  $goldenRvtPath = Get-RequiredValue $strict @('goldenRvtPath', 'golden_rvt_path')
+}
+$officialIfcPath = [string](Get-RequiredValue $official @(
+  'officialIfcPath', 'official_ifc_path'))
+$goldenRvtPath = [string]$goldenRvtPath
+foreach ($path in @($goldenRvtPath, $officialIfcPath)) {
+  if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+    throw "FINAL_ARTIFACT_NOT_FOUND: $path"
+  }
+}
+$goldenRvtSha256 = Get-Sha256 -Path $goldenRvtPath
+$officialIfcSha256 = Get-Sha256 -Path $officialIfcPath
+$declaredGoldenSha = Get-OptionalValue $official @(
+  'goldenRvtSha256', 'golden_rvt_sha256')
+$declaredOfficialSha = Get-OptionalValue $official @(
+  'officialIfcSha256', 'official_ifc_sha256')
+if (($null -ne $declaredGoldenSha -and
+    ([string]$declaredGoldenSha).ToLowerInvariant() -cne $goldenRvtSha256) -or
+    ($null -ne $declaredOfficialSha -and
+    ([string]$declaredOfficialSha).ToLowerInvariant() -cne $officialIfcSha256)) {
+  throw 'FINAL_ARTIFACT_SHA_MISMATCH'
+}
+
 # These two authoritative collections are accepted only from Golden scan evidence.
 $manifestRaw = Get-RequiredValue $scan @('official_acceptance_manifest')
 $readbacksRaw = @(Get-RequiredValue $scan @('official_acceptance_revit_readbacks'))
@@ -85,48 +154,104 @@ $requestType = $assembly.GetType('BIMBaoGui.HifcCore.OfficialPropertyReadbackReq
 $inspectorType = $assembly.GetType('BIMBaoGui.HifcCore.OfficialCarrierProbeInspector', $true)
 
 $manifest = [System.Activator]::CreateInstance($manifestType)
-$manifest.SchemaVersion = [string](Get-RequiredValue $manifestRaw @('schemaVersion', 'schema_version'))
-$manifest.ManifestVersion = [string](Get-RequiredValue $manifestRaw @('manifestVersion', 'manifest_version'))
-$manifest.Identity = New-Identity (Get-RequiredValue $manifestRaw @('identity')) $identityType
+$manifest.SchemaVersion = 'HBR_OFFICIAL_ACCEPTANCE_MANIFEST_V1'
+$manifest.ManifestVersion = [string](Get-RequiredValue $manifestRaw @(
+  'schema_version', 'manifestVersion', 'manifest_version'))
 $definitionListType = [System.Collections.Generic.List``1].MakeGenericType($definitionType)
 $definitions = [System.Activator]::CreateInstance($definitionListType)
-foreach ($raw in @(Get-RequiredValue $manifestRaw @('definitions'))) {
+$definitionByPropertyId = [System.Collections.Generic.Dictionary[string,object]]::new(
+  [System.StringComparer]::Ordinal)
+foreach ($raw in @(Get-RequiredValue $manifestRaw @('properties', 'definitions'))) {
   $definition = [System.Activator]::CreateInstance($definitionType)
   $definition.PropertyId = [string](Get-RequiredValue $raw @('propertyId', 'property_id'))
-  $definition.IfcEntity = [string](Get-RequiredValue $raw @('ifcEntity', 'ifc_entity'))
-  $definition.IfcPropertySet = [string](Get-RequiredValue $raw @('ifcPropertySet', 'ifc_property_set'))
-  $definition.IfcProperty = [string](Get-RequiredValue $raw @('ifcProperty', 'ifc_property'))
+  $definition.Identity = [string](Get-RequiredValue $raw @('identity'))
+  $identityParts = $definition.Identity.Split('|')
+  if ($identityParts.Count -ne 3) { throw 'FINAL_MANIFEST_IDENTITY_INVALID' }
+  $ifcEntity = Get-OptionalValue $raw @('ifcEntity', 'ifc_entity')
+  $ifcPropertySet = Get-OptionalValue $raw @(
+    'ifcPropertySet', 'ifc_property_set')
+  $ifcProperty = Get-OptionalValue $raw @('ifcProperty', 'ifc_property')
+  $definition.IfcEntity = if ($null -eq $ifcEntity) {
+    $identityParts[0]
+  } else { [string]$ifcEntity }
+  $definition.IfcPropertySet = if ($null -eq $ifcPropertySet) {
+    $identityParts[1]
+  } else { [string]$ifcPropertySet }
+  $definition.IfcProperty = if ($null -eq $ifcProperty) {
+    $identityParts[2]
+  } else { [string]$ifcProperty }
   $definition.DeclaredIfcType = [string](Get-RequiredValue $raw @('declaredIfcType', 'declared_ifc_type'))
-  $unitProperty = $raw.PSObject.Properties['canonicalUnit']
-  $definition.CanonicalUnit = if ($null -eq $unitProperty -or $null -eq $unitProperty.Value) { '' } else { [string]$unitProperty.Value }
+  $canonicalUnit = Get-OptionalValue $raw @(
+    'canonicalUnit', 'canonical_unit')
+  $definition.CanonicalUnit = if ($null -eq $canonicalUnit) {
+    ''
+  } else { [string]$canonicalUnit }
   $definition.ParameterGuid = [string](Get-RequiredValue $raw @('parameterGuid', 'parameter_guid'))
+  $definition.BindingScope = [string](Get-RequiredValue $raw @('bindingScope', 'binding_scope'))
+  $definition.SourceStage = ([string](Get-RequiredValue $raw @(
+    'sourceStage', 'source_stage'))).ToUpperInvariant()
   $definitions.Add($definition)
+  $definitionByPropertyId.Add($definition.PropertyId, $definition)
 }
 $manifest.Definitions = $definitions
+$manifestIdentityRaw = Get-OptionalValue $manifestRaw @('identity')
+$manifest.Identity = if ($null -ne $manifestIdentityRaw) {
+  New-Identity $manifestIdentityRaw $identityType
+} else {
+  New-ReportIdentity $scan $identityType $goldenRvtSha256 $officialIfcSha256
+}
 
 $readbackListType = [System.Collections.Generic.List``1].MakeGenericType($readbackType)
 $readbacks = [System.Activator]::CreateInstance($readbackListType)
-foreach ($raw in $readbacksRaw) {
-  $readback = [System.Activator]::CreateInstance($readbackType)
-  $readback.PropertyId = [string](Get-RequiredValue $raw @('propertyId', 'property_id'))
-  $readback.OwnerGlobalId = [string](Get-RequiredValue $raw @('ownerGlobalId', 'owner_global_id'))
-  $readback.OwnerRevitUniqueId = [string](Get-RequiredValue $raw @('ownerRevitUniqueId', 'owner_revit_unique_id'))
-  $readback.ParameterGuid = [string](Get-RequiredValue $raw @('parameterGuid', 'parameter_guid'))
-  $readback.CanonicalValue = [string](Get-RequiredValue $raw @('canonicalValue', 'canonical_value'))
-  $readback.SourceStage = [string](Get-RequiredValue $raw @('sourceStage', 'source_stage'))
-  $readback.SourceResultHash = [string](Get-RequiredValue $raw @('sourceResultHash', 'source_result_hash'))
-  $readbacks.Add($readback)
+$seenReadbackPropertyIds = [System.Collections.Generic.HashSet[string]]::new(
+  [System.StringComparer]::Ordinal)
+foreach ($group in $readbacksRaw) {
+  $propertyId = [string](Get-RequiredValue $group @('propertyId', 'property_id'))
+  if (-not $seenReadbackPropertyIds.Add($propertyId)) {
+    throw 'FINAL_REVIT_READBACK_GROUP_DUPLICATE'
+  }
+  if (-not $definitionByPropertyId.TryGetValue($propertyId, [ref]$definition)) {
+    throw 'FINAL_REVIT_READBACK_PROPERTY_UNKNOWN'
+  }
+  $sourceStage = ([string](Get-RequiredValue $group @(
+    'sourceStage', 'source_stage'))).ToUpperInvariant()
+  $sourceResultHash = [string](Get-RequiredValue $group @(
+    'sourceResultHash', 'source_result_hash'))
+  foreach ($raw in @(Get-RequiredValue $group @('values'))) {
+    $readback = [System.Activator]::CreateInstance($readbackType)
+    $readback.PropertyId = $propertyId
+    $readback.OwnerGlobalId = [string](Get-RequiredValue $raw @(
+      'expectedIfcGlobalId', 'expected_ifc_global_id'))
+    $readback.OwnerRevitUniqueId = [string](Get-RequiredValue $raw @(
+      'revitUniqueId', 'revit_unique_id'))
+    $readback.ParameterGuid = $definition.ParameterGuid
+    $readback.CanonicalValue = [string](Get-RequiredValue $raw @(
+      'canonicalValue', 'canonical_value'))
+    $readback.SourceStage = $sourceStage
+    $readback.SourceResultHash = $sourceResultHash
+    $readbacks.Add($readback)
+  }
 }
 
-$strictIdentityRaw = Get-RequiredValue $strict @('identity', 'official_acceptance_identity')
-$officialIdentityRaw = Get-RequiredValue $official @('identity', 'official_acceptance_identity')
+$strictIdentityRaw = Get-OptionalValue $strict @(
+  'identity', 'official_acceptance_identity')
+$officialIdentityRaw = Get-OptionalValue $official @(
+  'identity', 'official_acceptance_identity')
 $request = [System.Activator]::CreateInstance($requestType)
 $request.Manifest = $manifest
 $request.RevitReadbacks = $readbacks
-$request.StrictValidationIdentity = New-Identity $strictIdentityRaw $identityType
-$request.OfficialExportIdentity = New-Identity $officialIdentityRaw $identityType
-$request.GoldenRvtPath = [string](Get-RequiredValue $strict @('goldenRvtPath', 'golden_rvt_path'))
-$request.OfficialIfcPath = [string](Get-RequiredValue $official @('officialIfcPath', 'official_ifc_path'))
+$request.StrictValidationIdentity = if ($null -ne $strictIdentityRaw) {
+  New-Identity $strictIdentityRaw $identityType
+} else {
+  New-ReportIdentity $strict $identityType $goldenRvtSha256 $officialIfcSha256
+}
+$request.OfficialExportIdentity = if ($null -ne $officialIdentityRaw) {
+  New-Identity $officialIdentityRaw $identityType
+} else {
+  New-ReportIdentity $scan $identityType $goldenRvtSha256 $officialIfcSha256
+}
+$request.GoldenRvtPath = $goldenRvtPath
+$request.OfficialIfcPath = $officialIfcPath
 
 $method = $inspectorType.GetMethod('ResolveFinalReadback', @($requestType))
 if ($null -eq $method) { throw 'FINAL_READBACK_API_MISSING' }

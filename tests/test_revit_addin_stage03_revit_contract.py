@@ -46,6 +46,49 @@ def test_stage03_live_scan_reuses_stage01_stage02_and_fixed_rule_database():
     assert "Stage01BusinessInvalid" in models
 
 
+def test_stage03_strict_checklist_reads_all_current_stage_results_without_profile_input():
+    source = read(STAGE03 / "NativeStage03Scanner.cs")
+    models = read(STAGE03 / "NativeStage03Models.cs")
+    generator = read(STAGE03 / "NativeStage03ChecklistGenerator.cs")
+    evaluator = read(STAGE03 / "NativeStage03ChecklistEvaluator.cs")
+    request_block = models.split(
+        "internal sealed class NativeStage03ScanRequest", 1
+    )[1].split("internal sealed class NativeStage03FieldEvidence", 1)[0]
+    assert "NativeWorkflowResultStorage.Read" in source
+    assert '"STAGE01"' in source
+    assert '"STAGE02A"' in source
+    assert '"STAGE02B"' in source
+    assert "NativeStage02RevitService.CreatePreview" in source
+    assert "NativeStage02ScopeMode.FullModel" in source
+    assert "Stage02ACurrentInputSnapshotHash" in source
+    assert "NativeStage03TechnicalPreflightService.Probe" in source
+    assert "NativeStage03ChecklistGenerator.Generate" in source
+    assert "NativeStage03ChecklistEvaluator.Evaluate" in source
+    assert "NativeStage01Keys.ModelFileType" in source
+    assert "ModelFileType" not in request_block
+    assert "NotApplicable" not in generator
+    assert "NotApplicable" not in evaluator
+
+
+def test_stage03_manifest_and_scan_identity_are_single_source_dynamic_contracts():
+    source = read(STAGE03 / "NativeStage03Scanner.cs")
+    generator = read(STAGE03 / "NativeStage03ChecklistGenerator.cs")
+    models = read(STAGE03 / "NativeStage03Models.cs")
+    hifc_manifest = read(HIFC / "OfficialAcceptanceManifestCanonicalizer.cs")
+    assert "OfficialAcceptanceProperties" in generator
+    assert "OfficialAcceptanceManifestCanonicalizer" in generator
+    assert "BIMBAOGUI_OFFICIAL_ACCEPTANCE_MANIFEST|1.0.0\\n" in hifc_manifest
+    assert 'Append("{\")' not in hifc_manifest
+    assert "OfficialAcceptanceRevitReadbacks" in source
+    assert "PluginRuntime" in source
+    assert "Assembly.GetExecutingAssembly" in source
+    assert "AddinDllSha256" in models
+    assert "PreflightHash" in models
+    assert "Stage01WorkflowResult" in models
+    assert "Stage02AWorkflowResult" in models
+    assert "Stage02BWorkflowResult" in models
+
+
 def test_stage03_raw_export_is_ifc4_and_rolls_back_revit_transaction():
     source = read(STAGE03 / "NativeStage03RawIfcExporter.cs")
     assert "new IFCExportOptions" in source

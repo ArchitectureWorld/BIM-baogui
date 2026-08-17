@@ -105,5 +105,36 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.True(decision.Forced);
       Assert.Single(decision.BypassedBusinessBlockers);
     }
+
+    [Fact]
+    public void Technical_and_business_groups_are_disjoint_and_warnings_do_not_block()
+    {
+      NativeStage03BlockerClassification classification =
+        NativeStage03BlockerPolicy.Classify(
+          new[] { "DOCUMENT_UNAVAILABLE", "SHARED_CODE" },
+          new[]
+          {
+            new NativeStage03ChecklistItem
+            {
+              Status = NativeStage03ChecklistStatus.Failed,
+              IssueCode = "BUSINESS_FAILURE"
+            },
+            new NativeStage03ChecklistItem
+            {
+              Status = NativeStage03ChecklistStatus.Failed,
+              IssueCode = "SHARED_CODE"
+            },
+            new NativeStage03ChecklistItem
+            {
+              Status = NativeStage03ChecklistStatus.Warning,
+              IssueCode = "LOW_CONFIDENCE_CANDIDATE"
+            }
+          });
+
+      Assert.Equal(new[] { "DOCUMENT_UNAVAILABLE", "SHARED_CODE" },
+        classification.TechnicalFatalCodes);
+      Assert.Equal(new[] { "BUSINESS_FAILURE" },
+        classification.BusinessBlockers);
+    }
   }
 }

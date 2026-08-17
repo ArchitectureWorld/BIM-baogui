@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using BIMBaoGui.HifcCore;
+using BIMBaoGui.RevitAddin.Workflow;
 
 namespace BIMBaoGui.RevitAddin.Stage03
 {
@@ -32,6 +33,14 @@ namespace BIMBaoGui.RevitAddin.Stage03
     internal const string NoExportableFields = "NO_EXPORTABLE_FIELDS";
     internal const string ScanExpired = "STAGE03_SCAN_EXPIRED";
     internal const string InvalidOutputDirectory = "INVALID_OUTPUT_DIRECTORY";
+    internal const string ModelProfileNotImplemented =
+      "MODEL_PROFILE_NOT_IMPLEMENTED_PHASE1";
+    internal const string OutputDirectoryNotWritable =
+      "OUTPUT_DIRECTORY_NOT_WRITABLE";
+    internal const string IfcExporterUnavailable = "IFC_EXPORTER_UNAVAILABLE";
+    internal const string TranslatorDependencyUnavailable =
+      "TRANSLATOR_DEPENDENCY_UNAVAILABLE";
+    internal const string ReportWriterUnavailable = "REPORT_WRITER_UNAVAILABLE";
   }
 
   internal sealed class NativeStage03GateDecision
@@ -104,15 +113,27 @@ namespace BIMBaoGui.RevitAddin.Stage03
   {
     internal NativeStage03Mode Mode { get; set; } = NativeStage03Mode.Strict;
     internal string ForceReason { get; set; } = string.Empty;
+    internal string OutputDirectory { get; set; } = string.Empty;
 
     internal NativeStage03ScanRequest Clone()
     {
       return new NativeStage03ScanRequest
       {
         Mode = Mode,
-        ForceReason = ForceReason ?? string.Empty
+        ForceReason = ForceReason ?? string.Empty,
+        OutputDirectory = OutputDirectory ?? string.Empty
       };
     }
+  }
+
+  internal sealed class NativePluginRuntimeIdentity
+  {
+    internal string ProductVersion { get; set; } = string.Empty;
+    internal string AssemblyVersion { get; set; } = string.Empty;
+    internal string InformationalVersion { get; set; } = string.Empty;
+    internal string CommitSha { get; set; } = string.Empty;
+    internal string AddinDllPath { get; set; } = string.Empty;
+    internal string AddinDllSha256 { get; set; } = string.Empty;
   }
 
   internal sealed class NativeStage03FieldEvidence
@@ -156,7 +177,31 @@ namespace BIMBaoGui.RevitAddin.Stage03
     internal string DocumentFingerprint { get; set; } = string.Empty;
     internal string DocumentTitle { get; set; } = string.Empty;
     internal string DocumentPath { get; set; } = string.Empty;
+    internal string ModelFileType { get; set; } = string.Empty;
+    internal string RevitVersion { get; set; } = string.Empty;
+    internal string NormalizedOutputDirectory { get; set; } = string.Empty;
+    internal string PreflightHash { get; set; } = string.Empty;
+    internal string Stage02ACurrentInputSnapshotHash { get; set; } =
+      string.Empty;
     internal string Stage01PayloadSha256 { get; set; } = string.Empty;
+    internal NativeWorkflowResultEnvelope Stage01WorkflowResult { get; set; }
+    internal NativeWorkflowResultEnvelope Stage02AWorkflowResult { get; set; }
+    internal NativeWorkflowResultEnvelope Stage02BWorkflowResult { get; set; }
+    internal NativePluginRuntimeIdentity PluginRuntime { get; set; }
+    internal NativeOfficialAcceptanceManifest OfficialAcceptanceManifest
+    {
+      get;
+      set;
+    }
+    internal IReadOnlyList<NativeOfficialAcceptancePropertyReadback>
+      OfficialAcceptanceRevitReadbacks { get; set; } =
+        Array.Empty<NativeOfficialAcceptancePropertyReadback>();
+    internal IReadOnlyList<NativeStage03ChecklistItem> Checklist { get; set; } =
+      Array.Empty<NativeStage03ChecklistItem>();
+    internal int PassedCount { get; set; }
+    internal int FailedCount { get; set; }
+    internal int WarningCount { get; set; }
+    internal int NotCheckedCount { get; set; }
     internal IReadOnlyList<string> TechnicalFatalCodes { get; set; } =
       Array.Empty<string>();
     internal IReadOnlyList<string> BusinessBlockers { get; set; } =
