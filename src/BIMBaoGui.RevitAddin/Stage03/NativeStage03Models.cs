@@ -114,6 +114,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
     internal NativeStage03Mode Mode { get; set; } = NativeStage03Mode.Strict;
     internal string ForceReason { get; set; } = string.Empty;
     internal string OutputDirectory { get; set; } = string.Empty;
+    internal string FocusCheckId { get; set; } = string.Empty;
 
     internal NativeStage03ScanRequest Clone()
     {
@@ -121,7 +122,8 @@ namespace BIMBaoGui.RevitAddin.Stage03
       {
         Mode = Mode,
         ForceReason = ForceReason ?? string.Empty,
-        OutputDirectory = OutputDirectory ?? string.Empty
+        OutputDirectory = OutputDirectory ?? string.Empty,
+        FocusCheckId = FocusCheckId ?? string.Empty
       };
     }
   }

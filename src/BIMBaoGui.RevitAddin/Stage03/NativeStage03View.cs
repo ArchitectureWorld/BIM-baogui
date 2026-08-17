@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 using BIMBaoGui.RevitAddin.Issues;
 
@@ -24,12 +25,13 @@ namespace BIMBaoGui.RevitAddin.Stage03
     private readonly CheckBox _problemsOnly;
     private readonly TextBlock _summaryText;
     private readonly TextBlock _statusText;
-    private readonly ListBox _fieldList;
+    private readonly ListView _checklist;
     private readonly StackPanel _detailPanel;
     private NativeStage03ScanResult _scan;
     private NativeStage03ExecutionResult _lastResult;
     private bool _busy;
     private string _activeDocumentPath = string.Empty;
+    private string _focusCheckId = string.Empty;
 
     internal NativeStage03View()
       : this(new NativeStage03OutputDirectoryStore(), new NativeIssueHub())
@@ -158,8 +160,8 @@ namespace BIMBaoGui.RevitAddin.Stage03
       _exportButton.Click += (_, __) => RequestExport();
       _revalidateButton.Click += (_, __) => RequestRevalidate();
       _openDirectoryButton.Click += (_, __) => OpenOutputDirectory();
-      _problemsOnly.Checked += (_, __) => RenderFields();
-      _problemsOnly.Unchecked += (_, __) => RenderFields();
+      _problemsOnly.Checked += (_, __) => RenderChecklist();
+      _problemsOnly.Unchecked += (_, __) => RenderChecklist();
       actions.Children.Add(_scanButton);
       actions.Children.Add(_exportButton);
       actions.Children.Add(_revalidateButton);
@@ -177,14 +179,15 @@ namespace BIMBaoGui.RevitAddin.Stage03
       {
         Width = new GridLength(1, GridUnitType.Star)
       });
-      _fieldList = new ListBox
+      _checklist = new ListView
       {
         Margin = new Thickness(0, 0, 14, 0),
         HorizontalContentAlignment = HorizontalAlignment.Stretch
       };
-      _fieldList.SelectionChanged += (_, __) => RenderSelectedField();
-      Grid.SetColumn(_fieldList, 0);
-      workspace.Children.Add(_fieldList);
+      _checklist.View = ChecklistColumns();
+      _checklist.SelectionChanged += (_, __) => RenderSelectedCheck();
+      Grid.SetColumn(_checklist, 0);
+      workspace.Children.Add(_checklist);
       _detailPanel = new StackPanel { Margin = new Thickness(4, 0, 14, 16) };
       var detailScroll = new ScrollViewer
       {
@@ -214,10 +217,11 @@ namespace BIMBaoGui.RevitAddin.Stage03
       Grid.SetRow(statusScroll, 4);
       root.Children.Add(statusScroll);
       Content = root;
-      RenderFields();
+      RenderChecklist();
     }
 
     internal event Action<string> StatusChanged;
+    internal event Action<NativeIssueRecord> NavigationRequested;
 
     internal void ApplyDocumentPath(string documentPath)
     {
@@ -231,12 +235,24 @@ namespace BIMBaoGui.RevitAddin.Stage03
       SetActiveDocumentPath(documentPath);
     }
 
+    internal void NavigateToCheck(string checkId)
+    {
+      _focusCheckId = checkId ?? string.Empty;
+      SelectFocusedCheck();
+    }
+
     private void RequestScan()
+    {
+      RequestScan(string.Empty);
+    }
+
+    private void RequestScan(string focusCheckId)
     {
       if (_busy) return;
       NativeStage03Mode mode = _forcedMode.IsChecked == true
         ? NativeStage03Mode.ForcedTest
         : NativeStage03Mode.Strict;
+      _focusCheckId = focusCheckId ?? string.Empty;
       _scan = null;
       _lastResult = null;
       SetBusy(true, "正在通过 Revit ExternalEvent 扫描当前模型和固定 GUID 参数……" );
@@ -247,7 +263,8 @@ namespace BIMBaoGui.RevitAddin.Stage03
           {
             Mode = mode,
             ForceReason = string.Empty,
-            OutputDirectory = _outputDirectory.Text ?? string.Empty
+            OutputDirectory = _outputDirectory.Text ?? string.Empty,
+            FocusCheckId = focusCheckId
           },
           ApplyScanResult,
           ApplyFailure);
@@ -320,7 +337,8 @@ namespace BIMBaoGui.RevitAddin.Stage03
       _exportButton.IsEnabled = result != null && result.AllowExport;
       if (!string.IsNullOrWhiteSpace(result?.DocumentPath))
         ApplyDocumentPath(result.DocumentPath);
-      RenderFields();
+      PublishChecklistIssues(result);
+      RenderChecklist();
       SetStatus(result == null
         ? "预检失败：未返回结果。"
         : result.Status + "｜Scan SHA-256=" + result.ScanHash + "｜"
@@ -344,7 +362,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
       UpdateOutputDirectoryButtonState();
       if (result?.Fields != null && _scan != null)
         _scan.Fields = result.Fields;
-      RenderFields();
+      RenderChecklist();
       SetStatus(result == null
         ? "Stage03 未返回执行结果。"
         : result.Status + "｜" + result.InternalValidationStatus + "｜"
@@ -364,82 +382,262 @@ namespace BIMBaoGui.RevitAddin.Stage03
         + (exception == null ? "未知错误" : exception.Message));
     }
 
-    private void RenderFields()
+    private void RenderChecklist()
     {
-      NativeStage03FieldEvidence selected =
-        (_fieldList.SelectedItem as FieldListItem)?.Field;
-      _fieldList.Items.Clear();
-      IEnumerable<NativeStage03FieldEvidence> fields = _scan?.Fields
-        ?? Array.Empty<NativeStage03FieldEvidence>();
+      string selectedCheckId =
+        (_checklist.SelectedItem as ListViewItem)?.Tag is ChecklistListItem item
+          ? item.Check.CheckId : string.Empty;
+      _checklist.Items.Clear();
+      IEnumerable<NativeStage03ChecklistItem> checks = _scan?.Checklist
+        ?? Array.Empty<NativeStage03ChecklistItem>();
       if (_problemsOnly.IsChecked == true)
       {
-        fields = fields.Where(value => value.Active
-          && value.Status != "STRICT_READY"
-          && value.Status != "INTERNAL_PASS");
+        checks = checks.Where(value => value.Status
+          == NativeStage03ChecklistStatus.Failed
+          || value.Status == NativeStage03ChecklistStatus.Warning);
       }
-      foreach (NativeStage03FieldEvidence field in fields)
-        _fieldList.Items.Add(new FieldListItem(field));
-      if (selected != null)
+      foreach (NativeStage03ChecklistItem check in checks)
       {
-        FieldListItem match = _fieldList.Items.Cast<FieldListItem>()
-          .FirstOrDefault(value => value.Field.PropertyId == selected.PropertyId
-            && value.Field.OwnerUniqueId == selected.OwnerUniqueId);
-        if (match != null) _fieldList.SelectedItem = match;
+        var listItem = new ListViewItem
+        {
+          Tag = new ChecklistListItem(check),
+          Content = new ChecklistListItem(check),
+          Background = BrushFromArgbHex(
+            NativeStage03ChecklistPresentation.Background(check.Status))
+        };
+        _checklist.Items.Add(listItem);
       }
-      if (_fieldList.SelectedItem == null && _fieldList.Items.Count > 0)
-        _fieldList.SelectedIndex = 0;
+      if (!string.IsNullOrWhiteSpace(selectedCheckId))
+        _focusCheckId = selectedCheckId;
+      SelectFocusedCheck();
+      if (_checklist.SelectedItem == null && _checklist.Items.Count > 0)
+        _checklist.SelectedIndex = 0;
 
       if (_scan == null)
         _summaryText.Text = "尚未执行 Stage03 扫描与预检。";
       else
-        _summaryText.Text = "字段=" + _scan.Fields.Count
-          + "｜导出字段=" + _scan.ExportFields.Count
+        _summaryText.Text = "检查项=" + _scan.Checklist.Count
+          + "｜通过=" + _scan.PassedCount
+          + "｜失败=" + _scan.FailedCount
+          + "｜警告=" + _scan.WarningCount
           + "｜技术阻断=" + _scan.TechnicalFatalCodes.Count
           + "｜业务阻断=" + _scan.BusinessBlockers.Count
           + "｜模式=" + _scan.Mode
           + "｜允许导出=" + (_scan.AllowExport ? "是" : "否")
           + "｜Scan SHA-256=" + _scan.ScanHash;
-      RenderSelectedField();
+      RenderSelectedCheck();
     }
 
-    private void RenderSelectedField()
+    private void RenderSelectedCheck()
     {
       _detailPanel.Children.Clear();
-      FieldListItem selected = _fieldList.SelectedItem as FieldListItem;
+      ChecklistListItem selected = (_checklist.SelectedItem as ListViewItem)?.Tag
+        as ChecklistListItem;
       if (selected == null)
       {
         _detailPanel.Children.Add(new TextBlock
         {
           Text = _scan == null
             ? "先执行“扫描与预检”。"
-            : "当前筛选没有可显示字段。",
+            : "当前筛选没有可显示检查项。",
           Margin = new Thickness(8)
         });
         return;
       }
-      NativeStage03FieldEvidence field = selected.Field;
+      NativeStage03ChecklistItem check = selected.Check;
       _detailPanel.Children.Add(new TextBlock
       {
-        Text = field.IfcProperty + " · " + field.Status,
+        Text = check.DisplayName + " · "
+          + NativeStage03ChecklistPresentation.StatusText(check.Status),
         FontSize = 18,
         FontWeight = FontWeights.SemiBold,
         TextWrapping = TextWrapping.Wrap,
         Margin = new Thickness(0, 0, 0, 8)
       });
-      AddDetail("路径", field.Entity + " / " + field.PropertySet + " / " + field.IfcProperty);
-      AddDetail("字段 ID", field.PropertyId);
-      AddDetail("载体", field.RoleId + "｜ElementId=" + field.ElementId + "｜" + field.OwnerUniqueId);
-      AddDetail(
-        "Owner",
-        field.OwnerStrategy
-          + "｜ExportGuid=" + Empty(field.OwnerExportGuid)
-          + "｜GlobalId=" + Empty(field.OwnerGlobalId)
-          + "｜" + Empty(field.OwnerResolutionStatus));
-      AddDetail("类型与单位", field.DeclaredIfcType + "｜" + Empty(field.CanonicalUnit));
-      AddDetail("值", Empty(field.CanonicalValue));
-      AddDetail("要求/运行状态", field.Requirement + "｜" + field.RuntimeStatus);
-      AddDetail("严格/强制", "strict=" + field.StrictExportReady + "｜forced=" + field.ExportableInForcedMode);
-      AddDetail("说明", Empty(field.Message));
+      AddDetail("来源与依据", check.SourceStage + "｜" + Empty(check.ApplicableBasis));
+      AddDetail("当前值", Empty(check.CurrentValue) + " " + Empty(check.Unit));
+      AddDetail("问题说明", Empty(check.IssueMessage));
+      if (check.Status == NativeStage03ChecklistStatus.Failed
+        || check.Status == NativeStage03ChecklistStatus.Warning)
+      {
+        NativeIssueRecord issue = NativeStage03IssueCompiler.Compile(check);
+        issue.DocumentFingerprint = _scan?.DocumentFingerprint ?? string.Empty;
+        var actions = new WrapPanel { Margin = new Thickness(0, 4, 0, 8) };
+        var navigate = ActionButton("进入处理入口", 110);
+        navigate.Click += (_, __) => NavigateIssue(issue);
+        actions.Children.Add(navigate);
+        var recheck = ActionButton("复查该项", 95);
+        recheck.ToolTip = "为避免依赖过期，本操作会重新读取完整清单。";
+        recheck.Click += (_, __) => RequestRecheck(check.CheckId);
+        actions.Children.Add(recheck);
+        _detailPanel.Children.Add(actions);
+        if (issue.Elements.Count > 0)
+        {
+          _detailPanel.Children.Add(NavigationActions(issue));
+        }
+      }
+    }
+
+    private GridView ChecklistColumns()
+    {
+      var grid = new GridView();
+      grid.Columns.Add(CheckColumn("检查项名称", "DisplayName", 150));
+      grid.Columns.Add(CheckColumn("来源阶段", "SourceStage", 82));
+      grid.Columns.Add(CheckColumn("适用依据", "ApplicableBasis", 150));
+      grid.Columns.Add(CheckColumn("当前值", "CurrentValue", 130));
+      grid.Columns.Add(CheckColumn("状态", "StatusText", 64));
+      grid.Columns.Add(CheckColumn("问题说明", "IssueMessage", 180));
+      grid.Columns.Add(CheckColumn("处理入口", "ActionText", 90));
+      return grid;
+    }
+
+    private static GridViewColumn CheckColumn(
+      string header,
+      string path,
+      double width)
+    {
+      return new GridViewColumn
+      {
+        Header = header,
+        Width = width,
+        DisplayMemberBinding = new Binding(path)
+      };
+    }
+
+    private void SelectFocusedCheck()
+    {
+      if (string.IsNullOrWhiteSpace(_focusCheckId)) return;
+      ListViewItem match = _checklist.Items.Cast<ListViewItem>().FirstOrDefault(
+        value => string.Equals(
+          (value.Tag as ChecklistListItem)?.Check.CheckId,
+          _focusCheckId,
+          StringComparison.Ordinal));
+      if (match == null) return;
+      _checklist.SelectedItem = match;
+      match.BringIntoView();
+      _focusCheckId = string.Empty;
+    }
+
+    private void RequestRecheck(string checkId)
+    {
+      if (_busy) return;
+      if (!NativeStage03OutputDirectoryStore.TryNormalizeOutputDirectory(
+        _outputDirectory.Text,
+        out string output))
+      {
+        SetStatus("Stage03 输出目录必须是绝对路径。" );
+        return;
+      }
+      _outputDirectory.Text = output;
+      if (!RememberOutputDirectory()) return;
+      RequestScan(checkId);
+    }
+
+    private void NavigateIssue(NativeIssueRecord issue)
+    {
+      if (issue == null) return;
+      if (issue.Route == NativeIssueNavigationAction.Select)
+      {
+        RequestRevitAction(issue, NativeIssueNavigationAction.Select);
+        return;
+      }
+      NavigationRequested?.Invoke(issue);
+    }
+
+    private FrameworkElement NavigationActions(NativeIssueRecord issue)
+    {
+      var panel = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) };
+      foreach (NativeIssueNavigationAction action in new[]
+      {
+        NativeIssueNavigationAction.Zoom,
+        NativeIssueNavigationAction.Isolate,
+        NativeIssueNavigationAction.RestoreView
+      })
+      {
+        var button = ActionButton(NavigationLabel(action), 70);
+        button.Click += (_, __) => RequestRevitAction(issue, action);
+        panel.Children.Add(button);
+      }
+      return panel;
+    }
+
+    private void RequestRevitAction(
+      NativeIssueRecord issue,
+      NativeIssueNavigationAction action)
+    {
+      if (_busy || issue == null) return;
+      SetBusy(true, "正在通过 Revit ExternalEvent 执行问题定位……" );
+      try
+      {
+        RevitExternalEventDispatcher.RequestIssueNavigation(
+          new NativeIssueNavigationRequest
+          {
+            IssueId = issue.IssueId,
+            Action = action,
+            DocumentFingerprint = issue.DocumentFingerprint,
+            Elements = issue.Elements
+          },
+          ApplyNavigationResult,
+          ApplyFailure);
+      }
+      catch (Exception exception)
+      {
+        ApplyFailure(exception);
+      }
+    }
+
+    private void ApplyNavigationResult(NativeIssueNavigationResult result)
+    {
+      if (!Dispatcher.CheckAccess())
+      {
+        Dispatcher.BeginInvoke(
+          new Action<NativeIssueNavigationResult>(ApplyNavigationResult),
+          result);
+        return;
+      }
+      SetBusy(false, result != null && result.Succeeded
+        ? "问题定位完成：" + result.Action
+        : "问题定位失败：" + (result?.Code ?? "ISSUE_NAVIGATION_FAILED"));
+    }
+
+    private void PublishChecklistIssues(NativeStage03ScanResult result)
+    {
+      if (result == null || string.IsNullOrWhiteSpace(result.DocumentFingerprint))
+        return;
+      _issueHub.ResetForDocument(result.DocumentFingerprint);
+      NativeIssueRecord[] issues = (result.Checklist
+          ?? Array.Empty<NativeStage03ChecklistItem>())
+        .Where(value => value != null && (value.Status
+          == NativeStage03ChecklistStatus.Failed
+          || value.Status == NativeStage03ChecklistStatus.Warning))
+        .Select(NativeStage03IssueCompiler.Compile)
+        .Select(value =>
+        {
+          value.DocumentFingerprint = result.DocumentFingerprint;
+          return value;
+        })
+        .ToArray();
+      _issueHub.Replace("STAGE03", issues);
+    }
+
+    private static string NavigationLabel(NativeIssueNavigationAction action)
+    {
+      switch (action)
+      {
+        case NativeIssueNavigationAction.Zoom: return "缩放";
+        case NativeIssueNavigationAction.Isolate: return "隔离";
+        default: return "恢复视图";
+      }
+    }
+
+    private static Brush BrushFromArgbHex(string value)
+    {
+      string hex = value ?? "#FFE5E7EB";
+      return new SolidColorBrush(Color.FromArgb(
+        Convert.ToByte(hex.Substring(1, 2), 16),
+        Convert.ToByte(hex.Substring(3, 2), 16),
+        Convert.ToByte(hex.Substring(5, 2), 16),
+        Convert.ToByte(hex.Substring(7, 2), 16)));
     }
 
     private void AddDetail(string label, string value)
@@ -521,7 +719,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
       _exportButton.IsEnabled = false;
       _revalidateButton.IsEnabled = false;
       UpdateOutputDirectoryButtonState();
-      RenderFields();
+      RenderChecklist();
     }
 
     private void SetBusy(bool busy, string status)
@@ -624,20 +822,22 @@ namespace BIMBaoGui.RevitAddin.Stage03
       return string.IsNullOrWhiteSpace(value) ? "—" : value;
     }
 
-    private sealed class FieldListItem
+    private sealed class ChecklistListItem
     {
-      internal FieldListItem(NativeStage03FieldEvidence field)
+      internal ChecklistListItem(NativeStage03ChecklistItem check)
       {
-        Field = field;
+        Check = check;
       }
 
-      internal NativeStage03FieldEvidence Field { get; }
-
-      public override string ToString()
-      {
-        return Field.IfcProperty + " · " + Field.Status
-          + " · Id=" + Field.ElementId;
-      }
+      internal NativeStage03ChecklistItem Check { get; }
+      public string DisplayName => Check.DisplayName;
+      public string SourceStage => Check.SourceStage.ToString();
+      public string ApplicableBasis => Check.ApplicableBasis;
+      public string CurrentValue => Empty(Check.CurrentValue) + " " + Empty(Check.Unit);
+      public string StatusText => NativeStage03ChecklistPresentation.StatusText(Check.Status);
+      public string IssueMessage => Empty(Check.IssueMessage);
+      public string ActionText => Check.Status == NativeStage03ChecklistStatus.Failed
+        || Check.Status == NativeStage03ChecklistStatus.Warning ? "处理/复查" : "—";
     }
   }
 }

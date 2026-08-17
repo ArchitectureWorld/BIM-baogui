@@ -137,9 +137,10 @@ namespace BIMBaoGui.RevitAddin
       _stage02BView.StatusChanged += UpdateStageSummary;
       _stage03View = new NativeStage03View(_issueHub);
       _stage03View.StatusChanged += UpdateStageSummary;
+      _stage03View.NavigationRequested += Navigate;
       _issueCenterView = new NativeIssueCenterView(
         _issueHub,
-        NavigateToIssueSource,
+        Navigate,
         RequestIssueNavigation);
       _stageHost = new ContentControl { Content = _stage01View };
       Grid.SetRow(_stageHost, 2);
@@ -207,25 +208,26 @@ namespace BIMBaoGui.RevitAddin
       _stage01View.NavigateToField(fieldKey);
     }
 
-    private void NavigateToIssueSource(NativeIssueRecord issue)
+    private void Navigate(NativeIssueRecord issue)
     {
       if (issue == null) return;
       switch (issue.Route)
       {
         case NativeIssueNavigationAction.OpenStage01:
-          NavigateToField(issue.FieldKey);
+          ShowStage01();
+          _stage01View.NavigateToField(issue.FieldKey);
           break;
         case NativeIssueNavigationAction.OpenStage02A:
           ShowStage02();
+          _stage02View.NavigateToIssue(issue);
           break;
         case NativeIssueNavigationAction.OpenStage02B:
-          NavigateToMetric(issue.PropertyId);
-          break;
-        case NativeIssueNavigationAction.StayStage03:
-          ShowStage03();
+          ShowStage02B();
+          _stage02BView.NavigateToMetric(issue.PropertyId);
           break;
         default:
-          UpdateStageSummary("该问题没有可用的工作台定位目标");
+          ShowStage03();
+          _stage03View.NavigateToCheck(issue.CheckId);
           break;
       }
     }

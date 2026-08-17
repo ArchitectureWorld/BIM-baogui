@@ -278,6 +278,11 @@ namespace BIMBaoGui.RevitAddin.Stage02
 
     internal event Action<string> StatusChanged;
 
+    internal void NavigateToIssue(NativeIssueRecord issue)
+    {
+      NavigateToSource(issue);
+    }
+
     private void ScopeChanged()
     {
       if (_fullModel == null || _automatic == null) return;

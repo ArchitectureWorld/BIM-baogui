@@ -66,6 +66,32 @@ def test_stage03_report_region_has_fixed_height_and_internal_scroll():
     assert "TextWrapping = TextWrapping.Wrap" in view
 
 
+def test_stage03_checklist_has_fixed_columns_colours_and_recheck_contract():
+    view = read(STAGE03 / "NativeStage03View.cs")
+    models = read(STAGE03 / "NativeStage03Models.cs")
+    compiler = read(STAGE03 / "NativeStage03IssueCompiler.cs")
+    presentation = read(STAGE03 / "NativeStage03ChecklistPresentation.cs")
+    workspace = read(PROJECT / "WorkspaceControl.cs")
+
+    for column in (
+        "检查项名称", "来源阶段", "适用依据", "当前值", "状态", "问题说明", "处理入口"
+    ):
+        assert column in view
+    for colour in ("#FFE5E7EB", "#FFDCFCE7", "#FFFEE2E2", "#FFFEF3C7"):
+        assert colour in presentation
+    assert "复查该项" in view
+    assert "重新读取完整清单" in view
+    assert "FocusCheckId" in models
+    assert "FocusCheckId = focusCheckId" in view
+    assert "RequestStage03Scan" in view
+    assert "NativeStage03IssueCompiler.Compile" in view
+    assert "Navigate(NativeIssueRecord issue)" in workspace
+    assert "_stage02View.NavigateToIssue(issue)" in workspace
+    assert "NavigateToCheck(issue.CheckId)" in workspace
+    assert "item.Elements" in compiler
+    assert "item.ElementUniqueId" in compiler
+
+
 def test_installable_readme_matches_the_stage03_interaction_contract():
     readme = read(README)
     assert "强制测试模式不再要求填写原因" in readme
