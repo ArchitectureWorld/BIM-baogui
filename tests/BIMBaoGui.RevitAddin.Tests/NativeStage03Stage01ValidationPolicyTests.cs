@@ -100,10 +100,20 @@ namespace BIMBaoGui.RevitAddin.Tests
         classification.TechnicalFatalCodes,
         classification.BusinessBlockers,
         2);
+      NativeStage03GateDecision missingReason =
+        NativeStage03GatePolicy.Evaluate(
+          NativeStage03Mode.ForcedTest,
+          " ",
+          classification.TechnicalFatalCodes,
+          classification.BusinessBlockers,
+          2);
 
       Assert.True(decision.AllowExport);
       Assert.True(decision.Forced);
       Assert.Single(decision.BypassedBusinessBlockers);
+      Assert.False(missingReason.AllowExport);
+      Assert.Contains(NativeStage03Codes.ForceReasonRequired,
+        missingReason.Blockers);
     }
 
     [Fact]

@@ -19,7 +19,7 @@ def test_stage03_workspace_is_real_and_exposes_manual_ifcflux_flow():
         "重新校验结果",
         "打开导出位置文件夹",
         "严格模式",
-        "强制测试模式",
+        "测试强制导出（不会计为正常通过）",
         "IFCFlux",
     ):
         assert label in view
@@ -28,13 +28,16 @@ def test_stage03_workspace_is_real_and_exposes_manual_ifcflux_flow():
     assert "_stage03Placeholder" not in workspace
 
 
-def test_stage03_output_directory_is_model_scoped_and_force_reason_ui_is_removed():
+def test_stage03_output_directory_is_model_scoped_and_force_reason_is_required_for_test_export():
     view = read(STAGE03 / "NativeStage03View.cs")
     store = read(STAGE03 / "NativeStage03OutputDirectoryStore.cs")
     workspace = read(PROJECT / "WorkspaceControl.cs")
 
-    assert "强制原因" not in view
-    assert "_forceReason" not in view
+    assert "测试强制导出（不会计为正常通过）" in view
+    assert "强制原因（必填）" in view
+    assert "_forceReason" in view
+    assert "ForceReason = _forceReason.Text" in view
+    assert "NativeStage03UiStatePolicy.CanExport" in view
     assert "BIMBaoGui_HIFC_Output" not in view
     assert "ApplyDocumentPath" in view
     assert "_stage03View.ApplyDocumentPath" in workspace
@@ -97,7 +100,8 @@ def test_stage03_checklist_has_fixed_columns_colours_and_recheck_contract():
 
 def test_installable_readme_matches_the_stage03_interaction_contract():
     readme = read(README)
-    assert "强制测试模式不再要求填写原因" in readme
+    assert "测试强制导出（不会计为正常通过）" in readme
+    assert "强制原因（必填）" in readme
     assert "按 Revit 模型规范化完整路径分别保存" in readme
     assert "stage03-output-directories.json" in readme
     assert "打开导出位置文件夹" in readme

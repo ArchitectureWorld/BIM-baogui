@@ -14,6 +14,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
   internal sealed class NativeStage03View : UserControl
   {
     private readonly TextBox _outputDirectory;
+    private readonly TextBox _forceReason;
     private readonly NativeStage03OutputDirectoryStore _outputDirectoryStore;
     private readonly NativeIssueHub _issueHub;
     private readonly RadioButton _strictMode;
@@ -95,6 +96,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
       settings.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
       settings.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
       settings.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+      settings.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
       var outputLabel = Label("输出目录");
       Grid.SetRow(outputLabel, 0);
@@ -130,7 +132,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
       };
       _forcedMode = new RadioButton
       {
-        Content = "强制测试模式",
+        Content = "测试强制导出（不会计为正常通过）",
         Margin = new Thickness(0, 0, 18, 0)
       };
       _strictMode.Checked += (_, __) => ApplyModeState();
@@ -141,6 +143,23 @@ namespace BIMBaoGui.RevitAddin.Stage03
       Grid.SetColumn(modes, 1);
       Grid.SetColumnSpan(modes, 2);
       settings.Children.Add(modes);
+
+      var forceReasonLabel = Label("强制原因（必填）");
+      Grid.SetRow(forceReasonLabel, 2);
+      Grid.SetColumn(forceReasonLabel, 0);
+      settings.Children.Add(forceReasonLabel);
+      _forceReason = new TextBox
+      {
+        MinWidth = 360,
+        Margin = new Thickness(8, 3, 8, 3),
+        Padding = new Thickness(7, 5, 7, 5),
+        IsEnabled = false
+      };
+      _forceReason.TextChanged += (_, __) => ApplyForceReasonState();
+      Grid.SetRow(_forceReason, 2);
+      Grid.SetColumn(_forceReason, 1);
+      Grid.SetColumnSpan(_forceReason, 2);
+      settings.Children.Add(_forceReason);
 
       Grid.SetRow(settings, 1);
       root.Children.Add(settings);
@@ -220,6 +239,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
       Grid.SetRow(statusScroll, 4);
       root.Children.Add(statusScroll);
       Content = root;
+      ApplyModeState();
       RenderChecklist();
     }
 
@@ -252,9 +272,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
     private void RequestScan(string focusCheckId)
     {
       if (_busy) return;
-      NativeStage03Mode mode = _forcedMode.IsChecked == true
-        ? NativeStage03Mode.ForcedTest
-        : NativeStage03Mode.Strict;
+      NativeStage03Mode mode = CurrentMode();
       _focusCheckId = focusCheckId ?? string.Empty;
       _scan = null;
       _lastResult = null;
@@ -265,7 +283,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
           new NativeStage03ScanRequest
           {
             Mode = mode,
-            ForceReason = string.Empty,
+            ForceReason = _forceReason.Text ?? string.Empty,
             OutputDirectory = _outputDirectory.Text ?? string.Empty,
             FocusCheckId = focusCheckId
           },
@@ -281,9 +299,9 @@ namespace BIMBaoGui.RevitAddin.Stage03
     private void RequestExport()
     {
       if (_busy || _scan == null || !_scan.AllowExport) return;
-      if (!NativeStage03OutputDirectoryStore.TryNormalizeOutputDirectory(
-        _outputDirectory.Text,
-        out string output))
+      string output = _scan.NormalizedOutputDirectory;
+      if (string.IsNullOrWhiteSpace(output)
+        || !Path.IsPathRooted(output))
       {
         SetStatus("Stage03 输出目录必须是绝对路径。" );
         return;
@@ -337,7 +355,9 @@ namespace BIMBaoGui.RevitAddin.Stage03
       }
       SetBusy(false, string.Empty);
       _scan = result;
-      _exportButton.IsEnabled = result != null && result.AllowExport;
+      _exportButton.IsEnabled = NativeStage03UiStatePolicy.CanExport(
+        CurrentMode(), _forceReason.Text, _busy,
+        result != null && result.AllowExport);
       if (!string.IsNullOrWhiteSpace(result?.DocumentPath))
         ApplyDocumentPath(result.DocumentPath);
       PublishChecklistIssues(result);
@@ -721,20 +741,40 @@ namespace BIMBaoGui.RevitAddin.Stage03
       _lastResult = null;
       _exportButton.IsEnabled = false;
       _revalidateButton.IsEnabled = false;
+      _forceReason.IsEnabled = !_busy
+        && CurrentMode() == NativeStage03Mode.ForcedTest;
       UpdateOutputDirectoryButtonState();
       RenderChecklist();
+    }
+
+    private void ApplyForceReasonState()
+    {
+      if (_scan != null && !string.Equals(
+        _scan.ForceReason,
+        _forceReason.Text ?? string.Empty,
+        StringComparison.Ordinal))
+      {
+        _scan = null;
+      }
+      _exportButton.IsEnabled = NativeStage03UiStatePolicy.CanExport(
+        CurrentMode(), _forceReason.Text, _busy,
+        _scan != null && _scan.AllowExport);
     }
 
     private void SetBusy(bool busy, string status)
     {
       _busy = busy;
-      _scanButton.IsEnabled = !busy;
-      _exportButton.IsEnabled = !busy && _scan != null && _scan.AllowExport;
+      _scanButton.IsEnabled = NativeStage03UiStatePolicy.CanScan(busy);
+      _exportButton.IsEnabled = NativeStage03UiStatePolicy.CanExport(
+        CurrentMode(), _forceReason.Text, busy,
+        _scan != null && _scan.AllowExport);
       _revalidateButton.IsEnabled = !busy && _lastResult?.Paths != null
         && File.Exists(_lastResult.Paths.FinalIfcPath);
       _strictMode.IsEnabled = !busy;
       _forcedMode.IsEnabled = !busy;
       _outputDirectory.IsEnabled = !busy;
+      _forceReason.IsEnabled = !busy
+        && CurrentMode() == NativeStage03Mode.ForcedTest;
       _problemsOnly.IsEnabled = !busy;
       UpdateOutputDirectoryButtonState();
       if (!string.IsNullOrWhiteSpace(status)) SetStatus(status);
@@ -798,6 +838,13 @@ namespace BIMBaoGui.RevitAddin.Stage03
       StatusChanged?.Invoke(status ?? string.Empty);
     }
 
+    private NativeStage03Mode CurrentMode()
+    {
+      return _forcedMode.IsChecked == true
+        ? NativeStage03Mode.ForcedTest
+        : NativeStage03Mode.Strict;
+    }
+
     private static TextBlock Label(string text)
     {
       return new TextBlock
@@ -841,6 +888,26 @@ namespace BIMBaoGui.RevitAddin.Stage03
       public string IssueMessage => Empty(Check.IssueMessage);
       public string ActionText => Check.Status == NativeStage03ChecklistStatus.Failed
         || Check.Status == NativeStage03ChecklistStatus.Warning ? "处理/复查" : "—";
+    }
+  }
+
+  internal static class NativeStage03UiStatePolicy
+  {
+    internal static bool CanScan(bool busy)
+    {
+      return !busy;
+    }
+
+    internal static bool CanExport(
+      NativeStage03Mode mode,
+      string forceReason,
+      bool busy,
+      bool scanAllowsExport)
+    {
+      return !busy
+        && scanAllowsExport
+        && (mode != NativeStage03Mode.ForcedTest
+          || !string.IsNullOrWhiteSpace(forceReason));
     }
   }
 }

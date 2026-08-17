@@ -87,6 +87,7 @@ namespace BIMBaoGui.McpContracts
   {
     public string Mode { get; set; } = "strict";
     public string ForceReason { get; set; } = string.Empty;
+    public string OutputDirectory { get; set; } = string.Empty;
   }
 
   public sealed class Stage03ExportCommand : RevitSessionSelector

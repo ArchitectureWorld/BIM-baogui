@@ -41,18 +41,40 @@ def test_stage03_bridge_routes_to_same_native_workflow():
     assert "NativeStage03WorkflowService.Execute" in dispatcher
 
 
-def test_stage03_write_requires_confirm_scan_hash_and_output_but_not_force_reason():
+def test_stage03_scan_carries_force_reason_and_output_then_export_consumes_lease():
     tools = read(SERVER / "BimBaoGuiTools.cs")
     adapter = read(ADDIN / "McpBridge" / "McpStage03Adapter.cs")
     router = read(ADDIN / "McpBridge" / "McpBridgeCommandRouter.cs")
     assert "scan_hash" in tools
     assert "output_directory" in tools
     assert "confirm" in tools
-    assert "force_reason" not in tools
-    assert "force_reason" not in router
+    assert "force_reason" in tools
+    assert "new { mode, force_reason, output_directory }" in tools
+    assert "force_reason" in router
+    assert "output_directory" in router
     assert "ConfirmationRequired" in adapter
-    assert "forced_test 必须提供非空 force_reason" not in adapter
-    assert "ForceReason = string.Empty" in adapter
+    assert "ForceReason = forceReason" in adapter
+    assert "OutputDirectory = outputDirectory" in adapter
+    assert "ShouldCreateLease(result)" in adapter
+
+
+def test_stage03_mcp_projection_is_explicit_and_has_no_fixed_property_table():
+    adapter = read(ADDIN / "McpBridge" / "McpStage03Adapter.cs")
+    for key in (
+        "normalized_output_directory",
+        "preflight_hash",
+        "official_acceptance_manifest",
+        "official_acceptance_revit_readbacks",
+        "checklist_counts",
+        "checklist",
+        "is_test_export",
+        "counts_as_normal_export_pass",
+        "official_acceptance_status",
+    ):
+        assert f'["{key}"]' in adapter
+    assert "manifest?.Properties" in adapter
+    assert "result?.OfficialAcceptanceRevitReadbacks" in adapter
+    assert "result?.Checklist" in adapter
 
 
 def test_stage03_does_not_expose_arbitrary_revit_execution():

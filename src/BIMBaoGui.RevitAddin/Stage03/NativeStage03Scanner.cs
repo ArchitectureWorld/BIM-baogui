@@ -336,7 +336,42 @@ namespace BIMBaoGui.RevitAddin.Stage03
           .ToArray())
       };
       result.ScanHash = NativeStage03Canonicalizer.ComputeHash(result);
+      if (preflight.OutputDirectoryWritable)
+        FinalizeScanEvidence(result);
       return result;
+    }
+
+    internal static void FinalizeScanEvidence(NativeStage03ScanResult result)
+    {
+      if (result == null) throw new ArgumentNullException(nameof(result));
+      try
+      {
+        NativeStage03ReportWriter.WriteScanEvidence(result);
+      }
+      catch (Exception exception)
+      {
+        string detailCode = exception is NativeStage03ReportException report
+          ? report.Code
+          : NativeStage03Codes.ReportWriterUnavailable;
+        result.TechnicalFatalCodes = Freeze(
+          (result.TechnicalFatalCodes ?? Array.Empty<string>())
+          .Concat(new[]
+          {
+            detailCode,
+            NativeStage03Codes.ReportWriterUnavailable
+          }));
+        result.Messages = Freeze((result.Messages ?? Array.Empty<string>())
+          .Concat(new[]
+          {
+            "BLOCKER：" + detailCode,
+            "Stage03 scan evidence 写入失败：" + exception.Message
+          }));
+        result.Success = false;
+        result.AllowExport = false;
+        result.Forced = false;
+        result.Status = "Stage03 预检阻断";
+        result.ScanHash = NativeStage03Canonicalizer.ComputeHash(result);
+      }
     }
 
     private static NativeWorkflowResultEnvelope ReadWorkflowResult(

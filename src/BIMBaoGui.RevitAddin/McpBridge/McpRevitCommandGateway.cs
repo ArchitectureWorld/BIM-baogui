@@ -7,7 +7,7 @@ using BIMBaoGui.RevitAddin.Stage03;
 
 namespace BIMBaoGui.RevitAddin.McpBridge
 {
-  internal sealed class McpRevitCommandGateway
+  internal sealed class McpRevitCommandGateway : IMcpStage03Gateway
   {
     internal Task<CurrentDocumentSnapshot> GetDocumentStatusAsync(
       CancellationToken cancellationToken)
@@ -150,6 +150,34 @@ namespace BIMBaoGui.RevitAddin.McpBridge
         completion.TrySetException(exception);
       }
       return completion.Task;
+    }
+
+    Task<NativeStage03ScanResult> IMcpStage03Gateway.ScanStage03Async(
+      NativeStage03ScanRequest request,
+      CancellationToken cancellationToken)
+    {
+      return ScanStage03Async(request, cancellationToken);
+    }
+
+    Task<NativeStage03ExecutionResult> IMcpStage03Gateway.ExportStage03Async(
+      NativeStage03ExportRequest request,
+      CancellationToken cancellationToken)
+    {
+      return ExportStage03Async(request, cancellationToken);
+    }
+
+    Task<CurrentDocumentSnapshot> IMcpStage03Gateway.GetDocumentStatusAsync(
+      CancellationToken cancellationToken)
+    {
+      return GetDocumentStatusAsync(cancellationToken);
+    }
+
+    Task<NativeStage03ExecutionResult>
+      IMcpStage03Gateway.RevalidateStage03Async(
+        string ifcPath,
+        CancellationToken cancellationToken)
+    {
+      return RevalidateStage03Async(ifcPath, cancellationToken);
     }
   }
 }

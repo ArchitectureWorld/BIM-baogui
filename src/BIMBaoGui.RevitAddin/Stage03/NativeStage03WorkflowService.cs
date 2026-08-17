@@ -142,6 +142,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
               "candidate：" + translation.CandidateIfcPath
             }
           };
+          NativeStage03ExecutionIdentityPolicy.Apply(current, failed);
           NativeStage03SessionStore.StoreResult(current, failed);
           return failed;
         }
@@ -176,17 +177,19 @@ namespace BIMBaoGui.RevitAddin.Stage03
             "验收清单：" + paths.IfcFluxChecklistPath
           }
         };
+        NativeStage03ExecutionIdentityPolicy.Apply(current, result);
         NativeStage03SessionStore.StoreResult(current, result);
         return result;
       }
       catch (Exception exception)
       {
+        string failureCode = ExecutionFailureCode(exception);
         try
         {
           NativeStage03ReportWriter.WriteFailure(
             paths,
             current,
-            "STAGE03_EXECUTION_FAILED",
+            failureCode,
             exception.Message,
             exception,
             raw,
@@ -197,12 +200,21 @@ namespace BIMBaoGui.RevitAddin.Stage03
         }
         var failed = Failure(
           paths,
-          "STAGE03_EXECUTION_FAILED",
+          failureCode,
           exception.Message,
           exception);
+        NativeStage03ExecutionIdentityPolicy.Apply(current, failed);
         NativeStage03SessionStore.StoreResult(current, failed);
         return failed;
       }
+    }
+
+    internal static string ExecutionFailureCode(Exception exception)
+    {
+      return exception is NativeStage03ReportException report
+        && !string.IsNullOrWhiteSpace(report.Code)
+          ? report.Code
+          : "STAGE03_EXECUTION_FAILED";
     }
 
     internal static NativeStage03ExecutionResult RevalidateFile(

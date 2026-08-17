@@ -94,7 +94,7 @@ Stage03 已形成可供实际测试的完整内部链路：
 
 ```text
 当前 Revit 模型和固定 GUID 参数现场扫描
-→ 严格模式 / 强制测试模式门禁
+→ 严格模式 / 有理由的测试强制导出门禁
 → Autodesk IFC4 RAW 导出
 → H-IFC 属性集与属性补全
 → STEP 语法复读
@@ -107,9 +107,11 @@ Stage03 已形成可供实际测试的完整内部链路：
 
 严格模式是默认模式。存在技术阻断、载体不明确、字段未就绪、Owner 无法唯一确定、值或类型不符合规则时，不生成正式 H-IFC。
 
-## 强制测试模式
+## 测试强制导出
 
-强制测试模式不再要求填写原因。它只允许跳过可诊断的业务阻断，不允许跳过 Revit 版本错误、文档不可用、Stage01 未初始化、项目条件未声明、RAW 导出失败、STEP 解析失败或 Owner 无法安全确定等技术错误。人工工作台和 MCP `bimbaogui_stage03_scan` 均不再提供 `force_reason` 输入。
+人工工作台显示“测试强制导出（不会计为正常通过）”，选中后必须填写“强制原因（必填）”。它只允许跳过可诊断的业务阻断，不允许跳过 Revit 版本错误、文档不可用、Stage01 未初始化、项目条件未声明、RAW 导出失败、STEP 解析失败或 Owner 无法安全确定等技术错误。MCP `bimbaogui_stage03_scan` 同样必须为 `forced_test` 传入非空 `force_reason`。
+
+测试强制导出成功仍固定记录 `is_test_export=true`、`counts_as_normal_export_pass=false` 和 `official_acceptance_status=PENDING`，不会把红色 checklist 改成正常通过。
 
 强制测试文件名包含：
 
@@ -139,9 +141,11 @@ Stage03 读取当前已保存的 Revit 模型后，导出根目录默认设为�
 *_RAW.ifc
 *_HIFC.ifc 或 *_FORCED_TEST_HIFC.ifc
 *_fields.json
-*_validation.json
+<scan_hash>-validation.json
 *_IFCFlux_checklist.md
 ```
+
+每次完成求值且报告目录可写的扫描，还会在导出根目录生成 `<scan_hash>-stage03-scan-evidence.json`；业务红项阻止导出时也保留该扫描证据。同名文件只在字节完全一致时复用，不一致时拒绝覆盖。
 
 失败时保留 RAW IFC、candidate/quarantine 和 `*_failure.json`，用于定位 STEP、Owner、Pset、Property、类型或发布阶段错误。
 

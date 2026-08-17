@@ -41,6 +41,9 @@ namespace BIMBaoGui.RevitAddin.Stage03
     internal const string TranslatorDependencyUnavailable =
       "TRANSLATOR_DEPENDENCY_UNAVAILABLE";
     internal const string ReportWriterUnavailable = "REPORT_WRITER_UNAVAILABLE";
+    internal const string UnsavedDocument = "UNSAVED_DOCUMENT";
+    internal const string RuntimeArtifactChanged = "RUNTIME_ARTIFACT_CHANGED";
+    internal const string ScanEvidenceCollision = "SCAN_EVIDENCE_COLLISION";
   }
 
   internal sealed class NativeStage03GateDecision
@@ -80,6 +83,9 @@ namespace BIMBaoGui.RevitAddin.Stage03
           BypassedBusinessBlockers = Array.Empty<string>()
         };
       }
+
+      if (string.IsNullOrWhiteSpace(forceReason))
+        blockers.Add(NativeStage03Codes.ForceReasonRequired);
 
       return new NativeStage03GateDecision
       {
@@ -316,9 +322,48 @@ namespace BIMBaoGui.RevitAddin.Stage03
     internal NativeStage03RunPaths Paths { get; set; }
     internal string RawIfcSha256 { get; set; } = string.Empty;
     internal string FinalIfcSha256 { get; set; } = string.Empty;
+    internal bool IsTestExport { get; set; }
+    internal bool CountsAsNormalExportPass { get; set; }
+    internal string OfficialAcceptanceStatus { get; set; } = "PENDING";
+    internal NativeOfficialAcceptanceManifest OfficialAcceptanceManifest
+    {
+      get;
+      set;
+    }
+    internal IReadOnlyList<NativeOfficialAcceptancePropertyReadback>
+      OfficialAcceptanceRevitReadbacks { get; set; } =
+        Array.Empty<NativeOfficialAcceptancePropertyReadback>();
+    internal IReadOnlyList<NativeStage03ChecklistItem> Checklist { get; set; } =
+      Array.Empty<NativeStage03ChecklistItem>();
     internal IReadOnlyList<NativeStage03FieldEvidence> Fields { get; set; } =
       Array.Empty<NativeStage03FieldEvidence>();
     internal IReadOnlyList<string> Messages { get; set; } =
       Array.Empty<string>();
+  }
+
+  internal static class NativeStage03ExecutionIdentityPolicy
+  {
+    internal static void Apply(
+      NativeStage03ScanResult scan,
+      NativeStage03ExecutionResult execution)
+    {
+      if (scan == null) throw new ArgumentNullException(nameof(scan));
+      if (execution == null)
+        throw new ArgumentNullException(nameof(execution));
+      bool isTest = scan.Mode == NativeStage03Mode.ForcedTest;
+      execution.IsTestExport = isTest;
+      execution.CountsAsNormalExportPass = execution.Success
+        && !isTest
+        && scan.FailedCount == 0
+        && scan.NotCheckedCount == 0
+        && (scan.TechnicalFatalCodes?.Count ?? 0) == 0;
+      execution.OfficialAcceptanceStatus = "PENDING";
+      execution.OfficialAcceptanceManifest = scan.OfficialAcceptanceManifest;
+      execution.OfficialAcceptanceRevitReadbacks =
+        scan.OfficialAcceptanceRevitReadbacks
+        ?? Array.Empty<NativeOfficialAcceptancePropertyReadback>();
+      execution.Checklist = scan.Checklist
+        ?? Array.Empty<NativeStage03ChecklistItem>();
+    }
   }
 }
