@@ -42,25 +42,78 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
-    public void CrossPropertyCarrierOrProbeIsFailClosedPerProperty()
+    public void EmptyCarrierAndProbeRefsCannotUpgradeVerifiedInputs()
     {
-      NativeStage02BMetricDefinition metric = Metric(
-        "201a00ac-3672-5ded-83d2-ed96f81bfabf");
+      NativeStage02BMetricDefinition metric = VerifiedMetric(
+        "201a00ac-3672-5ded-83d2-ed96f81bfabf", string.Empty, string.Empty);
       var carrier = new NativeOfficialProjectionCarrierDefinition
       {
-        CarrierId = "carrier-other", PropertyId = "93e51676-237e-56a8-8f28-2da845422e2e"
+        CarrierId = string.Empty, PropertyId = metric.PropertyId
       };
       var probe = new NativeOfficialCarrierProbeRecord
       {
-        ProbeId = "probe-other", PropertyId = "93e51676-237e-56a8-8f28-2da845422e2e"
+        ProbeId = string.Empty, PropertyId = metric.PropertyId
       };
 
       NativeStage02BOwnerDecision decision = NativeStage02BOwnerPolicy.Resolve(
-        metric, Policy("IfcSite"), carrier, probe, null);
+        metric, VerifiedPolicy("IfcSite"), carrier, probe, null);
 
       Assert.Equal(NativeOfficialCarrierEvidenceStatus.PendingGoldenRvt,
         decision.OfficialCarrierStatus);
       Assert.Equal("OFFICIAL_CARRIER_PENDING_GOLDEN_RVT", decision.Code);
+    }
+
+    [Theory]
+    [InlineData("wrong-carrier", "expected-probe", "201a00ac-3672-5ded-83d2-ed96f81bfabf", "201a00ac-3672-5ded-83d2-ed96f81bfabf")]
+    [InlineData("expected-carrier", "wrong-probe", "201a00ac-3672-5ded-83d2-ed96f81bfabf", "201a00ac-3672-5ded-83d2-ed96f81bfabf")]
+    [InlineData("expected-carrier", "expected-probe", "93e51676-237e-56a8-8f28-2da845422e2e", "201a00ac-3672-5ded-83d2-ed96f81bfabf")]
+    [InlineData("expected-carrier", "expected-probe", "201a00ac-3672-5ded-83d2-ed96f81bfabf", "93e51676-237e-56a8-8f28-2da845422e2e")]
+    public void VerifiedInputsWithBrokenCarrierOrProbeForeignKeyRemainPending(
+      string carrierId,
+      string probeId,
+      string carrierPropertyId,
+      string probePropertyId)
+    {
+      NativeStage02BMetricDefinition metric = VerifiedMetric(
+        "201a00ac-3672-5ded-83d2-ed96f81bfabf",
+        "expected-carrier", "expected-probe");
+      var carrier = new NativeOfficialProjectionCarrierDefinition
+      {
+        CarrierId = carrierId, PropertyId = carrierPropertyId
+      };
+      var probe = new NativeOfficialCarrierProbeRecord
+      {
+        ProbeId = probeId, PropertyId = probePropertyId
+      };
+
+      NativeStage02BOwnerDecision decision = NativeStage02BOwnerPolicy.Resolve(
+        metric, VerifiedPolicy("IfcSite"), carrier, probe, null);
+
+      Assert.Equal(NativeOfficialCarrierEvidenceStatus.PendingGoldenRvt,
+        decision.OfficialCarrierStatus);
+      Assert.Equal("OFFICIAL_CARRIER_PENDING_GOLDEN_RVT", decision.Code);
+    }
+
+    [Fact]
+    public void CompleteFutureEvidenceForTheSamePropertyCanBeVerified()
+    {
+      NativeStage02BMetricDefinition metric = VerifiedMetric(
+        "201a00ac-3672-5ded-83d2-ed96f81bfabf",
+        "carrier-future", "probe-future");
+      var carrier = new NativeOfficialProjectionCarrierDefinition
+      {
+        CarrierId = "carrier-future", PropertyId = metric.PropertyId
+      };
+      var probe = new NativeOfficialCarrierProbeRecord
+      {
+        ProbeId = "probe-future", PropertyId = metric.PropertyId
+      };
+
+      NativeStage02BOwnerDecision decision = NativeStage02BOwnerPolicy.Resolve(
+        metric, VerifiedPolicy("IfcSite"), carrier, probe, null);
+
+      Assert.Equal(NativeOfficialCarrierEvidenceStatus.Verified,
+        decision.OfficialCarrierStatus);
     }
 
     private static NativeStage02BMetricDefinition Metric(string propertyId)
@@ -76,6 +129,32 @@ namespace BIMBaoGui.RevitAddin.Tests
         IfcEntity = ifcEntity,
         EvidenceStatus = NativeOfficialCarrierEvidenceStatus.PendingGoldenRvt
       };
+    }
+
+    private static NativeStage02BMetricDefinition VerifiedMetric(
+      string propertyId,
+      string carrierId,
+      string probeId)
+    {
+      NativeStage02BMetricDefinition metric = Metric(propertyId);
+      return new NativeStage02BMetricDefinition
+      {
+        PropertyId = metric.PropertyId,
+        Identity = metric.Identity,
+        Sequence = metric.Sequence,
+        Source = metric.Source,
+        Property = metric.Property,
+        OfficialCarrierStatus = NativeOfficialCarrierEvidenceStatus.Verified,
+        OfficialProjectionCarrierId = carrierId,
+        OfficialCarrierProbeRef = probeId
+      };
+    }
+
+    private static NativeOfficialCarrierPolicy VerifiedPolicy(string ifcEntity)
+    {
+      NativeOfficialCarrierPolicy policy = Policy(ifcEntity);
+      policy.EvidenceStatus = NativeOfficialCarrierEvidenceStatus.Verified;
+      return policy;
     }
   }
 }

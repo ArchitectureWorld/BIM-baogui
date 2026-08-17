@@ -1,3 +1,5 @@
+using System.Linq;
+using BIMBaoGui.RevitAddin.Rules;
 using BIMBaoGui.RevitAddin.Stage02B;
 using BIMBaoGui.RevitAddin.Workflow;
 using Xunit;
@@ -32,23 +34,68 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
-    public void ExportRequiresPropertyScopedVerifiedCarrierAndProbe()
+    public void ExportRejectsVerifiedRecordWithRefsOutsideItsCatalogProperty()
     {
+      NativeStage02BMetricDefinition metric = NativeStage02BMetricCatalog.Current
+        .MetricsFor("总平模型")
+        .Single(value => value.PropertyId == "201a00ac-3672-5ded-83d2-ed96f81bfabf");
       NativeStage02BMetricRecord record = NativeStage02BCanonicalizer.SealRecord(
-        NativeStage02BCanonicalizerTests.Record("property-a"));
-      record.OfficialCarrierStatus =
-        BIMBaoGui.RevitAddin.Rules.NativeOfficialCarrierEvidenceStatus.Verified;
-      record.OfficialProjectionCarrierId = "carrier-a";
-      record.OfficialCarrierProbeRef = "probe-a";
-      record = NativeStage02BCanonicalizer.SealRecord(record);
+        new NativeStage02BMetricRecord
+        {
+          PropertyId = metric.PropertyId,
+          Identity = metric.Identity,
+          RequestedCanonicalValue = "1.2",
+          LastSuccessfulCanonicalValue = "1.2",
+          LastAttemptRunId = "run-current",
+          LastSuccessfulRunId = "run-current",
+          WriteStatus = "SUCCEEDED",
+          ReadbackStatus = "SUCCEEDED",
+          OfficialCarrierStatus = NativeOfficialCarrierEvidenceStatus.Verified,
+          OfficialProjectionCarrierId = "not-a-catalog-carrier",
+          OfficialCarrierProbeRef = "not-a-catalog-probe",
+          IdentityContext = NativeStage02BCanonicalizerTests.Identity()
+        });
 
       NativeStage02BCurrentResultDecision decision =
         NativeStage02BCurrentResultPolicy.Evaluate(
           record, NativeStage02BCanonicalizerTests.Identity());
 
       Assert.True(decision.Current);
-      Assert.True(decision.ExportReady);
+      Assert.False(decision.ExportReady);
       Assert.Equal("1.2", decision.CurrentCanonicalValue);
+    }
+
+    [Fact]
+    public void AllCurrentActualMetricsRemainNotExportReadyWithoutCatalogEvidence()
+    {
+      foreach (NativeStage02BMetricDefinition metric in NativeStage02BMetricCatalog
+        .Current.MetricsFor("总平模型"))
+      {
+        NativeStage02BMetricRecord record = NativeStage02BCanonicalizer.SealRecord(
+          new NativeStage02BMetricRecord
+          {
+            PropertyId = metric.PropertyId,
+            Identity = metric.Identity,
+            RequestedCanonicalValue = "1.2",
+            LastSuccessfulCanonicalValue = "1.2",
+            LastAttemptRunId = "run-current",
+            LastSuccessfulRunId = "run-current",
+            WriteStatus = "SUCCEEDED",
+            ReadbackStatus = "SUCCEEDED",
+            OfficialCarrierStatus = NativeOfficialCarrierEvidenceStatus.Verified,
+            OfficialProjectionCarrierId = "cross-property-carrier",
+            OfficialCarrierProbeRef = "cross-property-probe",
+            IdentityContext = NativeStage02BCanonicalizerTests.Identity()
+          });
+
+        NativeStage02BCurrentResultDecision decision =
+          NativeStage02BCurrentResultPolicy.Evaluate(
+            record, NativeStage02BCanonicalizerTests.Identity());
+
+        Assert.True(decision.Current);
+        Assert.False(decision.ExportReady);
+        Assert.Equal("CURRENT_PROPERTY_EVIDENCE_UNRESOLVED", decision.Code);
+      }
     }
   }
 }

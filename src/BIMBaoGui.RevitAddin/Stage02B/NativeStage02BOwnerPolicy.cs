@@ -73,6 +73,10 @@ namespace BIMBaoGui.RevitAddin.Stage02B
       if (metric.OfficialCarrierStatus != NativeOfficialCarrierEvidenceStatus.Verified
         || carrierPolicy.EvidenceStatus != NativeOfficialCarrierEvidenceStatus.Verified
         || carrier == null || probe == null
+        || string.IsNullOrWhiteSpace(metric.OfficialProjectionCarrierId)
+        || string.IsNullOrWhiteSpace(metric.OfficialCarrierProbeRef)
+        || string.IsNullOrWhiteSpace(carrier.CarrierId)
+        || string.IsNullOrWhiteSpace(probe.ProbeId)
         || !string.Equals(carrier.CarrierId,
           metric.OfficialProjectionCarrierId, StringComparison.Ordinal)
         || !string.Equals(probe.ProbeId,
