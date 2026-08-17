@@ -523,6 +523,154 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
+    public void Contains_rejects_an_open_segment_outside_between_boundary_endpoints()
+    {
+      var subject = new NativeStage02ElementSnapshot
+      {
+        DocumentFingerprint = "doc",
+        UniqueId = "subject-touching-notch",
+        ElementId = 1,
+        Category = "OST_BuildingPad",
+        ElementKind = "BuildingPad",
+        AssignedRoleId = "SITE_GREEN_OBJECT",
+        IsModelElement = true,
+        Geometry = new NativeStage02GeometryEvidence
+        {
+          PlanarLoopsMetres = new IReadOnlyList<double>[]
+          {
+            new double[] { 1, 4, 3, 4, 2, 0.5, 1, 4 }
+          },
+          EvidenceHash = new string('1', 64)
+        }
+      };
+      var reference = new NativeStage02ElementSnapshot
+      {
+        DocumentFingerprint = "doc",
+        UniqueId = "reference-u",
+        ElementId = 2,
+        Category = "OST_BuildingPad",
+        ElementKind = "BuildingPad",
+        AssignedRoleId = "SITE_NET_LAND",
+        IsModelElement = true,
+        Geometry = new NativeStage02GeometryEvidence
+        {
+          PlanarLoopsMetres = new IReadOnlyList<double>[]
+          {
+            new double[]
+            {
+              0, 0, 4, 0, 4, 4, 3, 4, 3, 1,
+              1, 1, 1, 4, 0, 4, 0, 0
+            }
+          },
+          EvidenceHash = new string('2', 64)
+        }
+      };
+
+      NativeStage02TaskGeometryEvaluation result =
+        NativeStage02GeometryEvidencePolicy.Evaluate(
+          new NativeTaskDefinition
+          {
+            TaskId = "SITE.GREEN",
+            GeometryChecks = new[] { "绿地不越界" }
+          },
+          subject,
+          subject.Geometry,
+          new Dictionary<Guid, NativeStage02ParameterEvidence>(),
+          new NativeStage02GeometryEvaluationContext
+          {
+            Identity = new NativeWorkflowIdentity
+            {
+              DocumentFingerprint = "doc",
+              ModelFileType = "总平模型",
+              RulePackageId = "HBR-WUHAN-PLANNING",
+              RulePackageVersion = "1.0.0",
+              RulePackageSha256 = new string('a', 64)
+            },
+            ConfirmedElements = new[] { subject, reference },
+            ManualReviews = Array.Empty<NativeStage02ManualReviewRecord>(),
+            ScopeComplete = true
+          });
+
+      NativeStage02GeometryCheckEvidence check = Assert.Single(result.Checks);
+      Assert.Equal(NativeStage02GeometryCheckState.Failed, check.State);
+      Assert.Equal("GEOMETRY_BOUNDARY_CROSSING", check.Code);
+    }
+
+    [Fact]
+    public void Contains_rejects_an_outside_segment_with_only_boundary_endpoint_contacts()
+    {
+      var subject = new NativeStage02ElementSnapshot
+      {
+        DocumentFingerprint = "doc",
+        UniqueId = "subject-boundary-endpoints",
+        ElementId = 1,
+        Category = "OST_BuildingPad",
+        ElementKind = "BuildingPad",
+        AssignedRoleId = "SITE_GREEN_OBJECT",
+        IsModelElement = true,
+        Geometry = new NativeStage02GeometryEvidence
+        {
+          PlanarLoopsMetres = new IReadOnlyList<double>[]
+          {
+            new double[] { 1, 4, 3, 4, 3, 1, 1, 1, 1, 4 }
+          },
+          EvidenceHash = new string('1', 64)
+        }
+      };
+      var reference = new NativeStage02ElementSnapshot
+      {
+        DocumentFingerprint = "doc",
+        UniqueId = "reference-u-endpoints",
+        ElementId = 2,
+        Category = "OST_BuildingPad",
+        ElementKind = "BuildingPad",
+        AssignedRoleId = "SITE_NET_LAND",
+        IsModelElement = true,
+        Geometry = new NativeStage02GeometryEvidence
+        {
+          PlanarLoopsMetres = new IReadOnlyList<double>[]
+          {
+            new double[]
+            {
+              0, 0, 4, 0, 4, 4, 3, 4, 3, 1,
+              1, 1, 1, 4, 0, 4, 0, 0
+            }
+          },
+          EvidenceHash = new string('2', 64)
+        }
+      };
+
+      NativeStage02TaskGeometryEvaluation result =
+        NativeStage02GeometryEvidencePolicy.Evaluate(
+          new NativeTaskDefinition
+          {
+            TaskId = "SITE.GREEN",
+            GeometryChecks = new[] { "绿地不越界" }
+          },
+          subject,
+          subject.Geometry,
+          new Dictionary<Guid, NativeStage02ParameterEvidence>(),
+          new NativeStage02GeometryEvaluationContext
+          {
+            Identity = new NativeWorkflowIdentity
+            {
+              DocumentFingerprint = "doc",
+              ModelFileType = "总平模型",
+              RulePackageId = "HBR-WUHAN-PLANNING",
+              RulePackageVersion = "1.0.0",
+              RulePackageSha256 = new string('a', 64)
+            },
+            ConfirmedElements = new[] { subject, reference },
+            ManualReviews = Array.Empty<NativeStage02ManualReviewRecord>(),
+            ScopeComplete = true
+          });
+
+      NativeStage02GeometryCheckEvidence check = Assert.Single(result.Checks);
+      Assert.Equal(NativeStage02GeometryCheckState.Failed, check.State);
+      Assert.Equal("GEOMETRY_BOUNDARY_CROSSING", check.Code);
+    }
+
+    [Fact]
     public void Closed_accepts_independent_planar_outer_and_hole_rings()
     {
       var element = new NativeStage02ElementSnapshot

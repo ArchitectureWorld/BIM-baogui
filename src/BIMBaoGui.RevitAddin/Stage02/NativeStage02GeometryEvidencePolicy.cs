@@ -263,6 +263,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
         return Fail(taskId, ruleText, "GEOMETRY_NOT_CONTAINED");
       if (BoundariesProperlyCross(subject, reference))
         return Fail(taskId, ruleText, "GEOMETRY_BOUNDARY_CROSSING");
+      if (!SegmentsInsideOrBoundary(subject, reference))
+        return Fail(taskId, ruleText, "GEOMETRY_BOUNDARY_CROSSING");
       return Pass(taskId, ruleText, "REFERENCE_ROLE:" + referenceRoleId);
     }
 
@@ -603,6 +605,115 @@ namespace BIMBaoGui.RevitAddin.Stage02
           || (o1 < -PointTolerance && o2 > PointTolerance))
         && ((o3 > PointTolerance && o4 < -PointTolerance)
           || (o3 < -PointTolerance && o4 > PointTolerance));
+    }
+
+    private static bool SegmentsInsideOrBoundary(
+      Point[] subject,
+      Point[] reference)
+    {
+      int subjectSegments = Math.Max(0, subject.Length - 1);
+      int referenceSegments = Math.Max(0, reference.Length - 1);
+      for (int subjectIndex = 0;
+        subjectIndex < subjectSegments;
+        subjectIndex++)
+      {
+        Point start = subject[subjectIndex];
+        Point end = subject[subjectIndex + 1];
+        double segmentLength = Distance(start, end);
+        if (segmentLength <= PointTolerance) continue;
+        double parameterTolerance = PointTolerance / segmentLength;
+        var parameters = new List<double> { 0.0, 1.0 };
+        for (int referenceIndex = 0;
+          referenceIndex < referenceSegments;
+          referenceIndex++)
+        {
+          AddIntersectionParameters(
+            start,
+            end,
+            reference[referenceIndex],
+            reference[referenceIndex + 1],
+            parameterTolerance,
+            parameters);
+        }
+        double[] ordered = parameters
+          .OrderBy(value => value)
+          .Aggregate(
+            new List<double>(),
+            (unique, value) =>
+            {
+              if (unique.Count == 0
+                || value - unique[unique.Count - 1] > parameterTolerance)
+                unique.Add(value);
+              return unique;
+            })
+          .ToArray();
+        for (int index = 0; index + 1 < ordered.Length; index++)
+        {
+          if (ordered[index + 1] - ordered[index] <= parameterTolerance)
+            continue;
+          double midpoint = (ordered[index] + ordered[index + 1]) / 2.0;
+          if (!InsideOrBoundary(
+            new Point(
+              start.X + (end.X - start.X) * midpoint,
+              start.Y + (end.Y - start.Y) * midpoint),
+            reference))
+            return false;
+        }
+      }
+      return true;
+    }
+
+    private static void AddIntersectionParameters(
+      Point a,
+      Point b,
+      Point c,
+      Point d,
+      double parameterTolerance,
+      ICollection<double> parameters)
+    {
+      double abX = b.X - a.X;
+      double abY = b.Y - a.Y;
+      double cdX = d.X - c.X;
+      double cdY = d.Y - c.Y;
+      double denominator = abX * cdY - abY * cdX;
+      double acX = c.X - a.X;
+      double acY = c.Y - a.Y;
+      if (Math.Abs(denominator) > PointTolerance)
+      {
+        double subjectParameter = (acX * cdY - acY * cdX) / denominator;
+        double referenceParameter = (acX * abY - acY * abX) / denominator;
+        if (subjectParameter >= -parameterTolerance
+          && subjectParameter <= 1.0 + parameterTolerance
+          && referenceParameter >= -PointTolerance
+          && referenceParameter <= 1.0 + PointTolerance)
+          parameters.Add(Math.Max(0.0, Math.Min(1.0, subjectParameter)));
+        return;
+      }
+      if (Math.Abs(Cross(a, b, c)) > PointTolerance
+        || Math.Abs(Cross(a, b, d)) > PointTolerance)
+        return;
+      double lengthSquared = abX * abX + abY * abY;
+      AddProjectedParameter(a, c, abX, abY, lengthSquared,
+        parameterTolerance, parameters);
+      AddProjectedParameter(a, d, abX, abY, lengthSquared,
+        parameterTolerance, parameters);
+    }
+
+    private static void AddProjectedParameter(
+      Point origin,
+      Point point,
+      double directionX,
+      double directionY,
+      double lengthSquared,
+      double parameterTolerance,
+      ICollection<double> parameters)
+    {
+      double parameter = ((point.X - origin.X) * directionX
+          + (point.Y - origin.Y) * directionY)
+        / lengthSquared;
+      if (parameter >= -parameterTolerance
+        && parameter <= 1.0 + parameterTolerance)
+        parameters.Add(Math.Max(0.0, Math.Min(1.0, parameter)));
     }
 
     private static bool OnSegment(Point a, Point point, Point b)
