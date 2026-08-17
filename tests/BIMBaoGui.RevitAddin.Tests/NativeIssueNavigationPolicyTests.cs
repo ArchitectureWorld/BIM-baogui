@@ -125,6 +125,26 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
+    public void Clone_keeps_null_reference_invalid_for_dispatch_call_chain()
+    {
+      NativeIssueNavigationRequest request = Request(
+        NativeIssueNavigationAction.Zoom);
+      request.Elements = new NativeIssueElementReference[]
+      {
+        request.Elements[0],
+        null
+      };
+
+      NativeIssueNavigationRequest clone = request.Clone();
+      NativeIssueNavigationDecision decision =
+        NativeIssueNavigationPolicy.Evaluate(clone, "doc");
+
+      Assert.Equal(2, clone.Elements.Count);
+      Assert.False(decision.Allowed);
+      Assert.Equal("ISSUE_ELEMENT_INVALID", decision.Code);
+    }
+
+    [Fact]
     public void Issue_hub_replaces_one_source_and_sorts_a_document_snapshot()
     {
       var hub = new NativeIssueHub();
@@ -162,6 +182,26 @@ namespace BIMBaoGui.RevitAddin.Tests
         Issue("foreign", NativeIssueSeverity.Blocker, "CHECK", "STAGE02A",
           "other-doc")
       }));
+      Assert.Empty(hub.Snapshot());
+    }
+
+    [Fact]
+    public void Document_snapshot_transition_clears_old_issues_before_new_preview()
+    {
+      var hub = new NativeIssueHub();
+      hub.ResetForDocument("doc-a");
+      hub.Replace("STAGE02A", new[]
+      {
+        Issue("a", NativeIssueSeverity.Blocker, "CHECK", document: "doc-a")
+      });
+
+      hub.ResetForDocument(new CurrentDocumentSnapshot
+      {
+        HasDocument = true,
+        DocumentFingerprint = "doc-b"
+      });
+
+      Assert.Equal("doc-b", hub.DocumentFingerprint);
       Assert.Empty(hub.Snapshot());
     }
 

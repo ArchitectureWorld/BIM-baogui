@@ -151,6 +151,19 @@ def test_issue_navigation_resolves_unique_id_before_checking_element_id():
     assert source.count("new Transaction(") >= 2
 
 
+def test_issue_hub_document_boundary_is_captured_before_preview_completion():
+    dispatcher = (PROJECT / "RevitExternalEventDispatcher.cs").read_text(
+        encoding="utf-8"
+    )
+    view = read_stage02("NativeStage02View.cs")
+    assert "DocumentFingerprint" in dispatcher
+    assert "TryCurrentDocumentFingerprint" in dispatcher
+    assert "RequestDocumentSnapshot" in view
+    assert "ApplyDocumentBoundary" in view
+    assert "SharedIssueHub.ResetForDocument(snapshot)" in view
+    assert "ContinuePreview" in view
+
+
 def test_stage02_workspace_is_real_and_not_a_placeholder():
     view = read_stage02("NativeStage02View.cs")
     request_policy = read_stage02("NativeStage02WorkbenchRequestPolicy.cs")

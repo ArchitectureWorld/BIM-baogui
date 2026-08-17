@@ -22,7 +22,6 @@ namespace BIMBaoGui.RevitAddin.Issues
         DocumentFingerprint = DocumentFingerprint ?? string.Empty,
         Elements = new ReadOnlyCollection<NativeIssueElementReference>(
           (Elements ?? Array.Empty<NativeIssueElementReference>())
-            .Where(value => value != null)
             .Select(CloneElement)
             .ToArray())
       };

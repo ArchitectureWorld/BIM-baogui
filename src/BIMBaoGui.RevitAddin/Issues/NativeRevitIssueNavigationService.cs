@@ -124,6 +124,27 @@ namespace BIMBaoGui.RevitAddin.Issues
         stage01.StorageDecision.ActualPayloadHash);
     }
 
+    internal static bool TryCurrentDocumentFingerprint(
+      UIApplication application,
+      out string documentFingerprint)
+    {
+      documentFingerprint = string.Empty;
+      Document document = application?.ActiveUIDocument?.Document;
+      if (document == null) return false;
+      try
+      {
+        documentFingerprint = CurrentDocumentFingerprint(
+          application,
+          document);
+        return !string.IsNullOrWhiteSpace(documentFingerprint);
+      }
+      catch
+      {
+        documentFingerprint = string.Empty;
+        return false;
+      }
+    }
+
     private static NativeIssueNavigationResult Failure(
       NativeIssueNavigationAction action,
       string code)

@@ -119,9 +119,11 @@ def test_stage02_explicit_selection_modes_keep_sorted_unique_id_snapshots():
         assert label in text or label in interaction
     assert "NativeStage02ScopeMode.CurrentSelection" in text
     assert "NativeStage02ScopeMode.InteractiveSelection" in text
+    assert "RequestStage02CurrentSelection" in text
     assert "RequestStage02PickElements" in text
+    assert "NativeStage02SelectionRequestPolicy.Apply" in text
     assert "ElementUniqueIds" in text
-    assert "CustomUniqueIds" in text
+    assert "CustomUniqueIds" in interaction
     assert "Selection.GetElementIds" in interaction
     assert "PickObjects" in interaction
     assert '"SELECTION_CANCELLED"' in interaction

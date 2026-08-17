@@ -40,8 +40,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
     private readonly IReadOnlyList<ManualRoleChoice> _manualRoleChoices;
     private NativeStage02Preview _preview;
     private NativeStage02PreviewRequest _resolvedRequest;
-    private IReadOnlyList<string> _interactiveUniqueIds =
-      Array.Empty<string>();
+    private NativeStage02SelectionResult _interactiveSelectionResult;
     private bool _busy;
     private bool _previewStale;
 
@@ -245,6 +244,10 @@ namespace BIMBaoGui.RevitAddin.Stage02
       Grid.SetRow(statusScroll, 5);
       root.Children.Add(statusScroll);
       Content = root;
+      IsVisibleChanged += (_, __) =>
+      {
+        if (IsVisible) RequestDocumentBoundary();
+      };
       UpdateSemanticControls();
       RenderElements();
     }
@@ -307,6 +310,20 @@ namespace BIMBaoGui.RevitAddin.Stage02
       NativeStage02ManualReviewCommand manualReview = null)
     {
       if (_busy) return;
+      SetBusy(true, "正在核对当前 Revit 文档身份……" );
+      NativeStage02ManualReviewCommand snapshot = manualReview?.Clone();
+      try
+      {
+        RevitExternalEventDispatcher.RequestDocumentSnapshot(
+          document => ApplyDocumentBoundaryAndContinue(document, snapshot),
+          ApplyFailure);
+      }
+      catch (Exception exception) { ApplyFailure(exception); }
+    }
+
+    private void ContinuePreview(
+      NativeStage02ManualReviewCommand manualReview)
+    {
       NativeStage02ScopeMode scope = _fullModel.IsChecked == true
         ? NativeStage02ScopeMode.FullModel
         : _interactiveSelection.IsChecked == true
@@ -317,12 +334,15 @@ namespace BIMBaoGui.RevitAddin.Stage02
       ManualRoleChoice bulkRole = _manualRole.SelectedItem as ManualRoleChoice;
       if (manual && bulkRole == null)
       {
+        SetBusy(false, string.Empty);
         SetStatus("手动指定模式需要选择一个批量语义类型。" );
         return;
       }
       if (scope == NativeStage02ScopeMode.InteractiveSelection
-        && _interactiveUniqueIds.Count == 0)
+        && (_interactiveSelectionResult == null
+          || !_interactiveSelectionResult.Succeeded))
       {
+        SetBusy(false, string.Empty);
         SetStatus("请先自主点选至少一个报规构件。" );
         return;
       }
@@ -339,16 +359,55 @@ namespace BIMBaoGui.RevitAddin.Stage02
           manual ? bulkRole.RoleId : string.Empty,
           _roleOverrides,
           _confirmations.Values.ToArray());
+      request.ManualReview = manualReview?.Clone();
+      if (scope == NativeStage02ScopeMode.CurrentSelection)
+      {
+        SetBusy(true, "正在通过 Revit ExternalEvent 固化当前选择……" );
+        try
+        {
+          RevitExternalEventDispatcher.RequestStage02CurrentSelection(
+            selection => ApplyCurrentSelection(request, selection),
+            ApplyFailure);
+        }
+        catch (Exception exception) { ApplyFailure(exception); }
+        return;
+      }
       if (scope == NativeStage02ScopeMode.InteractiveSelection)
       {
-        request.CustomUniqueIds = _interactiveUniqueIds
-          .Where(value => !string.IsNullOrWhiteSpace(value))
-          .Select(value => value.Trim())
-          .Distinct(StringComparer.Ordinal)
-          .OrderBy(value => value, StringComparer.Ordinal)
-          .ToArray();
+        request = NativeStage02SelectionRequestPolicy.Apply(
+          request,
+          _interactiveSelectionResult);
       }
-      request.ManualReview = manualReview?.Clone();
+      DispatchPreview(request);
+    }
+
+    private void ApplyCurrentSelection(
+      NativeStage02PreviewRequest request,
+      NativeStage02SelectionResult selection)
+    {
+      if (!Dispatcher.CheckAccess())
+      {
+        Dispatcher.BeginInvoke(new Action(() =>
+          ApplyCurrentSelection(request, selection)));
+        return;
+      }
+      if (selection == null || !selection.Succeeded)
+      {
+        SetBusy(false, string.Empty);
+        SetStatus("当前选择未完成：" + (selection?.Code ?? "SELECTION_FAILED"));
+        return;
+      }
+      try
+      {
+        DispatchPreview(NativeStage02SelectionRequestPolicy.Apply(
+          request,
+          selection));
+      }
+      catch (Exception exception) { ApplyFailure(exception); }
+    }
+
+    private void DispatchPreview(NativeStage02PreviewRequest request)
+    {
       SetBusy(true, "正在通过 Revit ExternalEvent 读取构件、语义角色与参数证据……" );
       try
       {
@@ -358,6 +417,44 @@ namespace BIMBaoGui.RevitAddin.Stage02
           ApplyFailure);
       }
       catch (Exception exception) { ApplyFailure(exception); }
+    }
+
+    private void RequestDocumentBoundary()
+    {
+      if (_busy) return;
+      try
+      {
+        RevitExternalEventDispatcher.RequestDocumentSnapshot(
+          ApplyDocumentBoundary,
+          ApplyFailure);
+      }
+      catch (Exception exception) { ApplyFailure(exception); }
+    }
+
+    private void ApplyDocumentBoundary(CurrentDocumentSnapshot snapshot)
+    {
+      if (!Dispatcher.CheckAccess())
+      {
+        Dispatcher.BeginInvoke(
+          new Action<CurrentDocumentSnapshot>(ApplyDocumentBoundary),
+          snapshot);
+        return;
+      }
+      SharedIssueHub.ResetForDocument(snapshot);
+    }
+
+    private void ApplyDocumentBoundaryAndContinue(
+      CurrentDocumentSnapshot snapshot,
+      NativeStage02ManualReviewCommand manualReview)
+    {
+      if (!Dispatcher.CheckAccess())
+      {
+        Dispatcher.BeginInvoke(new Action(() =>
+          ApplyDocumentBoundaryAndContinue(snapshot, manualReview)));
+        return;
+      }
+      ApplyDocumentBoundary(snapshot);
+      ContinuePreview(manualReview);
     }
 
     private void RequestInteractiveSelection()
@@ -388,14 +485,27 @@ namespace BIMBaoGui.RevitAddin.Stage02
         SetStatus("自主点选未完成：" + (result?.Code ?? "SELECTION_FAILED"));
         return;
       }
-      _interactiveUniqueIds = result.ElementUniqueIds
-        .Where(value => !string.IsNullOrWhiteSpace(value))
-        .Select(value => value.Trim())
-        .Distinct(StringComparer.Ordinal)
-        .OrderBy(value => value, StringComparer.Ordinal)
-        .ToArray();
+      int count = Math.Min(
+        result.ElementIds?.Count ?? 0,
+        result.ElementUniqueIds?.Count ?? 0);
+      _interactiveSelectionResult =
+        NativeStage02SelectionRequestPolicy.FromLiveReferences(
+          NativeStage02ScopeMode.InteractiveSelection,
+          Enumerable.Range(0, count)
+            .Select(index => new NativeStage02LiveElementReference
+            {
+              ElementId = result.ElementIds[index],
+              UniqueId = result.ElementUniqueIds[index]
+            }));
+      if (!_interactiveSelectionResult.Succeeded)
+      {
+        SetStatus("自主点选未完成：" + _interactiveSelectionResult.Code);
+        return;
+      }
       _interactiveSelection.IsChecked = true;
-      SetStatus("已固定自主点选快照：" + _interactiveUniqueIds.Count + " 个构件。" );
+      SetStatus("已固定自主点选快照："
+        + _interactiveSelectionResult.ElementUniqueIds.Count
+        + " 个构件。" );
     }
 
     private void RequestWrite()

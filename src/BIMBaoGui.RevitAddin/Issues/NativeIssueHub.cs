@@ -32,6 +32,13 @@ namespace BIMBaoGui.RevitAddin.Issues
       IssuesChanged?.Invoke();
     }
 
+    internal void ResetForDocument(CurrentDocumentSnapshot snapshot)
+    {
+      ResetForDocument(snapshot != null && snapshot.HasDocument
+        ? snapshot.DocumentFingerprint
+        : string.Empty);
+    }
+
     internal void Replace(
       string sourceFeature,
       IEnumerable<NativeIssueRecord> issues)

@@ -16,6 +16,7 @@ namespace BIMBaoGui.RevitAddin
     internal string RevitVersion { get; set; } = string.Empty;
     internal string DocumentTitle { get; set; } = string.Empty;
     internal string DocumentPath { get; set; } = string.Empty;
+    internal string DocumentFingerprint { get; set; } = string.Empty;
     internal bool IsFamilyDocument { get; set; }
     internal bool IsReadOnly { get; set; }
     internal bool IsSaved { get; set; }
@@ -157,6 +158,16 @@ namespace BIMBaoGui.RevitAddin
         failed);
     }
 
+    internal static void RequestStage02CurrentSelection(
+      Action<NativeStage02SelectionResult> completed,
+      Action<Exception> failed)
+    {
+      Enqueue(
+        application => completed?.Invoke(
+          NativeStage02InteractionService.ReadCurrentSelection(application)),
+        failed);
+    }
+
     internal static void RequestIssueNavigation(
       NativeIssueNavigationRequest request,
       Action<NativeIssueNavigationResult> completed,
@@ -253,12 +264,17 @@ namespace BIMBaoGui.RevitAddin
         };
       }
       string path = document.PathName ?? string.Empty;
+      string documentFingerprint;
+      NativeRevitIssueNavigationService.TryCurrentDocumentFingerprint(
+        application,
+        out documentFingerprint);
       return new CurrentDocumentSnapshot
       {
         HasDocument = true,
         RevitVersion = application.Application.VersionNumber ?? string.Empty,
         DocumentTitle = document.Title ?? string.Empty,
         DocumentPath = path,
+        DocumentFingerprint = documentFingerprint,
         IsFamilyDocument = document.IsFamilyDocument,
         IsReadOnly = document.IsReadOnly,
         IsSaved = !string.IsNullOrWhiteSpace(path)

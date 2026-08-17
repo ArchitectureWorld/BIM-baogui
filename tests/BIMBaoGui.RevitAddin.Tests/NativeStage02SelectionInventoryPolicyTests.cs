@@ -162,6 +162,81 @@ namespace BIMBaoGui.RevitAddin.Tests
       }
     }
 
+    [Fact]
+    public void Live_references_flow_into_sorted_explicit_request_snapshots()
+    {
+      var references = new[]
+      {
+        new NativeStage02LiveElementReference
+        {
+          ElementId = 22,
+          UniqueId = " b "
+        },
+        new NativeStage02LiveElementReference
+        {
+          ElementId = 11,
+          UniqueId = "a"
+        },
+        new NativeStage02LiveElementReference
+        {
+          ElementId = 99,
+          UniqueId = "a"
+        }
+      };
+      NativeStage02ScopeMode[] scopes =
+      {
+        NativeStage02ScopeMode.CurrentSelection,
+        NativeStage02ScopeMode.InteractiveSelection
+      };
+
+      foreach (NativeStage02ScopeMode scope in scopes)
+      {
+        NativeStage02SelectionResult selection =
+          NativeStage02SelectionRequestPolicy.FromLiveReferences(
+            scope,
+            references);
+        NativeStage02PreviewRequest request =
+          NativeStage02WorkbenchRequestPolicy.Build(
+            scope,
+            NativeStage02IdentificationMode.Automatic,
+            string.Empty,
+            null);
+
+        NativeStage02PreviewRequest resolved =
+          NativeStage02SelectionRequestPolicy.Apply(request, selection);
+
+        Assert.True(selection.Succeeded);
+        Assert.Equal(scope, selection.ScopeMode);
+        Assert.Equal(new[] { 11, 22 }, selection.ElementIds);
+        Assert.Equal(new[] { "a", "b" }, selection.ElementUniqueIds);
+        Assert.Equal(scope, resolved.ScopeMode);
+        Assert.NotEqual(NativeStage02ScopeMode.FullModel, resolved.ScopeMode);
+        Assert.Equal(new[] { "a", "b" }, resolved.CustomUniqueIds);
+      }
+    }
+
+    [Fact]
+    public void Empty_and_cancelled_selection_never_create_full_model_payload()
+    {
+      NativeStage02SelectionResult empty =
+        NativeStage02SelectionRequestPolicy.FromLiveReferences(
+          NativeStage02ScopeMode.CurrentSelection,
+          Array.Empty<NativeStage02LiveElementReference>());
+      NativeStage02SelectionResult cancelled =
+        NativeStage02SelectionRequestPolicy.CancelledInteractiveSelection();
+
+      Assert.False(empty.Succeeded);
+      Assert.Equal("SELECTION_EMPTY", empty.Code);
+      Assert.Equal(NativeStage02ScopeMode.CurrentSelection, empty.ScopeMode);
+      Assert.Empty(empty.ElementUniqueIds);
+      Assert.False(cancelled.Succeeded);
+      Assert.Equal("SELECTION_CANCELLED", cancelled.Code);
+      Assert.Equal(
+        NativeStage02ScopeMode.InteractiveSelection,
+        cancelled.ScopeMode);
+      Assert.Empty(cancelled.ElementUniqueIds);
+    }
+
     private static NativeStage02ElementSnapshot Element(
       string uniqueId,
       string category,

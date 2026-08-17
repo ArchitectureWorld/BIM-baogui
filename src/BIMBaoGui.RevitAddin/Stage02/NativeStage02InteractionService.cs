@@ -18,6 +18,99 @@ namespace BIMBaoGui.RevitAddin.Stage02
       Array.Empty<string>();
   }
 
+  internal sealed class NativeStage02LiveElementReference
+  {
+    internal int ElementId { get; set; }
+    internal string UniqueId { get; set; } = string.Empty;
+  }
+
+  internal static class NativeStage02SelectionRequestPolicy
+  {
+    internal static NativeStage02SelectionResult FromLiveReferences(
+      NativeStage02ScopeMode scope,
+      IEnumerable<NativeStage02LiveElementReference> references)
+    {
+      if (scope != NativeStage02ScopeMode.CurrentSelection
+        && scope != NativeStage02ScopeMode.InteractiveSelection)
+        return Failure(scope, "SELECTION_SCOPE_INVALID");
+      NativeStage02LiveElementReference[] resolved = (references
+          ?? Array.Empty<NativeStage02LiveElementReference>())
+        .Where(value => value != null
+          && value.ElementId > 0
+          && !string.IsNullOrWhiteSpace(value.UniqueId))
+        .Select(value => new NativeStage02LiveElementReference
+        {
+          ElementId = value.ElementId,
+          UniqueId = value.UniqueId.Trim()
+        })
+        .GroupBy(value => value.UniqueId, StringComparer.Ordinal)
+        .Select(group => group
+          .OrderBy(value => value.ElementId)
+          .First())
+        .OrderBy(value => value.UniqueId, StringComparer.Ordinal)
+        .ToArray();
+      if (resolved.Length == 0)
+        return Failure(scope, "SELECTION_EMPTY");
+      return new NativeStage02SelectionResult
+      {
+        Succeeded = true,
+        Code = "OK",
+        ScopeMode = scope,
+        ElementIds = new ReadOnlyCollection<int>(
+          resolved.Select(value => value.ElementId).ToArray()),
+        ElementUniqueIds = new ReadOnlyCollection<string>(
+          resolved.Select(value => value.UniqueId).ToArray())
+      };
+    }
+
+    internal static NativeStage02SelectionResult CancelledInteractiveSelection()
+    {
+      return Failure(
+        NativeStage02ScopeMode.InteractiveSelection,
+        "SELECTION_CANCELLED");
+    }
+
+    internal static NativeStage02SelectionResult Failure(
+      NativeStage02ScopeMode scope,
+      string code)
+    {
+      return new NativeStage02SelectionResult
+      {
+        Succeeded = false,
+        Code = code ?? string.Empty,
+        ScopeMode = scope,
+        ElementIds = Array.Empty<int>(),
+        ElementUniqueIds = Array.Empty<string>()
+      };
+    }
+
+    internal static NativeStage02PreviewRequest Apply(
+      NativeStage02PreviewRequest request,
+      NativeStage02SelectionResult selection)
+    {
+      if (request == null) throw new ArgumentNullException(nameof(request));
+      if (selection == null) throw new ArgumentNullException(nameof(selection));
+      if (!selection.Succeeded)
+        throw new InvalidOperationException(selection.Code ?? "SELECTION_FAILED");
+      if (selection.ScopeMode != NativeStage02ScopeMode.CurrentSelection
+        && selection.ScopeMode != NativeStage02ScopeMode.InteractiveSelection)
+        throw new InvalidOperationException("SELECTION_SCOPE_INVALID");
+      NativeStage02PreviewRequest snapshot = request.Clone();
+      if (snapshot.ScopeMode != selection.ScopeMode)
+        throw new InvalidOperationException("SELECTION_SCOPE_MISMATCH");
+      string[] uniqueIds = (selection.ElementUniqueIds ?? Array.Empty<string>())
+        .Where(value => !string.IsNullOrWhiteSpace(value))
+        .Select(value => value.Trim())
+        .Distinct(StringComparer.Ordinal)
+        .OrderBy(value => value, StringComparer.Ordinal)
+        .ToArray();
+      if (uniqueIds.Length == 0)
+        throw new InvalidOperationException("SELECTION_EMPTY");
+      snapshot.CustomUniqueIds = new ReadOnlyCollection<string>(uniqueIds);
+      return snapshot.Clone();
+    }
+  }
+
   internal static class NativeStage02InteractionService
   {
     internal static NativeStage02SelectionResult ReadCurrentSelection(
@@ -26,7 +119,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       UIDocument uiDocument = application?.ActiveUIDocument;
       Document document = uiDocument?.Document;
       if (document == null)
-        return Failure(
+        return NativeStage02SelectionRequestPolicy.Failure(
           NativeStage02ScopeMode.CurrentSelection,
           "SELECTION_DOCUMENT_MISSING");
       return FromElements(
@@ -41,7 +134,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       UIDocument uiDocument = application?.ActiveUIDocument;
       Document document = uiDocument?.Document;
       if (document == null)
-        return Failure(
+        return NativeStage02SelectionRequestPolicy.Failure(
           NativeStage02ScopeMode.InteractiveSelection,
           "SELECTION_DOCUMENT_MISSING");
       try
@@ -57,9 +150,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
       }
       catch (Autodesk.Revit.Exceptions.OperationCanceledException)
       {
-        return Failure(
-          NativeStage02ScopeMode.InteractiveSelection,
-          "SELECTION_CANCELLED");
+        return NativeStage02SelectionRequestPolicy
+          .CancelledInteractiveSelection();
       }
     }
 
@@ -67,41 +159,16 @@ namespace BIMBaoGui.RevitAddin.Stage02
       NativeStage02ScopeMode scope,
       IEnumerable<Element> elements)
     {
-      Element[] resolved = (elements ?? Array.Empty<Element>())
+      return NativeStage02SelectionRequestPolicy.FromLiveReferences(
+        scope,
+        (elements ?? Array.Empty<Element>())
         .Where(value => value != null
           && !string.IsNullOrWhiteSpace(value.UniqueId))
-        .GroupBy(value => value.UniqueId.Trim(), StringComparer.Ordinal)
-        .Select(group => group
-          .OrderBy(value => value.Id.IntegerValue)
-          .First())
-        .OrderBy(value => value.UniqueId, StringComparer.Ordinal)
-        .ToArray();
-      if (resolved.Length == 0)
-        return Failure(scope, "SELECTION_EMPTY");
-      return new NativeStage02SelectionResult
-      {
-        Succeeded = true,
-        Code = "OK",
-        ScopeMode = scope,
-        ElementIds = new ReadOnlyCollection<int>(
-          resolved.Select(value => value.Id.IntegerValue).ToArray()),
-        ElementUniqueIds = new ReadOnlyCollection<string>(
-          resolved.Select(value => value.UniqueId.Trim()).ToArray())
-      };
-    }
-
-    private static NativeStage02SelectionResult Failure(
-      NativeStage02ScopeMode scope,
-      string code)
-    {
-      return new NativeStage02SelectionResult
-      {
-        Succeeded = false,
-        Code = code ?? string.Empty,
-        ScopeMode = scope,
-        ElementIds = Array.Empty<int>(),
-        ElementUniqueIds = Array.Empty<string>()
-      };
+        .Select(value => new NativeStage02LiveElementReference
+        {
+          ElementId = value.Id.IntegerValue,
+          UniqueId = value.UniqueId
+        }));
     }
 
     private sealed class NativeStage02PickFilter : ISelectionFilter
