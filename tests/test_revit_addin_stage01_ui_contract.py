@@ -78,6 +78,13 @@ def test_total_plan_field_cards_expose_fixed_sections_and_status_sources():
     assert "presentation.ReadbackState" in source
 
 
+def test_total_building_area_routes_to_exact_stage02b_metric():
+    source = read(PROJECT / "Stage01" / "NativeStage01View.cs")
+    workspace = read(PROJECT / "WorkspaceControl.cs")
+    assert 'NavigateToMetric("ca21e324-046b-5bfd-84c8-0d3470082303")' in source
+    assert "NavigateToMetric" in workspace
+
+
 def test_stage_status_regions_cannot_grow_and_displace_the_workspace():
     stage01 = read(PROJECT / "Stage01" / "NativeStage01View.cs")
     workspace = read(PROJECT / "WorkspaceControl.cs")
@@ -106,7 +113,7 @@ def test_workspace_hosts_real_stage01_stage02_and_stage03_products():
     assert "NativeStage03View" in source
     assert "new NativeStage02View" in source
     assert "new NativeStage03View" in source
-    assert "02 构件与属性准备" in source
+    assert "02A 构件与属性准备" in source
     assert "03 检测与 H-IFC" in source
     assert "Stage02 等待开发" not in source
     assert "Stage03 等待开发" not in source

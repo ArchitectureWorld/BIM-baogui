@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using BIMBaoGui.RevitAddin.Issues;
 
 namespace BIMBaoGui.RevitAddin.Stage03
 {
@@ -13,6 +14,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
   {
     private readonly TextBox _outputDirectory;
     private readonly NativeStage03OutputDirectoryStore _outputDirectoryStore;
+    private readonly NativeIssueHub _issueHub;
     private readonly RadioButton _strictMode;
     private readonly RadioButton _forcedMode;
     private readonly Button _scanButton;
@@ -30,16 +32,27 @@ namespace BIMBaoGui.RevitAddin.Stage03
     private string _activeDocumentPath = string.Empty;
 
     internal NativeStage03View()
-      : this(new NativeStage03OutputDirectoryStore())
+      : this(new NativeStage03OutputDirectoryStore(), new NativeIssueHub())
     {
     }
 
     internal NativeStage03View(
-      NativeStage03OutputDirectoryStore outputDirectoryStore)
+      NativeStage03OutputDirectoryStore store)
+      : this(store, new NativeIssueHub())
     {
-      if (outputDirectoryStore == null)
-        throw new ArgumentNullException(nameof(outputDirectoryStore));
-      _outputDirectoryStore = outputDirectoryStore;
+    }
+
+    internal NativeStage03View(NativeIssueHub hub)
+      : this(new NativeStage03OutputDirectoryStore(), hub)
+    {
+    }
+
+    internal NativeStage03View(
+      NativeStage03OutputDirectoryStore store, NativeIssueHub hub)
+    {
+      _outputDirectoryStore = store
+        ?? throw new ArgumentNullException(nameof(store));
+      _issueHub = hub ?? throw new ArgumentNullException(nameof(hub));
       Background = Brushes.White;
       var root = new Grid();
       root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });

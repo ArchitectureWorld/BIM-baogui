@@ -51,14 +51,17 @@ namespace BIMBaoGui.RevitAddin.Stage02B
       if (string.Equals(entity, "IfcSite", StringComparison.Ordinal)
         || string.Equals(entity, "IfcSpatialZone", StringComparison.Ordinal))
       {
+        bool verified = status == NativeOfficialCarrierEvidenceStatus.Verified;
         return new NativeStage02BOwnerDecision
         {
           InternalSaveAllowed = true,
-          ParameterProjectionAllowed = false,
-          ProjectionMode = NativeStage02BProjectionMode.InternalStorageOnly,
+          ParameterProjectionAllowed = verified,
+          ProjectionMode = verified
+            ? NativeStage02BProjectionMode.VerifiedElementParameter
+            : NativeStage02BProjectionMode.InternalStorageOnly,
           OfficialCarrierStatus = status,
-          Code = status == NativeOfficialCarrierEvidenceStatus.Verified
-            ? string.Empty : "OFFICIAL_CARRIER_PENDING_GOLDEN_RVT"
+          Code = verified ? string.Empty
+            : "OFFICIAL_CARRIER_PENDING_GOLDEN_RVT"
         };
       }
       return Blocked();

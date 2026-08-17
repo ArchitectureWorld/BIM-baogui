@@ -7,6 +7,7 @@ using Autodesk.Revit.UI.Events;
 using BIMBaoGui.RevitAddin.Issues;
 using BIMBaoGui.RevitAddin.Stage01;
 using BIMBaoGui.RevitAddin.Stage02;
+using BIMBaoGui.RevitAddin.Stage02B;
 using BIMBaoGui.RevitAddin.Stage03;
 
 namespace BIMBaoGui.RevitAddin
@@ -352,6 +353,29 @@ namespace BIMBaoGui.RevitAddin
       Enqueue(
         application => completed?.Invoke(
           NativeStage02InteractionService.ReadCurrentSelection(application)),
+        failed);
+    }
+
+    internal static void RequestStage02BRead(
+      Action<NativeStage02BReadResult> completed,
+      Action<Exception> failed)
+    {
+      Enqueue(
+        application => completed?.Invoke(
+          NativeStage02BRevitReadService.Read(application)),
+        failed);
+    }
+
+    internal static void RequestStage02BWrite(
+      NativeStage02BWriteRequest request,
+      Action<NativeStage02BWriteResult> completed,
+      Action<Exception> failed)
+    {
+      if (request == null) throw new ArgumentNullException(nameof(request));
+      NativeStage02BWriteRequest snapshot = request.Clone();
+      Enqueue(
+        application => completed?.Invoke(
+          NativeStage02BRevitWriteService.Execute(application, snapshot)),
         failed);
     }
 

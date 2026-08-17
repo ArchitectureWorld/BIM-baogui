@@ -12,6 +12,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
   {
     private const string TotalPlanSections =
       "项目登记信息｜项目位置与坐标｜规划目标与限值｜其他项目输入";
+    private readonly Action<string> _navigateToMetric;
     private readonly NativeStage01ViewModel _viewModel;
     private readonly StackPanel _directoryPanel;
     private readonly StackPanel _formPanel;
@@ -23,11 +24,20 @@ namespace BIMBaoGui.RevitAddin.Stage01
     private readonly Button _writeButton;
     private readonly Dictionary<string, bool> _optionalExpansionByGroup =
       new Dictionary<string, bool>(StringComparer.Ordinal);
+    private readonly Dictionary<string, FrameworkElement> _fieldCardByKey =
+      new Dictionary<string, FrameworkElement>(StringComparer.Ordinal);
     private Expander _activeOptionalExpander;
     private bool _busy;
 
     internal NativeStage01View()
+      : this(_ => { })
     {
+    }
+
+    internal NativeStage01View(Action<string> navigateToMetric)
+    {
+      _navigateToMetric = navigateToMetric
+        ?? throw new ArgumentNullException(nameof(navigateToMetric));
       _viewModel = new NativeStage01ViewModel(NativeRuleCatalog.Current);
       Background = Brushes.White;
 
@@ -145,6 +155,24 @@ namespace BIMBaoGui.RevitAddin.Stage01
     }
 
     internal event Action<string> StatusChanged;
+
+    internal void NavigateToField(string fieldKey)
+    {
+      if (string.IsNullOrWhiteSpace(fieldKey)
+        || !NativeRuleCatalog.Current.Stage01FieldsByKey.TryGetValue(
+          fieldKey,
+          out NativeStage01FieldDefinition field))
+      {
+        return;
+      }
+      string group = NativeStage01ViewModel.GroupForField(field);
+      _viewModel.SetActiveGroup(group);
+      if (!NativeStage01Validator.IsRequired(field))
+        _optionalExpansionByGroup[group] = true;
+      RenderAll();
+      if (_fieldCardByKey.TryGetValue(fieldKey, out FrameworkElement card))
+        card.BringIntoView();
+    }
 
     internal void RequestReadCurrentFile()
     {
@@ -353,6 +381,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
     private void RenderForm()
     {
       _activeOptionalExpander = null;
+      _fieldCardByKey.Clear();
       _formPanel.Children.Clear();
       bool isConditionsGroup = string.Equals(
         _viewModel.ActiveGroup,
@@ -736,7 +765,7 @@ namespace BIMBaoGui.RevitAddin.Stage01
         });
       }
 
-      return new Border
+      var card = new Border
       {
         Child = panel,
         BorderBrush = new SolidColorBrush(Color.FromRgb(224, 227, 232)),
@@ -748,6 +777,8 @@ namespace BIMBaoGui.RevitAddin.Stage01
           ? new SolidColorBrush(Color.FromRgb(248, 249, 250))
           : Brushes.White
       };
+      _fieldCardByKey[field.FieldKey] = card;
+      return card;
     }
 
     private FrameworkElement CreateStage02BReferenceEditor(
@@ -765,11 +796,16 @@ namespace BIMBaoGui.RevitAddin.Stage01
         FontWeight = FontWeights.SemiBold,
         TextWrapping = TextWrapping.Wrap
       });
-      var button = SmallButton("转到 02B 填写", () => SetStatus(
-        "请在 02 构件与属性准备的 02B 指标区填写总建筑面积。" ));
+      var button = SmallButton("转到 02B 填写", () =>
+        NavigateToMetric("ca21e324-046b-5bfd-84c8-0d3470082303"));
       button.IsEnabled = !_busy;
       panel.Children.Add(button);
       return panel;
+    }
+
+    private void NavigateToMetric(string propertyId)
+    {
+      _navigateToMetric(propertyId);
     }
 
     private FrameworkElement CreatePlanningTargetEditor(

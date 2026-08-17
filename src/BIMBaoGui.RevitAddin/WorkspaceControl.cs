@@ -3,9 +3,11 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using BIMBaoGui.RevitAddin.Issues;
 using BIMBaoGui.RevitAddin.Runtime;
 using BIMBaoGui.RevitAddin.Stage01;
 using BIMBaoGui.RevitAddin.Stage02;
+using BIMBaoGui.RevitAddin.Stage02B;
 using BIMBaoGui.RevitAddin.Stage03;
 
 namespace BIMBaoGui.RevitAddin
@@ -20,9 +22,12 @@ namespace BIMBaoGui.RevitAddin
     private readonly TextBlock _statusText;
     private readonly Button _refreshButton;
     private readonly ContentControl _stageHost;
+    private readonly NativeIssueHub _issueHub = new NativeIssueHub();
     private readonly NativeStage01View _stage01View;
     private readonly NativeStage02View _stage02View;
+    private readonly NativeStage02BView _stage02BView;
     private readonly NativeStage03View _stage03View;
+    private readonly NativeIssueCenterView _issueCenterView;
 
     internal WorkspaceControl()
     {
@@ -43,9 +48,11 @@ namespace BIMBaoGui.RevitAddin
         Background = new SolidColorBrush(Color.FromRgb(246, 247, 249))
       };
       navigation.Children.Add(Header("湖北BIM报规"));
-      navigation.Children.Add(StageButton("01 文件初始化", ShowStage01));
-      navigation.Children.Add(StageButton("02 构件与属性准备", ShowStage02));
+      navigation.Children.Add(StageButton("01 项目初始化", ShowStage01));
+      navigation.Children.Add(StageButton("02A 构件与属性准备", ShowStage02));
+      navigation.Children.Add(StageButton("02B 项目实际指标", ShowStage02B));
       navigation.Children.Add(StageButton("03 检测与 H-IFC", ShowStage03));
+      navigation.Children.Add(StageButton("问题中心", ShowIssueCenter));
       Grid.SetColumn(navigation, 0);
       root.Children.Add(navigation);
 
@@ -122,12 +129,18 @@ namespace BIMBaoGui.RevitAddin
         Background = new SolidColorBrush(Color.FromRgb(245, 247, 250))
       };
 
-      _stage01View = new NativeStage01View();
+      _stage01View = new NativeStage01View(NavigateToMetric);
       _stage01View.StatusChanged += UpdateStageSummary;
-      _stage02View = new NativeStage02View();
+      _stage02View = new NativeStage02View(_issueHub);
       _stage02View.StatusChanged += UpdateStageSummary;
-      _stage03View = new NativeStage03View();
+      _stage02BView = new NativeStage02BView(_issueHub);
+      _stage02BView.StatusChanged += UpdateStageSummary;
+      _stage03View = new NativeStage03View(_issueHub);
       _stage03View.StatusChanged += UpdateStageSummary;
+      _issueCenterView = new NativeIssueCenterView(
+        _issueHub,
+        NavigateToIssueSource,
+        RequestIssueNavigation);
       _stageHost = new ContentControl { Content = _stage01View };
       Grid.SetRow(_stageHost, 2);
       content.Children.Add(_stageHost);
@@ -158,17 +171,92 @@ namespace BIMBaoGui.RevitAddin
 
     private void ShowStage01()
     {
-      ShowStage(_stage01View, "Stage01 文件初始化");
+      ShowStage(_stage01View, "Stage01 项目初始化");
     }
 
     private void ShowStage02()
     {
-      ShowStage(_stage02View, "Stage02 构件与属性准备");
+      ShowStage(_stage02View, "Stage02A 构件与属性准备");
+    }
+
+    private void ShowStage02B()
+    {
+      ShowStage(_stage02BView, "Stage02B 项目实际指标");
     }
 
     private void ShowStage03()
     {
       ShowStage(_stage03View, "Stage03 检测、H-IFC 与 IFCFlux 人工验收");
+    }
+
+    private void ShowIssueCenter()
+    {
+      _issueCenterView.Refresh();
+      ShowStage(_issueCenterView, "问题中心");
+    }
+
+    internal void NavigateToMetric(string propertyId)
+    {
+      ShowStage02B();
+      _stage02BView.NavigateToMetric(propertyId);
+    }
+
+    internal void NavigateToField(string fieldKey)
+    {
+      ShowStage01();
+      _stage01View.NavigateToField(fieldKey);
+    }
+
+    private void NavigateToIssueSource(NativeIssueRecord issue)
+    {
+      if (issue == null) return;
+      switch (issue.Route)
+      {
+        case NativeIssueNavigationAction.OpenStage01:
+          NavigateToField(issue.FieldKey);
+          break;
+        case NativeIssueNavigationAction.OpenStage02A:
+          ShowStage02();
+          break;
+        case NativeIssueNavigationAction.OpenStage02B:
+          NavigateToMetric(issue.PropertyId);
+          break;
+        case NativeIssueNavigationAction.StayStage03:
+          ShowStage03();
+          break;
+        default:
+          UpdateStageSummary("该问题没有可用的工作台定位目标");
+          break;
+      }
+    }
+
+    private void RequestIssueNavigation(NativeIssueNavigationRequest request)
+    {
+      try
+      {
+        RevitExternalEventDispatcher.RequestIssueNavigation(
+          request,
+          ApplyIssueNavigationResult,
+          ApplyRefreshFailure);
+      }
+      catch (Exception exception)
+      {
+        ApplyRefreshFailure(exception);
+      }
+    }
+
+    private void ApplyIssueNavigationResult(NativeIssueNavigationResult result)
+    {
+      if (!Dispatcher.CheckAccess())
+      {
+        Dispatcher.BeginInvoke(
+          new Action<NativeIssueNavigationResult>(ApplyIssueNavigationResult),
+          result);
+        return;
+      }
+      UpdateStageSummary(result != null && result.Succeeded
+        ? "Revit 定位已完成"
+        : "Revit 定位失败｜" + (result?.Code ?? "ISSUE_RESULT_MISSING"));
     }
 
     private void ShowStage(FrameworkElement content, string status)
@@ -206,11 +294,13 @@ namespace BIMBaoGui.RevitAddin
       _refreshButton.IsEnabled = true;
       if (snapshot == null || !snapshot.HasDocument)
       {
+        _issueHub.ResetForDocument(string.Empty);
         _stage03View.ApplyDocumentPath(string.Empty);
         _documentText.Text = "当前文档：Revit 中没有活动项目文档";
         UpdateStageSummary("等待打开项目文档");
         return;
       }
+      _issueHub.ResetForDocument(snapshot);
       _stage03View.ApplyDocumentPath(
         snapshot.IsSaved ? snapshot.DocumentPath : string.Empty);
       _documentText.Text = "当前文档："

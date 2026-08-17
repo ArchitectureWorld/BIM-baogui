@@ -11,8 +11,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
 {
   internal sealed class NativeStage02View : UserControl
   {
-    private static readonly NativeIssueHub SharedIssueHub =
-      new NativeIssueHub();
+    private readonly NativeIssueHub _issueHub;
     private readonly RadioButton _fullModel;
     private readonly RadioButton _currentSelection;
     private readonly RadioButton _interactiveSelection;
@@ -46,7 +45,13 @@ namespace BIMBaoGui.RevitAddin.Stage02
     private bool _previewStale;
 
     internal NativeStage02View()
+      : this(new NativeIssueHub())
     {
+    }
+
+    internal NativeStage02View(NativeIssueHub hub)
+    {
+      _issueHub = hub ?? throw new ArgumentNullException(nameof(hub));
       Background = Brushes.White;
       _manualRoleChoices = LoadManualRoleChoices();
 
@@ -222,11 +227,11 @@ namespace BIMBaoGui.RevitAddin.Stage02
       root.Children.Add(workspace);
 
       _issueCenter = new NativeIssueCenterView(
-        SharedIssueHub,
+        _issueHub,
         NavigateToSource,
         RequestRevitAction);
       _issueLifecycle = new NativeIssueHubLifecycle(
-        SharedIssueHub,
+        _issueHub,
         NativeRevitDocumentBoundarySource.Instance,
         _issueCenter.Refresh,
         DispatchToUi);
@@ -598,8 +603,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
       }
       _preview = result.Preview;
       _resolvedRequest = result.ResolvedRequest;
-      SharedIssueHub.ResetForDocument(_preview.DocumentFingerprint);
-      SharedIssueHub.Replace("STAGE02A", _preview.Issues);
+      _issueHub.ResetForDocument(_preview.DocumentFingerprint);
+      _issueHub.Replace("STAGE02A", _preview.Issues);
       _confirmations.Clear();
       foreach (NativeStage02RoleConfirmation confirmation in
         _resolvedRequest?.Confirmations

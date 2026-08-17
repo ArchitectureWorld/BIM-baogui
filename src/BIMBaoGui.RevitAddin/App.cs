@@ -1,9 +1,11 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Windows.Media;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using BIMBaoGui.RevitAddin.Acceptance;
 using BIMBaoGui.RevitAddin.McpBridge;
 using BIMBaoGui.RevitAddin.Stage03;
 
@@ -51,6 +53,20 @@ namespace BIMBaoGui.RevitAddin
         };
         panel.AddItem(buttonData);
 
+        if (NativeOfficialCarrierProbeService.CanRegisterAtStartup())
+        {
+          var probeButtonData = new PushButtonData(
+            "BIMBaoGui.NativeOfficialCarrierProbe",
+            "验收载体探针",
+            assemblyPath,
+            typeof(NativeOfficialCarrierProbeCommand).FullName)
+          {
+            ToolTip = "仅对已授权的验收 RVT 副本写入官方载体 sentinel。",
+            LargeImage = CreateProbeIcon()
+          };
+          panel.AddItem(probeButtonData);
+        }
+
         application.RegisterDockablePane(
           WorkspacePaneId,
           "湖北BIM报规",
@@ -82,6 +98,16 @@ namespace BIMBaoGui.RevitAddin
       RevitExternalEventDispatcher.Dispose();
       NativeStage03TemporaryFilePolicy.Stop();
       return Result.Succeeded;
+    }
+
+    private static ImageSource CreateProbeIcon()
+    {
+      var image = new DrawingImage(new GeometryDrawing(
+        Brushes.Red,
+        new Pen(Brushes.DarkRed, 1.5),
+        new RectangleGeometry(new System.Windows.Rect(2, 2, 28, 28), 4, 4)));
+      image.Freeze();
+      return image;
     }
   }
 
