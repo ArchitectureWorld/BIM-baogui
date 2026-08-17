@@ -168,3 +168,73 @@ def test_unified_ci_runs_stage02_revit_contract():
     workflow = WORKFLOW.read_text(encoding="utf-8")
     assert "Verify native and MCP contracts" in workflow
     assert "tests/test_revit_addin_stage02_revit_contract.py" in workflow
+
+
+def test_stage02a_captures_world_geometry_without_bbox_area_fallback():
+    capture = read_stage02("NativeStage02RevitGeometryEvidenceService.cs")
+    service = read_stage02("NativeStage02RevitService.cs")
+    for token in (
+        "get_BoundingBox(null)",
+        "BoundingBoxXYZ.Transform",
+        "LocationPoint",
+        "LocationCurve",
+        "GeometryInstance",
+        "GetInstanceGeometry()",
+        "PlanarFace",
+        "GetEdgesAsCurveLoops()",
+        "Tessellate()",
+        "HOST_AREA_COMPUTED",
+        "ShortCurveTolerance",
+        "GEOMETRY_CAPTURE_AMBIGUOUS",
+        "GEOMETRY_CAPTURE_UNSUPPORTED",
+        "GEOMETRY_AREA_SOURCE_MISMATCH",
+    ):
+        assert token in capture
+    assert "NativeStage02RevitGeometryEvidenceService.Capture" in service
+    assert "ApprovedProjectedAreaSquareMetres" in service
+    assert "MaxXFeet -" not in capture
+    assert "MaxYFeet -" not in capture
+
+
+def test_stage02a_confirmation_manual_review_and_workflow_results_are_persisted():
+    service = read_stage02("NativeStage02RevitService.cs")
+    write = read_stage02("NativeStage02RevitWriteService.cs")
+    manual = read_stage02("NativeStage02ManualReviewStorage.cs")
+    assignment = read_stage02("NativeStage02SemanticAssignmentCanonicalizer.cs")
+    assert '"1.1.0"' in assignment
+    for field in ("RulePackageSha256", "ElementSnapshotHash", "ConfirmedUtc"):
+        assert field in assignment
+    assert "Confirmations" in service
+    assert "NativeStage02RoleConfirmationPolicy.Resolve" in service
+    assert "NativeStage02GeometryEvidencePolicy.Evaluate" in service
+    assert '"HBR_NATIVE_GEOMETRY_REVIEW_V1"' in manual
+    assert "DataStorage.Create(document)" in manual
+    assert "NativeStage02ManualReviewPolicy.Seal" in manual
+    assert "NativeWorkflowResultCanonicalizer.Build" in write
+    assert '"STAGE02A"' in write
+    assert '"ELEMENT_PREPARATION"' in write
+    assert "NativeWorkflowResultStorage.Write" in write
+    assert "ScopeComplete" in write
+    for forbidden in (
+        "总建筑面积",
+        "建筑密度",
+        "容积率",
+        "绿地率",
+        "停车位汇总",
+    ):
+        assert forbidden not in read_stage02("NativeStage02GeometryEvidence.cs")
+
+
+def test_stage02a_keeps_one_transaction_per_element_and_independent_outcomes():
+    source = read_stage02("NativeStage02RevitWriteService.cs")
+    assert "NativeStage02ElementWriteOutcome" in source
+    assert "ElementOutcomes" in source
+    assert "GeometryOutcomes" in source
+    assert "FieldOutcomes" in source
+    assert re.search(
+        r"foreach\s*\(NativeStage02ElementPlan.*?new\s+Transaction\s*\(",
+        source,
+        re.S,
+    )
+    assert "outcomes.Add" in source
+    assert "continue;" in source

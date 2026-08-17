@@ -40,6 +40,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
     internal string TypeName { get; set; } = string.Empty;
     internal string LevelName { get; set; } = string.Empty;
     internal string AssignedRoleId { get; set; } = string.Empty;
+    internal NativeStage02GeometryEvidence Geometry { get; set; } =
+      new NativeStage02GeometryEvidence();
     internal bool IsElementType { get; set; }
     internal bool IsViewSpecific { get; set; }
     internal bool IsImported { get; set; }

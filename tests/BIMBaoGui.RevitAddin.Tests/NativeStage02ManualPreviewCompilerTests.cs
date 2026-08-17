@@ -10,7 +10,7 @@ namespace BIMBaoGui.RevitAddin.Tests
   public sealed class NativeStage02ManualPreviewCompilerTests
   {
     [Fact]
-    public void Resolved_manual_role_and_assignment_are_frozen_in_preview_v2()
+    public void Resolved_manual_role_and_assignment_are_frozen_in_preview_v3()
     {
       NativeStage02Preview preview = Compile(
         "集中绿地",
@@ -21,7 +21,7 @@ namespace BIMBaoGui.RevitAddin.Tests
         });
 
       NativeStage02ElementPlan element = Assert.Single(preview.Elements);
-      Assert.Equal("HBR_NATIVE_STAGE02_PREVIEW_V2", preview.SchemaVersion);
+      Assert.Equal("HBR_NATIVE_STAGE02A_PREVIEW_V3", preview.SchemaVersion);
       Assert.Equal(NativeStage02IdentificationMode.Manual, preview.IdentificationMode);
       Assert.Equal("SITE_GREEN_OBJECT", preview.BulkRoleId);
       Assert.Equal(NativeStage02RoleMatchStatus.Matched, element.RoleMatchStatus);
@@ -87,7 +87,7 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
-    public void Presentation_name_does_not_change_frozen_semantic_hash()
+    public void Presentation_name_changes_stage02a_preview_hash()
     {
       NativeStage02Preview before = Compile(
         "集中绿地",
@@ -98,8 +98,8 @@ namespace BIMBaoGui.RevitAddin.Tests
         "SITE_GREEN_OBJECT",
         new[] { Override("A", "SITE_GREEN_OBJECT") });
 
-      Assert.Equal(before.CanonicalJson, after.CanonicalJson);
-      Assert.Equal(before.PreviewHash, after.PreviewHash);
+      Assert.NotEqual(before.CanonicalJson, after.CanonicalJson);
+      Assert.NotEqual(before.PreviewHash, after.PreviewHash);
     }
 
     private static NativeStage02Preview Compile(

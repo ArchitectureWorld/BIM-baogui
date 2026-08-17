@@ -10,7 +10,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
 {
   internal static class NativeStage02SemanticAssignmentSchema
   {
-    internal const string Version = "1.0.0";
+    internal const string Version = "1.1.0";
+    internal const string LegacyVersion = "1.0.0";
   }
 
   internal sealed class NativeStage02SemanticAssignmentRecord
@@ -20,6 +21,9 @@ namespace BIMBaoGui.RevitAddin.Stage02
     internal NativeStage02AssignmentMode AssignmentMode { get; set; }
     internal string CarrierCategory { get; set; } = string.Empty;
     internal string CarrierElementKind { get; set; } = string.Empty;
+    internal string RulePackageSha256 { get; set; } = string.Empty;
+    internal string ElementSnapshotHash { get; set; } = string.Empty;
+    internal string ConfirmedUtc { get; set; } = string.Empty;
 
     internal NativeStage02SemanticAssignmentRecord Clone()
     {
@@ -29,7 +33,10 @@ namespace BIMBaoGui.RevitAddin.Stage02
         RoleId = RoleId ?? string.Empty,
         AssignmentMode = AssignmentMode,
         CarrierCategory = CarrierCategory ?? string.Empty,
-        CarrierElementKind = CarrierElementKind ?? string.Empty
+        CarrierElementKind = CarrierElementKind ?? string.Empty,
+        RulePackageSha256 = RulePackageSha256 ?? string.Empty,
+        ElementSnapshotHash = ElementSnapshotHash ?? string.Empty,
+        ConfirmedUtc = ConfirmedUtc ?? string.Empty
       };
     }
   }
@@ -65,7 +72,10 @@ namespace BIMBaoGui.RevitAddin.Stage02
           RoleId = Clean(raw.RoleId),
           AssignmentMode = raw.AssignmentMode,
           CarrierCategory = Clean(raw.CarrierCategory),
-          CarrierElementKind = Clean(raw.CarrierElementKind)
+          CarrierElementKind = Clean(raw.CarrierElementKind),
+          RulePackageSha256 = Clean(raw.RulePackageSha256).ToLowerInvariant(),
+          ElementSnapshotHash = Clean(raw.ElementSnapshotHash).ToLowerInvariant(),
+          ConfirmedUtc = Clean(raw.ConfirmedUtc)
         };
         if (record.ElementUniqueId.Length == 0)
           throw new InvalidOperationException(
@@ -129,6 +139,12 @@ namespace BIMBaoGui.RevitAddin.Stage02
         AppendProperty(builder, "carrierCategory", record.CarrierCategory);
         builder.Append(',');
         AppendProperty(builder, "carrierElementKind", record.CarrierElementKind);
+        builder.Append(',');
+        AppendProperty(builder, "rulePackageSha256", record.RulePackageSha256);
+        builder.Append(',');
+        AppendProperty(builder, "elementSnapshotHash", record.ElementSnapshotHash);
+        builder.Append(',');
+        AppendProperty(builder, "confirmedUtc", record.ConfirmedUtc);
         builder.Append('}');
       }
       builder.Append("]}");
@@ -192,6 +208,18 @@ namespace BIMBaoGui.RevitAddin.Stage02
         && string.Equals(
           left.CarrierElementKind,
           right.CarrierElementKind,
+          StringComparison.Ordinal)
+        && string.Equals(
+          left.RulePackageSha256,
+          right.RulePackageSha256,
+          StringComparison.Ordinal)
+        && string.Equals(
+          left.ElementSnapshotHash,
+          right.ElementSnapshotHash,
+          StringComparison.Ordinal)
+        && string.Equals(
+          left.ConfirmedUtc,
+          right.ConfirmedUtc,
           StringComparison.Ordinal);
     }
 

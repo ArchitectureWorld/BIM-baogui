@@ -11,7 +11,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
       NativeStage02ScopeMode scope,
       NativeStage02IdentificationMode identificationMode,
       string bulkRoleId,
-      IReadOnlyDictionary<string, string> overrides)
+      IReadOnlyDictionary<string, string> overrides,
+      IReadOnlyList<NativeStage02RoleConfirmation> confirmations = null)
     {
       bool manual = scope == NativeStage02ScopeMode.CustomSelection
         && identificationMode == NativeStage02IdentificationMode.Manual;
@@ -37,8 +38,15 @@ namespace BIMBaoGui.RevitAddin.Stage02
         CustomUniqueIds = Array.Empty<string>(),
         BulkRoleId = manual ? Clean(bulkRoleId) : string.Empty,
         RoleOverrides = new ReadOnlyCollection<NativeStage02RoleOverride>(
-          canonicalOverrides)
-      };
+          canonicalOverrides),
+        Confirmations = new ReadOnlyCollection<NativeStage02RoleConfirmation>(
+          (confirmations ?? Array.Empty<NativeStage02RoleConfirmation>())
+            .Where(value => value != null)
+            .Select(value => value.Clone())
+            .OrderBy(value => value.ElementUniqueId, StringComparer.Ordinal)
+            .ThenBy(value => value.RoleId, StringComparer.Ordinal)
+            .ToArray())
+      }.Clone();
     }
 
     private static string Clean(string value)

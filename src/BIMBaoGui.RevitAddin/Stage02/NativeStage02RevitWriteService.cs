@@ -6,6 +6,7 @@ using System.Linq;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using BIMBaoGui.RevitAddin.Rules;
+using BIMBaoGui.RevitAddin.Workflow;
 
 namespace BIMBaoGui.RevitAddin.Stage02
 {
@@ -40,6 +41,33 @@ namespace BIMBaoGui.RevitAddin.Stage02
     internal IReadOnlyList<string> Messages { get; set; } = Array.Empty<string>();
     internal NativeStage02Preview RefreshedPreview { get; set; }
     internal NativeStage02PreviewRequest ResolvedRequest { get; set; }
+    internal IReadOnlyList<NativeStage02ElementWriteOutcome> ElementOutcomes
+    {
+      get;
+      set;
+    } = Array.Empty<NativeStage02ElementWriteOutcome>();
+    internal NativeWorkflowResultEnvelope WorkflowResult { get; set; }
+    internal bool ScopeComplete { get; set; }
+  }
+
+  internal sealed class NativeStage02ElementWriteOutcome
+  {
+    internal int ElementId { get; set; }
+    internal string ElementUniqueId { get; set; } = string.Empty;
+    internal string RoleId { get; set; } = string.Empty;
+    internal bool Succeeded { get; set; }
+    internal string GeometryEvidenceHash { get; set; } = string.Empty;
+    internal IReadOnlyList<NativeWorkflowItemEvidence> GeometryOutcomes
+    {
+      get;
+      set;
+    } = Array.Empty<NativeWorkflowItemEvidence>();
+    internal IReadOnlyList<NativeWorkflowItemEvidence> FieldOutcomes
+    {
+      get;
+      set;
+    } = Array.Empty<NativeWorkflowItemEvidence>();
+    internal string ErrorCode { get; set; } = string.Empty;
   }
 
   internal static class NativeStage02RevitWriteService
@@ -118,9 +146,17 @@ namespace BIMBaoGui.RevitAddin.Stage02
         };
       assignmentPayload.RulePackageId = NativeStage02RuleCatalog.Current.Identity.PackageId;
       assignmentPayload.RulePackageVersion = NativeStage02RuleCatalog.Current.Identity.PackageVersion;
+      assignmentPayload.SchemaVersion = NativeStage02SemanticAssignmentSchema.Version;
 
       var messages = new List<string>();
       var failedPropertyIds = new HashSet<string>(StringComparer.Ordinal);
+      string workflowUpdatedUtc = DateTime.UtcNow.ToString(
+        "O",
+        CultureInfo.InvariantCulture);
+      var outcomes = new Dictionary<string, NativeStage02ElementWriteOutcome>(
+        StringComparer.Ordinal);
+      foreach (NativeStage02ElementPlan plan in rebuilt.Preview.Elements)
+        outcomes.Add(plan.Element.UniqueId, CreateOutcome(plan, workflowUpdatedUtc));
       int preparedParameters = 0;
       int failedParameters = 0;
       foreach (BindingWork work in CollectBindingWork(rebuilt.Preview))
@@ -166,7 +202,18 @@ namespace BIMBaoGui.RevitAddin.Stage02
       foreach (NativeStage02ElementPlan elementPlan in rebuilt.Preview.Elements
         .OrderBy(value => value.Element.UniqueId, StringComparer.Ordinal))
       {
-        if (elementPlan.IsBlocked) continue;
+        NativeStage02ElementWriteOutcome outcome =
+          outcomes[elementPlan.Element.UniqueId];
+        if (elementPlan.IsBlocked)
+        {
+          outcome.Succeeded = false;
+          outcome.ErrorCode = elementPlan.RoleConfirmation != null
+            && !elementPlan.RoleConfirmation.Confirmed
+              ? elementPlan.RoleConfirmation.Code
+              : "STAGE02A_ELEMENT_BLOCKED";
+          continue;
+        }
+        outcome.Succeeded = true;
         bool saveManualAssignment = string.Equals(
           elementPlan.AssignmentAction,
           NativeStage02AssignmentActions.SaveManualAssignment,
@@ -183,11 +230,21 @@ namespace BIMBaoGui.RevitAddin.Stage02
           .Where(value => value.BindingAction == NativeStage02BindingAction.Create
             || value.BindingAction == NativeStage02BindingAction.MergeCategories)
           .ToArray();
-        if (!changeAssignment && writes.Length == 0) continue;
+        if (!changeAssignment && writes.Length == 0)
+        {
+          outcome.FieldOutcomes = BuildFieldOutcomes(
+            elementPlan,
+            true,
+            workflowUpdatedUtc,
+            string.Empty);
+          continue;
+        }
         if (requiredBindings.Any(value => failedPropertyIds.Contains(
           value.Property.PropertyId)))
         {
           failedElements++;
+          outcome.Succeeded = false;
+          outcome.ErrorCode = "PARAMETER_BINDING_FAILED";
           if (changeAssignment) failedAssignments++;
           messages.Add(
             "构件跳过｜Id="
@@ -200,6 +257,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
         if (live == null)
         {
           failedElements++;
+          outcome.Succeeded = false;
+          outcome.ErrorCode = "ELEMENT_NOT_FOUND";
           if (changeAssignment) failedAssignments++;
           messages.Add("构件跳过｜UniqueId=" + elementPlan.Element.UniqueId
             + "｜确认写入时元素已不存在。" );
@@ -217,6 +276,26 @@ namespace BIMBaoGui.RevitAddin.Stage02
               NativeStage02SemanticAssignmentWritePolicy.Apply(
                 assignmentPayload,
                 elementPlan);
+            if (saveManualAssignment
+              && elementPlan.RoleConfirmation?.Confirmation != null)
+            {
+              NativeStage02RoleConfirmation confirmation =
+                elementPlan.RoleConfirmation.Confirmation;
+              candidatePayload =
+                NativeStage02SemanticAssignmentCanonicalizer.Upsert(
+                  candidatePayload,
+                  new NativeStage02SemanticAssignmentRecord
+                  {
+                    ElementUniqueId = elementPlan.Element.UniqueId,
+                    RoleId = elementPlan.EffectiveRoleId,
+                    AssignmentMode = NativeStage02AssignmentMode.Manual,
+                    CarrierCategory = elementPlan.Element.Category,
+                    CarrierElementKind = elementPlan.Element.ElementKind,
+                    RulePackageSha256 = confirmation.RulePackageSha256,
+                    ElementSnapshotHash = confirmation.ElementSnapshotHash,
+                    ConfirmedUtc = confirmation.ConfirmedUtc
+                  });
+            }
             if (transaction.Start() != TransactionStatus.Started)
               throw new InvalidOperationException("无法启动构件写入事务。" );
             started = true;
@@ -305,11 +384,25 @@ namespace BIMBaoGui.RevitAddin.Stage02
             if (saveManualAssignment) assignedElements++;
             if (removeManualAssignment) removedAssignments++;
             writtenElements++;
+            outcome.Succeeded = true;
+            outcome.ErrorCode = string.Empty;
+            outcome.FieldOutcomes = BuildFieldOutcomes(
+              elementPlan,
+              true,
+              workflowUpdatedUtc,
+              string.Empty);
           }
           catch (Exception exception)
           {
             if (started) transaction.RollBack();
             failedElements++;
+            outcome.Succeeded = false;
+            outcome.ErrorCode = "ELEMENT_TRANSACTION_FAILED";
+            outcome.FieldOutcomes = BuildFieldOutcomes(
+              elementPlan,
+              false,
+              workflowUpdatedUtc,
+              outcome.ErrorCode);
             if (changeAssignment) failedAssignments++;
             messages.Add(
               "构件写入失败｜Id="
@@ -317,6 +410,98 @@ namespace BIMBaoGui.RevitAddin.Stage02
               + "｜" + exception.Message);
           }
         }
+      }
+
+      bool scopeComplete = rebuilt.Preview.ScopeMode
+        == NativeStage02ScopeMode.FullModel;
+      string inputSnapshotHash =
+        NativeStage02SemanticAssignmentCanonicalizer.Sha256(string.Join(
+          "\u001f",
+          rebuilt.Preview.Elements
+            .OrderBy(value => value.Element.UniqueId, StringComparer.Ordinal)
+            .Select(value => string.IsNullOrWhiteSpace(value.ElementSnapshotHash)
+              ? NativeStage02ElementSnapshotCanonicalizer.Sha256(value.Element)
+              : value.ElementSnapshotHash)));
+      var workflowItems = outcomes.Values
+        .OrderBy(value => value.ElementUniqueId, StringComparer.Ordinal)
+        .SelectMany(value => value.GeometryOutcomes
+          .Concat(value.FieldOutcomes))
+        .ToList();
+      foreach (NativeStage02ElementPlan plan in rebuilt.Preview.Elements)
+      {
+        NativeStage02ElementWriteOutcome outcome = outcomes[plan.Element.UniqueId];
+        workflowItems.Add(BuildRoleOutcome(
+          plan,
+          outcome.Succeeded,
+          workflowUpdatedUtc,
+          outcome.ErrorCode));
+      }
+      workflowItems.Add(new NativeWorkflowItemEvidence
+      {
+        Identity = "SCOPE_COMPLETE",
+        CurrentValue = scopeComplete ? "true" : "false",
+        Source = "STAGE02A_SCOPE",
+        WriteSucceeded = true,
+        ReadbackSucceeded = true,
+        InputHash = inputSnapshotHash,
+        UpdatedUtc = workflowUpdatedUtc,
+        ErrorCode = scopeComplete ? string.Empty : "PARTIAL_SCOPE"
+      });
+      NativeWorkflowResultEnvelope workflowResult =
+        NativeWorkflowResultCanonicalizer.Build(
+          string.IsNullOrWhiteSpace(rebuilt.Preview.RunId)
+            ? Guid.NewGuid().ToString("D")
+            : rebuilt.Preview.RunId,
+          "STAGE02A",
+          "ELEMENT_PREPARATION",
+          new NativeWorkflowIdentity
+          {
+            DocumentFingerprint = rebuilt.Preview.DocumentFingerprint,
+            ModelFileType = rebuilt.Preview.ModelProfile,
+            RulePackageId = rebuilt.Preview.RulePackageId,
+            RulePackageVersion = rebuilt.Preview.RulePackageVersion,
+            RulePackageSha256 = rebuilt.Preview.RulePackageSha256
+          },
+          inputSnapshotHash,
+          workflowItems,
+          workflowUpdatedUtc);
+      try
+      {
+        using (Transaction workflowTransaction = new Transaction(
+          document,
+          "HBR Stage02A workflow result"))
+        {
+          if (workflowTransaction.Start() != TransactionStatus.Started)
+            throw new InvalidOperationException("无法启动 workflow result 事务。");
+          NativeWorkflowResultStorage.Write(document, workflowResult);
+          if (workflowTransaction.Commit() != TransactionStatus.Committed)
+            throw new InvalidOperationException("workflow result 事务未提交。");
+        }
+      }
+      catch (Exception exception)
+      {
+        messages.Add("WORKFLOW_RESULT_PERSISTENCE_FAILED：" + exception.Message);
+        return new NativeStage02WriteResult
+        {
+          Success = false,
+          PartialSuccess = preparedParameters > 0 || writtenElements > 0,
+          RequiresNewPreview = true,
+          Status = "Stage02A 技术失败：workflow result 未持久化",
+          PreparedParameterCount = preparedParameters,
+          WrittenElementCount = writtenElements,
+          FailedParameterCount = failedParameters,
+          FailedElementCount = failedElements,
+          AssignedElementCount = assignedElements,
+          RemovedAssignmentCount = removedAssignments,
+          FailedAssignmentCount = failedAssignments,
+          Messages = new ReadOnlyCollection<string>(messages),
+          ElementOutcomes = outcomes.Values
+            .OrderBy(value => value.ElementUniqueId, StringComparer.Ordinal)
+            .ToArray(),
+          ScopeComplete = scopeComplete,
+          WorkflowResult = null,
+          ResolvedRequest = rebuilt.ResolvedRequest
+        };
       }
 
       NativeStage02RevitPreviewResult refreshed = RebuildPreview(
@@ -347,6 +532,11 @@ namespace BIMBaoGui.RevitAddin.Stage02
         RemovedAssignmentCount = removedAssignments,
         FailedAssignmentCount = failedAssignments,
         Messages = new ReadOnlyCollection<string>(messages),
+        ElementOutcomes = outcomes.Values
+          .OrderBy(value => value.ElementUniqueId, StringComparer.Ordinal)
+          .ToArray(),
+        WorkflowResult = workflowResult,
+        ScopeComplete = scopeComplete,
         RefreshedPreview = refreshed.Preview,
         ResolvedRequest = refreshed.ResolvedRequest
       };
@@ -385,6 +575,131 @@ namespace BIMBaoGui.RevitAddin.Stage02
       return byProperty.Values
         .OrderBy(value => value.Property.PropertyId, StringComparer.Ordinal)
         .ToArray();
+    }
+
+    private static NativeStage02ElementWriteOutcome CreateOutcome(
+      NativeStage02ElementPlan plan,
+      string updatedUtc)
+    {
+      string snapshotHash = SnapshotHash(plan);
+      string geometryHash = plan.Element.Geometry?.EvidenceHash ?? string.Empty;
+      NativeWorkflowItemEvidence[] geometryOutcomes =
+        (plan.TaskGeometry?.Checks
+          ?? Array.Empty<NativeStage02GeometryCheckEvidence>())
+        .Select(check =>
+        {
+          bool passed = check.State == NativeStage02GeometryCheckState.Passed
+            || check.State == NativeStage02GeometryCheckState.ManualReviewApproved;
+          return new NativeWorkflowItemEvidence
+          {
+            Identity = plan.Element.UniqueId + "|" + check.CheckId,
+            CurrentValue = "GeometryEvidenceHash=" + geometryHash
+              + ";ManualReviewRecordHash="
+              + (check.ManualReviewRecordHash ?? string.Empty)
+              + ";State=" + check.State + ";Code=" + check.Code,
+            Source = "STAGE02A_GEOMETRY",
+            WriteSucceeded = passed,
+            ReadbackSucceeded = passed,
+            InputHash = HashOrFallback(geometryHash, snapshotHash),
+            UpdatedUtc = updatedUtc,
+            ErrorCode = passed ? string.Empty : check.Code
+          };
+        })
+        .ToArray();
+      return new NativeStage02ElementWriteOutcome
+      {
+        ElementId = plan.Element.ElementId,
+        ElementUniqueId = plan.Element.UniqueId,
+        RoleId = plan.EffectiveRoleId,
+        GeometryEvidenceHash = geometryHash,
+        GeometryOutcomes = geometryOutcomes,
+        FieldOutcomes = BuildFieldOutcomes(
+          plan,
+          false,
+          updatedUtc,
+          "NOT_WRITTEN")
+      };
+    }
+
+    private static IReadOnlyList<NativeWorkflowItemEvidence> BuildFieldOutcomes(
+      NativeStage02ElementPlan plan,
+      bool transactionSucceeded,
+      string updatedUtc,
+      string transactionError)
+    {
+      string snapshotHash = SnapshotHash(plan);
+      return (plan.Fields ?? Array.Empty<NativeStage02FieldPlan>())
+        .Select(field =>
+        {
+          bool ready = field.Status == NativeStage02FieldStatus.Correct
+            || field.Status == NativeStage02FieldStatus.PendingBinding
+            || field.Status == NativeStage02FieldStatus.PendingWrite
+            || field.Status == NativeStage02FieldStatus.NotApplicable;
+          bool succeeded = transactionSucceeded && ready;
+          string error = succeeded
+            ? string.Empty
+            : !string.IsNullOrWhiteSpace(transactionError)
+              ? transactionError
+              : "FIELD_" + field.Status.ToString().ToUpperInvariant();
+          string input = NativeStage02SemanticAssignmentCanonicalizer.Sha256(
+            snapshotHash + "\u001f" + field.Property.PropertyId + "\u001f"
+              + field.CurrentCanonicalValue + "\u001f"
+              + field.ProposedCanonicalValue);
+          return new NativeWorkflowItemEvidence
+          {
+            Identity = plan.Element.UniqueId + "|"
+              + field.Property.ParameterGuid.ToString("D"),
+            CurrentValue = field.ValueAction == NativeStage02ValueAction.Set
+              ? field.ProposedCanonicalValue
+              : field.CurrentCanonicalValue,
+            Unit = field.Property.CanonicalUnit,
+            Source = "STAGE02A_FIELD",
+            WriteSucceeded = succeeded,
+            ReadbackSucceeded = succeeded,
+            InputHash = input,
+            UpdatedUtc = updatedUtc,
+            ErrorCode = error
+          };
+        })
+        .ToArray();
+    }
+
+    private static NativeWorkflowItemEvidence BuildRoleOutcome(
+      NativeStage02ElementPlan plan,
+      bool elementSucceeded,
+      string updatedUtc,
+      string errorCode)
+    {
+      bool confirmed = plan.RoleConfirmation?.Confirmed == true;
+      return new NativeWorkflowItemEvidence
+      {
+        Identity = plan.Element.UniqueId + "|ROLE_CONFIRMATION",
+        CurrentValue = plan.EffectiveRoleId,
+        Source = "STAGE02A_ROLE",
+        WriteSucceeded = confirmed && elementSucceeded,
+        ReadbackSucceeded = confirmed && elementSucceeded,
+        InputHash = SnapshotHash(plan),
+        UpdatedUtc = updatedUtc,
+        ErrorCode = confirmed && elementSucceeded
+          ? string.Empty
+          : !string.IsNullOrWhiteSpace(errorCode)
+            ? errorCode
+            : plan.RoleConfirmation?.Code ?? "ROLE_CONFIRMATION_REQUIRED"
+      };
+    }
+
+    private static string SnapshotHash(NativeStage02ElementPlan plan)
+    {
+      return string.IsNullOrWhiteSpace(plan.ElementSnapshotHash)
+        ? NativeStage02ElementSnapshotCanonicalizer.Sha256(plan.Element)
+        : plan.ElementSnapshotHash;
+    }
+
+    private static string HashOrFallback(string value, string fallback)
+    {
+      return !string.IsNullOrWhiteSpace(value) && value.Length == 64
+        ? value
+        : fallback;
     }
 
     private static NativeStage02WriteResult Failure(

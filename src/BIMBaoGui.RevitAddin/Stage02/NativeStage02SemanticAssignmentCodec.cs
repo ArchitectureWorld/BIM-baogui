@@ -38,7 +38,10 @@ namespace BIMBaoGui.RevitAddin.Stage02
               ? NativeStage02AssignmentMode.Manual
               : NativeStage02AssignmentMode.Auto,
             CarrierCategory = value.carrierCategory ?? string.Empty,
-            CarrierElementKind = value.carrierElementKind ?? string.Empty
+            CarrierElementKind = value.carrierElementKind ?? string.Empty,
+            RulePackageSha256 = value.rulePackageSha256 ?? string.Empty,
+            ElementSnapshotHash = value.elementSnapshotHash ?? string.Empty,
+            ConfirmedUtc = value.confirmedUtc ?? string.Empty
           })
           .ToArray()
       };
@@ -59,6 +62,9 @@ namespace BIMBaoGui.RevitAddin.Stage02
       public string assignmentMode { get; set; }
       public string carrierCategory { get; set; }
       public string carrierElementKind { get; set; }
+      public string rulePackageSha256 { get; set; }
+      public string elementSnapshotHash { get; set; }
+      public string confirmedUtc { get; set; }
     }
   }
 }

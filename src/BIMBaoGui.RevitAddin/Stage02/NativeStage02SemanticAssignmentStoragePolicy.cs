@@ -9,6 +9,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
   {
     NoRecord,
     Current,
+    NeedsReconfirmation,
     Corrupt,
     UnsupportedFuture
   }
@@ -61,6 +62,41 @@ namespace BIMBaoGui.RevitAddin.Stage02
         };
       }
 
+      if (string.Equals(
+        Clean(snapshot.SchemaVersion),
+        NativeStage02SemanticAssignmentSchema.LegacyVersion,
+        StringComparison.Ordinal))
+      {
+        if (snapshot.Payload == null)
+          return Corrupt("Stage02 legacy Assignment Payload 无法解析。");
+        string legacyHash = NativeStage02SemanticAssignmentCanonicalizer.Sha256(
+          snapshot.CanonicalJson ?? string.Empty);
+        if (!string.Equals(
+          legacyHash,
+          Clean(snapshot.PayloadSha256).ToLowerInvariant(),
+          StringComparison.Ordinal))
+          return Corrupt("Stage02 legacy Assignment SHA-256 校验失败。");
+        NativeStage02SemanticAssignmentPayload legacy;
+        try
+        {
+          legacy = NativeStage02SemanticAssignmentCanonicalizer.Normalize(
+            snapshot.Payload);
+        }
+        catch (Exception exception)
+        {
+          return Corrupt(exception.Message);
+        }
+        return new NativeStage02SemanticAssignmentStorageDecision
+        {
+          State = NativeStage02SemanticAssignmentStorageState.NeedsReconfirmation,
+          Message = "Stage02 1.0.0 角色记录已保留，必须按当前构件和规则重新确认。",
+          Payload = legacy,
+          StaleElementUniqueIds = StaleIds(
+            legacy,
+            existingElementUniqueIds)
+        };
+      }
+
       if (!string.Equals(
         Clean(snapshot.SchemaVersion),
         NativeStage02SemanticAssignmentSchema.Version,
@@ -104,22 +140,11 @@ namespace BIMBaoGui.RevitAddin.Stage02
         return Corrupt("Stage02 Assignment SHA-256 校验失败。" );
       }
 
-      var existing = new HashSet<string>(
-        (existingElementUniqueIds ?? Array.Empty<string>())
-          .Select(Clean)
-          .Where(value => value.Length > 0),
-        StringComparer.Ordinal);
-      string[] stale = normalized.Assignments
-        .Select(value => value.ElementUniqueId)
-        .Where(value => !existing.Contains(value))
-        .OrderBy(value => value, StringComparer.Ordinal)
-        .ToArray();
-
       return new NativeStage02SemanticAssignmentStorageDecision
       {
         State = NativeStage02SemanticAssignmentStorageState.Current,
         Payload = normalized,
-        StaleElementUniqueIds = new ReadOnlyCollection<string>(stale)
+        StaleElementUniqueIds = StaleIds(normalized, existingElementUniqueIds)
       };
     }
 
@@ -178,6 +203,23 @@ namespace BIMBaoGui.RevitAddin.Stage02
     private static string Clean(string value)
     {
       return (value ?? string.Empty).Trim();
+    }
+
+    private static IReadOnlyList<string> StaleIds(
+      NativeStage02SemanticAssignmentPayload payload,
+      IEnumerable<string> existingElementUniqueIds)
+    {
+      var existing = new HashSet<string>(
+        (existingElementUniqueIds ?? Array.Empty<string>())
+          .Select(Clean)
+          .Where(value => value.Length > 0),
+        StringComparer.Ordinal);
+      return new ReadOnlyCollection<string>((payload?.Assignments
+          ?? Array.Empty<NativeStage02SemanticAssignmentRecord>())
+        .Select(value => value.ElementUniqueId)
+        .Where(value => !existing.Contains(value))
+        .OrderBy(value => value, StringComparer.Ordinal)
+        .ToArray());
     }
   }
 }

@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using BIMBaoGui.RevitAddin.Rules;
 using BIMBaoGui.RevitAddin.Stage02;
 using Xunit;
 
@@ -81,6 +83,18 @@ namespace BIMBaoGui.RevitAddin.Tests
 
       Assert.Equal(NativeStage02SemanticSuggestionStatus.PendingInput, decision.Status);
       Assert.Empty(decision.CanonicalValue);
+    }
+
+    [Fact]
+    public void V042_green_role_still_has_exactly_four_fields()
+    {
+      Assert.Equal(
+        4,
+        NativeStage02RuleCatalog.Current
+          .PropertiesForRole("SITE_GREEN_OBJECT")
+          .Select(value => value.PropertyId)
+          .Distinct(StringComparer.Ordinal)
+          .Count());
     }
 
     private static readonly string[] GreenTypes =

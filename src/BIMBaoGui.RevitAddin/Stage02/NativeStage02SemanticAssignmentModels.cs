@@ -17,6 +17,35 @@ namespace BIMBaoGui.RevitAddin.Stage02
     Manual
   }
 
+  internal sealed class NativeStage02SemanticCandidate
+  {
+    internal string RoleId { get; set; } = string.Empty;
+    internal string Confidence { get; set; } = string.Empty;
+    internal IReadOnlyList<string> Evidence { get; set; } =
+      Array.Empty<string>();
+  }
+
+  internal sealed class NativeStage02RoleConfirmation
+  {
+    internal string ElementUniqueId { get; set; } = string.Empty;
+    internal string RoleId { get; set; } = string.Empty;
+    internal string ElementSnapshotHash { get; set; } = string.Empty;
+    internal string RulePackageSha256 { get; set; } = string.Empty;
+    internal string ConfirmedUtc { get; set; } = string.Empty;
+
+    internal NativeStage02RoleConfirmation Clone()
+    {
+      return new NativeStage02RoleConfirmation
+      {
+        ElementUniqueId = ElementUniqueId ?? string.Empty,
+        RoleId = RoleId ?? string.Empty,
+        ElementSnapshotHash = ElementSnapshotHash ?? string.Empty,
+        RulePackageSha256 = RulePackageSha256 ?? string.Empty,
+        ConfirmedUtc = ConfirmedUtc ?? string.Empty
+      };
+    }
+  }
+
   internal sealed class NativeStage02RoleOverride
   {
     internal string ElementUniqueId { get; set; } = string.Empty;

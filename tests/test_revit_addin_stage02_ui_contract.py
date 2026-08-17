@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -58,3 +59,44 @@ def test_stage02_ui_uses_the_shared_canonical_request_policy():
     assert "OrderBy(value => value.ElementUniqueId, StringComparer.Ordinal)" in policy
     assert "NativeStage02IdentificationMode.Automatic" in policy
     assert "NativeStage02IdentificationMode.Manual" in policy
+
+
+def test_stage02a_ui_is_candidate_confirmation_then_write_preview():
+    text = source()
+    for label in (
+        "选择范围",
+        "生成候选",
+        "待确认",
+        "批量接受当前候选",
+        "刷新写入预览",
+        "确认写入",
+        "几何来源",
+        "当前面积",
+        "几何检查",
+        "批准",
+        "拒绝",
+        "复核人",
+        "依据",
+    ):
+        assert label in text
+    assert "NativeStage02RoleConfirmation" in text
+    assert "Confirmations" in text
+    assert "CreatePreview" in text
+    assert "NativeStage02ManualReviewStorage" in text
+    assert "人工复核：不适用" not in text
+    assert "人工复核：本期未实现" not in text
+
+
+def test_batch_accept_only_updates_confirmations_and_refreshes_preview():
+    text = source()
+    batch_handler = re.search(
+        r"private\s+void\s+BatchAcceptCandidates\s*\(\s*\).*?"
+        r"(?=\n\s*private\s+void\s+AcceptCandidate)",
+        text,
+        re.S,
+    )
+    assert batch_handler is not None
+    body = batch_handler.group(0)
+    assert "Confirmations" in body
+    assert "CreatePreview" in body or "RequestPreview" in body
+    assert "RequestStage02Write" not in body

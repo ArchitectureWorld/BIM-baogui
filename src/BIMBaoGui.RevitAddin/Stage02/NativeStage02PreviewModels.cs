@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using BIMBaoGui.RevitAddin.Issues;
 using BIMBaoGui.RevitAddin.Rules;
 
 namespace BIMBaoGui.RevitAddin.Stage02
@@ -12,6 +13,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
     PendingBinding,
     PendingWrite,
     PendingInput,
+    PendingConfirmation,
     NotApplicable,
     RuntimeBlocked,
     Blocked
@@ -52,6 +54,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
     internal IDictionary<string, string> AliasValues { get; set; } =
       new Dictionary<string, string>(StringComparer.Ordinal);
     internal string ContractMessage { get; set; } = string.Empty;
+    internal string SuggestedCanonicalValue { get; set; } = string.Empty;
+    internal string SuggestionSource { get; set; } = string.Empty;
   }
 
   internal sealed class NativeStage02ElementEvidence
@@ -65,6 +69,15 @@ namespace BIMBaoGui.RevitAddin.Stage02
     internal string AssignmentAction { get; set; } =
       NativeStage02AssignmentActions.None;
     internal string ManualCarrierEvidence { get; set; } = string.Empty;
+    internal string ElementSnapshotHash { get; set; } = string.Empty;
+    internal IReadOnlyList<NativeStage02SemanticCandidate> Candidates { get; set; } =
+      Array.Empty<NativeStage02SemanticCandidate>();
+    internal NativeStage02RoleConfirmationDecision RoleConfirmation
+    {
+      get;
+      set;
+    }
+    internal NativeStage02TaskGeometryEvaluation TaskGeometry { get; set; }
     internal IDictionary<Guid, NativeStage02ParameterEvidence> Parameters
     {
       get;
@@ -75,6 +88,11 @@ namespace BIMBaoGui.RevitAddin.Stage02
   internal sealed class NativeStage02PreviewInput
   {
     internal string DocumentFingerprint { get; set; } = string.Empty;
+    internal NativeStage02ScopeMode ScopeMode { get; set; } =
+      NativeStage02ScopeMode.FullModel;
+    internal string RunId { get; set; } = string.Empty;
+    internal IReadOnlyList<NativeStage02RoleConfirmation> Confirmations { get; set; } =
+      Array.Empty<NativeStage02RoleConfirmation>();
     internal string ModelProfile { get; set; } = string.Empty;
     internal NativeStage02IdentificationMode IdentificationMode { get; set; } =
       NativeStage02IdentificationMode.Automatic;
@@ -115,13 +133,26 @@ namespace BIMBaoGui.RevitAddin.Stage02
     internal string AssignmentAction { get; set; } =
       NativeStage02AssignmentActions.None;
     internal string ManualCarrierEvidence { get; set; } = string.Empty;
+    internal string ElementSnapshotHash { get; set; } = string.Empty;
+    internal IReadOnlyList<NativeStage02SemanticCandidate> Candidates { get; set; } =
+      Array.Empty<NativeStage02SemanticCandidate>();
+    internal NativeStage02RoleConfirmationDecision RoleConfirmation
+    {
+      get;
+      set;
+    }
+    internal NativeStage02TaskGeometryEvaluation TaskGeometry { get; set; }
     internal string Message { get; set; } = string.Empty;
     internal IReadOnlyList<NativeStage02FieldPlan> Fields { get; set; } =
       Array.Empty<NativeStage02FieldPlan>();
 
     internal bool IsBlocked =>
       RoleMatchStatus != NativeStage02RoleMatchStatus.Matched
-      || Fields.Any(value => value.Status == NativeStage02FieldStatus.Blocked);
+      || (RoleConfirmation != null && !RoleConfirmation.Confirmed)
+      || Fields.Any(value =>
+        value.Status == NativeStage02FieldStatus.Blocked
+        || value.Status == NativeStage02FieldStatus.PendingConfirmation
+        || value.Status == NativeStage02FieldStatus.RuntimeBlocked);
 
     internal bool HasActionableWork =>
       AssignmentAction == NativeStage02AssignmentActions.SaveManualAssignment
@@ -135,7 +166,10 @@ namespace BIMBaoGui.RevitAddin.Stage02
   internal sealed class NativeStage02Preview
   {
     internal string SchemaVersion { get; set; } =
-      "HBR_NATIVE_STAGE02_PREVIEW_V2";
+      "HBR_NATIVE_STAGE02A_PREVIEW_V3";
+    internal NativeStage02ScopeMode ScopeMode { get; set; } =
+      NativeStage02ScopeMode.FullModel;
+    internal string RunId { get; set; } = string.Empty;
     internal string RulePackageId { get; set; } = string.Empty;
     internal string RulePackageVersion { get; set; } = string.Empty;
     internal string RulePackageSha256 { get; set; } = string.Empty;
@@ -146,6 +180,10 @@ namespace BIMBaoGui.RevitAddin.Stage02
     internal string BulkRoleId { get; set; } = string.Empty;
     internal IReadOnlyList<NativeStage02RoleOverride> RoleOverrides { get; set; } =
       Array.Empty<NativeStage02RoleOverride>();
+    internal IReadOnlyList<NativeStage02RoleConfirmation> Confirmations { get; set; } =
+      Array.Empty<NativeStage02RoleConfirmation>();
+    internal IReadOnlyList<NativeIssueRecord> Issues { get; set; } =
+      Array.Empty<NativeIssueRecord>();
     internal IReadOnlyDictionary<string, bool> Conditions { get; set; } =
       new ReadOnlyDictionary<string, bool>(
         new Dictionary<string, bool>(StringComparer.Ordinal));

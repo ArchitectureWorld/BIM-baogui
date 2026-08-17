@@ -22,6 +22,12 @@ namespace BIMBaoGui.RevitAddin.Stage02
     internal string BulkRoleId { get; set; } = string.Empty;
     internal IReadOnlyList<NativeStage02RoleOverride> RoleOverrides { get; set; } =
       Array.Empty<NativeStage02RoleOverride>();
+    internal IReadOnlyList<NativeStage02RoleConfirmation> Confirmations
+    {
+      get;
+      set;
+    } = Array.Empty<NativeStage02RoleConfirmation>();
+    internal NativeStage02ManualReviewCommand ManualReview { get; set; }
 
     internal NativeStage02PreviewRequest Clone()
     {
@@ -42,13 +48,44 @@ namespace BIMBaoGui.RevitAddin.Stage02
         .OrderBy(value => value.ElementUniqueId, StringComparer.Ordinal)
         .ThenBy(value => value.RoleId, StringComparer.Ordinal)
         .ToArray();
+      NativeStage02RoleConfirmation[] confirmations = (Confirmations
+          ?? Array.Empty<NativeStage02RoleConfirmation>())
+        .Where(value => value != null)
+        .Select(value => new NativeStage02RoleConfirmation
+        {
+          ElementUniqueId = (value.ElementUniqueId ?? string.Empty).Trim(),
+          RoleId = (value.RoleId ?? string.Empty).Trim(),
+          ElementSnapshotHash = (value.ElementSnapshotHash ?? string.Empty).Trim(),
+          RulePackageSha256 = (value.RulePackageSha256 ?? string.Empty).Trim(),
+          ConfirmedUtc = (value.ConfirmedUtc ?? string.Empty).Trim()
+        })
+        .Where(value => value.ElementUniqueId.Length > 0
+          && value.RoleId.Length > 0)
+        .GroupBy(value => value.ElementUniqueId, StringComparer.Ordinal)
+        .Select(group =>
+        {
+          string[] roles = group.Select(value => value.RoleId)
+            .Distinct(StringComparer.Ordinal).ToArray();
+          if (roles.Length > 1)
+            throw new InvalidOperationException(
+              "ROLE_CONFIRMATION_CONFLICT:" + group.Key);
+          return group.OrderByDescending(
+            value => value.ConfirmedUtc,
+            StringComparer.Ordinal).First();
+        })
+        .OrderBy(value => value.ElementUniqueId, StringComparer.Ordinal)
+        .ThenBy(value => value.RoleId, StringComparer.Ordinal)
+        .ToArray();
       return new NativeStage02PreviewRequest
       {
         ScopeMode = ScopeMode,
         IdentificationMode = IdentificationMode,
         CustomUniqueIds = new ReadOnlyCollection<string>(ids),
         BulkRoleId = (BulkRoleId ?? string.Empty).Trim(),
-        RoleOverrides = new ReadOnlyCollection<NativeStage02RoleOverride>(overrides)
+        RoleOverrides = new ReadOnlyCollection<NativeStage02RoleOverride>(overrides),
+        Confirmations = new ReadOnlyCollection<NativeStage02RoleConfirmation>(
+          confirmations),
+        ManualReview = ManualReview?.Clone()
       };
     }
   }
@@ -141,7 +178,10 @@ namespace BIMBaoGui.RevitAddin.Stage02
           {
             ElementUniqueId = value.ElementUniqueId,
             RoleId = value.RoleId
-          }).ToArray())
+          }).ToArray()),
+        Confirmations = new ReadOnlyCollection<NativeStage02RoleConfirmation>(
+          safeRequest.Confirmations.Select(value => value.Clone()).ToArray()),
+        ManualReview = safeRequest.ManualReview?.Clone()
       };
 
       NativeStage02ElementSnapshot[] inventory = new FilteredElementCollector(document)
@@ -154,7 +194,10 @@ namespace BIMBaoGui.RevitAddin.Stage02
           resolvedRequest.ScopeMode,
           inventory,
           resolvedRequest.CustomUniqueIds,
-          catalog.AllRevitCategories);
+          catalog.AllRevitCategories.Concat(
+            NativeStage02ManualRoleCatalog.Current.Roles
+              .SelectMany(value => value.ManualCarriers)
+              .Select(value => value.Category)));
       if (!inventoryDecision.Accepted)
         return Failure(
           "Stage02 扫描范围阻断",
@@ -171,10 +214,28 @@ namespace BIMBaoGui.RevitAddin.Stage02
       var assignmentsByElement = assignmentDecision.Assignments.ToDictionary(
         value => value.ElementUniqueId,
         StringComparer.Ordinal);
+      var confirmationsByElement = resolvedRequest.Confirmations.ToDictionary(
+        value => value.ElementUniqueId,
+        StringComparer.Ordinal);
       IReadOnlyDictionary<string, bool> conditions =
         new ReadOnlyDictionary<string, bool>(new Dictionary<string, bool>(
           stage01.Model.Conditions,
           StringComparer.Ordinal));
+      IReadOnlyList<NativeReportingSemanticRole> reportingRoles =
+        NativeReportingRuleCatalog.Current.GetSemanticRoles(modelProfile);
+      var reportingByRole = reportingRoles.ToDictionary(
+        value => value.RoleId,
+        StringComparer.Ordinal);
+      var workflowIdentity = new NativeWorkflowIdentity
+      {
+        DocumentFingerprint = documentFingerprint,
+        ModelFileType = modelProfile,
+        RulePackageId = catalog.Identity.PackageId,
+        RulePackageVersion = catalog.Identity.PackageVersion,
+        RulePackageSha256 = catalog.Identity.RulePackageSha256
+      };
+      IReadOnlyList<NativeStage02ManualReviewRecord> manualReviews =
+        NativeStage02ManualReviewStorage.Read(document);
       var evidence = new List<NativeStage02ElementEvidence>();
       foreach (NativeStage02ElementSnapshot snapshot in inventoryDecision.Elements)
       {
@@ -182,95 +243,105 @@ namespace BIMBaoGui.RevitAddin.Stage02
         assignmentsByElement.TryGetValue(snapshot.UniqueId, out currentAssignment);
         NativeStage02SemanticAssignmentRecord savedAssignment;
         persisted.AssignmentsByElement.TryGetValue(snapshot.UniqueId, out savedAssignment);
+        NativeStage02RoleConfirmation explicitConfirmation;
+        confirmationsByElement.TryGetValue(
+          snapshot.UniqueId,
+          out explicitConfirmation);
 
         NativeStage02RoleMatchResult automaticRole =
           NativeStage02RoleMatcher.Match(
             snapshot,
             catalog.CarrierRoles,
             modelProfile);
-        NativeStage02RoleMatchResult role = ResolveEffectiveRole(
+        var candidates = NativeStage02CandidatePolicy.Suggest(
           snapshot,
-          currentAssignment,
-          savedAssignment,
-          automaticRole,
-          modelProfile,
-          conditions,
-          catalog);
-        NativeStage02AssignmentMode assignmentMode =
-          NativeStage02AssignmentMode.Auto;
-        string assignmentSource = "Automatic";
-        string assignmentAction = NativeStage02AssignmentActions.None;
-        string manualCarrierEvidence = string.Empty;
-        if (currentAssignment != null)
+          reportingRoles).ToList();
+        string requestedRole = explicitConfirmation?.RoleId
+          ?? currentAssignment?.RoleId
+          ?? (automaticRole.Status == NativeStage02RoleMatchStatus.Matched
+            ? automaticRole.RoleId
+            : string.Empty);
+        if (string.IsNullOrWhiteSpace(requestedRole))
+          requestedRole = candidates.FirstOrDefault()?.RoleId
+            ?? savedAssignment?.RoleId
+            ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(requestedRole)
+          && candidates.All(value => value.RoleId != requestedRole))
         {
-          assignmentMode = currentAssignment.AssignmentMode;
-          assignmentSource = currentAssignment.Source;
-          if (currentAssignment.AssignmentMode == NativeStage02AssignmentMode.Manual)
+          candidates.Add(new NativeStage02SemanticCandidate
           {
-            assignmentAction = NativeStage02AssignmentActions.SaveManualAssignment;
-            manualCarrierEvidence = CarrierEvidence(
-              snapshot.Category,
-              snapshot.ElementKind);
-          }
-          else if (savedAssignment != null
-            && savedAssignment.AssignmentMode == NativeStage02AssignmentMode.Manual)
-          {
-            assignmentAction = NativeStage02AssignmentActions.RemoveManualAssignment;
-            manualCarrierEvidence = CarrierEvidence(
-              savedAssignment.CarrierCategory,
-              savedAssignment.CarrierElementKind);
-          }
-        }
-        else if (savedAssignment != null
-          && savedAssignment.AssignmentMode == NativeStage02AssignmentMode.Manual)
-        {
-          assignmentMode = NativeStage02AssignmentMode.Manual;
-          assignmentSource = "PersistedManual";
-          assignmentAction = NativeStage02AssignmentActions.KeepManualAssignment;
-          manualCarrierEvidence = CarrierEvidence(
-            savedAssignment.CarrierCategory,
-            savedAssignment.CarrierElementKind);
-        }
-        if (role.Status != NativeStage02RoleMatchStatus.Matched)
-        {
-          evidence.Add(new NativeStage02ElementEvidence
-          {
-            Element = snapshot,
-            AutomaticRoleMatch = automaticRole,
-            ResolvedRoleMatch = role,
-            AssignmentMode = assignmentMode,
-            AssignmentSource = assignmentSource,
-            AssignmentAction = assignmentAction,
-            ManualCarrierEvidence = manualCarrierEvidence
+            RoleId = requestedRole,
+            Confidence = "LOW",
+            Evidence = new[] { "REQUEST_OR_PERSISTED_ROLE" }
           });
-          continue;
         }
-        Element live = document.GetElement(snapshot.UniqueId);
-        if (live == null)
-        {
-          evidence.Add(new NativeStage02ElementEvidence
-          {
-            Element = snapshot,
-            AutomaticRoleMatch = automaticRole,
-            ResolvedRoleMatch = role,
-            AssignmentMode = assignmentMode,
-            AssignmentSource = assignmentSource,
-            AssignmentAction = assignmentAction,
-            ManualCarrierEvidence = manualCarrierEvidence
-          });
-          continue;
-        }
+        NativeStage02SemanticCandidate candidate = candidates
+          .FirstOrDefault(value => value.RoleId == requestedRole);
+        NativeStage02RoleMatchResult role = string.IsNullOrWhiteSpace(requestedRole)
+          ? automaticRole
+          : ResolveManualRole(
+            snapshot,
+            requestedRole,
+            "Candidate",
+            modelProfile,
+            conditions,
+            catalog);
+        string elementSnapshotHash =
+          NativeStage02ElementSnapshotCanonicalizer.Sha256(snapshot);
+        NativeStage02SemanticAssignmentRecord currentPersisted =
+          persisted.State == NativeStage02SemanticAssignmentStorageState.Current
+            ? savedAssignment
+            : null;
+        NativeStage02RoleConfirmationDecision confirmation =
+          NativeStage02RoleConfirmationPolicy.Resolve(
+            snapshot,
+            candidate,
+            currentPersisted,
+            explicitConfirmation,
+            workflowIdentity,
+            elementSnapshotHash);
+        if (confirmation.Confirmed
+          && role.Status == NativeStage02RoleMatchStatus.Matched)
+          snapshot.AssignedRoleId = confirmation.ResolvedRoleId;
+
+        bool savedCurrent = confirmation.Confirmed
+          && string.Equals(
+            confirmation.Source,
+            "PersistedConfirmation",
+            StringComparison.Ordinal);
+        NativeStage02AssignmentMode assignmentMode = confirmation.Confirmed
+          ? NativeStage02AssignmentMode.Manual
+          : currentAssignment?.AssignmentMode
+            ?? savedAssignment?.AssignmentMode
+            ?? NativeStage02AssignmentMode.Auto;
+        string assignmentSource = confirmation.Confirmed
+          ? confirmation.Source
+          : "Candidate";
+        string assignmentAction = !confirmation.Confirmed
+          ? NativeStage02AssignmentActions.None
+          : savedCurrent
+            ? NativeStage02AssignmentActions.KeepManualAssignment
+            : NativeStage02AssignmentActions.SaveManualAssignment;
+        string manualCarrierEvidence = CarrierEvidence(
+          snapshot.Category,
+          snapshot.ElementKind);
         var parameters = new Dictionary<Guid, NativeStage02ParameterEvidence>();
-        foreach (NativeStage02PropertyDefinition property in role.CandidateRoleIds
-          .SelectMany(roleId => catalog.PropertiesForRole(roleId))
-          .GroupBy(value => value.PropertyId, StringComparer.Ordinal)
-          .Select(group => group.First())
-          .OrderBy(value => value.PropertyId, StringComparer.Ordinal))
+        Element live = document.GetElement(snapshot.UniqueId);
+        if (role.Status == NativeStage02RoleMatchStatus.Matched && live != null)
         {
-          parameters[property.ParameterGuid] = ReadParameterEvidence(
-            document,
-            live,
-            property);
+          foreach (NativeStage02PropertyDefinition property in
+            role.CandidateRoleIds
+              .SelectMany(roleId => catalog.PropertiesForRole(roleId))
+              .GroupBy(value => value.PropertyId, StringComparer.Ordinal)
+              .Select(group => group.First())
+              .OrderBy(value => value.PropertyId, StringComparer.Ordinal))
+          {
+            parameters[property.ParameterGuid] = ReadParameterEvidence(
+              document,
+              live,
+              property,
+              snapshot.Geometry?.ApprovedProjectedAreaSquareMetres);
+          }
         }
         evidence.Add(new NativeStage02ElementEvidence
         {
@@ -281,19 +352,120 @@ namespace BIMBaoGui.RevitAddin.Stage02
           AssignmentSource = assignmentSource,
           AssignmentAction = assignmentAction,
           ManualCarrierEvidence = manualCarrierEvidence,
+          ElementSnapshotHash = elementSnapshotHash,
+          Candidates = candidates
+            .OrderBy(value => value.RoleId, StringComparer.Ordinal)
+            .ToArray(),
+          RoleConfirmation = confirmation,
           Parameters = parameters
         });
       }
 
+      var geometryContext = new NativeStage02GeometryEvaluationContext
+      {
+        Identity = workflowIdentity,
+        ConfirmedElements = evidence
+          .Where(value => value.RoleConfirmation?.Confirmed == true
+            && value.ResolvedRoleMatch?.Status
+              == NativeStage02RoleMatchStatus.Matched)
+          .Select(value => value.Element)
+          .OrderBy(value => value.UniqueId, StringComparer.Ordinal)
+          .ToArray(),
+        ManualReviews = manualReviews,
+        ScopeComplete = resolvedRequest.ScopeMode == NativeStage02ScopeMode.FullModel
+      };
+      if (resolvedRequest.ManualReview != null)
+      {
+        NativeStage02ManualReviewRecord record = null;
+        foreach (NativeStage02ElementEvidence item in evidence.Where(value =>
+          value.RoleConfirmation?.Confirmed == true))
+        {
+          NativeReportingSemanticRole reportingRole;
+          NativeTaskDefinition task;
+          if (!reportingByRole.TryGetValue(
+            item.RoleConfirmation.ResolvedRoleId,
+            out reportingRole)
+            || !NativeRuleCatalog.Current.TasksById.TryGetValue(
+              reportingRole.TaskId,
+              out task))
+            continue;
+          record = NativeStage02GeometryEvidencePolicy.SealManualReview(
+            task,
+            item.Element,
+            geometryContext,
+            resolvedRequest.ManualReview,
+            DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
+          if (record != null) break;
+        }
+        if (record == null)
+          return Failure(
+            "Stage02A 人工复核保存阻断",
+            "MANUAL_REVIEW_CHECK_NOT_CURRENT：当前全模型快照找不到该复核规则。" );
+        try
+        {
+          using (Transaction transaction = new Transaction(
+            document,
+            "HBR Stage02A 人工几何复核"))
+          {
+            if (transaction.Start() != TransactionStatus.Started)
+              throw new InvalidOperationException("无法启动人工复核事务。" );
+            NativeStage02ManualReviewStorage.Write(document, record);
+            if (transaction.Commit() != TransactionStatus.Committed)
+              throw new InvalidOperationException("人工复核事务未提交。" );
+          }
+          manualReviews = NativeStage02ManualReviewStorage.Read(document);
+          geometryContext.ManualReviews = manualReviews;
+          resolvedRequest.ManualReview = null;
+        }
+        catch (Exception exception)
+        {
+          return Failure(
+            "Stage02A 人工复核保存失败",
+            "MANUAL_REVIEW_PERSISTENCE_FAILED：" + exception.Message);
+        }
+      }
+      foreach (NativeStage02ElementEvidence item in evidence)
+      {
+        if (item.RoleConfirmation?.Confirmed != true) continue;
+        NativeReportingSemanticRole reportingRole;
+        NativeTaskDefinition task;
+        if (!reportingByRole.TryGetValue(
+          item.RoleConfirmation.ResolvedRoleId,
+          out reportingRole)
+          || !NativeRuleCatalog.Current.TasksById.TryGetValue(
+            reportingRole.TaskId,
+            out task))
+          continue;
+        item.TaskGeometry = NativeStage02GeometryEvidencePolicy.Evaluate(
+          task,
+          item.Element,
+          item.Element.Geometry,
+          new ReadOnlyDictionary<Guid, NativeStage02ParameterEvidence>(
+            new Dictionary<Guid, NativeStage02ParameterEvidence>(
+              item.Parameters)),
+          geometryContext);
+      }
+
+      NativeStage02RoleConfirmation[] effectiveConfirmations = evidence
+        .Where(value => value.RoleConfirmation?.Confirmed == true
+          && value.RoleConfirmation.Confirmation != null)
+        .Select(value => value.RoleConfirmation.Confirmation.Clone())
+        .OrderBy(value => value.ElementUniqueId, StringComparer.Ordinal)
+        .ToArray();
       NativeStage02Preview preview = NativeStage02PreviewCompiler.Compile(
         new NativeStage02PreviewInput
         {
           DocumentFingerprint = documentFingerprint,
+          ScopeMode = resolvedRequest.ScopeMode,
+          RunId = Guid.NewGuid().ToString("D"),
+          Confirmations = effectiveConfirmations,
           ModelProfile = modelProfile,
           IdentificationMode = resolvedRequest.IdentificationMode,
           BulkRoleId = resolvedRequest.BulkRoleId,
           RoleOverrides = resolvedRequest.RoleOverrides,
-          Conditions = new Dictionary<string, bool>(stage01.Model.Conditions, StringComparer.Ordinal),
+          Conditions = new Dictionary<string, bool>(
+            stage01.Model.Conditions,
+            StringComparer.Ordinal),
           Elements = evidence
         },
         catalog);
@@ -454,12 +626,17 @@ namespace BIMBaoGui.RevitAddin.Stage02
         UniqueId = element.UniqueId ?? string.Empty,
         ElementId = element.Id.IntegerValue,
         Category = CategoryKey(category),
+        CategoryName = category?.Name ?? string.Empty,
+        ClrType = element.GetType().FullName ?? element.GetType().Name,
         ElementKind = ElementKind(element),
         ElementName = SafeName(element),
         FamilyName = FamilyName(document, element),
         TypeName = TypeName(document, element),
         LevelName = LevelName(document, element),
         AssignedRoleId = string.Empty,
+        Geometry = NativeStage02RevitGeometryEvidenceService.Capture(
+          document,
+          element),
         IsElementType = element is ElementType,
         IsViewSpecific = SafeViewSpecific(element),
         IsImported = element is ImportInstance,
@@ -471,7 +648,8 @@ namespace BIMBaoGui.RevitAddin.Stage02
     private static NativeStage02ParameterEvidence ReadParameterEvidence(
       Document document,
       Element element,
-      NativeStage02PropertyDefinition property)
+      NativeStage02PropertyDefinition property,
+      double? approvedProjectedAreaSquareMetres)
     {
       Element target = ResolveTarget(document, element, property.BindingScope);
       SharedParameterElement shared = SharedParameterElement.Lookup(
@@ -549,7 +727,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
           property.SuggestionKind,
           property.SuggestionAliases,
           TypeName(document, element),
-          null);
+          approvedProjectedAreaSquareMetres);
       if (suggestion.Status == NativeStage02SemanticSuggestionStatus.Suggested
         && !string.IsNullOrWhiteSpace(suggestion.CanonicalValue))
         aliases[suggestion.CanonicalValue] = suggestion.CanonicalValue;
@@ -565,7 +743,15 @@ namespace BIMBaoGui.RevitAddin.Stage02
         IsReadOnly = parameter != null && parameter.IsReadOnly,
         CurrentCanonicalValue = current,
         AliasValues = aliases,
-        ContractMessage = string.Join(" ", messages)
+        ContractMessage = string.Join(" ", messages),
+        SuggestedCanonicalValue =
+          suggestion.Status == NativeStage02SemanticSuggestionStatus.Suggested
+            ? suggestion.CanonicalValue
+            : string.Empty,
+        SuggestionSource =
+          suggestion.Status == NativeStage02SemanticSuggestionStatus.Suggested
+            ? suggestion.Source
+            : string.Empty
       };
     }
 

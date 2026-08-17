@@ -68,6 +68,11 @@ namespace BIMBaoGui.RevitAddin.Stage02
             AssignmentSource = elementEvidence.AssignmentSource,
             AssignmentAction = elementEvidence.AssignmentAction,
             ManualCarrierEvidence = elementEvidence.ManualCarrierEvidence,
+            ElementSnapshotHash = elementEvidence.ElementSnapshotHash,
+            Candidates = elementEvidence.Candidates
+              ?? Array.Empty<NativeStage02SemanticCandidate>(),
+            RoleConfirmation = elementEvidence.RoleConfirmation,
+            TaskGeometry = elementEvidence.TaskGeometry,
             Message = role.Message,
             Fields = Array.Empty<NativeStage02FieldPlan>()
           });
@@ -103,12 +108,19 @@ namespace BIMBaoGui.RevitAddin.Stage02
           AssignmentSource = elementEvidence.AssignmentSource,
           AssignmentAction = elementEvidence.AssignmentAction,
           ManualCarrierEvidence = elementEvidence.ManualCarrierEvidence,
+          ElementSnapshotHash = elementEvidence.ElementSnapshotHash,
+          Candidates = elementEvidence.Candidates
+            ?? Array.Empty<NativeStage02SemanticCandidate>(),
+          RoleConfirmation = elementEvidence.RoleConfirmation,
+          TaskGeometry = elementEvidence.TaskGeometry,
           Fields = new ReadOnlyCollection<NativeStage02FieldPlan>(fields)
         });
       }
 
       var preview = new NativeStage02Preview
       {
+        ScopeMode = input.ScopeMode,
+        RunId = input.RunId ?? string.Empty,
         RulePackageId = catalog.Identity.PackageId,
         RulePackageVersion = catalog.Identity.PackageVersion,
         RulePackageSha256 = catalog.Identity.RulePackageSha256,
@@ -124,6 +136,13 @@ namespace BIMBaoGui.RevitAddin.Stage02
               ElementUniqueId = (value.ElementUniqueId ?? string.Empty).Trim(),
               RoleId = (value.RoleId ?? string.Empty).Trim()
             })
+            .OrderBy(value => value.ElementUniqueId, StringComparer.Ordinal)
+            .ThenBy(value => value.RoleId, StringComparer.Ordinal)
+            .ToArray()),
+        Confirmations = new ReadOnlyCollection<NativeStage02RoleConfirmation>(
+          (input.Confirmations ?? Array.Empty<NativeStage02RoleConfirmation>())
+            .Where(value => value != null)
+            .Select(value => value.Clone())
             .OrderBy(value => value.ElementUniqueId, StringComparer.Ordinal)
             .ThenBy(value => value.RoleId, StringComparer.Ordinal)
             .ToArray()),
@@ -151,6 +170,9 @@ namespace BIMBaoGui.RevitAddin.Stage02
       preview.CanonicalJson = NativeStage02PreviewCanonicalizer.Build(preview);
       preview.PreviewHash = NativeStage02PreviewCanonicalizer.Sha256(
         preview.CanonicalJson);
+      preview.Issues = new ReadOnlyCollection<
+        BIMBaoGui.RevitAddin.Issues.NativeIssueRecord>(
+        NativeStage02IssueCompiler.Compile(preview).ToArray());
       return preview;
     }
 
@@ -159,6 +181,20 @@ namespace BIMBaoGui.RevitAddin.Stage02
       NativeStage02ElementEvidence evidence,
       IReadOnlyDictionary<string, bool> conditions)
     {
+      if (evidence.RoleConfirmation != null
+        && !evidence.RoleConfirmation.Confirmed)
+      {
+        return Plan(
+          property,
+          NativeStage02FieldStatus.PendingConfirmation,
+          NativeStage02BindingAction.None,
+          NativeStage02ValueAction.None,
+          string.Empty,
+          string.Empty,
+          string.Empty,
+          evidence.RoleConfirmation.Code + "：候选角色必须先显式确认。",
+          false);
+      }
       NativeRuntimeStatusDecision runtime = property.RuntimeDecision;
       if (runtime == null
         || (runtime.Status != NativeRuntimeStatuses.Supported
@@ -267,6 +303,30 @@ namespace BIMBaoGui.RevitAddin.Stage02
           string.Empty,
           RuntimeMessage(runtime),
           strictReady);
+      }
+
+      string semanticSuggestion = NormalizeValue(
+        parameter.SuggestedCanonicalValue);
+      if (semanticSuggestion.Length > 0)
+      {
+        if (parameter.IsReadOnly)
+          return Blocked(
+            property,
+            "PARAMETER_READ_ONLY：参数只读，无法写入批准的 Revit 事实建议值。");
+        NativeStage02FieldStatus status = bindingAction
+          == NativeStage02BindingAction.None
+            ? NativeStage02FieldStatus.PendingWrite
+            : NativeStage02FieldStatus.PendingBinding;
+        return Plan(
+          property,
+          status,
+          bindingAction,
+          NativeStage02ValueAction.Set,
+          string.Empty,
+          semanticSuggestion,
+          parameter.SuggestionSource,
+          RuntimeMessage(runtime),
+          false);
       }
 
       AliasDecision alias = ResolveAlias(property, parameter.AliasValues);
@@ -446,6 +506,7 @@ namespace BIMBaoGui.RevitAddin.Stage02
       var builder = new StringBuilder(32768);
       builder.Append('{');
       Property(builder, "schemaVersion", preview.SchemaVersion, false);
+      Property(builder, "scopeMode", preview.ScopeMode.ToString(), true);
       Property(builder, "rulePackageId", preview.RulePackageId, true);
       Property(builder, "rulePackageVersion", preview.RulePackageVersion, true);
       Property(builder, "rulePackageSha256", preview.RulePackageSha256, true);
@@ -479,6 +540,23 @@ namespace BIMBaoGui.RevitAddin.Stage02
         builder.Append('}');
       }
       builder.Append(']');
+      builder.Append(",\"confirmations\":[");
+      first = true;
+      foreach (NativeStage02RoleConfirmation confirmation in
+        (preview.Confirmations ?? Array.Empty<NativeStage02RoleConfirmation>())
+          .OrderBy(value => value.ElementUniqueId, StringComparer.Ordinal)
+          .ThenBy(value => value.RoleId, StringComparer.Ordinal))
+      {
+        if (!first) builder.Append(',');
+        first = false;
+        builder.Append('{');
+        Property(builder, "elementUniqueId", confirmation.ElementUniqueId, false);
+        Property(builder, "roleId", confirmation.RoleId, true);
+        Property(builder, "elementSnapshotHash", confirmation.ElementSnapshotHash, true);
+        Property(builder, "rulePackageSha256", confirmation.RulePackageSha256, true);
+        builder.Append('}');
+      }
+      builder.Append(']');
       builder.Append(",\"conditions\":[");
       first = true;
       foreach (KeyValuePair<string, bool> condition in preview.Conditions
@@ -503,7 +581,19 @@ namespace BIMBaoGui.RevitAddin.Stage02
         Property(builder, "uniqueId", element.Element.UniqueId, false);
         NumberProperty(builder, "elementId", element.Element.ElementId);
         Property(builder, "category", element.Element.Category, true);
+        Property(builder, "categoryName", element.Element.CategoryName, true);
+        Property(builder, "clrType", element.Element.ClrType, true);
         Property(builder, "elementKind", element.Element.ElementKind, true);
+        Property(builder, "elementName", element.Element.ElementName, true);
+        Property(builder, "familyName", element.Element.FamilyName, true);
+        Property(builder, "typeName", element.Element.TypeName, true);
+        Property(builder, "levelName", element.Element.LevelName, true);
+        Property(builder, "elementSnapshotHash", element.ElementSnapshotHash, true);
+        Property(
+          builder,
+          "geometryEvidenceHash",
+          element.Element.Geometry?.EvidenceHash ?? string.Empty,
+          true);
         Property(
           builder,
           "roleMatchStatus",
@@ -529,6 +619,48 @@ namespace BIMBaoGui.RevitAddin.Stage02
           builder,
           "manualCarrierEvidence",
           element.ManualCarrierEvidence,
+          true);
+        builder.Append(",\"candidates\":[");
+        bool firstCandidate = true;
+        foreach (NativeStage02SemanticCandidate candidate in
+          (element.Candidates ?? Array.Empty<NativeStage02SemanticCandidate>())
+            .OrderBy(value => value.RoleId, StringComparer.Ordinal))
+        {
+          if (!firstCandidate) builder.Append(',');
+          firstCandidate = false;
+          builder.Append('{');
+          Property(builder, "roleId", candidate.RoleId, false);
+          Property(builder, "confidence", candidate.Confidence, true);
+          builder.Append(",\"evidence\":[");
+          bool firstEvidence = true;
+          foreach (string item in (candidate.Evidence ?? Array.Empty<string>())
+            .OrderBy(value => value, StringComparer.Ordinal))
+          {
+            if (!firstEvidence) builder.Append(',');
+            firstEvidence = false;
+            builder.Append(Q(item));
+          }
+          builder.Append("]}");
+        }
+        builder.Append(']');
+        builder.Append(",\"roleConfirmation\":{");
+        Property(
+          builder,
+          "confirmed",
+          element.RoleConfirmation?.Confirmed == true ? "true" : "false",
+          false);
+        Property(builder, "code", element.RoleConfirmation?.Code, true);
+        Property(
+          builder,
+          "resolvedRoleId",
+          element.RoleConfirmation?.ResolvedRoleId,
+          true);
+        Property(builder, "source", element.RoleConfirmation?.Source, true);
+        builder.Append('}');
+        Property(
+          builder,
+          "taskGeometryEvaluationHash",
+          element.TaskGeometry?.EvaluationHash ?? string.Empty,
           true);
         builder.Append(",\"fields\":[");
         bool firstField = true;
