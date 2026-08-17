@@ -1,4 +1,5 @@
 import ctypes
+import hashlib
 import os
 import subprocess
 import threading
@@ -201,15 +202,44 @@ def test_existing_double_click_install_and_uninstall_entrypoints_remain():
 def test_installer_source_and_packaged_copy_parse_in_windows_powershell_51(
     tmp_path: Path,
 ):
-    packaged_installer = tmp_path / "artifacts" / INSTALLER.name
-    packaged_installer.parent.mkdir()
-    packaged_installer.write_bytes(INSTALLER.read_bytes())
+    source_bytes = INSTALLER.read_bytes()
+    source_sha256 = hashlib.sha256(source_bytes).hexdigest()
     powershell = (
         Path(os.environ["SystemRoot"])
         / "System32"
         / "WindowsPowerShell"
         / "v1.0"
         / "powershell.exe"
+    )
+    packaged_installer = tmp_path / "artifacts" / INSTALLER.name
+    packaged_installer.parent.mkdir()
+    packaging_environment = os.environ.copy()
+    packaging_environment["BIMBAOGUI_INSTALLER_SOURCE"] = str(INSTALLER)
+    packaging_environment["BIMBAOGUI_INSTALLER_DESTINATION"] = str(
+        packaged_installer
+    )
+    packaging_result = subprocess.run(
+        [
+            str(powershell),
+            "-NoProfile",
+            "-NonInteractive",
+            "-Command",
+            "$ErrorActionPreference = 'Stop'; "
+            "Copy-Item -LiteralPath $env:BIMBAOGUI_INSTALLER_SOURCE "
+            "-Destination $env:BIMBAOGUI_INSTALLER_DESTINATION",
+        ],
+        cwd=ROOT,
+        env=packaging_environment,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=15,
+    )
+    assert packaging_result.returncode == 0, (
+        "Windows PowerShell 5.1 failed to package the installer:\n"
+        f"{packaging_result.stdout}{packaging_result.stderr}"
     )
     parser_command = (
         "$tokens = $null; $errors = $null; "
@@ -224,6 +254,13 @@ def test_installer_source_and_packaged_copy_parse_in_windows_powershell_51(
         ("source", INSTALLER),
         ("packaged", packaged_installer),
     ):
+        installer_bytes = installer.read_bytes()
+        assert installer_bytes.startswith(b"\xef\xbb\xbf"), (
+            f"{label} installer does not preserve the UTF-8 BOM"
+        )
+        assert hashlib.sha256(installer_bytes).hexdigest() == source_sha256, (
+            f"{label} installer bytes differ from the source installer"
+        )
         environment = os.environ.copy()
         environment["BIMBAOGUI_INSTALLER_UNDER_TEST"] = str(installer)
         result = subprocess.run(
