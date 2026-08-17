@@ -12,7 +12,10 @@ namespace BIMBaoGui.RevitAddin.Stage03
     internal static NativeIssueRecord Compile(NativeStage03ChecklistItem item)
     {
       if (item == null) throw new ArgumentNullException(nameof(item));
-      IReadOnlyList<NativeIssueElementReference> elements = Elements(item);
+      bool missingSemanticRole = IsMissingSemanticRole(item);
+      IReadOnlyList<NativeIssueElementReference> elements = missingSemanticRole
+        ? Array.Empty<NativeIssueElementReference>()
+        : Elements(item);
       return new NativeIssueRecord
       {
         IssueId = "STAGE03:" + Clean(item.CheckId),
@@ -43,12 +46,23 @@ namespace BIMBaoGui.RevitAddin.Stage03
         case NativeReportingSourceStage.Stage02B:
           return NativeIssueNavigationAction.OpenStage02B;
         case NativeReportingSourceStage.Stage02A:
+          if (IsMissingSemanticRole(item))
+            return NativeIssueNavigationAction.OpenStage02A;
           return elements.Count > 0
             ? NativeIssueNavigationAction.Select
             : NativeIssueNavigationAction.OpenStage02A;
         default:
           return NativeIssueNavigationAction.StayStage03;
       }
+    }
+
+    private static bool IsMissingSemanticRole(NativeStage03ChecklistItem item)
+    {
+      return item.CheckKind == NativeReportingCheckKind.SemanticRole
+        && string.Equals(
+          Clean(item.IssueCode),
+          "MISSING_REQUIRED_ELEMENT",
+          StringComparison.Ordinal);
     }
 
     private static IReadOnlyList<NativeIssueElementReference> Elements(

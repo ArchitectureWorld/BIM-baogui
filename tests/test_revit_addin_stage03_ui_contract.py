@@ -90,6 +90,9 @@ def test_stage03_checklist_has_fixed_columns_colours_and_recheck_contract():
     assert "NavigateToCheck(issue.CheckId)" in workspace
     assert "item.Elements" in compiler
     assert "item.ElementUniqueId" in compiler
+    assert "_initialChecklist" in view
+    assert "CreateInitialChecklist" in view
+    assert "?? _initialChecklist" in view
 
 
 def test_installable_readme_matches_the_stage03_interaction_contract():

@@ -67,5 +67,29 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Equal("ROLE.WALL", issue.RoleId);
       Assert.Empty(issue.Elements);
     }
+
+    [Fact]
+    public void Missing_semantic_role_with_candidate_elements_opens_stage02a()
+    {
+      NativeIssueRecord issue = NativeStage03IssueCompiler.Compile(
+        new NativeStage03ChecklistItem
+        {
+          CheckId = "STAGE02A.ROLE.CANDIDATE",
+          SourceStage = NativeReportingSourceStage.Stage02A,
+          CheckKind = NativeReportingCheckKind.SemanticRole,
+          Status = NativeStage03ChecklistStatus.Failed,
+          IssueCode = "MISSING_REQUIRED_ELEMENT",
+          RoleId = "ROLE.WALL",
+          Elements = new[] { new NativeIssueElementReference
+          {
+            ElementId = 123,
+            UniqueId = "candidate-wall"
+          } }
+        });
+
+      Assert.Equal(NativeIssueNavigationAction.OpenStage02A, issue.Route);
+      Assert.Equal("ROLE.WALL", issue.RoleId);
+      Assert.Empty(issue.Elements);
+    }
   }
 }

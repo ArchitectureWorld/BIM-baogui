@@ -1,4 +1,5 @@
 using BIMBaoGui.RevitAddin.Stage03;
+using System.Linq;
 using Xunit;
 
 namespace BIMBaoGui.RevitAddin.Tests
@@ -29,6 +30,18 @@ namespace BIMBaoGui.RevitAddin.Tests
     {
       Assert.Equal(expected, NativeStage03ChecklistPresentation.StatusText(
         (NativeStage03ChecklistStatus)status));
+    }
+
+    [Fact]
+    public void Initial_checklist_is_generator_backed_and_not_checked()
+    {
+      NativeStage03ChecklistItem[] checklist =
+        NativeStage03ChecklistPresentation.CreateInitialChecklist().ToArray();
+
+      Assert.NotEmpty(checklist);
+      Assert.All(checklist, item => Assert.Equal(
+        NativeStage03ChecklistStatus.NotChecked,
+        item.Status));
     }
   }
 }

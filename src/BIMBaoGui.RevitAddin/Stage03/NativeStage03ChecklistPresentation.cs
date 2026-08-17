@@ -1,7 +1,24 @@
+using System;
+using System.Collections.Generic;
+using BIMBaoGui.RevitAddin.Rules;
+
 namespace BIMBaoGui.RevitAddin.Stage03
 {
   internal static class NativeStage03ChecklistPresentation
   {
+    internal static IReadOnlyList<NativeStage03ChecklistItem>
+      CreateInitialChecklist()
+    {
+      NativeStage03ChecklistGenerationResult generation =
+        NativeStage03ChecklistGenerator.Generate(
+          "总平模型",
+          new Dictionary<string, bool>(StringComparer.Ordinal),
+          NativeReportingRuleCatalog.Current);
+      return NativeStage03ChecklistEvaluator.Evaluate(
+        generation.Definitions,
+        new NativeStage03SourceEvidenceBundle { ScanExecuted = false });
+    }
+
     internal static string Background(NativeStage03ChecklistStatus status)
     {
       switch (status)

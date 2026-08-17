@@ -27,6 +27,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
     private readonly TextBlock _statusText;
     private readonly ListView _checklist;
     private readonly StackPanel _detailPanel;
+    private readonly IReadOnlyList<NativeStage03ChecklistItem> _initialChecklist;
     private NativeStage03ScanResult _scan;
     private NativeStage03ExecutionResult _lastResult;
     private bool _busy;
@@ -55,6 +56,8 @@ namespace BIMBaoGui.RevitAddin.Stage03
       _outputDirectoryStore = store
         ?? throw new ArgumentNullException(nameof(store));
       _issueHub = hub ?? throw new ArgumentNullException(nameof(hub));
+      _initialChecklist =
+        NativeStage03ChecklistPresentation.CreateInitialChecklist();
       Background = Brushes.White;
       var root = new Grid();
       root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -389,7 +392,7 @@ namespace BIMBaoGui.RevitAddin.Stage03
           ? item.Check.CheckId : string.Empty;
       _checklist.Items.Clear();
       IEnumerable<NativeStage03ChecklistItem> checks = _scan?.Checklist
-        ?? Array.Empty<NativeStage03ChecklistItem>();
+        ?? _initialChecklist;
       if (_problemsOnly.IsChecked == true)
       {
         checks = checks.Where(value => value.Status
