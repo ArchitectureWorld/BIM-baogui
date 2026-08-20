@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Threading;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
@@ -31,15 +32,80 @@ namespace BIMBaoGui.RevitAddin
 
     internal void Execute(UIApplication application)
     {
+      if (ExecuteAction == null)
+        throw new InvalidOperationException("Revit request 缺少执行委托。" );
+      ExecuteAction(application);
+    }
+  }
+
+  internal static class RevitExternalEventExecutionBoundary
+  {
+    internal static void Execute<TApplication, TRequest>(
+      ConcurrentQueue<TRequest> queue,
+      TApplication application,
+      Action<TApplication> observeApplication,
+      Action<TRequest, TApplication> executeRequest,
+      Action<TRequest, Exception> failRequest,
+      Action<Exception> reportCallbackFailure)
+    {
       try
       {
-        if (ExecuteAction == null)
-          throw new InvalidOperationException("Revit request 缺少执行委托。" );
-        ExecuteAction(application);
+        observeApplication(application);
       }
       catch (Exception exception)
       {
-        Failed?.Invoke(exception);
+        while (queue.TryDequeue(out TRequest request))
+          FailRequest(
+            request,
+            exception,
+            failRequest,
+            reportCallbackFailure);
+        return;
+      }
+
+      while (queue.TryDequeue(out TRequest request))
+      {
+        try
+        {
+          executeRequest(request, application);
+        }
+        catch (Exception exception)
+        {
+          FailRequest(
+            request,
+            exception,
+            failRequest,
+            reportCallbackFailure);
+        }
+      }
+    }
+
+    private static void FailRequest<TRequest>(
+      TRequest request,
+      Exception exception,
+      Action<TRequest, Exception> failRequest,
+      Action<Exception> reportCallbackFailure)
+    {
+      try
+      {
+        failRequest(request, exception);
+      }
+      catch (Exception callbackFailure)
+      {
+        ReportCallbackFailure(reportCallbackFailure, callbackFailure);
+      }
+    }
+
+    private static void ReportCallbackFailure(
+      Action<Exception> reportCallbackFailure,
+      Exception exception)
+    {
+      try
+      {
+        reportCallbackFailure?.Invoke(exception);
+      }
+      catch
+      {
       }
     }
   }
@@ -55,9 +121,15 @@ namespace BIMBaoGui.RevitAddin
 
     public void Execute(UIApplication application)
     {
-      RevitExternalEventDispatcher.ObserveApplication(application);
-      while (_queue.TryDequeue(out RevitRequest request))
-        request.Execute(application);
+      RevitExternalEventExecutionBoundary.Execute(
+        _queue,
+        application,
+        RevitExternalEventDispatcher.ObserveApplication,
+        (request, currentApplication) => request.Execute(currentApplication),
+        (request, exception) => request.Failed?.Invoke(exception),
+        exception => Trace.TraceError(
+          "BIMBaoGui ExternalEvent failure callback threw: {0}",
+          exception));
     }
 
     public string GetName()
@@ -173,8 +245,27 @@ namespace BIMBaoGui.RevitAddin
     private void AttachIfNeeded()
     {
       if (_attached || _source == null || _subscribers.Count == 0) return;
-      _attach(_source);
-      _attached = true;
+      object source = _source;
+      try
+      {
+        _attach(source);
+        _attached = true;
+      }
+      catch
+      {
+        _attached = false;
+        try
+        {
+          _detach(source);
+        }
+        catch (Exception compensationFailure)
+        {
+          Trace.TraceError(
+            "BIMBaoGui document-boundary attach compensation failed: {0}",
+            compensationFailure);
+        }
+        throw;
+      }
     }
 
     private void DetachIfNeeded()
@@ -215,17 +306,23 @@ namespace BIMBaoGui.RevitAddin
     {
       UIApplication application = source as UIApplication;
       if (application == null) return;
+      application.ViewActivated += OnViewActivated;
       _observedApplication = application;
-      _observedApplication.ViewActivated += OnViewActivated;
     }
 
     private static void DetachObservedApplication(object source)
     {
       UIApplication application = source as UIApplication;
-      if (application != null)
-        application.ViewActivated -= OnViewActivated;
-      if (ReferenceEquals(_observedApplication, application))
-        _observedApplication = null;
+      try
+      {
+        if (application != null)
+          application.ViewActivated -= OnViewActivated;
+      }
+      finally
+      {
+        if (ReferenceEquals(_observedApplication, application))
+          _observedApplication = null;
+      }
     }
 
     private static void OnViewActivated(

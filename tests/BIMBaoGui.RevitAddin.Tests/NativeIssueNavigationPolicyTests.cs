@@ -299,6 +299,83 @@ namespace BIMBaoGui.RevitAddin.Tests
     }
 
     [Fact]
+    public void External_event_observation_failure_fails_every_queued_request()
+    {
+      var queue = new System.Collections.Concurrent.ConcurrentQueue<int>();
+      queue.Enqueue(1);
+      queue.Enqueue(2);
+      var observationFailure = new InvalidOperationException("observe failed");
+      var callbackFailure = new InvalidOperationException("callback failed");
+      var executed = new System.Collections.Generic.List<int>();
+      var failed = new System.Collections.Generic.List<int>();
+      var receivedFailures = new System.Collections.Generic.List<Exception>();
+      var diagnostics = new System.Collections.Generic.List<Exception>();
+
+      Exception escaped = Record.Exception(() =>
+        RevitExternalEventExecutionBoundary.Execute(
+          queue,
+          new object(),
+          application => throw observationFailure,
+          (request, application) => executed.Add(request),
+          (request, exception) =>
+          {
+            failed.Add(request);
+            receivedFailures.Add(exception);
+            if (request == 1) throw callbackFailure;
+          },
+          exception => diagnostics.Add(exception)));
+
+      Assert.Null(escaped);
+      Assert.Empty(executed);
+      Assert.Equal(new[] { 1, 2 }, failed);
+      Assert.Equal(
+        new[] { observationFailure, observationFailure },
+        receivedFailures);
+      Assert.Equal(new[] { callbackFailure }, diagnostics);
+      Assert.True(queue.IsEmpty);
+    }
+
+    [Fact]
+    public void External_event_failure_callback_cannot_block_later_requests()
+    {
+      var queue = new System.Collections.Concurrent.ConcurrentQueue<int>();
+      queue.Enqueue(1);
+      queue.Enqueue(2);
+      var requestFailure = new InvalidOperationException("request failed");
+      var callbackFailure = new InvalidOperationException("callback failed");
+      var diagnostics = new System.Collections.Generic.List<Exception>();
+      int observationCount = 0;
+      int failureCallbackCount = 0;
+      int successCount = 0;
+
+      Exception escaped = Record.Exception(() =>
+        RevitExternalEventExecutionBoundary.Execute(
+          queue,
+          new object(),
+          application => observationCount++,
+          (request, application) =>
+          {
+            if (request == 1) throw requestFailure;
+            successCount++;
+          },
+          (request, exception) =>
+          {
+            Assert.Equal(1, request);
+            Assert.Same(requestFailure, exception);
+            failureCallbackCount++;
+            throw callbackFailure;
+          },
+          exception => diagnostics.Add(exception)));
+
+      Assert.Null(escaped);
+      Assert.Equal(1, observationCount);
+      Assert.Equal(1, failureCallbackCount);
+      Assert.Equal(1, successCount);
+      Assert.Equal(new[] { callbackFailure }, diagnostics);
+      Assert.True(queue.IsEmpty);
+    }
+
+    [Fact]
     public void Boundary_registry_refcounts_real_source_attachment()
     {
       var transitions = new System.Collections.Generic.List<string>();
@@ -336,6 +413,61 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Equal(0, registry.SubscriberCount);
       Assert.Equal(
         new[] { "attach", "detach", "attach", "detach" },
+        transitions);
+    }
+
+    [Fact]
+    public void Boundary_registry_compensates_partial_attach_and_retries_same_source()
+    {
+      var transitions = new System.Collections.Generic.List<string>();
+      var source = new object();
+      var failure = new InvalidOperationException("partial attach failed");
+      var received = new System.Collections.Generic.List<CurrentDocumentSnapshot>();
+      int attachAttempts = 0;
+      bool physicallyAttached = false;
+      var registry = new NativeDocumentBoundarySubscriptionRegistry(
+        value =>
+        {
+          attachAttempts++;
+          physicallyAttached = true;
+          transitions.Add("attach:" + attachAttempts);
+          if (attachAttempts == 1) throw failure;
+        },
+        value =>
+        {
+          physicallyAttached = false;
+          transitions.Add("detach");
+        });
+      Action<CurrentDocumentSnapshot> subscriber = snapshot =>
+        received.Add(snapshot);
+
+      registry.SetSource(source);
+      Assert.Same(failure, Assert.Throws<InvalidOperationException>(() =>
+        registry.Add(subscriber)));
+
+      Assert.False(physicallyAttached);
+      Assert.False(registry.IsAttached);
+      Assert.Same(source, registry.CurrentSource);
+      Assert.Equal(1, registry.SubscriberCount);
+      Assert.Equal(new[] { "attach:1", "detach" }, transitions);
+
+      registry.SetSource(source);
+      registry.SetSource(source);
+      var snapshot = new CurrentDocumentSnapshot { DocumentTitle = "retry" };
+      registry.Publish(snapshot);
+
+      Assert.True(physicallyAttached);
+      Assert.True(registry.IsAttached);
+      Assert.Equal(new[] { "attach:1", "detach", "attach:2" }, transitions);
+      Assert.Equal(new[] { snapshot }, received);
+
+      registry.Clear();
+      Assert.False(physicallyAttached);
+      Assert.False(registry.IsAttached);
+      Assert.Null(registry.CurrentSource);
+      Assert.Equal(0, registry.SubscriberCount);
+      Assert.Equal(
+        new[] { "attach:1", "detach", "attach:2", "detach" },
         transitions);
     }
 
