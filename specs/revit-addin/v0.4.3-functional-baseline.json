@@ -70,7 +70,7 @@
     "src/BIMBaoGui.RevitAddin/McpBridge/McpStage02Adapter.cs": "fd3d7a5ba8a9b17afc86fd14ba28c93784a70be6160d8ce5b9d0ec09e522d93d",
     "src/BIMBaoGui.RevitAddin/McpBridge/McpStage03Adapter.cs": "d93d150c64613da6200ff27efe44a786eac3561a0a808313536c5deea408db66",
     "src/BIMBaoGui.RevitAddin/NativeTransactionCommitPolicy.cs": "163b2e3b352445b8d68e838181ee3f02438459c2f2754e882918354799af40fd",
-    "src/BIMBaoGui.RevitAddin/RevitExternalEventDispatcher.cs": "bf8d61f9d2fb968521d2d430811a7b97fb8924db26d12fc84532dc4e80fd2e6d",
+    "src/BIMBaoGui.RevitAddin/RevitExternalEventDispatcher.cs": "dbfede430ba357332e49e506315bde281814dd24f3dc8f666203dcf538ae8c6b",
     "src/BIMBaoGui.RevitAddin/RulePackageIdentityReader.cs": "17116716e674790a70b3efb8b74666af2e67ccb29fc76ae3ddbf43d7ace0981f",
     "src/BIMBaoGui.RevitAddin/Rules/NativeReportingRuleCatalog.cs": "f7463b88ca5d45d2a2f7c8880ef95d8c4aeb143b5db720696576b9245b1d48b2",
     "src/BIMBaoGui.RevitAddin/Rules/NativeRuleCatalog.cs": "d15300967150377f7a9ad31ae981f0b57c56312f607316d241ebb5a93bd49ea9",
@@ -173,5 +173,5 @@
     "src/BIMBaoGui.RevitAddin/WorkspaceControl.cs": "4012bbc390ef033e52ebd8bb04a9b7dde9e5fabcd704af6cda6d0a46fec16093"
   },
   "source_branch": "feat/revit-native-total-plan-phase1-v0.4.3",
-  "source_snapshot_sha256": "4ada852580f273247fd63d82a3eb04b3a627bf527b6abf93cc44de4134ffac52"
+  "source_snapshot_sha256": "fa11e9333196c6c6626bf7acc2d7a88a8e376efca005edb71d35d3aa044e026b"
 }

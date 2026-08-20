@@ -27,14 +27,57 @@ namespace BIMBaoGui.RevitAddin
 
   internal sealed class RevitRequest
   {
+    private readonly RevitExternalEventRequestGate _gate =
+      new RevitExternalEventRequestGate();
+
     internal Action<UIApplication> ExecuteAction { get; set; }
     internal Action<Exception> Failed { get; set; }
 
     internal void Execute(UIApplication application)
     {
-      if (ExecuteAction == null)
-        throw new InvalidOperationException("Revit request 缺少执行委托。" );
-      ExecuteAction(application);
+      _gate.Execute(() =>
+      {
+        if (ExecuteAction == null)
+          throw new InvalidOperationException("Revit request 缺少执行委托。" );
+        ExecuteAction(application);
+      });
+    }
+
+    internal void Reject(
+      Exception exception,
+      Action<Exception> reportCallbackFailure)
+    {
+      _gate.Reject(Failed, exception, reportCallbackFailure);
+    }
+  }
+
+  internal sealed class RevitExternalEventRequestGate
+  {
+    private int _state;
+
+    internal void Execute(Action execute)
+    {
+      if (Interlocked.CompareExchange(ref _state, 1, 0) != 0) return;
+      execute();
+    }
+
+    internal void Reject(
+      Action<Exception> failed,
+      Exception exception,
+      Action<Exception> reportCallbackFailure)
+    {
+      if (Interlocked.CompareExchange(ref _state, 2, 0) != 0) return;
+      try
+      {
+        failed?.Invoke(exception);
+      }
+      catch (Exception callbackFailure)
+      {
+        RevitExternalEventExecutionBoundary.ReportFailureCallback(
+          reportCallbackFailure,
+          exception,
+          callbackFailure);
+      }
     }
   }
 
@@ -92,13 +135,24 @@ namespace BIMBaoGui.RevitAddin
       }
       catch (Exception callbackFailure)
       {
-        ReportCallbackFailure(
+        ReportFailureCallback(
           reportCallbackFailure,
-          new AggregateException(
-            "BIMBaoGui request and failure callback both failed.",
-            exception,
-            callbackFailure));
+          exception,
+          callbackFailure);
       }
+    }
+
+    internal static void ReportFailureCallback(
+      Action<Exception> reportCallbackFailure,
+      Exception requestFailure,
+      Exception callbackFailure)
+    {
+      ReportCallbackFailure(
+        reportCallbackFailure,
+        new AggregateException(
+          "BIMBaoGui request and failure callback both failed.",
+          requestFailure,
+          callbackFailure));
     }
 
     private static void ReportCallbackFailure(
@@ -112,6 +166,52 @@ namespace BIMBaoGui.RevitAddin
       catch
       {
       }
+    }
+  }
+
+  internal enum RevitExternalEventRaiseStatus
+  {
+    Accepted,
+    Pending,
+    Denied,
+    TimedOut,
+    Unknown
+  }
+
+  internal static class RevitExternalEventRaiseBoundary
+  {
+    internal static void EnqueueAndRaise<TRequest>(
+      ConcurrentQueue<TRequest> queue,
+      TRequest request,
+      Func<RevitExternalEventRaiseStatus> raise,
+      Action<TRequest, Exception, Action<Exception>> rejectRequest,
+      Action<Exception> reportCallbackFailure)
+    {
+      if (queue == null) throw new ArgumentNullException(nameof(queue));
+      if (ReferenceEquals(request, null))
+        throw new ArgumentNullException(nameof(request));
+      if (raise == null) throw new ArgumentNullException(nameof(raise));
+      if (rejectRequest == null)
+        throw new ArgumentNullException(nameof(rejectRequest));
+      queue.Enqueue(request);
+      RevitExternalEventRaiseStatus result;
+      try
+      {
+        result = raise();
+      }
+      catch (Exception exception)
+      {
+        rejectRequest(request, exception, reportCallbackFailure);
+        return;
+      }
+      if (result == RevitExternalEventRaiseStatus.Accepted ||
+          result == RevitExternalEventRaiseStatus.Pending)
+        return;
+      rejectRequest(
+        request,
+        new InvalidOperationException(
+          "Revit ExternalEvent request was not accepted: " + result + "."),
+        reportCallbackFailure);
     }
   }
 
@@ -567,12 +667,37 @@ namespace BIMBaoGui.RevitAddin
     {
       if (execute == null) throw new ArgumentNullException(nameof(execute));
       EnsureInitialized();
-      Queue.Enqueue(new RevitRequest
+      var request = new RevitRequest
       {
         ExecuteAction = execute,
         Failed = failed
-      });
-      _externalEvent.Raise();
+      };
+      RevitExternalEventRaiseBoundary.EnqueueAndRaise(
+        Queue,
+        request,
+        RaiseExternalEvent,
+        (currentRequest, exception, report) =>
+          currentRequest.Reject(exception, report),
+        exception => Trace.TraceError(
+          "BIMBaoGui ExternalEvent failure callback threw: {0}",
+          exception));
+    }
+
+    private static RevitExternalEventRaiseStatus RaiseExternalEvent()
+    {
+      switch (_externalEvent.Raise())
+      {
+        case ExternalEventRequest.Accepted:
+          return RevitExternalEventRaiseStatus.Accepted;
+        case ExternalEventRequest.Pending:
+          return RevitExternalEventRaiseStatus.Pending;
+        case ExternalEventRequest.Denied:
+          return RevitExternalEventRaiseStatus.Denied;
+        case ExternalEventRequest.TimedOut:
+          return RevitExternalEventRaiseStatus.TimedOut;
+        default:
+          return RevitExternalEventRaiseStatus.Unknown;
+      }
     }
 
     internal static void Dispose()

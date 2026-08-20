@@ -383,6 +383,114 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.True(queue.IsEmpty);
     }
 
+    [Theory]
+    [InlineData((int)RevitExternalEventRaiseStatus.Denied)]
+    [InlineData((int)RevitExternalEventRaiseStatus.TimedOut)]
+    public void External_event_rejected_raise_fails_request_without_late_execution(
+      int raiseResultValue)
+    {
+      var raiseResult = (RevitExternalEventRaiseStatus)raiseResultValue;
+      var queue = new System.Collections.Concurrent.ConcurrentQueue<
+        FakeExternalEventRequest>();
+      var failures = new System.Collections.Generic.List<Exception>();
+      var diagnostics = new System.Collections.Generic.List<Exception>();
+      int executed = 0;
+      var request = new FakeExternalEventRequest
+      {
+        ExecuteAction = () => executed++,
+        Failed = exception => failures.Add(exception)
+      };
+
+      RevitExternalEventRaiseBoundary.EnqueueAndRaise(
+        queue,
+        request,
+        () => raiseResult,
+        (queuedRequest, exception, report) =>
+          queuedRequest.Reject(exception, report),
+        exception => diagnostics.Add(exception));
+
+      Assert.Single(failures);
+      Assert.Contains(raiseResult.ToString(), failures[0].Message);
+      Assert.Empty(diagnostics);
+
+      RevitExternalEventExecutionBoundary.Execute(
+        queue,
+        new object(),
+        application => { },
+        (queuedRequest, application) => queuedRequest.Execute(),
+        (queuedRequest, exception) => queuedRequest.Failed?.Invoke(exception),
+        exception => diagnostics.Add(exception));
+
+      Assert.Equal(0, executed);
+      Assert.Single(failures);
+      Assert.True(queue.IsEmpty);
+    }
+
+    [Theory]
+    [InlineData((int)RevitExternalEventRaiseStatus.Accepted)]
+    [InlineData((int)RevitExternalEventRaiseStatus.Pending)]
+    public void External_event_accepted_or_pending_raise_keeps_request_for_execution(
+      int raiseResultValue)
+    {
+      var raiseResult = (RevitExternalEventRaiseStatus)raiseResultValue;
+      var queue = new System.Collections.Concurrent.ConcurrentQueue<
+        FakeExternalEventRequest>();
+      int executed = 0;
+      int failed = 0;
+      var request = new FakeExternalEventRequest
+      {
+        ExecuteAction = () => executed++,
+        Failed = exception => failed++
+      };
+
+      RevitExternalEventRaiseBoundary.EnqueueAndRaise(
+        queue,
+        request,
+        () => raiseResult,
+        (queuedRequest, exception, report) =>
+          queuedRequest.Reject(exception, report),
+        exception => { });
+      RevitExternalEventExecutionBoundary.Execute(
+        queue,
+        new object(),
+        application => { },
+        (queuedRequest, application) => queuedRequest.Execute(),
+        (queuedRequest, exception) => queuedRequest.Failed?.Invoke(exception),
+        exception => { });
+
+      Assert.Equal(1, executed);
+      Assert.Equal(0, failed);
+      Assert.True(queue.IsEmpty);
+    }
+
+    [Fact]
+    public void External_event_rejected_raise_isolates_failure_callback_error()
+    {
+      var queue = new System.Collections.Concurrent.ConcurrentQueue<
+        FakeExternalEventRequest>();
+      var rejection = new InvalidOperationException("failure callback failed");
+      var diagnostics = new System.Collections.Generic.List<Exception>();
+      var request = new FakeExternalEventRequest
+      {
+        ExecuteAction = () => { },
+        Failed = exception => throw rejection
+      };
+
+      Exception escaped = Record.Exception(() =>
+        RevitExternalEventRaiseBoundary.EnqueueAndRaise(
+          queue,
+          request,
+          () => RevitExternalEventRaiseStatus.Denied,
+          (queuedRequest, exception, report) =>
+            queuedRequest.Reject(exception, report),
+          exception => diagnostics.Add(exception)));
+
+      Assert.Null(escaped);
+      AggregateException diagnostic = Assert.IsType<AggregateException>(
+        Assert.Single(diagnostics));
+      Assert.Contains(rejection, diagnostic.InnerExceptions);
+    }
+
     [Fact]
     public void Boundary_registry_refcounts_real_source_attachment()
     {
@@ -556,6 +664,27 @@ namespace BIMBaoGui.RevitAddin.Tests
           }
         }
       };
+    }
+
+    private sealed class FakeExternalEventRequest
+    {
+      private readonly RevitExternalEventRequestGate _gate =
+        new RevitExternalEventRequestGate();
+
+      internal Action ExecuteAction { get; set; }
+      internal Action<Exception> Failed { get; set; }
+
+      internal void Execute()
+      {
+        _gate.Execute(() => ExecuteAction?.Invoke());
+      }
+
+      internal void Reject(
+        Exception exception,
+        Action<Exception> reportCallbackFailure)
+      {
+        _gate.Reject(Failed, exception, reportCallbackFailure);
+      }
     }
 
     private sealed class FakeDocumentBoundarySource
