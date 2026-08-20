@@ -92,7 +92,12 @@ namespace BIMBaoGui.RevitAddin
       }
       catch (Exception callbackFailure)
       {
-        ReportCallbackFailure(reportCallbackFailure, callbackFailure);
+        ReportCallbackFailure(
+          reportCallbackFailure,
+          new AggregateException(
+            "BIMBaoGui request and failure callback both failed.",
+            exception,
+            callbackFailure));
       }
     }
 
@@ -148,6 +153,8 @@ namespace BIMBaoGui.RevitAddin
         new System.Collections.Generic.List<Action<CurrentDocumentSnapshot>>();
     private object _source;
     private bool _attached;
+    private bool _attachmentUncertain;
+    private Exception _attachFailure;
 
     internal NativeDocumentBoundarySubscriptionRegistry(
       Action<object> attach,
@@ -169,7 +176,7 @@ namespace BIMBaoGui.RevitAddin
     {
       get
       {
-        lock (_syncRoot) return _attached;
+        lock (_syncRoot) return _attached || _attachmentUncertain;
       }
     }
 
@@ -246,12 +253,13 @@ namespace BIMBaoGui.RevitAddin
     {
       if (_attached || _source == null || _subscribers.Count == 0) return;
       object source = _source;
+      RecoverUncertainAttachment(source);
       try
       {
         _attach(source);
         _attached = true;
       }
-      catch
+      catch (Exception attachFailure)
       {
         _attached = false;
         try
@@ -260,19 +268,45 @@ namespace BIMBaoGui.RevitAddin
         }
         catch (Exception compensationFailure)
         {
-          Trace.TraceError(
-            "BIMBaoGui document-boundary attach compensation failed: {0}",
+          _attachmentUncertain = true;
+          _attachFailure = attachFailure;
+          throw new AggregateException(
+            "BIMBaoGui document-boundary attachment state is uncertain.",
+            attachFailure,
             compensationFailure);
         }
+        _attachmentUncertain = false;
+        _attachFailure = null;
         throw;
       }
     }
 
+    private void RecoverUncertainAttachment(object source)
+    {
+      if (!_attachmentUncertain) return;
+      try
+      {
+        _detach(source);
+      }
+      catch (Exception recoveryFailure)
+      {
+        throw new AggregateException(
+          "BIMBaoGui document-boundary attachment cleanup failed.",
+          _attachFailure ?? new InvalidOperationException(
+            "The original attachment failure was not recorded."),
+          recoveryFailure);
+      }
+      _attachmentUncertain = false;
+      _attachFailure = null;
+    }
+
     private void DetachIfNeeded()
     {
-      if (!_attached) return;
+      if (!_attached && !_attachmentUncertain) return;
       _detach(_source);
       _attached = false;
+      _attachmentUncertain = false;
+      _attachFailure = null;
     }
   }
 

@@ -331,7 +331,11 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Equal(
         new[] { observationFailure, observationFailure },
         receivedFailures);
-      Assert.Equal(new[] { callbackFailure }, diagnostics);
+      AggregateException diagnostic = Assert.IsType<AggregateException>(
+        Assert.Single(diagnostics));
+      Assert.Equal(
+        new[] { observationFailure, callbackFailure },
+        diagnostic.InnerExceptions);
       Assert.True(queue.IsEmpty);
     }
 
@@ -371,7 +375,11 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Equal(1, observationCount);
       Assert.Equal(1, failureCallbackCount);
       Assert.Equal(1, successCount);
-      Assert.Equal(new[] { callbackFailure }, diagnostics);
+      AggregateException diagnostic = Assert.IsType<AggregateException>(
+        Assert.Single(diagnostics));
+      Assert.Equal(
+        new[] { requestFailure, callbackFailure },
+        diagnostic.InnerExceptions);
       Assert.True(queue.IsEmpty);
     }
 
@@ -468,6 +476,64 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.Equal(0, registry.SubscriberCount);
       Assert.Equal(
         new[] { "attach:1", "detach", "attach:2", "detach" },
+        transitions);
+    }
+
+    [Fact]
+    public void Boundary_registry_cleans_uncertain_attachment_before_retrying()
+    {
+      var transitions = new System.Collections.Generic.List<string>();
+      var source = new object();
+      var attachFailure = new InvalidOperationException("partial attach failed");
+      var detachFailure = new InvalidOperationException("compensation failed");
+      int attachAttempts = 0;
+      int detachAttempts = 0;
+      bool physicallyAttached = false;
+      var registry = new NativeDocumentBoundarySubscriptionRegistry(
+        value =>
+        {
+          attachAttempts++;
+          transitions.Add("attach:" + attachAttempts);
+          if (physicallyAttached)
+            throw new InvalidOperationException("duplicate attachment");
+          physicallyAttached = true;
+          if (attachAttempts == 1) throw attachFailure;
+        },
+        value =>
+        {
+          detachAttempts++;
+          transitions.Add("detach:" + detachAttempts);
+          if (detachAttempts == 1) throw detachFailure;
+          physicallyAttached = false;
+        });
+      Action<CurrentDocumentSnapshot> subscriber = snapshot => { };
+
+      registry.SetSource(source);
+      AggregateException failure = Assert.Throws<AggregateException>(() =>
+        registry.Add(subscriber));
+
+      Assert.Contains(attachFailure, failure.InnerExceptions);
+      Assert.Contains(detachFailure, failure.InnerExceptions);
+      Assert.True(physicallyAttached);
+      Assert.True(registry.IsAttached);
+      Assert.Equal(new[] { "attach:1", "detach:1" }, transitions);
+
+      registry.SetSource(source);
+
+      Assert.True(physicallyAttached);
+      Assert.True(registry.IsAttached);
+      Assert.Equal(
+        new[] { "attach:1", "detach:1", "detach:2", "attach:2" },
+        transitions);
+
+      registry.Clear();
+      Assert.False(physicallyAttached);
+      Assert.False(registry.IsAttached);
+      Assert.Equal(
+        new[]
+        {
+          "attach:1", "detach:1", "detach:2", "attach:2", "detach:3"
+        },
         transitions);
     }
 
