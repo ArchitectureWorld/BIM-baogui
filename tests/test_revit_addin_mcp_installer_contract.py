@@ -1,5 +1,6 @@
 import ctypes
 import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -284,7 +285,7 @@ def test_double_click_install_hashes_payload_in_fresh_windows_powershell_51(
 
     assert result.returncode == 0, output
     assert "Get-FileHash" not in output, output
-    assert (
+    evidence_path = (
         tmp_path
         / "fresh AppData"
         / "Autodesk"
@@ -293,7 +294,11 @@ def test_double_click_install_hashes_payload_in_fresh_windows_powershell_51(
         / "2020"
         / "BIMBaoGui.RevitAddin"
         / "install-evidence.json"
-    ).is_file()
+    )
+    evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+    expected_sha256 = hashlib.sha256(framework_assembly.read_bytes()).hexdigest()
+    assert evidence["sourceDllSha256"] == expected_sha256
+    assert evidence["installedDllSha256"] == expected_sha256
 
 
 def test_installer_source_and_packaged_copy_parse_in_windows_powershell_51(

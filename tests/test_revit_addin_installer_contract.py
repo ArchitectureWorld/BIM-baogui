@@ -32,7 +32,6 @@ def test_installer_refuses_to_replace_loaded_addin_without_force():
 def test_installer_writes_absolute_manifest_and_verifies_dll_hash():
     source = read(SCRIPT)
     assert "[IO.Path]::GetFullPath" in source
-    assert "Get-FileHash" in source
     assert "sourceHash" in source
     assert "Assert-SameHash" in source
     assert "[System.Security.SecurityElement]::Escape" in source
