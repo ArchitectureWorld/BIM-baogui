@@ -301,7 +301,7 @@ namespace BIMBaoGui.RevitAddin.Tests
     [Fact]
     public void External_event_observation_failure_fails_every_queued_request()
     {
-      var queue = new System.Collections.Concurrent.ConcurrentQueue<int>();
+      var queue = new RevitExternalEventRequestQueue<int>();
       queue.Enqueue(1);
       queue.Enqueue(2);
       var observationFailure = new InvalidOperationException("observe failed");
@@ -342,7 +342,7 @@ namespace BIMBaoGui.RevitAddin.Tests
     [Fact]
     public void External_event_failure_callback_cannot_block_later_requests()
     {
-      var queue = new System.Collections.Concurrent.ConcurrentQueue<int>();
+      var queue = new RevitExternalEventRequestQueue<int>();
       queue.Enqueue(1);
       queue.Enqueue(2);
       var requestFailure = new InvalidOperationException("request failed");
@@ -386,11 +386,12 @@ namespace BIMBaoGui.RevitAddin.Tests
     [Theory]
     [InlineData((int)RevitExternalEventRaiseStatus.Denied)]
     [InlineData((int)RevitExternalEventRaiseStatus.TimedOut)]
+    [InlineData((int)RevitExternalEventRaiseStatus.Unknown)]
     public void External_event_rejected_raise_fails_request_without_late_execution(
       int raiseResultValue)
     {
       var raiseResult = (RevitExternalEventRaiseStatus)raiseResultValue;
-      var queue = new System.Collections.Concurrent.ConcurrentQueue<
+      var queue = new RevitExternalEventRequestQueue<
         FakeExternalEventRequest>();
       var failures = new System.Collections.Generic.List<Exception>();
       var diagnostics = new System.Collections.Generic.List<Exception>();
@@ -426,6 +427,58 @@ namespace BIMBaoGui.RevitAddin.Tests
       Assert.True(queue.IsEmpty);
     }
 
+    [Fact]
+    public void External_event_repeated_rejections_do_not_accumulate_tombstones()
+    {
+      var queue = new RevitExternalEventRequestQueue<
+        FakeExternalEventRequest>();
+      int failed = 0;
+
+      for (int index = 0; index < 32; index++)
+      {
+        var request = new FakeExternalEventRequest
+        {
+          ExecuteAction = () => { },
+          Failed = exception => failed++
+        };
+        RevitExternalEventRaiseBoundary.EnqueueAndRaise(
+          queue,
+          request,
+          () => RevitExternalEventRaiseStatus.Denied,
+          (queuedRequest, exception, report) =>
+            queuedRequest.Reject(exception, report),
+          exception => { });
+      }
+
+      Assert.Equal(32, failed);
+      Assert.True(queue.IsEmpty);
+    }
+
+    [Fact]
+    public void External_event_raise_exception_fails_and_removes_request()
+    {
+      var queue = new RevitExternalEventRequestQueue<
+        FakeExternalEventRequest>();
+      var raiseFailure = new InvalidOperationException("raise failed");
+      var failures = new System.Collections.Generic.List<Exception>();
+      var request = new FakeExternalEventRequest
+      {
+        ExecuteAction = () => { },
+        Failed = exception => failures.Add(exception)
+      };
+
+      RevitExternalEventRaiseBoundary.EnqueueAndRaise(
+        queue,
+        request,
+        () => throw raiseFailure,
+        (queuedRequest, exception, report) =>
+          queuedRequest.Reject(exception, report),
+        exception => { });
+
+      Assert.Equal(new[] { raiseFailure }, failures);
+      Assert.True(queue.IsEmpty);
+    }
+
     [Theory]
     [InlineData((int)RevitExternalEventRaiseStatus.Accepted)]
     [InlineData((int)RevitExternalEventRaiseStatus.Pending)]
@@ -433,7 +486,7 @@ namespace BIMBaoGui.RevitAddin.Tests
       int raiseResultValue)
     {
       var raiseResult = (RevitExternalEventRaiseStatus)raiseResultValue;
-      var queue = new System.Collections.Concurrent.ConcurrentQueue<
+      var queue = new RevitExternalEventRequestQueue<
         FakeExternalEventRequest>();
       int executed = 0;
       int failed = 0;
@@ -466,7 +519,7 @@ namespace BIMBaoGui.RevitAddin.Tests
     [Fact]
     public void External_event_rejected_raise_isolates_failure_callback_error()
     {
-      var queue = new System.Collections.Concurrent.ConcurrentQueue<
+      var queue = new RevitExternalEventRequestQueue<
         FakeExternalEventRequest>();
       var rejection = new InvalidOperationException("failure callback failed");
       var diagnostics = new System.Collections.Generic.List<Exception>();

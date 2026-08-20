@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
 using Autodesk.Revit.DB;
@@ -81,10 +80,69 @@ namespace BIMBaoGui.RevitAddin
     }
   }
 
+  internal sealed class RevitExternalEventRequestQueue<TRequest>
+  {
+    private readonly object _syncRoot = new object();
+    private readonly System.Collections.Generic.Queue<TRequest> _queue =
+      new System.Collections.Generic.Queue<TRequest>();
+
+    internal bool IsEmpty
+    {
+      get
+      {
+        lock (_syncRoot) return _queue.Count == 0;
+      }
+    }
+
+    internal void Enqueue(TRequest request)
+    {
+      lock (_syncRoot) _queue.Enqueue(request);
+    }
+
+    internal bool TryDequeue(out TRequest request)
+    {
+      lock (_syncRoot)
+      {
+        if (_queue.Count == 0)
+        {
+          request = default(TRequest);
+          return false;
+        }
+        request = _queue.Dequeue();
+        return true;
+      }
+    }
+
+    internal bool Remove(TRequest request)
+    {
+      lock (_syncRoot)
+      {
+        bool removed = false;
+        int count = _queue.Count;
+        for (int index = 0; index < count; index++)
+        {
+          TRequest current = _queue.Dequeue();
+          if (!removed && ReferenceEquals(current, request))
+          {
+            removed = true;
+            continue;
+          }
+          _queue.Enqueue(current);
+        }
+        return removed;
+      }
+    }
+
+    internal void Synchronize(Action action)
+    {
+      lock (_syncRoot) action();
+    }
+  }
+
   internal static class RevitExternalEventExecutionBoundary
   {
     internal static void Execute<TApplication, TRequest>(
-      ConcurrentQueue<TRequest> queue,
+      RevitExternalEventRequestQueue<TRequest> queue,
       TApplication application,
       Action<TApplication> observeApplication,
       Action<TRequest, TApplication> executeRequest,
@@ -181,11 +239,12 @@ namespace BIMBaoGui.RevitAddin
   internal static class RevitExternalEventRaiseBoundary
   {
     internal static void EnqueueAndRaise<TRequest>(
-      ConcurrentQueue<TRequest> queue,
+      RevitExternalEventRequestQueue<TRequest> queue,
       TRequest request,
       Func<RevitExternalEventRaiseStatus> raise,
       Action<TRequest, Exception, Action<Exception>> rejectRequest,
       Action<Exception> reportCallbackFailure)
+      where TRequest : class
     {
       if (queue == null) throw new ArgumentNullException(nameof(queue));
       if (ReferenceEquals(request, null))
@@ -193,33 +252,45 @@ namespace BIMBaoGui.RevitAddin
       if (raise == null) throw new ArgumentNullException(nameof(raise));
       if (rejectRequest == null)
         throw new ArgumentNullException(nameof(rejectRequest));
-      queue.Enqueue(request);
-      RevitExternalEventRaiseStatus result;
-      try
+      Exception rejection = null;
+      queue.Synchronize(() =>
       {
-        result = raise();
-      }
-      catch (Exception exception)
-      {
-        rejectRequest(request, exception, reportCallbackFailure);
-        return;
-      }
-      if (result == RevitExternalEventRaiseStatus.Accepted ||
-          result == RevitExternalEventRaiseStatus.Pending)
-        return;
-      rejectRequest(
-        request,
-        new InvalidOperationException(
-          "Revit ExternalEvent request was not accepted: " + result + "."),
-        reportCallbackFailure);
+        queue.Enqueue(request);
+        try
+        {
+          RevitExternalEventRaiseStatus result = raise();
+          if (result != RevitExternalEventRaiseStatus.Accepted &&
+              result != RevitExternalEventRaiseStatus.Pending)
+          {
+            rejection = new InvalidOperationException(
+              "Revit ExternalEvent request was not accepted: " +
+              result + ".");
+          }
+        }
+        catch (Exception exception)
+        {
+          rejection = exception;
+        }
+        if (rejection != null && !queue.Remove(request))
+        {
+          rejection = new AggregateException(
+            "Rejected Revit ExternalEvent request could not be removed.",
+            rejection,
+            new InvalidOperationException(
+              "The rejected request was not present in the request queue."));
+        }
+      });
+      if (rejection != null)
+        rejectRequest(request, rejection, reportCallbackFailure);
     }
   }
 
   internal sealed class RevitExternalEventHandler : IExternalEventHandler
   {
-    private readonly ConcurrentQueue<RevitRequest> _queue;
+    private readonly RevitExternalEventRequestQueue<RevitRequest> _queue;
 
-    internal RevitExternalEventHandler(ConcurrentQueue<RevitRequest> queue)
+    internal RevitExternalEventHandler(
+      RevitExternalEventRequestQueue<RevitRequest> queue)
     {
       _queue = queue ?? throw new ArgumentNullException(nameof(queue));
     }
@@ -413,8 +484,8 @@ namespace BIMBaoGui.RevitAddin
   internal static class RevitExternalEventDispatcher
   {
     private static readonly object SyncRoot = new object();
-    private static readonly ConcurrentQueue<RevitRequest> Queue =
-      new ConcurrentQueue<RevitRequest>();
+    private static readonly RevitExternalEventRequestQueue<RevitRequest> Queue =
+      new RevitExternalEventRequestQueue<RevitRequest>();
     private static readonly NativeDocumentBoundarySubscriptionRegistry
       BoundarySubscriptions = new NativeDocumentBoundarySubscriptionRegistry(
         AttachObservedApplication,
