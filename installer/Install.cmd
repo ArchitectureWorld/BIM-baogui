@@ -10,7 +10,7 @@ echo BIMBaoGui Revit 2020 + MCP 安装程序
 echo ========================================
 echo.
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PACKAGE_ROOT%Install-Revit2020.ps1" -SourceRoot "%PACKAGE_ROOT%"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PACKAGE_ROOT%Install-Revit2020.ps1" -SourceRoot "%PACKAGE_ROOT%."
 set "BIMBAOGUI_EXIT_CODE=%ERRORLEVEL%"
 
 echo.

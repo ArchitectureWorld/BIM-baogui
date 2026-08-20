@@ -1,6 +1,7 @@
 import ctypes
 import hashlib
 import os
+import shutil
 import subprocess
 import threading
 from pathlib import Path
@@ -197,6 +198,41 @@ def test_existing_double_click_install_and_uninstall_entrypoints_remain():
     assert '-SourceRoot' in install
     assert 'Install-Revit2020.ps1' in uninstall
     assert '-Uninstall' in uninstall
+
+
+def test_double_click_install_passes_a_valid_package_root_to_powershell(
+    tmp_path: Path,
+):
+    package_root = tmp_path / "package"
+    package_root.mkdir()
+    shutil.copy2(INSTALL_CMD, package_root / INSTALL_CMD.name)
+    shutil.copy2(INSTALLER, package_root / INSTALLER.name)
+    environment = os.environ.copy()
+    environment["APPDATA"] = str(tmp_path / "AppData")
+    environment["LOCALAPPDATA"] = str(tmp_path / "LocalAppData")
+
+    result = subprocess.run(
+        [
+            environment["COMSPEC"],
+            "/d",
+            "/c",
+            "Install.cmd < NUL",
+        ],
+        cwd=package_root,
+        env=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=15,
+    )
+    output = result.stdout + result.stderr
+
+    assert result.returncode != 0
+    assert "BIMBaoGui.RevitAddin.dll" in output, output
+    assert "SourceRoot=" in output, output
+    assert "Illegal characters in path" not in output, output
 
 
 def test_installer_source_and_packaged_copy_parse_in_windows_powershell_51(
