@@ -7,6 +7,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+Import-Module Microsoft.PowerShell.Utility -ErrorAction Stop
 
 if ([string]::IsNullOrWhiteSpace($env:APPDATA)) {
   throw "APPDATA 环境变量不可用，无法定位 Revit 用户级 Addins 目录。"

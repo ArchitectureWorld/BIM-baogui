@@ -235,6 +235,67 @@ def test_double_click_install_passes_a_valid_package_root_to_powershell(
     assert "Illegal characters in path" not in output, output
 
 
+def test_double_click_install_hashes_payload_in_fresh_windows_powershell_51(
+    tmp_path: Path,
+):
+    package_root = tmp_path / "中文 package"
+    package_root.mkdir()
+    for source in (INSTALL_CMD, UNINSTALL_CMD, INSTALLER):
+        shutil.copy2(source, package_root / source.name)
+
+    addin_payload = package_root / "BIMBaoGui.RevitAddin"
+    mcp_payload = package_root / "BIMBaoGui.McpServer"
+    addin_payload.mkdir()
+    mcp_payload.mkdir()
+    framework_assembly = (
+        Path(os.environ["SystemRoot"])
+        / "Microsoft.NET"
+        / "Framework64"
+        / "v4.0.30319"
+        / "mscorlib.dll"
+    )
+    assert framework_assembly.is_file()
+    for filename in (
+        "BIMBaoGui.RevitAddin.dll",
+        "BIMBaoGui.McpContracts.dll",
+        "BIMBaoGui.HifcCore.dll",
+    ):
+        shutil.copy2(framework_assembly, addin_payload / filename)
+    shutil.copy2(
+        framework_assembly,
+        mcp_payload / "BIMBaoGui.McpServer.exe",
+    )
+
+    environment = os.environ.copy()
+    environment["APPDATA"] = str(tmp_path / "fresh AppData")
+    environment["LOCALAPPDATA"] = str(tmp_path / "fresh LocalAppData")
+    result = subprocess.run(
+        [environment["COMSPEC"], "/d", "/c", "Install.cmd < NUL"],
+        cwd=package_root,
+        env=environment,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=30,
+    )
+    output = result.stdout + result.stderr
+
+    assert result.returncode == 0, output
+    assert "Get-FileHash" not in output, output
+    assert (
+        tmp_path
+        / "fresh AppData"
+        / "Autodesk"
+        / "Revit"
+        / "Addins"
+        / "2020"
+        / "BIMBaoGui.RevitAddin"
+        / "install-evidence.json"
+    ).is_file()
+
+
 def test_installer_source_and_packaged_copy_parse_in_windows_powershell_51(
     tmp_path: Path,
 ):
