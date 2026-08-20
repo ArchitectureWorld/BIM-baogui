@@ -86,7 +86,8 @@ def test_revit_application_registers_ribbon_and_dockable_workspace():
 
 def test_modeless_workspace_uses_external_event_queue_for_revit_api_calls():
     source = read(PROJECT / "RevitExternalEventDispatcher.cs")
-    assert "ConcurrentQueue<RevitRequest>" in source
+    assert "RevitExternalEventRequestQueue<RevitRequest>" in source
+    assert "RevitExternalEventRaiseBoundary.EnqueueAndRaise" in source
     assert "IExternalEventHandler" in source
     assert "ExternalEvent.Create" in source
     assert ".Raise()" in source
