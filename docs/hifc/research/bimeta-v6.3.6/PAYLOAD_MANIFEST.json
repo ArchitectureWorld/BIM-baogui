@@ -1,0 +1,75 @@
+{
+  "software": "BIMeta报建交付软件",
+  "softwareVersion": "6.3.6",
+  "branch": "research/bimeta-v6.3.6",
+  "baseBranch": "feat/revit-native-total-plan-phase1-v0.4.3",
+  "baseCommit": "b1ab1761eafc94cc1b2093183fa462679c920db9",
+  "architectureBaseline": "v0.4",
+  "scope": "research_and_evidence_only",
+  "productionCodeModified": false,
+  "sourceInstaller": {
+    "filename": "BIMeta报建交付软件-V6.3.6 20260824.exe",
+    "size": 211512032,
+    "sha256": "1b1ac3561e372d2927f9b8d8cac8ff93f0dc5dcfd7c45cde438f83d57e80fe17",
+    "includedInRepository": false,
+    "reason": "约211MB第三方安装程序；仅保存哈希与分析成果。"
+  },
+  "committedFiles": [
+    {"path":"README.md","role":"支线入口、权威顺序与证据纪律"},
+    {"path":"analysis/static-reverse-analysis.md","role":"BIMeta V6.3.6完整静态逆向与工作原理解读","sourceSha256":"ae7883aa5e5a2334a4550fe90b83fceafb627e99604baa080ccea7dc23cc18b7"},
+    {"path":"architecture/v0.4/README.md","role":"v0.4证据分层规则与边界说明"},
+    {"path":"architecture/v0.4/evidence-layered-mindmap.md","role":"Mermaid可编辑证据分层思维导图","sourceSha256":"7fe3fd78f201855674483e5c09dde5bd91dde3ba4bce7bfbd83ffff5ae5c4f82"},
+    {"path":"architecture/v0.4/evidence-baseline.compact.json","role":"开发Agent可直接读取的紧凑机器证据基线"},
+    {"path":"architecture/v0.4/validation-report.json","role":"v0.4结构、证据规则与关键降级项验证结果"},
+    {"path":"architecture/v0.4/artifact-manifest.json","role":"完整可视化原件的文件角色、大小与SHA-256清单"},
+    {"path":"mappings/component-dataset-mapping-v0.2.md","role":"构件、B./C.表号、Revit入口、数据集和字段映射基线","sourceSha256":"3014ee59b569dcfd4dee274f9ecac79355e1fd22c5a2828a5825726ae3f7518a"},
+    {"path":"evidence/core-evidence-index.json","role":"核心软件证据索引","sourceSha256":"90e6d6a86240296a424845a78787d7a7ae81a5fbbd463b8e9631db8fb7a11baa"},
+    {"path":"evidence/extraction-manifest-summary.json","role":"1,369个安装文件提取统计、关键证据路径与完整CSV哈希"},
+    {"path":"PAYLOAD_MANIFEST.json","role":"本目录实际提交清单"}
+  ],
+  "notCommittedArtifacts": [
+    {
+      "file": "BIMeta报建交付软件-V6.3.6 20260824.exe",
+      "reason": "第三方安装程序且约211MB"
+    },
+    {
+      "file": "H-IFC_交付架构_证据分层可编辑思维导图_v0.4.html",
+      "size": 1613795,
+      "sha256": "3a281ef255ffd208a5f7b492fc6eee4ff886645beee19fe95711ee750278e217",
+      "reason": "当前GitHub写入接口不接受本地文件路径，只接受内联文本；1.6MB原件在当前工具输出链路中无法可靠逐字转运。核心结构已以Markdown和紧凑JSON提交。"
+    },
+    {
+      "file": "H-IFC_交付架构_证据分层可编辑思维导图_v0.4.drawio",
+      "size": 1202185,
+      "sha256": "2bd4dcd488bac4923e4e450eea4c2dd42b971e2af5439e07a6f4be204b71a59d",
+      "reason": "当前GitHub写入接口不接受本地文件路径，只接受内联文本；1.2MB原件未进行不可靠的截断转运。"
+    },
+    {
+      "file": "H-IFC_交付架构_证据分层可编辑思维导图_v0.4.json",
+      "size": 3307189,
+      "sha256": "6e90e57ed8de160c484d2711bd5ead22e56e6009eea09150f2e359e1b5f74b39",
+      "reason": "完整3.3MB数据源无法通过当前内联文本链路可靠转运；已提交紧凑开发基线。"
+    },
+    {
+      "file": "H-IFC_交付架构_证据分层可编辑思维导图_v0.4_证据审计矩阵.csv",
+      "size": 561562,
+      "sha256": "02ed86721ba5284fe6a415368256170b82e5a2594e2ec2403e06165de290f6a7",
+      "reason": "逐声明完整审计矩阵未通过当前内联链路转运；摘要指标及关键严格节点已提交。"
+    },
+    {
+      "file": "BIMeta_V6.3.6_构件-数据集映射基线_v0.2.json",
+      "size": 99630,
+      "sha256": "02a0696420d18324d76bf026cb900045313190379b15c790b8eca9a127ea4837",
+      "reason": "完整提取JSON未直接转运；核心映射已提交为Markdown并纳入紧凑基线。"
+    },
+    {
+      "file": "bimeta_extraction_manifest.csv",
+      "size": 185867,
+      "sha256": "668e0d502e6e9db2cc6bc71d61b5e620d685bc6f428f6213957f0adadebabc1e",
+      "reason": "完整1,369文件清单未直接转运；统计、关键路径和完整文件哈希已提交。"
+    }
+  ],
+  "authorityRule": "仅 evidenceType=SW-DIRECT/SW-RUNTIME 且 softwareConfirmed=true 的具体声明可视为 BIMeta 软件事实。",
+  "modelRule": "PLAN-BELOW仅在hasUnderground=true且存在undergroundUnits时生成；无地下项目不创建也不校验地下模型。",
+  "developmentBoundary": "本研究支线不替代正式HBR规则包，任何INFERRED/DEV-DEFINED条目进入生产前必须完成运行验证和人工批准。"
+}

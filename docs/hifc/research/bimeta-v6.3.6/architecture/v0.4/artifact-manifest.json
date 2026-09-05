@@ -1,0 +1,26 @@
+{
+  "package": "H-IFC_交付架构_证据分层可编辑思维导图_v0.4_交付包.zip",
+  "version": "v0.4",
+  "generatedFiles": [
+    {"file":"H-IFC_交付架构_证据分层可编辑思维导图_v0.4.html","role":"离线可编辑思维导图","size":1613795,"sha256":"3a281ef255ffd208a5f7b492fc6eee4ff886645beee19fe95711ee750278e217"},
+    {"file":"H-IFC_交付架构_证据分层可编辑思维导图_v0.4.drawio","role":"Draw.io多页可编辑架构图","size":1202185,"sha256":"2bd4dcd488bac4923e4e450eea4c2dd42b971e2af5439e07a6f4be204b71a59d"},
+    {"file":"H-IFC_交付架构_证据分层可编辑思维导图_v0.4.json","role":"开发Agent主数据源","size":3307189,"sha256":"6e90e57ed8de160c484d2711bd5ead22e56e6009eea09150f2e359e1b5f74b39"},
+    {"file":"H-IFC_交付架构_证据分层可编辑思维导图_v0.4_证据审计矩阵.csv","role":"逐声明证据审计矩阵","size":561562,"sha256":"02ed86721ba5284fe6a415368256170b82e5a2594e2ec2403e06165de290f6a7"},
+    {"file":"H-IFC_交付架构_证据分层可编辑思维导图_v0.4.md","role":"Mermaid与开发读取规则","size":12221,"sha256":"7fe3fd78f201855674483e5c09dde5bd91dde3ba4bce7bfbd83ffff5ae5c4f82"},
+    {"file":"H-IFC_交付架构_证据分层可编辑思维导图_v0.4.mm","role":"FreeMind/Freeplane源文件","size":331883,"sha256":"45127ca136ed81db6d635a68f82ff7a262917f5574c811f773de389d604e0143"},
+    {"file":"H-IFC_交付架构_证据分层可编辑思维导图_v0.4_README.md","role":"使用说明与证据规则","size":2910,"sha256":"18e8922577cba83c48142e8060151c791a2334e3f539e15ab6a2c5c99c24e0ca"},
+    {"file":"H-IFC_交付架构_证据分层可编辑思维导图_v0.4_验证报告.json","role":"自动验证结果","size":5091,"sha256":"754cb76c23e5be83d9686e90ffb2675c3a10d5bfbcb20e98539f8e06e147443e"},
+    {"file":"H-IFC_交付架构_证据分层可编辑思维导图_v0.4_预览_browser.png","role":"HTML实际渲染预览","size":446703,"sha256":"697a3957d723dc2dca52647ae30df3b04db1dbfe704d5edac47910bf0cb47909"},
+    {"file":"build_hifc_evidence_mindmap_v04.py","role":"可重复构建脚本","size":84804,"sha256":"3b54ab40792e2913cb3d4a0434ce488b20c53a6e12abd6a2e03dbb3f52f1b292"},
+    {"file":"H-IFC_交付架构_可编辑思维导图_v0.3.json","role":"v0.3输入架构","size":630909,"sha256":"a2db1f76b01b146485eda8c0879d571ad3174fa951c69b07e6804bd10402c54c"},
+    {"file":"BIMeta_V6.3.6_构件-数据集映射基线_v0.2.json","role":"软件静态映射证据源","size":99630,"sha256":"02a0696420d18324d76bf026cb900045313190379b15c790b8eca9a127ea4837"},
+    {"file":"BIMeta_V6.3.6_核心证据索引.json","role":"核心证据索引","size":1533,"sha256":"90e6d6a86240296a424845a78787d7a7ae81a5fbbd463b8e9631db8fb7a11baa"},
+    {"file":"bimeta_extraction_manifest.csv","role":"安装包提取与校验清单","size":185867,"sha256":"668e0d502e6e9db2cc6bc71d61b5e620d685bc6f428f6213957f0adadebabc1e"}
+  ],
+  "notes": [
+    "不包含原始BIMeta安装包。",
+    "本仓库分支优先保存可审计文本入口；大体积可视化原件由本清单的文件名、大小和SHA-256锁定。",
+    "官方指南通过JSON证据注册表中的URL与章节定位引用。",
+    "只有SW-*且softwareConfirmed=true的claim可作为软件事实。"
+  ]
+}

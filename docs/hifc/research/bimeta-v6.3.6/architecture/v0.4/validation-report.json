@@ -1,0 +1,114 @@
+{
+  "validatedAt": "2026-09-04T15:18:27.523968+00:00",
+  "version": "v0.4",
+  "checks": {
+    "filesExist": true,
+    "jsonParsed": true,
+    "auditCsvParsed": true,
+    "freeMindXmlParsed": true,
+    "drawioXmlParsed": true,
+    "htmlParsed": true,
+    "embeddedJsonParsed": true,
+    "javascriptSyntaxValid": true,
+    "browserRendered": true
+  },
+  "assertions": {
+    "noDuplicateNodeIds": true,
+    "everyNodeHasEvidenceClaims": true,
+    "planningGreenParkingNotSoftwareConfirmed": true,
+    "unconfirmedPlanningCarriersAreTBD": true,
+    "logicalDatasetCodesMarkedDevDefined": true,
+    "allIfcCandidatesMarkedInferred": true,
+    "noRuntimeClaims": true,
+    "parkingSignalsAreNonConfirming": true,
+    "auditRowsMatchClaims": true,
+    "drawioHasExpectedFivePages": true,
+    "embeddedJsonSummaryMatches": true,
+    "defaultViewIsSoftwarePaths": true
+  },
+  "metrics": {
+    "treeNodes": 1020,
+    "propertyNodes": 782,
+    "softwareEvidenceNodes": 466,
+    "runtimeEvidenceNodes": 0,
+    "devDefinedLogicalDatasets": 62,
+    "ifcCandidateNodes": 13,
+    "claimCountsByType": {
+      "DEV-DEFINED": 266,
+      "SW-DIRECT": 469,
+      "OFFICIAL": 452,
+      "INFERRED": 12,
+      "USER": 4
+    },
+    "softwareConfirmingClaims": 466,
+    "softwareRelatedSignalClaims": 3,
+    "auditRows": 1203,
+    "drawioPages": 5
+  },
+  "limitations": [
+    "浏览器校验通过 page.set_content 载入离线HTML；当前执行环境策略禁止 file:// 与 localhost 导航。"
+  ],
+  "checksums": {
+    "html": "3a281ef255ffd208a5f7b492fc6eee4ff886645beee19fe95711ee750278e217",
+    "drawio": "2bd4dcd488bac4923e4e450eea4c2dd42b971e2af5439e07a6f4be204b71a59d",
+    "json": "6e90e57ed8de160c484d2711bd5ead22e56e6009eea09150f2e359e1b5f74b39",
+    "csv": "02ed86721ba5284fe6a415368256170b82e5a2594e2ec2403e06165de290f6a7",
+    "md": "7fe3fd78f201855674483e5c09dde5bd91dde3ba4bce7bfbd83ffff5ae5c4f82",
+    "mm": "45127ca136ed81db6d635a68f82ff7a262917f5574c811f773de389d604e0143",
+    "readme": "79a8fd784f73c95d08c6583f55d32df58db8f25e63bb4f8315d5ef6dd9e5573b",
+    "preview": "697a3957d723dc2dca52647ae30df3b04db1dbfe704d5edac47910bf0cb47909",
+    "builder": "7e7134ae474c357934d1195f09d07c6273de50607fbfacf6e256a175f0e812aa"
+  },
+  "strictNodeEvidence": {
+    "site_green": {
+      "label": "绿地",
+      "primaryEvidenceType": "OFFICIAL",
+      "softwareConfirmed": false,
+      "claims": [
+        {"evidenceType": "OFFICIAL", "softwareConfirmed": false, "scope": "object_existence"},
+        {"evidenceType": "DEV-DEFINED", "softwareConfirmed": false, "scope": "code"}
+      ]
+    },
+    "site_outdoor_parking_lot": {
+      "label": "室外车场",
+      "primaryEvidenceType": "OFFICIAL",
+      "softwareConfirmed": false,
+      "claims": [
+        {"evidenceType": "OFFICIAL", "softwareConfirmed": false, "scope": "object_existence"},
+        {"evidenceType": "SW-DIRECT", "softwareConfirmed": false, "scope": "related_software_signal_not_node_confirmation"},
+        {"evidenceType": "DEV-DEFINED", "softwareConfirmed": false, "scope": "code"}
+      ]
+    },
+    "site_outdoor_parking_space": {
+      "label": "室外车位",
+      "primaryEvidenceType": "OFFICIAL",
+      "softwareConfirmed": false,
+      "claims": [
+        {"evidenceType": "OFFICIAL", "softwareConfirmed": false, "scope": "object_existence"},
+        {"evidenceType": "SW-DIRECT", "softwareConfirmed": false, "scope": "related_software_signal_not_node_confirmation"},
+        {"evidenceType": "DEV-DEFINED", "softwareConfirmed": false, "scope": "code"}
+      ]
+    },
+    "below_indoor_parking": {
+      "label": "室内车位",
+      "primaryEvidenceType": "OFFICIAL",
+      "softwareConfirmed": false,
+      "claims": [
+        {"evidenceType": "OFFICIAL", "softwareConfirmed": false, "scope": "object_existence"},
+        {"evidenceType": "SW-DIRECT", "softwareConfirmed": false, "scope": "related_software_signal_not_node_confirmation"},
+        {"evidenceType": "DEV-DEFINED", "softwareConfirmed": false, "scope": "code"}
+      ]
+    }
+  },
+  "unconfirmedPlanningCarrierExceptions": [],
+  "javascriptChecks": [{"script": 1, "exitCode": 0, "stderr": ""}],
+  "browser": {
+    "title": "H-IFC交付架构｜证据分层可编辑思维导图 v0.4",
+    "defaultEvidenceFilter": "software_paths",
+    "renderedSvgNodeGroups": 122,
+    "auditBarText": "证据审计：软件路径节点 466；SW-RUNTIME 0；软件确认声明 466；仅相关软件信号 3；SW-DIRECT总声明 469；OFFICIAL 452；INFERRED 12；DEV-DEFINED 266；当前视图：软件证据路径（默认）",
+    "inspectorPresent": true,
+    "errors": []
+  },
+  "passed": true
+}

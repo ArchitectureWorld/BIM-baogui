@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "bimeta-v6.3.6-hifc-evidence-baseline-v0.4-compact",
+  "version": "0.4",
+  "purpose": "developer-readable evidence baseline; not a production H-IFC mapping",
+  "software": {
+    "name": "BIMeta报建交付软件",
+    "version": "6.3.6",
+    "installerSha256": "1b1ac3561e372d2927f9b8d8cac8ff93f0dc5dcfd7c45cde438f83d57e80fe17",
+    "analysisMode": "static_only_no_execution"
+  },
+  "authorityRule": {
+    "softwareFactWhen": "evidenceType in [SW-DIRECT, SW-RUNTIME] AND softwareConfirmed == true",
+    "evidenceTypes": {
+      "SW-DIRECT": "软件静态直接提取",
+      "SW-RUNTIME": "软件运行、建模、网络或导出行为确认",
+      "OFFICIAL": "湖北官方标准、指南或示例",
+      "USER": "用户明确输入或实际使用经验",
+      "INFERRED": "分析推断，必须验证",
+      "DEV-DEFINED": "自研命名、抽象、编码或占位"
+    },
+    "runtimeEvidenceCount": 0
+  },
+  "prohibitedAssumptions": [
+    "AreaSpace、RoadArea、BuildingObject、StoreyObject是BIMeta内部类型",
+    "TP*、AG*、UG*、DS*是BIMeta或官方H-IFC数据集/Pset名称",
+    "绿地、室外车场、室外车位使用Revit Area/Room/Space",
+    "规划对象已有确认的IfcEntity/Pset/Property/Rel映射",
+    "存在相关图标或按钮即可证明具体载体与分类实现"
+  ],
+  "softwareConfirmedProfiles": [
+    {"label":"IFC4.0","evidenceType":"SW-DIRECT","softwareConfirmed":true,"scope":"ribbon/export entry"},
+    {"label":"SZ-IFC","evidenceType":"SW-DIRECT","softwareConfirmed":true,"scope":"ribbon/export entry"},
+    {"label":"CD-IFC","evidenceType":"SW-DIRECT","softwareConfirmed":true,"scope":"ribbon/export entry"},
+    {"label":"H-IFC规划报建","evidenceType":"SW-DIRECT","softwareConfirmed":true,"scope":"ribbon/export entry"},
+    {"label":"H-IFC施工图审查","evidenceType":"SW-DIRECT","softwareConfirmed":true,"scope":"ribbon/export entry"},
+    {"label":"H-IFC招投标","evidenceType":"SW-DIRECT","softwareConfirmed":true,"scope":"ribbon/export entry"},
+    {"label":"H-IFC竣工验收","evidenceType":"SW-DIRECT","softwareConfirmed":true,"scope":"ribbon/export entry"},
+    {"label":"H-IFC智慧工地监管","evidenceType":"SW-DIRECT","softwareConfirmed":true,"scope":"ribbon/export entry"}
+  ],
+  "modelGeneration": {
+    "evidenceType": "DEV-DEFINED",
+    "softwareConfirmed": false,
+    "rules": [
+      {
+        "modelCode": "PLAN-SITE",
+        "label": "总平模型模板",
+        "modelCodeEvidence": "DEV-DEFINED",
+        "modelRequirementEvidence": "OFFICIAL",
+        "condition": "planningSubmission == true",
+        "cardinality": "one_per_project"
+      },
+      {
+        "modelCode": "PLAN-ABOVE",
+        "label": "地上单体模型模板",
+        "modelCodeEvidence": "DEV-DEFINED",
+        "modelRequirementEvidence": "OFFICIAL",
+        "condition": "aboveGroundBuildings.length > 0",
+        "cardinality": "one_per_independent_above_ground_building"
+      },
+      {
+        "modelCode": "PLAN-BELOW",
+        "label": "地下模型模板",
+        "modelCodeEvidence": "DEV-DEFINED",
+        "modelRequirementEvidence": "OFFICIAL",
+        "condition": "hasUnderground == true AND undergroundUnits.length > 0",
+        "cardinality": "one_per_underground_unit",
+        "absencePolicy": "do_not_create_and_do_not_validate_when_hasUnderground_is_false",
+        "organizationModes": ["shared_basement", "independent_basement", "mixed"]
+      }
+    ]
+  },
+  "planningArchitecture": {
+    "stageLabel": "规划报规",
+    "stageEvidence": {"evidenceType":"SW-DIRECT","softwareConfirmed":true,"scope":"BIMeta export entry only"},
+    "implementationWarning": "下列模型和对象结构主要来自OFFICIAL；不得据此推断BIMeta具体Revit载体。",
+    "models": [
+      {
+        "code": "PLAN-SITE",
+        "codeEvidence": "DEV-DEFINED",
+        "objects": [
+          {
+            "label": "项目基点",
+            "existenceEvidence": "SW-DIRECT",
+            "softwareConfirmed": true,
+            "softwareObject": "ProjectBase",
+            "softwareFields": ["dNorthSouth", "dEastWest", "dElevation", "dAngle"],
+            "revitCarrier": null,
+            "revitCarrierStatus": "TBD_RUNTIME",
+            "logicalDataset": "TP00_PROJECT_BASE",
+            "logicalDatasetEvidence": "DEV-DEFINED"
+          },
+          {
+            "label": "规划总用地",
+            "existenceEvidence": "OFFICIAL",
+            "softwareConfirmed": false,
+            "revitCarrier": null,
+            "revitCarrierStatus": "TBD",
+            "logicalDataset": "TP01_PLANNING_ENTITY",
+            "logicalDatasetEvidence": "DEV-DEFINED",
+            "officialProperties": ["分类名称", "类型", "投影面积", "名称"]
+          },
+          {
+            "label": "规划净用地",
+            "existenceEvidence": "OFFICIAL",
+            "softwareConfirmed": false,
+            "revitCarrier": null,
+            "revitCarrierStatus": "TBD",
+            "logicalDataset": "TP01_PLANNING_ENTITY",
+            "logicalDatasetEvidence": "DEV-DEFINED",
+            "officialProperties": ["分类名称", "类型", "投影面积", "名称"]
+          },
+          {
+            "label": "消防道路",
+            "existenceEvidence": "OFFICIAL",
+            "softwareConfirmed": false,
+            "revitCarrier": null,
+            "revitCarrierStatus": "TBD",
+            "logicalDataset": "TP02_FIRE_ROAD",
+            "logicalDatasetEvidence": "DEV-DEFINED",
+            "officialProperties": ["分类名称", "区内道路类型", "道路宽度"]
+          },
+          {
+            "label": "消防场地",
+            "existenceEvidence": "OFFICIAL",
+            "softwareConfirmed": false,
+            "revitCarrier": null,
+            "revitCarrierStatus": "TBD",
+            "logicalDataset": "TP03_FIRE_SITE",
+            "logicalDatasetEvidence": "DEV-DEFINED",
+            "officialProperties": ["分类名称", "所属建筑编号", "投影面积", "名称"]
+          },
+          {
+            "label": "绿地",
+            "existenceEvidence": "OFFICIAL",
+            "softwareConfirmed": false,
+            "revitCarrier": null,
+            "revitCarrierStatus": "TBD",
+            "businessGeometry": "可计算投影面积的规划模型单元",
+            "businessGeometryEvidence": "OFFICIAL",
+            "logicalDataset": "TP04_GREEN",
+            "logicalDatasetEvidence": "DEV-DEFINED",
+            "officialProperties": ["分类名称", "投影面积", "绿地类型", "折算系数"]
+          },
+          {
+            "label": "室外车场",
+            "existenceEvidence": "OFFICIAL",
+            "softwareConfirmed": false,
+            "relatedSoftwareSignal": ["布置车位", "删除车位", "车位", "车位编号"],
+            "relatedSoftwareSignalEvidence": "SW-DIRECT",
+            "relatedSoftwareSignalConfirmsNode": false,
+            "revitCarrier": null,
+            "revitCarrierStatus": "TBD",
+            "logicalDataset": "TP05_OUTDOOR_PARKING_LOT",
+            "logicalDatasetEvidence": "DEV-DEFINED",
+            "officialProperties": ["分类名称", "投影面积", "车位类型", "地上层数", "地下层数", "车场类型", "是否充电车位", "是否公建车位"]
+          },
+          {
+            "label": "室外车位",
+            "existenceEvidence": "OFFICIAL",
+            "softwareConfirmed": false,
+            "relatedSoftwareSignal": ["布置车位", "删除车位", "车位", "车位编号"],
+            "relatedSoftwareSignalEvidence": "SW-DIRECT",
+            "relatedSoftwareSignalConfirmsNode": false,
+            "revitCarrier": null,
+            "revitCarrierStatus": "TBD",
+            "logicalDataset": "TP06_OUTDOOR_PARKING_SPACE",
+            "logicalDatasetEvidence": "DEV-DEFINED",
+            "officialProperties": ["分类名称", "投影面积", "车位类型", "地上层数", "地下层数", "车位数", "是否充电车位", "是否公建车位", "折算系数"]
+          },
+          {
+            "label": "道路红线",
+            "existenceEvidence": "OFFICIAL",
+            "softwareConfirmed": false,
+            "revitCarrier": null,
+            "revitCarrierStatus": "TBD",
+            "logicalDataset": "TP07_ROAD_REDLINE",
+            "logicalDatasetEvidence": "DEV-DEFINED",
+            "officialProperties": ["名称", "道路类型", "红线宽度"]
+          }
+        ]
+      },
+      {
+        "code": "PLAN-ABOVE",
+        "codeEvidence": "DEV-DEFINED",
+        "objects": [
+          {"label":"建筑级对象","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"AG01_BUILDING","logicalDatasetEvidence":"DEV-DEFINED"},
+          {"label":"楼层对象 1F～RF","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"AG02_STOREY","logicalDatasetEvidence":"DEV-DEFINED"},
+          {"label":"建筑主体","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"AG03_COMPONENT_AREA","logicalDatasetEvidence":"DEV-DEFINED","officialProperties":["分类名称","投影面积","构件类型","公建大类","公建小类","计算系数","计容系数","备注"]},
+          {"label":"阳台/露台","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"AG03_COMPONENT_AREA","logicalDatasetEvidence":"DEV-DEFINED"},
+          {"label":"雨篷","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"AG03_COMPONENT_AREA","logicalDatasetEvidence":"DEV-DEFINED"},
+          {"label":"室外楼梯","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"AG03_COMPONENT_AREA","logicalDatasetEvidence":"DEV-DEFINED"},
+          {"label":"空调板","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"AG03_COMPONENT_AREA","logicalDatasetEvidence":"DEV-DEFINED"},
+          {"label":"人防区域","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"AG03_COMPONENT_AREA","logicalDatasetEvidence":"DEV-DEFINED"},
+          {"label":"消防分区","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"AG03_COMPONENT_AREA","logicalDatasetEvidence":"DEV-DEFINED"}
+        ]
+      },
+      {
+        "code": "PLAN-BELOW",
+        "codeEvidence": "DEV-DEFINED",
+        "conditional": true,
+        "condition": "hasUnderground == true AND undergroundUnits.length > 0",
+        "objects": [
+          {"label":"建筑关联对象","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"UG00_MODEL_CONTEXT","logicalDatasetEvidence":"DEV-DEFINED"},
+          {"label":"楼层对象 B1～Bn","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"AG02_STOREY","logicalDatasetEvidence":"DEV-DEFINED"},
+          {"label":"地下建筑主体","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"UG01_UNDERGROUND_BODY","logicalDatasetEvidence":"DEV-DEFINED"},
+          {"label":"机动车库","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"UG01_UNDERGROUND_BODY","logicalDatasetEvidence":"DEV-DEFINED"},
+          {"label":"非机动车库","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"UG04_INDOOR_GARAGE","logicalDatasetEvidence":"DEV-DEFINED"},
+          {"label":"人防区域","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"UG02_CIVIL_DEFENSE","logicalDatasetEvidence":"DEV-DEFINED"},
+          {"label":"消防分区","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"UG03_FIRE_COMPARTMENT","logicalDatasetEvidence":"DEV-DEFINED"},
+          {"label":"室内车位","existenceEvidence":"OFFICIAL","softwareConfirmed":false,"relatedSoftwareSignalEvidence":"SW-DIRECT","relatedSoftwareSignalConfirmsNode":false,"revitCarrier":null,"revitCarrierStatus":"TBD","logicalDataset":"UG05_INDOOR_PARKING_SPACE","logicalDatasetEvidence":"DEV-DEFINED"}
+        ]
+      }
+    ]
+  },
+  "softwareConfirmedRevitEntries": [
+    {"object":"建筑门","table":"B.1","revitCategory":"OST_Doors","revitObject":"FamilyInstance","evidenceType":"SW-DIRECT","softwareConfirmed":true},
+    {"object":"建筑窗","table":"B.1","revitCategory":"OST_Windows","revitObject":"FamilyInstance","evidenceType":"SW-DIRECT","softwareConfirmed":true},
+    {"object":"建筑幕墙","table":"B.2","revitCategory":"OST_Walls","revitObject":"Wall","qualifier":"Curtain Wall system; panel/mullion split requires runtime validation","evidenceType":"SW-DIRECT","softwareConfirmed":true},
+    {"object":"建筑墙","table":"B.40","revitCategory":"OST_Walls","revitObject":"Wall","evidenceType":"SW-DIRECT","softwareConfirmed":true},
+    {"object":"地面板/楼层板/板带","table":"B.44","revitCategory":"OST_Floors","revitObject":"Floor","evidenceType":"SW-DIRECT","softwareConfirmed":true},
+    {"object":"楼梯","table":"B.45","revitCategory":"OST_Stairs","revitObject":"Stairs","evidenceType":"SW-DIRECT","softwareConfirmed":true},
+    {"object":"专用功能房间/成品房","table":"B.9","revitCategory":null,"revitObject":null,"carrierStatus":"INFERRED","evidenceType":"SW-DIRECT","softwareConfirmed":true,"softwareConfirmedScope":"table existence and fields only"},
+    {"object":"混凝土柱","table":"C.11","revitCategory":"OST_StructuralColumns","revitObject":"FamilyInstance","evidenceType":"SW-DIRECT","softwareConfirmed":true},
+    {"object":"混凝土墙","table":"C.14","revitCategory":"OST_Walls","revitObject":"Wall","evidenceType":"SW-DIRECT","softwareConfirmed":true},
+    {"object":"混凝土板","table":"C.7","revitCategory":"OST_Floors","revitObject":"Floor","evidenceType":"SW-DIRECT","softwareConfirmed":true},
+    {"object":"混凝土梁","table":"C.8","revitCategory":"OST_StructuralFraming","revitObject":"FamilyInstance","evidenceType":"SW-DIRECT","softwareConfirmed":true},
+    {"object":"桩","table":"C.46","revitCategory":null,"revitObject":"FamilyInstance","carrierStatus":"INFERRED_OST_StructuralFoundation","evidenceType":"SW-DIRECT","softwareConfirmed":true,"softwareConfirmedScope":"table existence and fields only"},
+    {"object":"承台","table":"C.49","revitCategory":null,"revitObject":"FamilyInstance","carrierStatus":"INFERRED_OST_StructuralFoundation","evidenceType":"SW-DIRECT","softwareConfirmed":true,"softwareConfirmedScope":"table existence and fields only"},
+    {"object":"给排水管道","table":null,"revitCategory":"OST_PipeCurves","revitObject":"Pipe","evidenceType":"SW-DIRECT","softwareConfirmed":true,"softwareConfirmedScope":"CategoryList entry only"},
+    {"object":"暖通风管","table":null,"revitCategory":"OST_DuctCurves","revitObject":"Duct","evidenceType":"SW-DIRECT","softwareConfirmed":true,"softwareConfirmedScope":"CategoryList entry only"},
+    {"object":"电气桥架","table":null,"revitCategory":"OST_CableTray","revitObject":"CableTray","evidenceType":"SW-DIRECT","softwareConfirmed":true,"softwareConfirmedScope":"CategoryList entry only"},
+    {"object":"电气线管","table":null,"revitCategory":"OST_Conduit","revitObject":"Conduit","evidenceType":"SW-DIRECT","softwareConfirmed":true,"softwareConfirmedScope":"CategoryList entry only"}
+  ],
+  "sourceTableWarnings": [
+    {"tables":["C.7","C.8","C.11","C.14","C.46","C.49"],"issue":"属性表（全部）误复制B.45楼梯字段","policy":"use construction-drawing sheet only","evidenceType":"SW-DIRECT"},
+    {"field":"太阳得热系数","issue":"source unit is 年","policy":"retain source evidence; normalized unit remains unconfirmed","evidenceType":"SW-DIRECT"},
+    {"field":"主要材料导热系数","issue":"source unit W/(㎡*K) is physically suspicious","policy":"do not silently correct source; record normalized candidate separately","evidenceType":"SW-DIRECT"},
+    {"fields":["K值","耐火极限"],"issue":"source parameter type varies between numeric and text","policy":"type normalization requires explicit rule and validation","evidenceType":"SW-DIRECT"}
+  ],
+  "nextRuntimeValidation": [
+    "绿地、室外车场、室外车位的BIMeta具体Revit载体",
+    "建筑主体、阳台、消防分区、人防区域的BIMeta具体Revit载体",
+    "每个业务字段的精确IfcEntity/Pset/Property/Rel",
+    "类型级与实例级最终挂载位置",
+    "服务器下发标准、映射、同义词和值域",
+    "五种H-IFC Profile之间的真实字段差异"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "sourceInstaller": {
+    "filename": "BIMeta报建交付软件-V6.3.6 20260824.exe",
+    "size": 211512032,
+    "sha256": "1b1ac3561e372d2927f9b8d8cac8ff93f0dc5dcfd7c45cde438f83d57e80fe17"
+  },
+  "analysisMode": "static_only_no_execution",
+  "verifiedExtraction": {
+    "files": 1369,
+    "extractedBytes": 1075044033,
+    "installerSha1Mismatches": 0
+  },
+  "fileTypeCounts": {
+    "dll": 514,
+    "xml": 70,
+    "ifcExpress": 32,
+    "ifcXsd": 52,
+    "xlsx": 19,
+    "revitFamilies": 27,
+    "revitTemplates": 9,
+    "revitAddinManifests": 3,
+    "pathsContainingIfc": 197
+  },
+  "fullExtractionManifest": {
+    "filename": "bimeta_extraction_manifest.csv",
+    "size": 185867,
+    "sha256": "668e0d502e6e9db2cc6bc71d61b5e620d685bc6f428f6213957f0adadebabc1e",
+    "committed": false,
+    "reason": "当前GitHub连接仅支持直接写入UTF-8文本，仓库先保留可审计摘要与完整文件哈希。"
+  },
+  "keyEvidencePaths": [
+    "Data/000JzFamily.addin",
+    "Data/JZRevit.IFC.App.addin",
+    "Data/JZRevit.IFC.DB.addin",
+    "Data/JZFamilyRibbon.xml",
+    "Data/ExportSetting.xml",
+    "Data/CategoryList.xml",
+    "Data/FilterSetting.xml",
+    "Data/*.xlsx",
+    "Data/JZDB.db",
+    "Data/JZFamilyData.db",
+    "Data/UserDb",
+    "Bin4.8/JZFamilyInteraction.dll",
+    "Bin4.8/JzDataModel-FamilyManager.dll",
+    "Bin4.8/JzWebAPIRequest-FamilyManage.dll",
+    "Bin4.8/JZRevit.IFC.Export.dll",
+    "Bin4.8/JZRevit.IFC.Common.dll",
+    "Bin4.8/JZRevit.IFC.Version.dll",
+    "Bin8.0/2025/*",
+    "Bin8.0/2026/*"
+  ]
+}

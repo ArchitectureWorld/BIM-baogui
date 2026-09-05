@@ -1,0 +1,52 @@
+{
+  "subject": "BIMeta报建交付软件-V6.3.6 20260824.exe",
+  "sha256": "1b1ac3561e372d2927f9b8d8cac8ff93f0dc5dcfd7c45cde438f83d57e80fe17",
+  "analysis_mode": "static_only_no_execution",
+  "verified_extraction": {
+    "files": 1369,
+    "sha1_mismatches": 0,
+    "extracted_bytes": 1075044033
+  },
+  "architecture": [
+    "Inno Setup installer and launcher",
+    "Revit version adapter and AddIn deployment",
+    "Ribbon/business orchestration",
+    "Declarative standard and rule engine",
+    "Local XML/XLSX/SQLite plus cloud standard services",
+    "Versioned IFC-for-Revit-derived export and post-processing"
+  ],
+  "revit_versions": {
+    "net48": ["2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024"],
+    "net8": ["2025", "2026"]
+  },
+  "ifc_profiles": [
+    "IFC4.0",
+    "SZ-IFC",
+    "CD-IFC",
+    "H-IFC规划报建",
+    "H-IFC施工图审查",
+    "H-IFC招投标",
+    "H-IFC竣工验收",
+    "H-IFC智慧工地监管"
+  ],
+  "core_rule_models": [
+    "StandardData",
+    "StandardClassData",
+    "StandardIdentData",
+    "StandAttributeData",
+    "RuleData",
+    "RuleDetailData",
+    "AttMappingData",
+    "AttMappingDetail",
+    "synonymData",
+    "RangeData",
+    "ProfessionMappingData",
+    "ProjectBase",
+    "ModelCheckData"
+  ],
+  "limitations": [
+    "server-side current standards not bundled completely",
+    "core IL is obfuscated/protected",
+    "no runtime network capture or behavioral execution"
+  ]
+}
