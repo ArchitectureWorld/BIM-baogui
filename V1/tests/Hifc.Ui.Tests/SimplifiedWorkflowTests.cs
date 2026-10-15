@@ -57,6 +57,14 @@ internal static class SimplifiedWorkflowTests
             Assert(window.ElementGrid.EnableRowVirtualization && window.ElementGrid.AlternationCount == 2,
                 "Glass UI must retain a virtualized, legible object table");
         });
+        check("glass_work_columns_have_no_panel_overlap", () => {
+            var work = Tree((DependencyObject)window.Content).OfType<Grid>()
+                .Single(g => g.ColumnDefinitions.Count == 3);
+            var cards = work.Children.OfType<Border>().ToArray();
+            Assert(cards.Length == 3 && cards.Select(Grid.GetColumn).SequenceEqual(new[] { 0, 1, 2 }),
+                "All three work cards must occupy distinct columns; a child column assignment is not enough");
+            Assert(((Grid)window.Content).Background != null, "Window content canvas cannot be transparent in screenshots");
+        });
         check("glass_skin_preserves_real_selection_and_edit_controls", () => {
             Assert(window.StageSelector.Items.Count == 2 && window.KindSelector.Items.Count == 3, "Workflow selectors changed");
             Assert(window.FieldGrid.Columns.Cast<DataGridColumn>().Count(c => !c.IsReadOnly) == 1,
