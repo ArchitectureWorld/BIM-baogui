@@ -70,6 +70,54 @@ internal static class SimplifiedWorkflowTests
             Assert(list.ItemTemplate != null && string.IsNullOrEmpty(list.DisplayMemberPath),
                 "Custom glass item template must bind Role.Slot and Subtitle, not show the CLR type name");
         });
+        check("all_action_buttons_use_one_exact_36_dip_height", () => {
+            window.UpdateLayout();
+            var captions = new[] { "3  全面检查", "取消检查", "全选列表",
+                "定位所选", "设置所选分类", "保存检查与缺失报告" };
+            var buttons = Tree((DependencyObject)window.Content).OfType<Button>().ToArray();
+            foreach (var caption in captions)
+            {
+                var button = buttons.Single(b => (b.Content as string) == caption);
+                Assert(Math.Abs(button.Height - LiquidGlassTheme.ControlHeight) < 0.01,
+                    caption + " has a different declared height");
+                Assert(Math.Abs(button.ActualHeight - LiquidGlassTheme.ControlHeight) < 0.5,
+                    caption + " has a different rendered height");
+                Assert(Math.Abs(button.FontSize - LiquidGlassTheme.ControlFontSize) < 0.01,
+                    caption + " has a different font size");
+            }
+            var write = buttons.Single(b => (b.Content as string)?.StartsWith("4  写入") == true);
+            Assert(Math.Abs(write.Height - LiquidGlassTheme.ControlHeight) < 0.01,
+                "Write button must not change height when the pending count changes");
+        });
+        check("dropdowns_and_status_tag_match_button_height", () => {
+            var comboBoxes = Tree((DependencyObject)window.Content).OfType<ComboBox>().ToArray();
+            var filter = comboBoxes.Single(c => c.Items.Count == 6);
+            foreach (var combo in new[] { window.StageSelector, window.KindSelector, window.SlotSelector, filter })
+            {
+                Assert(Math.Abs(combo.Height - LiquidGlassTheme.ControlHeight) < 0.01,
+                    "Dropdown declared height must be 36 DIP");
+                combo.ApplyTemplate();
+                var surface = combo.Template.FindName("comboSurface", combo) as Border;
+                Assert(surface != null && Math.Abs(surface.CornerRadius.TopLeft - LiquidGlassTheme.ControlRadius) < 0.01,
+                    "Dropdown must use the same glass corner radius as the buttons");
+                Assert(combo.Template.FindName("PART_Popup", combo) is System.Windows.Controls.Primitives.Popup,
+                    "Dropdown must provide a working WPF Popup");
+            }
+            var range = (TextBlock)typeof(ManagerWindow).GetField("range", Flags).GetValue(window);
+            Assert(range.Parent is Border tag && Math.Abs(tag.Height - LiquidGlassTheme.ControlHeight) < 0.01,
+                "Object count must remain a non-interactive, aligned 36 DIP status tag");
+        });
+        check("native_dropdown_selection_still_operates", () => {
+            var combo = window.KindSelector;
+            var prior = combo.SelectedItem;
+            combo.IsDropDownOpen = true;
+            window.UpdateLayout();
+            var popup = combo.Template.FindName("PART_Popup", combo) as System.Windows.Controls.Primitives.Popup;
+            Assert(popup != null && popup.IsOpen, "Native dropdown did not open");
+            combo.IsDropDownOpen = false;
+            Assert(!popup.IsOpen && Equals(combo.SelectedItem, prior),
+                "Closing a dropdown must preserve its selection");
+        });
         check("glass_skin_preserves_real_selection_and_edit_controls", () => {
             Assert(window.StageSelector.Items.Count == 2 && window.KindSelector.Items.Count == 3, "Workflow selectors changed");
             Assert(window.FieldGrid.Columns.Cast<DataGridColumn>().Count(c => !c.IsReadOnly) == 1,
