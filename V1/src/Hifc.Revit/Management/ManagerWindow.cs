@@ -26,6 +26,7 @@ namespace Hifc.Revit.Management
         private bool restoring;
         private readonly TextBlock diagnosticText = new TextBlock { TextWrapping = TextWrapping.Wrap };
         private readonly TextBlock project = new TextBlock(), status = new TextBlock(), detail = new TextBlock(), range = new TextBlock();
+        private readonly TextBlock contextBadge = new TextBlock(), selectionCount = new TextBlock();
         private readonly ProgressBar progress = new ProgressBar { Height = 5, Maximum = 100 };
         private readonly Button coverageMetric, presenceMetric, valueMetric, readyMetric, applyButton, cancelButton;
         private readonly ListBox roleList = new ListBox { HorizontalContentAlignment = HorizontalAlignment.Stretch }, conflicts = new ListBox();
@@ -52,56 +53,320 @@ namespace Hifc.Revit.Management
         {
             this.session = session;
             this.profileDirectory = profileDirectory;
-            Title = "H-IFC V1 · 全面检查与属性管理"; Width = 1380; Height = 850; MinWidth = 1080; MinHeight = 700;
-            MaxHeight = SystemParameters.WorkArea.Height; Height = Math.Min(Height, MaxHeight); Width = Math.Min(Width, SystemParameters.WorkArea.Width);
-            WindowStartupLocation = WindowStartupLocation.CenterOwner; Background = Brush("#F2F5F7"); FontFamily = new FontFamily("Microsoft YaHei UI"); FontSize = 12;
-            var root = new Grid { Margin = new Thickness(16), Background = Background };
-            foreach (var height in new[] { GridLength.Auto, GridLength.Auto, GridLength.Auto, new GridLength(1, GridUnitType.Star), GridLength.Auto, GridLength.Auto }) root.RowDefinitions.Add(new RowDefinition { Height = height });
-            var header = new StackPanel(); header.Children.Add(new TextBlock { Text = "模型检查与属性管理", FontSize = 22, FontWeight = FontWeights.SemiBold, Foreground = Brush("#19384C") });
-            project.Text = "选择阶段和类型，全面检查；直接修改右侧属性，最后统一写入 Revit。"; project.TextWrapping = TextWrapping.Wrap; project.Margin = new Thickness(0, 5, 0, 8); header.Children.Add(project); Put(root, header, 0);
-            var choices = new WrapPanel { Margin = new Thickness(0, 0, 0, 9) };
-            choices.Children.Add(Label("1  人工确认阶段")); choices.Children.Add(StageSelector); choices.Children.Add(Label("2  模型类型")); choices.Children.Add(KindSelector);
-            choices.Children.Add(ActionButton("3  全面检查", StartFullCheck));
-            applyButton = ActionButton("4  写入 Revit", WriteChanges); applyButton.IsEnabled = false; choices.Children.Add(applyButton);
-            cancelButton = ActionButton("取消检查", () => session.Cancel()); cancelButton.IsEnabled = false; choices.Children.Add(cancelButton); Put(root, choices, 1);
-            StageSelector.SelectionChanged += (s, e) => SettingsChanged(); KindSelector.SelectionChanged += (s, e) => SettingsChanged();
-            var metrics = new Grid { Margin = new Thickness(0, 0, 0, 10) }; for (int i = 0; i < 4; i++) metrics.ColumnDefinitions.Add(new ColumnDefinition());
-            coverageMetric = Metric("参考项覆盖\n等待检查", () => SetFilter("全部")); presenceMetric = Metric("字段存在\n等待检查", () => SetFilter("缺字段"));
-            valueMetric = Metric("属性值\n等待检查", () => SetFilter("缺字段")); readyMetric = Metric("本轮状态\n请确认阶段", () => SetFilter("待处理"));
-            var cards = new[] { coverageMetric, presenceMetric, valueMetric, readyMetric }; for (int i = 0; i < cards.Length; i++) { Grid.SetColumn(cards[i], i); metrics.Children.Add(cards[i]); }
-            var toolbar = new DockPanel { Margin = new Thickness(0, 0, 0, 8) }; DockPanel.SetDock(Search, Dock.Right); toolbar.Children.Add(Search); Search.TextChanged += (s, e) => RefreshRows();
-            var filters = new ComboBox { ItemsSource = new[] { "全部", "待处理", "未分类", "缺字段", "已完成", "普通构件" }, SelectedIndex = 0, Width = 105, MinHeight = 28 };
-            filters.SelectionChanged += (s, e) => SetFilter(filters.SelectedItem as string); toolbar.Children.Add(filters);
-            toolbar.Children.Add(ActionButton("全选列表", () => ElementGrid.SelectAll())); toolbar.Children.Add(ActionButton("定位所选", LocateSelected)); range.VerticalAlignment = VerticalAlignment.Center; toolbar.Children.Add(range); Put(root, toolbar, 2);
-            var work = new Grid(); work.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(205) }); work.ColumnDefinitions.Add(new ColumnDefinition()); work.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(360) });
-            var left = new DockPanel { Margin = new Thickness(0, 0, 8, 0) }; var heading = Label("模型分类"); DockPanel.SetDock(heading, Dock.Top); left.Children.Add(heading); left.Children.Add(roleList); work.Children.Add(left);
-            roleList.SelectionChanged += (s, e) => { if (roleList.SelectedItem is RoleItem item) { roleFilter = item.Role.Slot; filter = "全部"; RefreshRows(); detail.Text = item.Role.Slot + "：" + item.Role.State + "\n" + item.Source; } };
-            Column(ElementGrid, "ID", "Id", 65); Column(ElementGrid, "对象名称", "Name", 150); Column(ElementGrid, "类别", "Category", 82); Column(ElementGrid, "楼层", "Level", 90); Column(ElementGrid, "业务分类", "SlotText", 160);
-            ElementGrid.Columns.Add(new DataGridTextColumn { Header = "本轮结果", Binding = new Binding("StatusText") { Converter = new ProductStatus() }, Width = 215 });
-            ElementGrid.SelectionMode = DataGridSelectionMode.Extended; ElementGrid.SelectionChanged += (s, e) => RefreshFields(); ElementGrid.MouseDoubleClick += (s, e) => { try { LocateSelected(); } catch (Exception ex) { SetStatus(ex.Message, true); } }; Grid.SetColumn(ElementGrid, 1); work.Children.Add(ElementGrid);
-            var right = new Grid { Margin = new Thickness(8, 0, 0, 0) }; right.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); right.RowDefinitions.Add(new RowDefinition()); right.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            detail.Text = "选中构件后，直接在下面的属性值中修改。\n红色：待写入；橙色：已手工写入。"; detail.TextWrapping = TextWrapping.Wrap; detail.MaxHeight = 90; detail.Margin = new Thickness(0, 0, 0, 8); right.Children.Add(detail);
+            Title = "H-IFC V1 · 模型检查与属性管理";
+            Width = 1430; Height = 870; MinWidth = 1080; MinHeight = 700;
+            MaxHeight = SystemParameters.WorkArea.Height;
+            Height = Math.Min(Height, MaxHeight);
+            Width = Math.Min(Width, SystemParameters.WorkArea.Width);
+            WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            LiquidGlassTheme.Apply(this);
+
+            var root = new Grid { Margin = new Thickness(21, 17, 21, 15) };
+            foreach (var height in new[] { GridLength.Auto, GridLength.Auto, new GridLength(1, GridUnitType.Star), GridLength.Auto, GridLength.Auto })
+                root.RowDefinitions.Add(new RowDefinition { Height = height });
+
+            // Header: product context and a compact, non-interactive project badge.
+            var header = new Grid { Margin = new Thickness(4, 2, 4, 19) };
+            header.ColumnDefinitions.Add(new ColumnDefinition());
+            header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var titleLine = new StackPanel { Orientation = Orientation.Horizontal };
+            titleLine.Children.Add(new Border
+            {
+                Width = 5, Height = 40, CornerRadius = new CornerRadius(3),
+                Background = LiquidGlassTheme.Gradient("#63ADFF", "#2174DD"),
+                Margin = new Thickness(0, 0, 14, 0),
+                VerticalAlignment = VerticalAlignment.Top
+            });
+            var titleStack = new StackPanel();
+            titleStack.Children.Add(new TextBlock
+            {
+                Text = "模型检查与属性管理",
+                FontSize = 23, FontWeight = FontWeights.SemiBold,
+                Foreground = LiquidGlassTheme.Color("#16375B")
+            });
+            project.Text = "选择阶段和模型类型，检查并修正属性，最后统一写入 Revit。";
+            project.Foreground = LiquidGlassTheme.Color("#617B99");
+            project.FontSize = 12;
+            project.TextWrapping = TextWrapping.Wrap;
+            project.Margin = new Thickness(0, 5, 0, 0);
+            titleStack.Children.Add(project);
+            titleLine.Children.Add(titleStack);
+            header.Children.Add(titleLine);
+            var context = new Border
+            {
+                Background = LiquidGlassTheme.Gradient("#EEFFFFFF", "#D9EAF9FF"),
+                BorderBrush = LiquidGlassTheme.Color("#FBFFFFFF"),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(13),
+                Padding = new Thickness(17, 10, 17, 10),
+                MinWidth = 170, VerticalAlignment = VerticalAlignment.Center
+            };
+            contextBadge.Text = "当前模型 · 等待检查";
+            contextBadge.TextAlignment = TextAlignment.Left;
+            contextBadge.FontSize = 12;
+            contextBadge.Foreground = LiquidGlassTheme.Color("#29609D");
+            contextBadge.TextWrapping = TextWrapping.Wrap;
+            context.Child = contextBadge;
+            Grid.SetColumn(context, 1); header.Children.Add(context);
+            Put(root, header, 0);
+
+            // Four-step workflow remains exactly the same as v0.4.0.
+            var choices = new WrapPanel { Margin = new Thickness(0, 0, 0, 14), VerticalAlignment = VerticalAlignment.Center };
+            choices.Children.Add(Label("1  人工确认阶段"));
+            LiquidGlassTheme.Combo(StageSelector); choices.Children.Add(StageSelector);
+            choices.Children.Add(Label("2  模型类型"));
+            LiquidGlassTheme.Combo(KindSelector); choices.Children.Add(KindSelector);
+            var checkButton = ActionButton("3  全面检查", StartFullCheck);
+            LiquidGlassTheme.Primary(checkButton); choices.Children.Add(checkButton);
+            applyButton = ActionButton("4  写入 Revit", WriteChanges);
+            applyButton.IsEnabled = false; choices.Children.Add(applyButton);
+            cancelButton = ActionButton("取消检查", () => session.Cancel());
+            cancelButton.IsEnabled = false; choices.Children.Add(cancelButton);
+            Put(root, choices, 1);
+            StageSelector.SelectionChanged += (s, e) => SettingsChanged();
+            KindSelector.SelectionChanged += (s, e) => SettingsChanged();
+
+            // Keep diagnostic summary below the work area, collapsed by default.
+            var metrics = new Grid { Margin = new Thickness(0, 0, 0, 9) };
+            for (int i = 0; i < 4; i++) metrics.ColumnDefinitions.Add(new ColumnDefinition());
+            coverageMetric = Metric("参考项覆盖\n等待检查", () => SetFilter("全部"));
+            presenceMetric = Metric("字段存在\n等待检查", () => SetFilter("缺字段"));
+            valueMetric = Metric("属性值\n等待检查", () => SetFilter("缺字段"));
+            readyMetric = Metric("本轮状态\n请确认阶段", () => SetFilter("待处理"));
+            var cards = new[] { coverageMetric, presenceMetric, valueMetric, readyMetric };
+            for (int i = 0; i < cards.Length; i++)
+            {
+                cards[i].Margin = new Thickness(4, 0, 4, 0);
+                Grid.SetColumn(cards[i], i); metrics.Children.Add(cards[i]);
+            }
+
+            var work = new Grid();
+            work.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(225) });
+            work.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            work.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(350) });
+
+            // Left: original business classification list, now a quiet navigation surface.
+            var left = new DockPanel();
+            var leftHeading = LiquidGlassTheme.Title("模型分类");
+            leftHeading.Margin = new Thickness(6, 4, 0, 15);
+            DockPanel.SetDock(leftHeading, Dock.Top); left.Children.Add(leftHeading);
+            LiquidGlassTheme.Categories(roleList);
+            left.Children.Add(roleList);
+            work.Children.Add(LiquidGlassTheme.Card(left, new Thickness(0, 0, 9, 0)));
+            roleList.SelectionChanged += (s, e) =>
+            {
+                if (roleList.SelectedItem is RoleItem item)
+                {
+                    roleFilter = item.Role.Slot;
+                    filter = "全部";
+                    RefreshRows();
+                    detail.Text = item.Role.Slot + "：" + item.Role.State + "\n" + item.Source;
+                }
+            };
+
+            // Center: the object inventory remains the main focus and stays virtualized.
+            var center = new Grid();
+            center.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            center.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            center.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            var tableHeading = new DockPanel { Margin = new Thickness(3, 0, 1, 11) };
+            var heading = LiquidGlassTheme.Title("模型对象列表");
+            DockPanel.SetDock(heading, Dock.Left); tableHeading.Children.Add(heading);
+            Search.Width = 220;
+            LiquidGlassTheme.SearchBox(Search);
+            var searchOuter = new Border
+            {
+                Background = LiquidGlassTheme.Color("#EFF7FF"),
+                BorderBrush = LiquidGlassTheme.Color("#D3E1F0"),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(11), Padding = new Thickness(8, 0, 8, 0),
+                Child = Search
+            };
+            DockPanel.SetDock(searchOuter, Dock.Right); tableHeading.Children.Add(searchOuter);
+            Put(center, tableHeading, 0);
+            Search.TextChanged += (s, e) => RefreshRows();
+            var toolbar = new WrapPanel { Margin = new Thickness(0, 0, 0, 10) };
+            var filters = new ComboBox
+            {
+                ItemsSource = new[] { "全部", "待处理", "未分类", "缺字段", "已完成", "普通构件" },
+                SelectedIndex = 0, Width = 100
+            };
+            LiquidGlassTheme.Combo(filters);
+            filters.SelectionChanged += (s, e) => SetFilter(filters.SelectedItem as string);
+            toolbar.Children.Add(filters);
+            toolbar.Children.Add(ActionButton("全选列表", () => ElementGrid.SelectAll()));
+            toolbar.Children.Add(ActionButton("定位所选", LocateSelected));
+            range.Text = "显示 0 / 全量 0";
+            range.Margin = new Thickness(10, 0, 0, 0);
+            range.Foreground = LiquidGlassTheme.Color("#7590AC");
+            range.VerticalAlignment = VerticalAlignment.Center;
+            toolbar.Children.Add(range);
+            Put(center, toolbar, 1);
+
+            Column(ElementGrid, "ID", "Id", 65);
+            Column(ElementGrid, "对象名称", "Name", 140);
+            Column(ElementGrid, "类别", "Category", 82);
+            Column(ElementGrid, "楼层", "Level", 90);
+            Column(ElementGrid, "业务分类", "SlotText", 160);
+            ElementGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "本轮结果",
+                Binding = new Binding("StatusText") { Converter = new ProductStatus() },
+                Width = new DataGridLength(1, DataGridLengthUnitType.Star),
+                MinWidth = 175
+            });
+            LiquidGlassTheme.Table(ElementGrid);
+            ElementGrid.SelectionMode = DataGridSelectionMode.Extended;
+            ElementGrid.SelectionChanged += (s, e) => RefreshFields();
+            ElementGrid.MouseDoubleClick += (s, e) =>
+            {
+                try { LocateSelected(); }
+                catch (Exception ex) { SetStatus(ex.Message, true); }
+            };
+            Put(center, ElementGrid, 2);
+            Grid.SetColumn(center, 1);
+            work.Children.Add(LiquidGlassTheme.Card(center, new Thickness(0, 0, 9, 0)));
+
+            // Right: direct property editing and explicit classification correction.
+            var right = new Grid();
+            right.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            right.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            right.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            right.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            var inspectorHeader = new DockPanel { Margin = new Thickness(4, 0, 2, 14) };
+            var inspectorTitle = LiquidGlassTheme.Title("属性编辑");
+            DockPanel.SetDock(inspectorTitle, Dock.Left);
+            inspectorHeader.Children.Add(inspectorTitle);
+            selectionCount.Text = "未选择对象";
+            selectionCount.Foreground = LiquidGlassTheme.Color("#4376AD");
+            selectionCount.VerticalAlignment = VerticalAlignment.Center;
+            selectionCount.Margin = new Thickness(7, 0, 0, 0);
+            DockPanel.SetDock(selectionCount, Dock.Right);
+            inspectorHeader.Children.Add(selectionCount);
+            Put(right, inspectorHeader, 0);
+            detail.Text = "选择对象后可直接编辑属性。\n红色：待写入；橙色：已手工写入。";
+            detail.TextWrapping = TextWrapping.Wrap;
+            detail.Foreground = LiquidGlassTheme.Color("#617B99");
+            detail.MaxHeight = 94; detail.Margin = new Thickness(4, 0, 4, 12);
+            Put(right, detail, 1);
             FieldGrid.IsReadOnly = false;
-            Column(FieldGrid, "属性", "Property", 125); FieldGrid.Columns[0].IsReadOnly = true;
-            var valueColumn = new DataGridTextColumn { Header = "属性值（可修改）", Width = 125, IsReadOnly = false, Binding = new Binding("Value") { Mode = BindingMode.TwoWay, UpdateSourceTrigger = UpdateSourceTrigger.LostFocus, ValidatesOnExceptions = true } };
-            var cellStyle = new Style(typeof(DataGridCell)); cellStyle.Setters.Add(new Setter(Control.BackgroundProperty, new Binding("Background"))); cellStyle.Setters.Add(new Setter(Control.ForegroundProperty, Brush("#233746"))); cellStyle.Setters.Add(new Setter(ToolTipProperty, new Binding("SourceDetail"))); valueColumn.CellStyle = cellStyle; FieldGrid.Columns.Add(valueColumn);
-            FieldGrid.Columns.Add(new DataGridTextColumn { Header = "状态", Width = 130, IsReadOnly = true, Binding = new Binding("State") });
-            FieldGrid.BeginningEdit += (s, e) => { var f = (e.Row.Item as PropertyEditor)?.Field; if (!Current || f == null || !f.Editable && f.State != "缺参数") { e.Cancel = true; SetStatus("该属性当前不可编辑；请先完成全面检查，或核对只读/冲突原因。", true); } };
-            Put(right, FieldGrid, 1);
-            Column(PreviewGrid, "载体 ID", "Id", 65); Column(PreviewGrid, "参数", "Source", 125); Column(PreviewGrid, "操作", "Action", 75); Column(PreviewGrid, "旧值", "OldValue", 95); Column(PreviewGrid, "新值", "NewValue", 145); Column(PreviewGrid, "范围 / 依据", "Detail", 310);
-            var basisPanel = new StackPanel(); basisPanel.Children.Add(diagnosticText); basisPanel.Children.Add(ActionButton("清除未写入的暂存修改", DiscardDrafts));
-            rightTabs.Items.Add(new TabItem { Header = "检查依据", Content = new ScrollViewer { Content = basisPanel } }); rightTabs.Items.Add(new TabItem { Header = "补齐与变更明细", Content = PreviewGrid }); rightTabs.Items.Add(new TabItem { Header = "核验详情", Content = conflicts });
-            var editor = new StackPanel { Margin = new Thickness(0, 8, 0, 0) }; editor.Children.Add(new TextBlock { Text = "需要调整业务分类时：" }); editor.Children.Add(SlotSelector); editor.Children.Add(ActionButton("设置所选分类", PreviewClassification));
-            editor.Children.Add(new TextBlock { Text = "红色待写入　橙色已手工写入\n修改完成后点顶部“4 写入 Revit”。", Foreground = Brush("#6F4C28"), Margin = new Thickness(0, 7, 0, 0) });
-            Put(right, editor, 2); Grid.SetColumn(right, 2); work.Children.Add(right); Put(root, work, 3);
-            var diagnostics = new DockPanel { MaxHeight = 270 }; DockPanel.SetDock(metrics, Dock.Top); diagnostics.Children.Add(metrics); diagnostics.Children.Add(rightTabs);
-            Put(root, new Expander { Header = "开发与核验信息（可展开）", IsExpanded = false, Content = diagnostics, Margin = new Thickness(0, 8, 0, 0) }, 4);
-            var footer = new StackPanel { Margin = new Thickness(0, 10, 0, 0) }; footer.Children.Add(progress); var line = new DockPanel(); var report = ActionButton("保存检查与缺失报告", SaveReport); DockPanel.SetDock(report, Dock.Right); line.Children.Add(report);
-            status.Text = "请选择阶段，然后开始全面检查。"; status.TextWrapping = TextWrapping.Wrap; status.VerticalAlignment = VerticalAlignment.Center; line.Children.Add(status); footer.Children.Add(line); Put(root, footer, 5);
+            Column(FieldGrid, "属性", "Property", 100);
+            FieldGrid.Columns[0].IsReadOnly = true;
+            var valueColumn = new DataGridTextColumn
+            {
+                Header = "属性值（可修改）",
+                Width = new DataGridLength(1, DataGridLengthUnitType.Star),
+                MinWidth = 105,
+                IsReadOnly = false,
+                Binding = new Binding("Value")
+                {
+                    Mode = BindingMode.TwoWay,
+                    UpdateSourceTrigger = UpdateSourceTrigger.LostFocus,
+                    ValidatesOnExceptions = true
+                }
+            };
+            var cellStyle = new Style(typeof(DataGridCell));
+            cellStyle.Setters.Add(new Setter(Control.BackgroundProperty, new Binding("Background")));
+            cellStyle.Setters.Add(new Setter(Control.ForegroundProperty, LiquidGlassTheme.Color("#233746")));
+            cellStyle.Setters.Add(new Setter(ToolTipProperty, new Binding("SourceDetail")));
+            valueColumn.CellStyle = cellStyle;
+            FieldGrid.Columns.Add(valueColumn);
+            FieldGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "状态", Width = 96, IsReadOnly = true,
+                Binding = new Binding("State")
+            });
+            LiquidGlassTheme.Table(FieldGrid);
+            FieldGrid.BeginningEdit += (s, e) =>
+            {
+                var f = (e.Row.Item as PropertyEditor)?.Field;
+                if (!Current || f == null || !f.Editable && f.State != "缺参数")
+                {
+                    e.Cancel = true;
+                    SetStatus("该属性当前不可编辑；请先完成全面检查，或核对只读/冲突原因。", true);
+                }
+            };
+            Put(right, FieldGrid, 2);
+
+            Column(PreviewGrid, "载体 ID", "Id", 65);
+            Column(PreviewGrid, "参数", "Source", 125);
+            Column(PreviewGrid, "操作", "Action", 75);
+            Column(PreviewGrid, "旧值", "OldValue", 95);
+            Column(PreviewGrid, "新值", "NewValue", 145);
+            Column(PreviewGrid, "范围 / 依据", "Detail", 310);
+            LiquidGlassTheme.Table(PreviewGrid);
+            var basisPanel = new StackPanel();
+            basisPanel.Children.Add(diagnosticText);
+            basisPanel.Children.Add(ActionButton("清除未写入的暂存修改", DiscardDrafts));
+            rightTabs.Items.Add(new TabItem { Header = "检查依据", Content = new ScrollViewer { Content = basisPanel } });
+            rightTabs.Items.Add(new TabItem { Header = "补齐与变更明细", Content = PreviewGrid });
+            rightTabs.Items.Add(new TabItem { Header = "核验详情", Content = conflicts });
+
+            var editor = new StackPanel { Margin = new Thickness(2, 17, 2, 2) };
+            editor.Children.Add(new TextBlock
+            {
+                Text = "需要调整业务分类时：",
+                Foreground = LiquidGlassTheme.Color("#385775"),
+                FontWeight = FontWeights.Medium,
+                Margin = new Thickness(0, 0, 0, 7)
+            });
+            LiquidGlassTheme.Combo(SlotSelector);
+            editor.Children.Add(SlotSelector);
+            var categoryButton = ActionButton("设置所选分类", PreviewClassification);
+            categoryButton.Margin = new Thickness(0, 10, 0, 0);
+            editor.Children.Add(categoryButton);
+            editor.Children.Add(new TextBlock
+            {
+                Text = "红色待写入 · 橙色已手工写入\n修改完成后点顶部“4 写入 Revit”。",
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = LiquidGlassTheme.Color("#95613B"),
+                Margin = new Thickness(0, 13, 0, 0)
+            });
+            Put(right, editor, 3);
+            Grid.SetColumn(right, 2);
+            work.Children.Add(LiquidGlassTheme.Card(right, new Thickness(0)));
+            Put(root, work, 2);
+
+            var diagnostics = new DockPanel { MaxHeight = 270 };
+            DockPanel.SetDock(metrics, Dock.Top);
+            diagnostics.Children.Add(metrics);
+            diagnostics.Children.Add(rightTabs);
+            Put(root, new Expander
+            {
+                Header = "开发与核验信息（可展开）",
+                IsExpanded = false, Content = diagnostics,
+                Foreground = LiquidGlassTheme.Color("#6E86A2"),
+                Margin = new Thickness(4, 10, 0, 0)
+            }, 3);
+
+            var footer = new StackPanel { Margin = new Thickness(2, 14, 2, 0) };
+            progress.Height = 4;
+            progress.Foreground = LiquidGlassTheme.Color("#40C8A0");
+            progress.Background = LiquidGlassTheme.Color("#D9E8F4");
+            footer.Children.Add(progress);
+            var line = new DockPanel { Margin = new Thickness(0, 11, 0, 0) };
+            var report = ActionButton("保存检查与缺失报告", SaveReport);
+            LiquidGlassTheme.Primary(report);
+            DockPanel.SetDock(report, Dock.Right);
+            line.Children.Add(report);
+            status.Text = "请选择阶段，然后开始全面检查。";
+            status.TextWrapping = TextWrapping.Wrap;
+            status.VerticalAlignment = VerticalAlignment.Center;
+            status.Foreground = LiquidGlassTheme.Color("#59738F");
+            line.Children.Add(status);
+            footer.Children.Add(line);
+            Put(root, footer, 4);
             Content = root;
-            Closing += (s, e) => {
-                if (!FieldGrid.CommitEdit(DataGridEditingUnit.Cell, true) || !FieldGrid.CommitEdit(DataGridEditingUnit.Row, true))
-                { e.Cancel = true; SetStatus("当前属性未能确认，请修正输入后再关闭。", true); return; }
+
+            Closing += (s, e) =>
+            {
+                if (!FieldGrid.CommitEdit(DataGridEditingUnit.Cell, true) ||
+                    !FieldGrid.CommitEdit(DataGridEditingUnit.Row, true))
+                {
+                    e.Cancel = true;
+                    SetStatus("当前属性未能确认，请修正输入后再关闭。", true);
+                    return;
+                }
                 PersistState();
             };
             Closed += (s, e) => session.Close();
@@ -111,7 +376,7 @@ namespace Hifc.Revit.Management
         private static void Put(Grid grid, UIElement element, int row) { Grid.SetRow(element, row); grid.Children.Add(element); }
         private static DataGrid GridTable() => new DataGrid { AutoGenerateColumns = false, IsReadOnly = true, CanUserAddRows = false, CanUserDeleteRows = false, RowHeight = 30, EnableRowVirtualization = true, EnableColumnVirtualization = true, Background = Brushes.White, SelectionUnit = DataGridSelectionUnit.FullRow };
         private static void Column(DataGrid grid, string title, string path, double width) => grid.Columns.Add(new DataGridTextColumn { Header = title, Binding = new Binding(path), Width = width });
-        private Button ActionButton(string title, Action action) { var button = new Button { Content = title, Padding = new Thickness(8, 5, 8, 5), Margin = new Thickness(6, 3, 0, 3), MinHeight = 28 }; button.Click += (s, e) => { try { action(); } catch (Exception ex) { SetStatus(ex.Message, true); } }; return button; }
+        private Button ActionButton(string title, Action action) { var button = new Button { Content = title, Padding = new Thickness(13, 7, 13, 7), Margin = new Thickness(7, 2, 0, 2), MinHeight = 36 }; button.Click += (s, e) => { try { action(); } catch (Exception ex) { SetStatus(ex.Message, true); } }; return button; }
         private Button Metric(string title, Action action) { var b = ActionButton(title, action); b.HorizontalContentAlignment = HorizontalAlignment.Left; b.Background = Brushes.White; b.Padding = new Thickness(12); b.FontSize = 14; return b; }
         private static void SetMetric(Button button, string text, double? value) { var panel = new StackPanel(); panel.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap }); panel.Children.Add(new ProgressBar { Height = 4, Value = value ?? 0, Maximum = 100, Margin = new Thickness(0, 7, 0, 0) }); button.Content = panel; }
         internal void StartFullCheck() { if (SelectedStage != "报规" && SelectedStage != "施工图") throw new InvalidOperationException("请先人工选择阶段。"); if (busy) throw new InvalidOperationException("检查进行中。"); session.Scan(); }
@@ -122,6 +387,7 @@ namespace Hifc.Revit.Management
         {
             snapshot = result; preview = null; needsRecheck = !result.Complete; PreviewGrid.ItemsSource = null; Summary = CaseWorkflow.Summarize(result.Stage, result.ModelKind, result.Elements);
             project.Text = result.Title + " · " + result.Stage + " / " + result.ModelKind + " · 已检查 " + result.Elements.Length + " 个对象";
+            contextBadge.Text = result.Stage + "  /  " + result.ModelKind + "\n已检查 " + result.Elements.Length + " 个对象";
             diagnosticText.Text = Summary.Basis + "\n" + string.Join("；", result.DetectionEvidence);
             var required = Summary.Roles.Count(r => r.Mode == "必要"); var present = Summary.Roles.Count(r => r.Mode == "必要" && r.Count > 0);
             SetMetric(coverageMetric, "参考项覆盖\n" + present + " / " + required, required == 0 ? (double?)null : 100.0 * present / required);
@@ -151,7 +417,7 @@ namespace Hifc.Revit.Management
         private int[] SelectedIds() { var rows = Selected(); if (rows.Length == 0) throw new InvalidOperationException("请在管理清单中选取需要人工处理的对象。"); return rows.Select(e => e.Id).ToArray(); }
         private void RefreshFields()
         {
-            var rows = Selected(); FieldGrid.ItemsSource = rows.FirstOrDefault()?.Fields.Select(f => new PropertyEditor(this, f, rows)).ToArray(); if (snapshot == null) return;
+            var rows = Selected(); selectionCount.Text = rows.Length == 0 ? "未选择对象" : "已选择 " + rows.Length + " 个对象"; FieldGrid.ItemsSource = rows.FirstOrDefault()?.Fields.Select(f => new PropertyEditor(this, f, rows)).ToArray(); if (snapshot == null) return;
             if (rows.Length > 0) { detail.Text = rows[0].Name + " · " + ProductStatus.Text(rows[0].StatusText) + (rows.Length > 1 ? "\n已选 " + rows.Length + " 个对象，共同属性修改将应用到所选对象。" : "\n直接修改属性值，完成后点顶部“4 写入 Revit”。"); detail.ToolTip = detail.Text; diagnosticText.Text = Summary.Basis + "\n" + string.Join("；", snapshot.DetectionEvidence) + "\n" + rows[0].Recognition; }
             SlotSelector.ItemsSource = CaseWorkflow.ForModel(snapshot.Stage, snapshot.ModelKind).Where(r => r.Binding == "实例" && rows.Length > 0 && rows.All(e => r.Entities.Contains(e.Entity) && e.Entity != "IfcBuilding" && e.Entity != "IfcBuildingStorey")).Select(r => r.Slot).ToArray();
             var preferred = rows.Length > 0 ? rows[0].Slot ?? (rows[0].SuggestedSlots.Length == 1 ? rows[0].SuggestedSlots[0] : null) : null;
