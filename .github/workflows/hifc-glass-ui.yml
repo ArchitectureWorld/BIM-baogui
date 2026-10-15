@@ -22,6 +22,14 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+      - name: Build reference-core tests (.NET Framework 4.8)
+        shell: pwsh
+        run: dotnet build V1/tests/Hifc.Reference.Tests/Hifc.Reference.Tests.csproj -c Release --nologo -v minimal
+      - name: Run reference-core regression tests
+        shell: pwsh
+        run: |
+          & V1/tests/Hifc.Reference.Tests/bin/Release/net48/Hifc.Reference.Tests.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Reference-core tests failed' }
       - name: Build standalone UI tests (.NET Framework 4.8)
         shell: pwsh
         run: dotnet build V1/tests/Hifc.Ui.Tests/Hifc.Ui.Tests.csproj -c Release --nologo -v minimal
