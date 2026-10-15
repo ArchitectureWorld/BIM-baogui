@@ -1,0 +1,40 @@
+name: H-IFC V1 glass UI smoke
+
+on:
+  push:
+    branches:
+      - codex/hifc-v1-0.4.1-liquid-glass-ui
+    paths:
+      - 'V1/src/Hifc.Revit/Management/**'
+      - 'V1/tests/**'
+      - 'V1/src/Hifc.Reference.Core/**'
+      - 'V1/Directory.Build.props'
+      - '.github/workflows/hifc-glass-ui.yml'
+  workflow_dispatch:
+
+jobs:
+  standalone-wpf:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build standalone UI tests (.NET Framework 4.8)
+        shell: pwsh
+        run: dotnet build V1/tests/Hifc.Ui.Tests/Hifc.Ui.Tests.csproj -c Release --nologo -v minimal
+      - name: Run real WPF window tests with mock Revit adapter
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force V1/validation/ui-glass-ci | Out-Null
+          & V1/tests/Hifc.Ui.Tests/bin/Release/net48/Hifc.Ui.Tests.exe (Resolve-Path V1/validation/ui-glass-ci)
+          if ($LASTEXITCODE -ne 0) { throw 'WPF tests failed' }
+      - name: Upload rendered screenshots and interaction report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: HIFC-WPF-glass-ui-smoke
+          path: V1/validation/ui-glass-ci/
+          if-no-files-found: warn
