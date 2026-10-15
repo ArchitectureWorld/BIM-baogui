@@ -1,0 +1,50 @@
+{
+  "schema_version": "hifc.native-export-investigation/1.0",
+  "client_date": "2026-10-14",
+  "failed_run": "validation/revit-20261014-145801-587950a9",
+  "host_checks_passed": true,
+  "semantic_checks_passed": false,
+  "observed_properties": 18,
+  "verified_properties": 0,
+  "exporter": {
+    "path": "C:\\Program Files\\Autodesk\\Revit 2020\\Revit.IFC.Export.dll",
+    "sha256": "868bb09683052a37266df67e0c082b1648d387931c89b7537e652923eb6f826c",
+    "inspected_method": "Revit.IFC.Export.Utility.ParameterUtil.CacheParametersForElement",
+    "metadata_token": "0x06000358",
+    "observation": "Invisible InternalDefinition parameters are excluded from the native IFC parameter cache",
+    "use": "Read-only diagnosis; no third-party implementation copied"
+  },
+  "regression": {
+    "change": "Temporary bridge Visible=true, UserModifiable=false; preserve export rollback",
+    "installed_plugin_sha256": "c0751437e8f4e55e9816e5ef3c609e4bf9e994edc52ff3a39b91cb0cb071a547",
+    "run": "validation/revit-20261014-162113-b5c9c6df",
+    "status": "TARGET_FIELDS_PASSED_ROUTING_FAILED"
+  },
+  "independent_schema_issue": {
+    "error_count": 2,
+    "issue": "IfcPostalAddress.AddressLines is empty list instead of absent value",
+    "state": "RESOLVED_IN_TEST_FIXTURE_ONLY; USER_MODEL_EMPTY_ADDRESS_REMAINS_CHECKED"
+  },
+  "original_software_ab_verified": false,
+  "second_issue": {
+    "run": "validation/revit-20261014-162113-b5c9c6df",
+    "verified_properties": 18,
+    "unexpected_psets_per_owner": 25,
+    "temporary_bridge_ifc_properties": 235,
+    "observation": "Set(empty string) changes unset bridge to HasValue and causes null nominal values to produce unrelated Psets",
+    "fix": "Never set unused bridge parameters; reject existing bridge values; disable internal Revit Psets to prevent bridge-name leakage",
+    "schema_fixture": "Set only the fresh unsaved specimen address; do not invent addresses in user models"
+  },
+  "final_regression": {
+    "status": "PASSED_ISOLATED",
+    "run": "validation/revit-20261014-163550-624c21ba",
+    "plugin_sha256": "f098c6d48b097290704b08d76c2b260d3dd58f0e960f4b00643af2b98a6dc119",
+    "verified_properties": 18,
+    "unexpected_hifc_psets": 0,
+    "temporary_bridge_ifc_properties": 0,
+    "schema_error_count": 0,
+    "source_snapshot_unchanged": true,
+    "model_transaction": "RolledBack",
+    "ifc_postprocessed": false
+  }
+}

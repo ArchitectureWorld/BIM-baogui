@@ -1,0 +1,247 @@
+{
+  "schema": "hifc.development-status/1.0",
+  "version": "0.3.1",
+  "client_date": "2026-10-15",
+  "updated_local": "2026-10-15T10:08:52.8501963+08:00",
+  "phase": "INSTALLED_NATIVE_MODELESS_ACCEPTANCE_PASSED",
+  "core_tests": {
+    "exit_code": 0,
+    "log": "validation/build-0.3.1.log",
+    "passed": 51
+  },
+  "wpf_ui_tests": {
+    "scope": "Standalone production WPF with fake Revit adapter",
+    "report": "validation/ui-0.3.1/ui-tests.json",
+    "failures": 0,
+    "passed": 18
+  },
+  "ifc_checker_tests": {
+    "scope": "IFC verifier and successful-case inventory tests",
+    "exit_code": 0,
+    "log": "validation/python-tests-current.log",
+    "passed": 16
+  },
+  "host_test": {
+    "status": "PASSED_ISOLATED",
+    "report_present": true,
+    "report_path": "validation/revit-20261014-195855-cdd1f2b1/host-smoke.json",
+    "assembly_sha256": "fa19bc1d346f610a8ac0a970fafecd212e09701b62eed2f39ec0d722ced3a938",
+    "ribbon_buttons": [
+      "HifcV1Manager",
+      "HifcV1Prepare",
+      "HifcV1Capture",
+      "HifcV1Export",
+      "HifcV1About"
+    ],
+    "prepare_idempotent": true,
+    "temporary_parameters_rolled_back": true,
+    "missing_slot_blocked": true,
+    "management": {
+      "allPassed": true,
+      "scan_unselected_instances": 3,
+      "partial_scan_blocked": true,
+      "instance_write_verified": true,
+      "stale_preview_blocked": true,
+      "classification_prepared": true,
+      "unset_boolean_preserved": true,
+      "false_preserved": true,
+      "scope": "Real Revit API services in fresh unsaved specimen; ExternalEvent/UI workflow verified separately"
+    },
+    "test_document": "Fresh unsaved project; closed after checks",
+    "verified_version": "0.2.0 (historical)"
+  },
+  "actual_ifc_verification": {
+    "status": "PASSED_ISOLATED_SAMPLE",
+    "report_path": "validation/revit-20261014-195855-cdd1f2b1/mapping-verification.json",
+    "ifc_path": "validation/revit-20261014-195855-cdd1f2b1/reproduction.ifc",
+    "verified_properties": 18,
+    "observed_properties": 18,
+    "sample_roles": [
+      "规划净用地",
+      "阳台"
+    ],
+    "sample_ifc_entity": "IfcSlab",
+    "unexpected_hifc_psets": 0,
+    "temporary_bridge_property_count": 0,
+    "schema_error_count": 0,
+    "ifc_sha256": "ab9ac92f6b94ce138d8653cfbe3af269fb7f3cf67fb54aa8870845d9e7b44321",
+    "read_only_hash_unchanged": true,
+    "document_export_calls": 1,
+    "ifc_postprocessed": false,
+    "model_transaction": "RolledBack",
+    "source_snapshot_before": "2ba9ccc63413a294f68eaf67a17de59abc83ad87aa5aefad25841a26579b063d",
+    "source_snapshot_after": "2ba9ccc63413a294f68eaf67a17de59abc83ad87aa5aefad25841a26579b063d",
+    "verified_version": "0.2.0 (historical)"
+  },
+  "management_status": "validation/management-development-status.json",
+  "actual_project_external_event_flow": "PASSED_THREE_MODEL_COPIES",
+  "installed_binaries": [
+    {
+      "name": "Hifc.Revit.dll",
+      "matches_build": true,
+      "sha256": "5ac8b980a1f24c9712597ca06cb53dabc3c367ded9287714a8023f4c443b7295"
+    },
+    {
+      "name": "Hifc.Reference.Core.dll",
+      "matches_build": true,
+      "sha256": "aa453bc70f570d9f137a85578704f8be2184958e732aa625595407e118afce72"
+    }
+  ],
+  "install_receipt": "outputs/install-20261015-095958-822e13a9/install-receipt.json",
+  "previous_plugin_unchanged": true,
+  "previous_plugin_sha256": "181c92f6fa6aa85c960e0b3d2ffbcaf60509716de91d35a66bdb23e559955626",
+  "preservation_proof": "validation/workflow-20261015-095958/preservation.json",
+  "original_software_ab": "NOT_RUN_NEW_MODELS_AVAILABLE",
+  "platform_acceptance": "NOT_RUN",
+  "official_supplement": "DEFERRED_BY_USER",
+  "coverage_basis": "Installed 0.3.1: 51 core tests, 18 standalone production-WPF tests, 16 Python tests; three actual model copies passed 36 native service and 49 production WPF/ExternalEvent assertions. Loaded, installed and packaged binary hashes match. host_test and actual_ifc_verification remain explicitly historical 0.2.0 evidence; full multiset IFC and platform acceptance are not verified.",
+  "previous_verified_run": "validation/revit-20261014-163550-624c21ba",
+  "successful_case_baseline": "reference/success-case-01/baseline-manifest.json",
+  "current_management_validation": {
+    "schema": "hifc.management-development-status/2.0",
+    "updated_local": "2026-10-15T10:08:52.8501963+08:00",
+    "version": "0.3.1",
+    "installed_version": "0.3.1",
+    "stage": "INSTALLED_NATIVE_MODELESS_ACCEPTANCE_PASSED",
+    "installed_receipt": "outputs/install-20261015-095958-822e13a9/install-receipt.json",
+    "installed_binaries": [
+      {
+        "name": "Hifc.Revit.dll",
+        "matches_build": true,
+        "sha256": "5ac8b980a1f24c9712597ca06cb53dabc3c367ded9287714a8023f4c443b7295"
+      },
+      {
+        "name": "Hifc.Reference.Core.dll",
+        "matches_build": true,
+        "sha256": "aa453bc70f570d9f137a85578704f8be2184958e732aa625595407e118afce72"
+      }
+    ],
+    "build_log": "validation/build-0.3.1.log",
+    "core_tests": {
+      "failures": 0,
+      "passed": 51
+    },
+    "wpf_tests": {
+      "passed": 18,
+      "scope": "Production WPF window with fake Revit adapter",
+      "report": "validation/ui-0.3.1/ui-tests.json",
+      "failures": 0
+    },
+    "python_tests": {
+      "passed": 16,
+      "log": "validation/python-tests-current.log",
+      "failures": 0
+    },
+    "scope": "Model objects, boundaries, project information, levels, related types and link coverage; materials and auxiliary resources excluded",
+    "successful_case_basis": {
+      "official_rules": false,
+      "windows": "optional case difference",
+      "common_building_sets": 5,
+      "integrated": true,
+      "profile": "reference/success-case-01/case-profiles.json",
+      "site_sets": 8,
+      "stage": "报规"
+    },
+    "actual_project_external_event_flow": "PASSED_THREE_MODEL_COPIES",
+    "native_acceptance": {
+      "loaded_version": "0.3.1.0",
+      "state": "PASSED",
+      "model_count": 3,
+      "run": "validation/workflow-20261015-095958",
+      "models": [
+        {
+          "modeless_passed": true,
+          "native_passed": true,
+          "inventory_count": 37,
+          "valid_fields_after": 4,
+          "automatic_preview_changes": 0,
+          "field_count_after": 8,
+          "missing_reference_roles": [
+            "停车位",
+            "消防回车场",
+            "绿地",
+            "规划净用地",
+            "规划控制线",
+            "道路红线",
+            "道路边界线"
+          ],
+          "links_uncovered": 2,
+          "name": "总图.0008_干净.rvt",
+          "modeless_checks": 17,
+          "fields_present_before": 4,
+          "native_checks": 12,
+          "fields_present_after": 8,
+          "detected_kind": "总图"
+        },
+        {
+          "modeless_passed": true,
+          "native_passed": true,
+          "inventory_count": 1758,
+          "valid_fields_after": 8,
+          "automatic_preview_changes": 65,
+          "field_count_after": 61,
+          "missing_reference_roles": [
+            "建筑区域"
+          ],
+          "links_uncovered": 1,
+          "name": "厂房_干净.rvt",
+          "modeless_checks": 16,
+          "fields_present_before": 2,
+          "native_checks": 12,
+          "fields_present_after": 61,
+          "detected_kind": "单体建筑"
+        },
+        {
+          "modeless_passed": true,
+          "native_passed": true,
+          "inventory_count": 681,
+          "valid_fields_after": 8,
+          "automatic_preview_changes": 59,
+          "field_count_after": 57,
+          "missing_reference_roles": [
+            "建筑区域"
+          ],
+          "links_uncovered": 0,
+          "name": "职工后勤楼_干净.rvt",
+          "modeless_checks": 16,
+          "fields_present_before": 3,
+          "native_checks": 12,
+          "fields_present_after": 57,
+          "detected_kind": "单体建筑"
+        }
+      ],
+      "report_present": true,
+      "loaded_sha256": "5ac8b980a1f24c9712597ca06cb53dabc3c367ded9287714a8023f4c443b7295",
+      "native_checks_passed": 36,
+      "modeless_checks_passed": 49,
+      "report": "validation/workflow-20261015-095958/host-results.json",
+      "summary": "validation/workflow-20261015-095958/verification-summary.json"
+    },
+    "regressions": {
+      "close_exception_stack": "validation/workflow-20261014-224021/crash-225728/managed-exception-stack.txt",
+      "close_fix": "ExternalEvent cleanup",
+      "close_root_cause": "DocumentChanged event removal from WPF Closed outside Revit API context",
+      "native_retest": "PASSED_THREE_MODEL_COPIES",
+      "scope_before": "validation/workflow-20261014-224021/model-scope-regression-before.json",
+      "auxiliary_scope_red": "validation/workflow-20261015-095251/auxiliary-scope-red.json",
+      "window_lifetime": "Closed and reopened outside API; pending scan close and disposal verified in each model"
+    },
+    "preservation": "validation/workflow-20261015-095958/preservation.json",
+    "construction_rules": "NOT_ESTABLISHED",
+    "linked_models": "UNCHECKED_SOURCE_DOCUMENT_REQUIRED",
+    "full_multiset_ifc": "NOT_VERIFIED",
+    "reference_software_ab": "NOT_RUN",
+    "platform_acceptance": "NOT_RUN",
+    "official_supplement": "DEFERRED_BY_USER",
+    "history": "validation/history/management-development-status-before-0.3.json",
+    "installed_package": "dist/Hifc.V1.Revit2020-0.3.1",
+    "cleanup": {
+      "temporary_manifest_removed": true,
+      "production_manifest_present": true,
+      "revit_running": false,
+      "normal_exit": true,
+      "checked_local": "2026-10-15T10:06:04.519271+08:00"
+    },
+    "verification_record": "validation/workflow-20261015-095958/验证结论.md"
+  }
+}

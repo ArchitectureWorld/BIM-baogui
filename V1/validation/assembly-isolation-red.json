@@ -1,0 +1,9 @@
+﻿{
+    "expected_identity":  "Hifc.Revit, Version=0.3.2.0, Culture=neutral, PublicKeyToken=null",
+    "other_identity":  "Hifc.Revit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "actual_identity":  "Hifc.Revit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "actual_location":  "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\H-IFC\\Hifc.Revit.dll",
+    "expected_location":  "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1\\Hifc.Revit.dll",
+    "shared_assembly_instance":  true,
+    "allPassed":  false
+}

@@ -1,0 +1,54 @@
+{
+  "schema": "hifc.success-case-baseline-manifest/1.0",
+  "prepared_local": "2026-10-14T21:10:04.1156614+08:00",
+  "basis": "User-confirmed successful IFC case",
+  "sources": [
+    {
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\成功通过HIFC\\厂房-属性写入-3.ifc",
+      "scope": "单体建筑",
+      "sha256": "420e35ce85628933a28608d378f499bf932bb603eb2c95c0f14426db781cd346",
+      "bytes": 4833385,
+      "schema": "IFC4",
+      "status_basis": "USER_CONFIRMED_PASSED_CASE",
+      "workflow_stage": "报规"
+    },
+    {
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\成功通过HIFC\\总图-属性写入-15.ifc",
+      "scope": "总图",
+      "sha256": "5a15376c8203c09956998049b34c2f5457d4821c5b96a35e007221fa1986914f",
+      "bytes": 3318173,
+      "schema": "IFC4",
+      "status_basis": "USER_CONFIRMED_PASSED_CASE",
+      "workflow_stage": "报规"
+    },
+    {
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\成功通过HIFC\\职工后勤楼-属性写入-9.ifc",
+      "scope": "单体建筑",
+      "sha256": "3888eb115c38c89f84c859395ef0ae43eb5cbef18fd9b53c0cc75a66c8eb41ba",
+      "bytes": 2000985,
+      "schema": "IFC4",
+      "status_basis": "USER_CONFIRMED_PASSED_CASE",
+      "workflow_stage": "报规"
+    }
+  ],
+  "inventory": "validation/success-case-01/inventory.json",
+  "report": "validation/success-case-01/成功案例_HIFC构件与属性集清单.html",
+  "profiles": "reference/success-case-01/case-profiles.json",
+  "profiles_sha256": "2118bcea847210f562a6b40d286fae71517db9b087639f0025f658cf31e700e2",
+  "raw_ifc_property_set_instances": 10296,
+  "all_pset_binding_rows": 27557,
+  "owners_crosschecked": 2346,
+  "hifc_field_observation_rows": 254,
+  "site_reference_psets": 8,
+  "common_single_building_psets": 5,
+  "unique_observed_reference_psets": 13,
+  "all_source_hashes_unchanged": true,
+  "independent_owner_crosscheck_passed": true,
+  "official_mandatory_rules_inferred": false,
+  "unobserved_elements_inferred_inapplicable": false,
+  "exact_case_counts_required_for_new_projects": false,
+  "plugin_integration_status": "BASELINE_PREPARED_NOT_YET_INTEGRATED",
+  "modeless_fix_candidate": "0.2.1 compiled; not installed or native-retested",
+  "workflow_stage": "报规",
+  "workflow_stage_basis": "User explicitly confirmed all three files are planning submission stage"
+}

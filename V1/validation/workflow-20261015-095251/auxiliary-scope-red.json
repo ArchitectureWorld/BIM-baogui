@@ -1,0 +1,21 @@
+{
+  "forbidden_count": 81.0,
+  "expected": "No sun settings or legend preview components in model inventory",
+  "allPassed": false,
+  "forbidden_records": [
+    {
+      "category": "日光路径",
+      "count": 17,
+      "classes": [
+        "SunAndShadowSettings/OST_SunStudy"
+      ]
+    },
+    {
+      "category": "图例构件",
+      "count": 64,
+      "classes": [
+        "Element/OST_PreviewLegendComponents"
+      ]
+    }
+  ]
+}

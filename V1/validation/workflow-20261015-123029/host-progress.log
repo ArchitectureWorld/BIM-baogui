@@ -1,0 +1,11 @@
+2026-10-15T12:31:03.1668873+08:00 registered: 3 copies
+2026-10-15T12:31:51.0788413+08:00 open D:\18_建模项目\湖北BIM云平台\V1\validation\workflow-20261015-123029\models\总图.0008_干净.rvt
+2026-10-15T12:32:43.6643247+08:00 native start 总图.0008_干净
+2026-10-15T12:32:43.6798422+08:00 ERROR System.ArgumentNullException: 值不能为 null。
+参数名: type
+   在 System.Activator.CreateInstance(Type type, BindingFlags bindingAttr, Binder binder, Object[] args, CultureInfo culture, Object[] activationAttributes)
+   在 System.Activator.CreateInstance(Type type, BindingFlags bindingAttr, Binder binder, Object[] args, CultureInfo culture)
+   在 NativeAcceptance.<>c__DisplayClass0_0.<Run>b__3(String stage, String kind)
+   在 NativeAcceptance.Run(Document document, String run)
+   在 HifcAcceptanceHost.OpenNext(UIApplication ui)
+   在 HifcAcceptanceHost.Execute(UIApplication ui)

@@ -1,0 +1,61 @@
+{
+  "schema_version": "hifc.baseline-audit/1.0",
+  "prepared_on": "2026-10-14",
+  "static_audit": {
+    "status": "PASSED",
+    "mapping_table_matches_property_definitions": true,
+    "duplicate_property_set_entity_property_keys": 0,
+    "raw_tsv_hash_matches_source": true,
+    "source_hashes_unchanged": true
+  },
+  "statistics": {
+    "property_set_names": 45,
+    "property_set_entity_pairs": 64,
+    "property_definitions": 280,
+    "explicit_mapping_rows": 148,
+    "same_name_fallback_rows": 132,
+    "distinct_ifc_property_names": 113,
+    "distinct_revit_source_parameter_names": 205,
+    "raw_type_counts": {
+      "Boolean": 26,
+      "Integer": 10,
+      "Integerl": 1,
+      "Label": 73,
+      "Real": 119,
+      "Reall": 2,
+      "Text": 49
+    }
+  },
+  "raw_type_spellings_requiring_observation": [
+    "Integerl",
+    "Reall"
+  ],
+  "revit_host_verification": {
+    "status": "PASSED_ISOLATED",
+    "run": "validation/revit-20261014-195855-cdd1f2b1",
+    "scope": "Fresh unsaved specimen; native management services and two-floor IFC probe; not original software A/B"
+  },
+  "reference_export_ab_comparison": {
+    "status": "NOT_RUN",
+    "reason": "需同一新 RVT 的参考软件导出和复现导出"
+  },
+  "ifcflux_or_platform_acceptance": {
+    "status": "NOT_RUN"
+  },
+  "overall_mapping_reproduction_status": "ISOLATED_SAMPLE_PASSED_REFERENCE_AB_PENDING",
+  "actual_ifc_verification": {
+    "status": "PASSED_ISOLATED_SAMPLE",
+    "verified_properties": 18,
+    "observed_properties": 18,
+    "unexpected_hifc_psets": 0,
+    "schema_error_count": 0,
+    "temporary_bridge_property_count": 0,
+    "run": "validation/revit-20261014-195855-cdd1f2b1"
+  },
+  "management_verification": {
+    "version": "0.2.0",
+    "native_services": "PASSED_ISOLATED",
+    "actual_project_external_event_flow": "AWAITING_THREE_USER_OPENED_MODELS",
+    "status_file": "validation/management-development-status.json"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schema": "hifc.success-case-preservation/1.0",
+  "verified_local": "2026-10-14T21:19:30.5219262+08:00",
+  "workflow_stage": "报规",
+  "source_ifc": [
+    {
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\成功通过HIFC\\厂房-属性写入-3.ifc",
+      "matches": true,
+      "sha256": "420e35ce85628933a28608d378f499bf932bb603eb2c95c0f14426db781cd346"
+    },
+    {
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\成功通过HIFC\\总图-属性写入-15.ifc",
+      "matches": true,
+      "sha256": "5a15376c8203c09956998049b34c2f5457d4821c5b96a35e007221fa1986914f"
+    },
+    {
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\成功通过HIFC\\职工后勤楼-属性写入-9.ifc",
+      "matches": true,
+      "sha256": "3888eb115c38c89f84c859395ef0ae43eb5cbef18fd9b53c0cc75a66c8eb41ba"
+    }
+  ],
+  "source_rvt": [
+    {
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\revit原文件\\总图.0008_干净.rvt",
+      "matches": true
+    },
+    {
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\revit原文件\\厂房_干净.rvt",
+      "matches": true
+    },
+    {
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\revit原文件\\职工后勤楼_干净.rvt",
+      "matches": true
+    }
+  ],
+  "frozen_reference_all_unchanged": true,
+  "profile_hash_matches_manifest": true,
+  "python_suite_passed": 16,
+  "owner_crosscheck_passed": true,
+  "modeless_guard_native_retest": "PENDING_NOT_CLAIMED_PASSED",
+  "plugin_case_integration": "NOT_YET_IMPLEMENTED",
+  "report_visual_qa": {
+    "stage_title_verified": true,
+    "no_horizontal_overflow_at_1265_px": true,
+    "fire_turning_field_filter_verified": true,
+    "source": "Actual local browser rendering; report data from supplied IFCs"
+  }
+}

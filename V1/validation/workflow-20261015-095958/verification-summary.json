@@ -1,0 +1,81 @@
+{
+  "allPassed": true,
+  "modeless_check_count": 49,
+  "package_hashes_match": true,
+  "preservation_file_count": 18,
+  "model_count": 3,
+  "loaded_sha256": "5ac8b980a1f24c9712597ca06cb53dabc3c367ded9287714a8023f4c443b7295",
+  "loaded_matches_installed": true,
+  "loaded_version": "0.3.1.0",
+  "cleanup": {
+    "temporary_manifest_removed": true,
+    "production_manifest_present": true,
+    "revit_running": false,
+    "normal_exit": true,
+    "checked_local": "2026-10-15T10:06:04.5192710+08:00"
+  },
+  "inputs_unchanged": true,
+  "models": [
+    {
+      "modeless_passed": true,
+      "native_passed": true,
+      "inventory_count": 37,
+      "valid_fields_after": 4,
+      "automatic_preview_changes": 0,
+      "field_count_after": 8,
+      "missing_reference_roles": [
+        "停车位",
+        "消防回车场",
+        "绿地",
+        "规划净用地",
+        "规划控制线",
+        "道路红线",
+        "道路边界线"
+      ],
+      "links_uncovered": 2,
+      "name": "总图.0008_干净.rvt",
+      "modeless_checks": 17,
+      "fields_present_before": 4,
+      "native_checks": 12,
+      "fields_present_after": 8,
+      "detected_kind": "总图"
+    },
+    {
+      "modeless_passed": true,
+      "native_passed": true,
+      "inventory_count": 1758,
+      "valid_fields_after": 8,
+      "automatic_preview_changes": 65,
+      "field_count_after": 61,
+      "missing_reference_roles": [
+        "建筑区域"
+      ],
+      "links_uncovered": 1,
+      "name": "厂房_干净.rvt",
+      "modeless_checks": 16,
+      "fields_present_before": 2,
+      "native_checks": 12,
+      "fields_present_after": 61,
+      "detected_kind": "单体建筑"
+    },
+    {
+      "modeless_passed": true,
+      "native_passed": true,
+      "inventory_count": 681,
+      "valid_fields_after": 8,
+      "automatic_preview_changes": 59,
+      "field_count_after": 57,
+      "missing_reference_roles": [
+        "建筑区域"
+      ],
+      "links_uncovered": 0,
+      "name": "职工后勤楼_干净.rvt",
+      "modeless_checks": 16,
+      "fields_present_before": 3,
+      "native_checks": 12,
+      "fields_present_after": 57,
+      "detected_kind": "单体建筑"
+    }
+  ],
+  "native_check_count": 36
+}

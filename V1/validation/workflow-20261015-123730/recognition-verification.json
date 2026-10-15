@@ -1,0 +1,311 @@
+{
+  "allPassed": true,
+  "models": [
+    {
+      "model": "总图.0008_干净.rvt",
+      "classifications_in_preview": [
+        {
+          "id": 451481,
+          "name": "道路",
+          "role": "道路边界线",
+          "evidence": "总图-属性写入-15.ifc / #712 / Revit Tag 451481；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+        },
+        {
+          "id": 451959,
+          "name": "场地",
+          "role": "规划净用地",
+          "evidence": "总图-属性写入-15.ifc / #983 / Revit Tag 451959；UniqueId 对应；当前名称、类型及类别一致；名称别名候选，需确认业务含义：“场地 / 场地” → 规划净用地；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+        },
+        {
+          "id": 452264,
+          "name": "绿化",
+          "role": "绿地",
+          "evidence": "总图-属性写入-15.ifc / #1317 / Revit Tag 452264；UniqueId 对应；当前名称、类型及类别一致；名称别名候选，需确认业务含义：“绿化 / 绿化” → 绿地；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+        },
+        {
+          "id": 454070,
+          "name": "回车场",
+          "role": "消防回车场",
+          "evidence": "总图-属性写入-15.ifc / #1607 / Revit Tag 454070；UniqueId 对应；当前名称、类型及类别一致；名称别名候选，需确认业务含义：“回车场 / 回车场” → 消防回车场；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+        },
+        {
+          "id": 456868,
+          "name": "规划红线",
+          "role": "规划控制线",
+          "evidence": "总图-属性写入-15.ifc / #2170 / Revit Tag 456868；UniqueId 对应；当前名称、类型及类别一致；名称别名候选，需确认业务含义：“规划红线 / 规划红线” → 规划控制线；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+        },
+        {
+          "id": 457029,
+          "name": "道路",
+          "role": "道路红线",
+          "evidence": "总图-属性写入-15.ifc / #2290 / Revit Tag 457029；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+        }
+      ],
+      "candidates": [
+        {
+          "id": 451481,
+          "name": "道路",
+          "candidates": [
+            {
+              "Slot": "道路边界线",
+              "Evidence": "总图-属性写入-15.ifc / #712 / Revit Tag 451481；UniqueId 对应；当前名称、类型及类别一致",
+              "CanPrepare": true,
+              "RequiresReview": false
+            }
+          ]
+        },
+        {
+          "id": 451959,
+          "name": "场地",
+          "candidates": [
+            {
+              "Slot": "规划净用地",
+              "Evidence": "总图-属性写入-15.ifc / #983 / Revit Tag 451959；UniqueId 对应；当前名称、类型及类别一致；名称别名候选，需确认业务含义：“场地 / 场地” → 规划净用地",
+              "CanPrepare": true,
+              "RequiresReview": false
+            }
+          ]
+        },
+        {
+          "id": 452264,
+          "name": "绿化",
+          "candidates": [
+            {
+              "Slot": "绿地",
+              "Evidence": "总图-属性写入-15.ifc / #1317 / Revit Tag 452264；UniqueId 对应；当前名称、类型及类别一致；名称别名候选，需确认业务含义：“绿化 / 绿化” → 绿地",
+              "CanPrepare": true,
+              "RequiresReview": false
+            }
+          ]
+        },
+        {
+          "id": 454070,
+          "name": "回车场",
+          "candidates": [
+            {
+              "Slot": "消防回车场",
+              "Evidence": "总图-属性写入-15.ifc / #1607 / Revit Tag 454070；UniqueId 对应；当前名称、类型及类别一致；名称别名候选，需确认业务含义：“回车场 / 回车场” → 消防回车场",
+              "CanPrepare": true,
+              "RequiresReview": false
+            }
+          ]
+        },
+        {
+          "id": 455344,
+          "name": "停车位",
+          "candidates": [
+            {
+              "Slot": "停车位",
+              "Evidence": "名称含业务名称：“停车位 / 停车位” → 停车位；当前载体 IfcBuildingElementProxy，成功案例载体 IfcSpace，需核对载体/导出关系",
+              "CanPrepare": false,
+              "RequiresReview": true
+            }
+          ]
+        },
+        {
+          "id": 455815,
+          "name": "停车位",
+          "candidates": [
+            {
+              "Slot": "停车位",
+              "Evidence": "名称含业务名称：“停车位 / 停车位” → 停车位；当前载体 IfcBuildingElementProxy，成功案例载体 IfcSpace，需核对载体/导出关系",
+              "CanPrepare": false,
+              "RequiresReview": true
+            },
+            {
+              "Slot": "道路边界线",
+              "Evidence": "总图-属性写入-15.ifc / #1888 / Revit Tag 455815；UniqueId 对应；当前名称、类型及类别一致；案例名称为停车位却挂道路边界线；保留为待核对证据，不能自动套用",
+              "CanPrepare": false,
+              "RequiresReview": true
+            }
+          ]
+        },
+        {
+          "id": 456868,
+          "name": "规划红线",
+          "candidates": [
+            {
+              "Slot": "规划控制线",
+              "Evidence": "总图-属性写入-15.ifc / #2170 / Revit Tag 456868；UniqueId 对应；当前名称、类型及类别一致；名称别名候选，需确认业务含义：“规划红线 / 规划红线” → 规划控制线",
+              "CanPrepare": true,
+              "RequiresReview": false
+            }
+          ]
+        },
+        {
+          "id": 457029,
+          "name": "道路",
+          "candidates": [
+            {
+              "Slot": "道路红线",
+              "Evidence": "总图-属性写入-15.ifc / #2290 / Revit Tag 457029；UniqueId 对应；当前名称、类型及类别一致",
+              "CanPrepare": true,
+              "RequiresReview": false
+            }
+          ]
+        }
+      ],
+      "written_and_found_after_full_rescan": true
+    },
+    {
+      "model": "厂房_干净.rvt",
+      "classifications_in_preview": [
+        {
+          "id": 468302,
+          "name": "楼面_150",
+          "role": "建筑区域",
+          "evidence": "厂房-属性写入-3.ifc / #82454 / Revit Tag 468302；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+        },
+        {
+          "id": 473137,
+          "name": "楼面_150",
+          "role": "建筑区域",
+          "evidence": "厂房-属性写入-3.ifc / #92812 / Revit Tag 473137；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+        },
+        {
+          "id": 473574,
+          "name": "楼面_150",
+          "role": "建筑区域",
+          "evidence": "厂房-属性写入-3.ifc / #93540 / Revit Tag 473574；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+        },
+        {
+          "id": 478866,
+          "name": "楼面_150",
+          "role": "建筑区域",
+          "evidence": "厂房-属性写入-3.ifc / #110057 / Revit Tag 478866；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+        },
+        {
+          "id": 481696,
+          "name": "楼面_150",
+          "role": "建筑区域",
+          "evidence": "厂房-属性写入-3.ifc / #122184 / Revit Tag 481696；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+        }
+      ],
+      "candidates": [
+        {
+          "id": 468302,
+          "name": "楼面_150",
+          "candidates": [
+            {
+              "Slot": "建筑区域",
+              "Evidence": "厂房-属性写入-3.ifc / #82454 / Revit Tag 468302；UniqueId 对应；当前名称、类型及类别一致",
+              "CanPrepare": true,
+              "RequiresReview": false
+            }
+          ]
+        },
+        {
+          "id": 473137,
+          "name": "楼面_150",
+          "candidates": [
+            {
+              "Slot": "建筑区域",
+              "Evidence": "厂房-属性写入-3.ifc / #92812 / Revit Tag 473137；UniqueId 对应；当前名称、类型及类别一致",
+              "CanPrepare": true,
+              "RequiresReview": false
+            }
+          ]
+        },
+        {
+          "id": 473574,
+          "name": "楼面_150",
+          "candidates": [
+            {
+              "Slot": "建筑区域",
+              "Evidence": "厂房-属性写入-3.ifc / #93540 / Revit Tag 473574；UniqueId 对应；当前名称、类型及类别一致",
+              "CanPrepare": true,
+              "RequiresReview": false
+            }
+          ]
+        },
+        {
+          "id": 478866,
+          "name": "楼面_150",
+          "candidates": [
+            {
+              "Slot": "建筑区域",
+              "Evidence": "厂房-属性写入-3.ifc / #110057 / Revit Tag 478866；UniqueId 对应；当前名称、类型及类别一致",
+              "CanPrepare": true,
+              "RequiresReview": false
+            }
+          ]
+        },
+        {
+          "id": 481696,
+          "name": "楼面_150",
+          "candidates": [
+            {
+              "Slot": "建筑区域",
+              "Evidence": "厂房-属性写入-3.ifc / #122184 / Revit Tag 481696；UniqueId 对应；当前名称、类型及类别一致",
+              "CanPrepare": true,
+              "RequiresReview": false
+            }
+          ]
+        }
+      ],
+      "written_and_found_after_full_rescan": true
+    },
+    {
+      "model": "职工后勤楼_干净.rvt",
+      "classifications_in_preview": [
+        {
+          "id": 466199,
+          "name": "楼面_100",
+          "role": "建筑区域",
+          "evidence": "职工后勤楼-属性写入-9.ifc / #31439 / Revit Tag 466199；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+        },
+        {
+          "id": 466241,
+          "name": "楼面_100",
+          "role": "建筑区域",
+          "evidence": "职工后勤楼-属性写入-9.ifc / #31641 / Revit Tag 466241；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+        },
+        {
+          "id": 466521,
+          "name": "楼面_100",
+          "role": "建筑区域",
+          "evidence": "职工后勤楼-属性写入-9.ifc / #31778 / Revit Tag 466521；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+        }
+      ],
+      "candidates": [
+        {
+          "id": 466199,
+          "name": "楼面_100",
+          "candidates": [
+            {
+              "Slot": "建筑区域",
+              "Evidence": "职工后勤楼-属性写入-9.ifc / #31439 / Revit Tag 466199；UniqueId 对应；当前名称、类型及类别一致",
+              "CanPrepare": true,
+              "RequiresReview": false
+            }
+          ]
+        },
+        {
+          "id": 466241,
+          "name": "楼面_100",
+          "candidates": [
+            {
+              "Slot": "建筑区域",
+              "Evidence": "职工后勤楼-属性写入-9.ifc / #31641 / Revit Tag 466241；UniqueId 对应；当前名称、类型及类别一致",
+              "CanPrepare": true,
+              "RequiresReview": false
+            }
+          ]
+        },
+        {
+          "id": 466521,
+          "name": "楼面_100",
+          "candidates": [
+            {
+              "Slot": "建筑区域",
+              "Evidence": "职工后勤楼-属性写入-9.ifc / #31778 / Revit Tag 466521；UniqueId 对应；当前名称、类型及类别一致",
+              "CanPrepare": true,
+              "RequiresReview": false
+            }
+          ]
+        }
+      ],
+      "written_and_found_after_full_rescan": true
+    }
+  ]
+}

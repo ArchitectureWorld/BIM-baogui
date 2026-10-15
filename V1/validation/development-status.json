@@ -1,0 +1,632 @@
+{
+  "schema": "hifc.development-status/1.0",
+  "version": "0.3.2",
+  "client_date": "2026-10-15",
+  "updated_local": "2026-10-15T12:43:39.692422+08:00",
+  "phase": "INSTALLED_NATIVE_RECOGNITION_ACCEPTANCE_PASSED",
+  "core_tests": {
+    "failures": 0,
+    "passed": 74
+  },
+  "wpf_ui_tests": {
+    "passed": 21,
+    "scope": "Production WPF window with fake Revit adapter",
+    "report": "validation/ui-0.3.2/ui-tests.json",
+    "failures": 0
+  },
+  "ifc_checker_tests": {
+    "scope": "IFC verifier and successful-case inventory tests",
+    "exit_code": 0,
+    "log": "validation/python-tests-current.log",
+    "passed": 16
+  },
+  "host_test": {
+    "status": "PASSED_ISOLATED",
+    "report_present": true,
+    "report_path": "validation/revit-20261014-195855-cdd1f2b1/host-smoke.json",
+    "assembly_sha256": "fa19bc1d346f610a8ac0a970fafecd212e09701b62eed2f39ec0d722ced3a938",
+    "ribbon_buttons": [
+      "HifcV1Manager",
+      "HifcV1Prepare",
+      "HifcV1Capture",
+      "HifcV1Export",
+      "HifcV1About"
+    ],
+    "prepare_idempotent": true,
+    "temporary_parameters_rolled_back": true,
+    "missing_slot_blocked": true,
+    "management": {
+      "allPassed": true,
+      "scan_unselected_instances": 3,
+      "partial_scan_blocked": true,
+      "instance_write_verified": true,
+      "stale_preview_blocked": true,
+      "classification_prepared": true,
+      "unset_boolean_preserved": true,
+      "false_preserved": true,
+      "scope": "Real Revit API services in fresh unsaved specimen; ExternalEvent/UI workflow verified separately"
+    },
+    "test_document": "Fresh unsaved project; closed after checks",
+    "verified_version": "0.2.0 (historical)"
+  },
+  "actual_ifc_verification": {
+    "status": "PASSED_ISOLATED_SAMPLE",
+    "report_path": "validation/revit-20261014-195855-cdd1f2b1/mapping-verification.json",
+    "ifc_path": "validation/revit-20261014-195855-cdd1f2b1/reproduction.ifc",
+    "verified_properties": 18,
+    "observed_properties": 18,
+    "sample_roles": [
+      "规划净用地",
+      "阳台"
+    ],
+    "sample_ifc_entity": "IfcSlab",
+    "unexpected_hifc_psets": 0,
+    "temporary_bridge_property_count": 0,
+    "schema_error_count": 0,
+    "ifc_sha256": "ab9ac92f6b94ce138d8653cfbe3af269fb7f3cf67fb54aa8870845d9e7b44321",
+    "read_only_hash_unchanged": true,
+    "document_export_calls": 1,
+    "ifc_postprocessed": false,
+    "model_transaction": "RolledBack",
+    "source_snapshot_before": "2ba9ccc63413a294f68eaf67a17de59abc83ad87aa5aefad25841a26579b063d",
+    "source_snapshot_after": "2ba9ccc63413a294f68eaf67a17de59abc83ad87aa5aefad25841a26579b063d",
+    "verified_version": "0.2.0 (historical)"
+  },
+  "management_status": "validation/management-development-status.json",
+  "actual_project_external_event_flow": "PASSED_THREE_MODEL_COPIES",
+  "installed_binaries": [
+    {
+      "sha256": "e71a5004b56e758a41d9d261a6b909841983ffb3f946c37dfac5cb11219d0137",
+      "name": "Hifc.V1.Revit.dll",
+      "matches_build": true
+    },
+    {
+      "sha256": "ae0bff6e1e7820b517260fb5b5335a0b884eaa3fe2c3b223592e43f90c6781b5",
+      "name": "Hifc.Reference.Core.dll",
+      "matches_build": true
+    }
+  ],
+  "install_receipt": "outputs/install-20261015-123712-a19f9a4e/install-receipt.json",
+  "previous_plugin_unchanged": true,
+  "previous_plugin_sha256": "181c92f6fa6aa85c960e0b3d2ffbcaf60509716de91d35a66bdb23e559955626",
+  "preservation_proof": "validation/workflow-20261015-123730/preservation.json",
+  "original_software_ab": "NOT_RUN_NEW_MODELS_AVAILABLE",
+  "platform_acceptance": "NOT_RUN",
+  "official_supplement": "DEFERRED_BY_USER",
+  "coverage_basis": "Installed 0.3.2: 74 core, 21 standalone production-WPF, 16 Python tests; three model copies passed 46 native service and 51 production WPF/ExternalEvent assertions, including 6 site and 5/3 building classifications. Loaded, installed and packaged hashes match. Historical IFC evidence remains explicitly historical; full multiset IFC, reference-software A/B and platform acceptance are not verified.",
+  "previous_verified_run": "validation/revit-20261014-163550-624c21ba",
+  "successful_case_baseline": "reference/success-case-01/baseline-manifest.json",
+  "current_management_validation": {
+    "schema": "hifc.management-development-status/2.0",
+    "updated_local": "2026-10-15T12:43:39.692422+08:00",
+    "version": "0.3.2",
+    "installed_version": "0.3.2",
+    "stage": "INSTALLED_NATIVE_RECOGNITION_ACCEPTANCE_PASSED",
+    "installed_receipt": "outputs/install-20261015-123712-a19f9a4e/install-receipt.json",
+    "installed_binaries": [
+      {
+        "sha256": "e71a5004b56e758a41d9d261a6b909841983ffb3f946c37dfac5cb11219d0137",
+        "name": "Hifc.V1.Revit.dll",
+        "matches_build": true
+      },
+      {
+        "sha256": "ae0bff6e1e7820b517260fb5b5335a0b884eaa3fe2c3b223592e43f90c6781b5",
+        "name": "Hifc.Reference.Core.dll",
+        "matches_build": true
+      }
+    ],
+    "build_log": "validation/build-0.3.2-isolated-assembly.log",
+    "core_tests": {
+      "failures": 0,
+      "passed": 74
+    },
+    "wpf_tests": {
+      "passed": 21,
+      "scope": "Production WPF window with fake Revit adapter",
+      "report": "validation/ui-0.3.2/ui-tests.json",
+      "failures": 0
+    },
+    "python_tests": {
+      "passed": 16,
+      "log": "validation/python-tests-0.3.2.log",
+      "failures": 0
+    },
+    "scope": "Model objects, boundaries, project information, levels, related types and link coverage; materials and auxiliary resources excluded",
+    "successful_case_basis": {
+      "official_rules": false,
+      "windows": "optional case difference",
+      "common_building_sets": 5,
+      "integrated": true,
+      "profile": "reference/success-case-01/case-profiles.json",
+      "site_sets": 8,
+      "stage": "报规",
+      "recognition_evidence": "reference/success-case-01/recognition-evidence.json",
+      "recognition_sha256": "5cafb3d308b521bc85ec08f88d987d01251b81a3b4b441dda0f95b1a12660840"
+    },
+    "actual_project_external_event_flow": "PASSED_THREE_MODEL_COPIES",
+    "native_acceptance": {
+      "state": "PASSED",
+      "model_count": 3,
+      "run": "validation/workflow-20261015-123730",
+      "report": "validation/workflow-20261015-123730/host-results.json",
+      "summary": "validation/workflow-20261015-123730/verification-summary.json",
+      "recognition": "validation/workflow-20261015-123730/recognition-verification.json",
+      "loaded_version": "0.3.2.0",
+      "loaded_sha256": "e71a5004b56e758a41d9d261a6b909841983ffb3f946c37dfac5cb11219d0137",
+      "report_present": true,
+      "native_checks_passed": 46,
+      "modeless_checks_passed": 51,
+      "models": [
+        {
+          "name": "总图.0008_干净.rvt",
+          "detected_kind": "总图",
+          "native_passed": true,
+          "modeless_passed": true,
+          "native_checks": 16,
+          "modeless_checks": 17,
+          "inventory_count": 37,
+          "automatic_preview_changes": 29,
+          "expected_classifications": [
+            {
+              "id": 451481,
+              "name": "道路",
+              "role": "道路边界线",
+              "evidence": "总图-属性写入-15.ifc / #712 / Revit Tag 451481；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+            },
+            {
+              "id": 451959,
+              "name": "场地",
+              "role": "规划净用地",
+              "evidence": "总图-属性写入-15.ifc / #983 / Revit Tag 451959；UniqueId 对应；当前名称、类型及类别一致；名称别名候选，需确认业务含义：“场地 / 场地” → 规划净用地；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+            },
+            {
+              "id": 452264,
+              "name": "绿化",
+              "role": "绿地",
+              "evidence": "总图-属性写入-15.ifc / #1317 / Revit Tag 452264；UniqueId 对应；当前名称、类型及类别一致；名称别名候选，需确认业务含义：“绿化 / 绿化” → 绿地；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+            },
+            {
+              "id": 454070,
+              "name": "回车场",
+              "role": "消防回车场",
+              "evidence": "总图-属性写入-15.ifc / #1607 / Revit Tag 454070；UniqueId 对应；当前名称、类型及类别一致；名称别名候选，需确认业务含义：“回车场 / 回车场” → 消防回车场；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+            },
+            {
+              "id": 456868,
+              "name": "规划红线",
+              "role": "规划控制线",
+              "evidence": "总图-属性写入-15.ifc / #2170 / Revit Tag 456868；UniqueId 对应；当前名称、类型及类别一致；名称别名候选，需确认业务含义：“规划红线 / 规划红线” → 规划控制线；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+            },
+            {
+              "id": 457029,
+              "name": "道路",
+              "role": "道路红线",
+              "evidence": "总图-属性写入-15.ifc / #2290 / Revit Tag 457029；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+            }
+          ],
+          "reference_roles_before": [
+            {
+              "Slot": "停车位",
+              "Mode": "必要",
+              "Count": 0,
+              "Candidates": 2,
+              "State": "待确认分类"
+            },
+            {
+              "Slot": "总平构件",
+              "Mode": "必要",
+              "Count": 4,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "消防回车场",
+              "Mode": "必要",
+              "Count": 0,
+              "Candidates": 1,
+              "State": "待确认分类"
+            },
+            {
+              "Slot": "绿地",
+              "Mode": "必要",
+              "Count": 0,
+              "Candidates": 1,
+              "State": "待确认分类"
+            },
+            {
+              "Slot": "规划净用地",
+              "Mode": "必要",
+              "Count": 0,
+              "Candidates": 1,
+              "State": "待确认分类"
+            },
+            {
+              "Slot": "规划控制线",
+              "Mode": "必要",
+              "Count": 0,
+              "Candidates": 1,
+              "State": "待确认分类"
+            },
+            {
+              "Slot": "道路红线",
+              "Mode": "必要",
+              "Count": 0,
+              "Candidates": 1,
+              "State": "待确认分类"
+            },
+            {
+              "Slot": "道路边界线",
+              "Mode": "必要",
+              "Count": 0,
+              "Candidates": 2,
+              "State": "待确认分类"
+            }
+          ],
+          "reference_roles_after": [
+            {
+              "Slot": "停车位",
+              "Mode": "必要",
+              "Count": 0,
+              "Candidates": 2,
+              "State": "待确认分类"
+            },
+            {
+              "Slot": "总平构件",
+              "Mode": "必要",
+              "Count": 4,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "消防回车场",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "绿地",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "规划净用地",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "规划控制线",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "道路红线",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "道路边界线",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 1,
+              "State": "已识别"
+            }
+          ],
+          "fields_present_before": 4,
+          "fields_present_after": 21,
+          "field_count_after": 21,
+          "valid_fields_after": 4,
+          "missing_reference_roles": [],
+          "pending_reference_roles": [
+            "停车位"
+          ],
+          "links_uncovered": 2,
+          "model_ready": false
+        },
+        {
+          "name": "厂房_干净.rvt",
+          "detected_kind": "单体建筑",
+          "native_passed": true,
+          "modeless_passed": true,
+          "native_checks": 15,
+          "modeless_checks": 17,
+          "inventory_count": 1758,
+          "automatic_preview_changes": 100,
+          "expected_classifications": [
+            {
+              "id": 468302,
+              "name": "楼面_150",
+              "role": "建筑区域",
+              "evidence": "厂房-属性写入-3.ifc / #82454 / Revit Tag 468302；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+            },
+            {
+              "id": 473137,
+              "name": "楼面_150",
+              "role": "建筑区域",
+              "evidence": "厂房-属性写入-3.ifc / #92812 / Revit Tag 473137；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+            },
+            {
+              "id": 473574,
+              "name": "楼面_150",
+              "role": "建筑区域",
+              "evidence": "厂房-属性写入-3.ifc / #93540 / Revit Tag 473574；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+            },
+            {
+              "id": 478866,
+              "name": "楼面_150",
+              "role": "建筑区域",
+              "evidence": "厂房-属性写入-3.ifc / #110057 / Revit Tag 478866；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+            },
+            {
+              "id": 481696,
+              "name": "楼面_150",
+              "role": "建筑区域",
+              "evidence": "厂房-属性写入-3.ifc / #122184 / Revit Tag 481696；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+            }
+          ],
+          "reference_roles_before": [
+            {
+              "Slot": "建筑区域",
+              "Mode": "必要",
+              "Count": 0,
+              "Candidates": 5,
+              "State": "待确认分类"
+            },
+            {
+              "Slot": "建筑技术",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "建筑楼层",
+              "Mode": "必要",
+              "Count": 6,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "总平构件",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "申报",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "窗",
+              "Mode": "案例补充",
+              "Count": 0,
+              "Candidates": 0,
+              "State": "案例差异项 · 按实际适用"
+            }
+          ],
+          "reference_roles_after": [
+            {
+              "Slot": "建筑区域",
+              "Mode": "必要",
+              "Count": 5,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "建筑技术",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "建筑楼层",
+              "Mode": "必要",
+              "Count": 6,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "总平构件",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "申报",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "窗",
+              "Mode": "案例补充",
+              "Count": 0,
+              "Candidates": 0,
+              "State": "案例差异项 · 按实际适用"
+            }
+          ],
+          "fields_present_before": 2,
+          "fields_present_after": 86,
+          "field_count_after": 86,
+          "valid_fields_after": 8,
+          "missing_reference_roles": [],
+          "pending_reference_roles": [],
+          "links_uncovered": 1,
+          "model_ready": false
+        },
+        {
+          "name": "职工后勤楼_干净.rvt",
+          "detected_kind": "单体建筑",
+          "native_passed": true,
+          "modeless_passed": true,
+          "native_checks": 15,
+          "modeless_checks": 17,
+          "inventory_count": 681,
+          "automatic_preview_changes": 80,
+          "expected_classifications": [
+            {
+              "id": 466199,
+              "name": "楼面_100",
+              "role": "建筑区域",
+              "evidence": "职工后勤楼-属性写入-9.ifc / #31439 / Revit Tag 466199；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+            },
+            {
+              "id": 466241,
+              "name": "楼面_100",
+              "role": "建筑区域",
+              "evidence": "职工后勤楼-属性写入-9.ifc / #31641 / Revit Tag 466241；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+            },
+            {
+              "id": 466521,
+              "name": "楼面_100",
+              "role": "建筑区域",
+              "evidence": "职工后勤楼-属性写入-9.ifc / #31778 / Revit Tag 466521；UniqueId 对应；当前名称、类型及类别一致；核对本预览后写入才确认分类；影响当前文档 1 个实例"
+            }
+          ],
+          "reference_roles_before": [
+            {
+              "Slot": "建筑区域",
+              "Mode": "必要",
+              "Count": 0,
+              "Candidates": 3,
+              "State": "待确认分类"
+            },
+            {
+              "Slot": "建筑技术",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "建筑楼层",
+              "Mode": "必要",
+              "Count": 5,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "总平构件",
+              "Mode": "必要",
+              "Count": 2,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "申报",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "窗",
+              "Mode": "案例补充",
+              "Count": 0,
+              "Candidates": 0,
+              "State": "案例差异项 · 按实际适用"
+            }
+          ],
+          "reference_roles_after": [
+            {
+              "Slot": "建筑区域",
+              "Mode": "必要",
+              "Count": 3,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "建筑技术",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "建筑楼层",
+              "Mode": "必要",
+              "Count": 5,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "总平构件",
+              "Mode": "必要",
+              "Count": 2,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "申报",
+              "Mode": "必要",
+              "Count": 1,
+              "Candidates": 0,
+              "State": "已识别"
+            },
+            {
+              "Slot": "窗",
+              "Mode": "案例补充",
+              "Count": 0,
+              "Candidates": 0,
+              "State": "案例差异项 · 按实际适用"
+            }
+          ],
+          "fields_present_before": 3,
+          "fields_present_after": 72,
+          "field_count_after": 72,
+          "valid_fields_after": 8,
+          "missing_reference_roles": [],
+          "pending_reference_roles": [],
+          "links_uncovered": 0,
+          "model_ready": false
+        }
+      ]
+    },
+    "regressions": {
+      "close_exception_stack": "validation/workflow-20261014-224021/crash-225728/managed-exception-stack.txt",
+      "close_fix": "ExternalEvent cleanup",
+      "close_root_cause": "DocumentChanged event removal from WPF Closed outside Revit API context",
+      "native_retest": "PASSED_THREE_MODEL_COPIES",
+      "scope_before": "validation/workflow-20261014-224021/model-scope-regression-before.json",
+      "auxiliary_scope_red": "validation/workflow-20261015-095251/auxiliary-scope-red.json",
+      "window_lifetime": "Closed and reopened outside API; pending scan close and disposal verified in each model",
+      "recognition_red": "validation/recognition-red.log",
+      "assembly_collision_red": "validation/assembly-isolation-red.json",
+      "assembly_isolation_green": "validation/assembly-isolation-green.json",
+      "failed_collision_host": "validation/workflow-20261015-123029"
+    },
+    "preservation": "validation/workflow-20261015-123730/preservation.json",
+    "construction_rules": "NOT_ESTABLISHED",
+    "linked_models": "UNCHECKED_SOURCE_DOCUMENT_REQUIRED",
+    "full_multiset_ifc": "NOT_VERIFIED",
+    "reference_software_ab": "NOT_RUN",
+    "platform_acceptance": "NOT_RUN",
+    "official_supplement": "DEFERRED_BY_USER",
+    "history": "validation/history/management-development-status-before-0.3.2.json",
+    "installed_package": "dist/Hifc.V1.Revit2020-0.3.2",
+    "cleanup": {
+      "revit_running": false,
+      "temporary_manifest_removed": true,
+      "journal": "C:\\Users\\2899\\AppData\\Local\\Autodesk\\Revit\\Autodesk Revit 2020\\Journals\\journal.0652.txt",
+      "production_manifest_present": true,
+      "normal_exit": true,
+      "checked_local": "2026-10-15T12:42:46.2699066+08:00"
+    },
+    "verification_record": "validation/workflow-20261015-123730/验证结论.md"
+  }
+}

@@ -1,0 +1,15 @@
+test_checks_real_value_type_and_owner (test_verify_ifc.VerifyNativeExport.test_checks_real_value_type_and_owner) ... ok
+test_cli_refuses_to_replace_ifc_with_report (test_verify_ifc.VerifyNativeExport.test_cli_refuses_to_replace_ifc_with_report) ... ok
+test_missing_snapshot_evidence_fails (test_verify_ifc.VerifyNativeExport.test_missing_snapshot_evidence_fails) ... ok
+test_read_only_check_leaves_ifc_bytes_unchanged (test_verify_ifc.VerifyNativeExport.test_read_only_check_leaves_ifc_bytes_unchanged) ... ok
+test_tampered_ifc_hash_fails (test_verify_ifc.VerifyNativeExport.test_tampered_ifc_hash_fails) ... ok
+test_text_fallback_does_not_pass_as_real (test_verify_ifc.VerifyNativeExport.test_text_fallback_does_not_pass_as_real) ... ok
+test_unknown_boolean_text_is_not_false (test_verify_ifc.VerifyNativeExport.test_unknown_boolean_text_is_not_false) ... ok
+test_wrong_number_fails (test_verify_ifc.VerifyNativeExport.test_wrong_number_fails) ... ok
+test_wrong_owner_fails (test_verify_ifc.VerifyNativeExport.test_wrong_owner_fails) ... ok
+test_wrong_role_pset_fails (test_verify_ifc.VerifyNativeExport.test_wrong_role_pset_fails) ... ok
+System.Management.Automation.RemoteException
+----------------------------------------------------------------------
+Ran 10 tests in 0.085s
+System.Management.Automation.RemoteException
+OK

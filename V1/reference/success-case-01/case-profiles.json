@@ -1,0 +1,853 @@
+{
+  "schema": "hifc.success-case-reference/1.0",
+  "created_local": "2026-10-14T21:17:28.595102+08:00",
+  "workflow_stage": "报规",
+  "workflow_stage_basis": "USER_CONFIRMED_ALL_THREE_FILES",
+  "basis": "User-confirmed successful IFC case; observed presence and fields, not official mandatory rules",
+  "count_policy": "OBSERVED_COUNTS_ONLY_DO_NOT_COPY_TO_NEW_PROJECTS",
+  "unobserved_policy": "UNKNOWN_NOT_NOT_APPLICABLE",
+  "field_requirement_policy": "OBSERVED_PROPERTY_PRESENCE_NOT_MANDATORY_NONEMPTY_RULE",
+  "reference_contract_sha256": "c1f3d74e17229aee4ed10bc4980532d2c7c61a5a783061c6e979562b808052c9",
+  "models": [
+    {
+      "file": "厂房-属性写入-3.ifc",
+      "scope": "单体建筑",
+      "workflow_stage": "报规",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\成功通过HIFC\\厂房-属性写入-3.ifc",
+      "sha256": "420e35ce85628933a28608d378f499bf932bb603eb2c95c0f14426db781cd346",
+      "items": [
+        {
+          "pset": "Pset_建筑区域信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 5,
+          "direct_owner_entities": {
+            "IfcSlab": 5
+          },
+          "type_definition_entities": {},
+          "inherited_owner_entities": {},
+          "effective_occurrences": 5,
+          "direct_occurrences": 5,
+          "inherited_occurrences": 0,
+          "type_definitions": 0,
+          "observed_properties": [
+            "主功能类别",
+            "子功能类别",
+            "投影面积",
+            "计容系数",
+            "计算系数"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "主功能类别",
+              "子功能类别",
+              "投影面积",
+              "计容系数",
+              "计算系数"
+            ]
+          },
+          "not_observed_reference_fields": [],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_建筑技术信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 1,
+          "direct_owner_entities": {
+            "IfcBuilding": 1
+          },
+          "type_definition_entities": {},
+          "inherited_owner_entities": {},
+          "effective_occurrences": 1,
+          "direct_occurrences": 1,
+          "inherited_occurrences": 0,
+          "type_definitions": 0,
+          "observed_properties": [
+            "临时永久",
+            "人数",
+            "保障房户数",
+            "地上建筑层数",
+            "地下建筑高度",
+            "地坪标高",
+            "安全等级",
+            "室内外高差最大值",
+            "屋脊高度",
+            "山墙开窗",
+            "建筑体积",
+            "建筑名称",
+            "建筑状态",
+            "建筑用途名称",
+            "建筑类别",
+            "建筑类型名称",
+            "建筑编号",
+            "形状",
+            "户数",
+            "投影面积",
+            "檐口高度",
+            "民用建筑",
+            "海拔高度",
+            "消防高度",
+            "结构类型",
+            "耐火等级",
+            "装配式奖励面积",
+            "规划高度"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "临时永久",
+              "人数",
+              "保障房户数",
+              "地上建筑层数",
+              "地下建筑层数",
+              "地下建筑高度",
+              "地坪标高",
+              "安全等级",
+              "室内外高差最大值",
+              "屋脊高度",
+              "山墙开窗",
+              "建筑体积",
+              "建筑名称",
+              "建筑状态",
+              "建筑用途名称",
+              "建筑类别",
+              "建筑类型名称",
+              "建筑编号",
+              "建筑面积",
+              "形状",
+              "户数",
+              "投影面积",
+              "檐口高度",
+              "民用建筑",
+              "海拔高度",
+              "消防高度",
+              "结构类型",
+              "耐火等级",
+              "装配式奖励面积",
+              "规划高度"
+            ]
+          },
+          "not_observed_reference_fields": [
+            "地下建筑层数",
+            "建筑面积"
+          ],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_建筑楼层信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 6,
+          "direct_owner_entities": {
+            "IfcBuildingStorey": 6
+          },
+          "type_definition_entities": {},
+          "inherited_owner_entities": {},
+          "effective_occurrences": 6,
+          "direct_occurrences": 6,
+          "inherited_occurrences": 0,
+          "type_definitions": 0,
+          "observed_properties": [
+            "建筑基底",
+            "建筑层高",
+            "楼层名称",
+            "楼层面积",
+            "计算标高"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "底标高",
+              "建筑基底",
+              "建筑层高",
+              "楼层名称",
+              "楼层面积",
+              "计算标高"
+            ]
+          },
+          "not_observed_reference_fields": [
+            "底标高"
+          ],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_总平构件信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 5,
+          "direct_owner_entities": {},
+          "type_definition_entities": {
+            "IfcSlabType": 5
+          },
+          "inherited_owner_entities": {
+            "IfcSlab": 5
+          },
+          "effective_occurrences": 5,
+          "direct_occurrences": 0,
+          "inherited_occurrences": 5,
+          "type_definitions": 5,
+          "observed_properties": [
+            "构件类型"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "备注",
+              "建筑密度",
+              "投影面积",
+              "构件类型",
+              "计容系数",
+              "计算系数"
+            ]
+          },
+          "not_observed_reference_fields": [
+            "备注",
+            "建筑密度",
+            "投影面积",
+            "计容系数",
+            "计算系数"
+          ],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_申报信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 1,
+          "direct_owner_entities": {
+            "IfcBuilding": 1
+          },
+          "type_definition_entities": {},
+          "inherited_owner_entities": {},
+          "effective_occurrences": 1,
+          "direct_occurrences": 1,
+          "inherited_occurrences": 0,
+          "type_definitions": 0,
+          "observed_properties": [
+            "基点坐标X",
+            "基点坐标Y"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "基点坐标X",
+              "基点坐标Y"
+            ]
+          },
+          "not_observed_reference_fields": [],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_窗信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 1,
+          "direct_owner_entities": {},
+          "type_definition_entities": {
+            "IfcWindowType": 1
+          },
+          "inherited_owner_entities": {
+            "IfcWindow": 18
+          },
+          "effective_occurrences": 18,
+          "direct_occurrences": 0,
+          "inherited_occurrences": 18,
+          "type_definitions": 1,
+          "observed_properties": [
+            "宽度",
+            "高度"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "宽度",
+              "底高度",
+              "户型显示名",
+              "标高",
+              "窗台高",
+              "高度"
+            ]
+          },
+          "not_observed_reference_fields": [
+            "底高度",
+            "户型显示名",
+            "标高",
+            "窗台高"
+          ],
+          "extra_observed_fields": []
+        }
+      ]
+    },
+    {
+      "file": "总图-属性写入-15.ifc",
+      "scope": "总图",
+      "workflow_stage": "报规",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\成功通过HIFC\\总图-属性写入-15.ifc",
+      "sha256": "5a15376c8203c09956998049b34c2f5457d4821c5b96a35e007221fa1986914f",
+      "items": [
+        {
+          "pset": "Pset_停车位信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 2,
+          "direct_owner_entities": {
+            "IfcSpace": 2
+          },
+          "type_definition_entities": {},
+          "inherited_owner_entities": {},
+          "effective_occurrences": 2,
+          "direct_occurrences": 2,
+          "inherited_occurrences": 0,
+          "type_definitions": 0,
+          "observed_properties": [
+            "停车位位置信息",
+            "停车位类别",
+            "停车位类型",
+            "充电车位",
+            "备注",
+            "层数",
+            "折算系数",
+            "是否为室外停车场",
+            "车位数"
+          ],
+          "observed_empty_properties": [
+            "备注"
+          ],
+          "reference_fields_by_binding": {
+            "实例": [
+              "停车位位置信息",
+              "停车位类别",
+              "停车位类型",
+              "充电车位",
+              "公建车位",
+              "备注",
+              "层数",
+              "折算系数",
+              "是否为室外停车场",
+              "车位数"
+            ]
+          },
+          "not_observed_reference_fields": [
+            "公建车位"
+          ],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_总平构件信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 6,
+          "direct_owner_entities": {},
+          "type_definition_entities": {
+            "IfcSlabType": 6
+          },
+          "inherited_owner_entities": {
+            "IfcSlab": 6
+          },
+          "effective_occurrences": 6,
+          "direct_occurrences": 0,
+          "inherited_occurrences": 6,
+          "type_definitions": 6,
+          "observed_properties": [
+            "构件类型"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "备注",
+              "建筑密度",
+              "投影面积",
+              "构件类型",
+              "计容系数",
+              "计算系数"
+            ]
+          },
+          "not_observed_reference_fields": [
+            "备注",
+            "建筑密度",
+            "投影面积",
+            "计容系数",
+            "计算系数"
+          ],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_消防回车场信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 1,
+          "direct_owner_entities": {
+            "IfcSlab": 1
+          },
+          "type_definition_entities": {},
+          "inherited_owner_entities": {},
+          "effective_occurrences": 1,
+          "direct_occurrences": 1,
+          "inherited_occurrences": 0,
+          "type_definitions": 0,
+          "observed_properties": [
+            "名称",
+            "投影面积"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "名称",
+              "投影面积"
+            ]
+          },
+          "not_observed_reference_fields": [],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_绿地信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 1,
+          "direct_owner_entities": {
+            "IfcSlab": 1
+          },
+          "type_definition_entities": {},
+          "inherited_owner_entities": {},
+          "effective_occurrences": 1,
+          "direct_occurrences": 1,
+          "inherited_occurrences": 0,
+          "type_definitions": 0,
+          "observed_properties": [
+            "投影面积",
+            "折算系数",
+            "绿地类型"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "投影面积",
+              "折算系数",
+              "绿地类型"
+            ]
+          },
+          "not_observed_reference_fields": [],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_规划净用地信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 1,
+          "direct_owner_entities": {
+            "IfcSlab": 1
+          },
+          "type_definition_entities": {},
+          "inherited_owner_entities": {},
+          "effective_occurrences": 1,
+          "direct_occurrences": 1,
+          "inherited_occurrences": 0,
+          "type_definitions": 0,
+          "observed_properties": [
+            "名称",
+            "投影面积",
+            "版本",
+            "类型"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "名称",
+              "投影面积",
+              "版本",
+              "类型"
+            ]
+          },
+          "not_observed_reference_fields": [],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_规划控制线信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 1,
+          "direct_owner_entities": {
+            "IfcBuildingElementProxy": 1
+          },
+          "type_definition_entities": {},
+          "inherited_owner_entities": {},
+          "effective_occurrences": 1,
+          "direct_occurrences": 1,
+          "inherited_occurrences": 0,
+          "type_definitions": 0,
+          "observed_properties": [
+            "名称",
+            "红线类型",
+            "编号"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "名称",
+              "红线类型",
+              "编号"
+            ]
+          },
+          "not_observed_reference_fields": [],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_道路红线信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 1,
+          "direct_owner_entities": {
+            "IfcSlab": 1
+          },
+          "type_definition_entities": {},
+          "inherited_owner_entities": {},
+          "effective_occurrences": 1,
+          "direct_occurrences": 1,
+          "inherited_occurrences": 0,
+          "type_definitions": 0,
+          "observed_properties": [
+            "名称",
+            "红线宽度",
+            "道路类型"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "名称",
+              "红线宽度",
+              "道路类型"
+            ]
+          },
+          "not_observed_reference_fields": [],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_道路边界线信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 2,
+          "direct_owner_entities": {
+            "IfcSlab": 1,
+            "IfcBuildingElementProxy": 1
+          },
+          "type_definition_entities": {},
+          "inherited_owner_entities": {},
+          "effective_occurrences": 2,
+          "direct_occurrences": 2,
+          "inherited_occurrences": 0,
+          "type_definitions": 0,
+          "observed_properties": [
+            "区内道路类型",
+            "道路宽度"
+          ],
+          "observed_empty_properties": [
+            "区内道路类型"
+          ],
+          "reference_fields_by_binding": {
+            "实例": [
+              "区内道路类型",
+              "道路宽度"
+            ]
+          },
+          "not_observed_reference_fields": [],
+          "extra_observed_fields": []
+        }
+      ]
+    },
+    {
+      "file": "职工后勤楼-属性写入-9.ifc",
+      "scope": "单体建筑",
+      "workflow_stage": "报规",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\成功通过HIFC\\职工后勤楼-属性写入-9.ifc",
+      "sha256": "3888eb115c38c89f84c859395ef0ae43eb5cbef18fd9b53c0cc75a66c8eb41ba",
+      "items": [
+        {
+          "pset": "Pset_建筑区域信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 3,
+          "direct_owner_entities": {
+            "IfcSlab": 3
+          },
+          "type_definition_entities": {},
+          "inherited_owner_entities": {},
+          "effective_occurrences": 3,
+          "direct_occurrences": 3,
+          "inherited_occurrences": 0,
+          "type_definitions": 0,
+          "observed_properties": [
+            "主功能类别",
+            "子功能类别",
+            "投影面积",
+            "计容系数",
+            "计算系数"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "主功能类别",
+              "子功能类别",
+              "投影面积",
+              "计容系数",
+              "计算系数"
+            ]
+          },
+          "not_observed_reference_fields": [],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_建筑技术信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 1,
+          "direct_owner_entities": {
+            "IfcBuilding": 1
+          },
+          "type_definition_entities": {},
+          "inherited_owner_entities": {},
+          "effective_occurrences": 1,
+          "direct_occurrences": 1,
+          "inherited_occurrences": 0,
+          "type_definitions": 0,
+          "observed_properties": [
+            "临时永久",
+            "人数",
+            "保障房户数",
+            "地上建筑层数",
+            "地下建筑高度",
+            "地坪标高",
+            "安全等级",
+            "室内外高差最大值",
+            "屋脊高度",
+            "山墙开窗",
+            "建筑体积",
+            "建筑名称",
+            "建筑状态",
+            "建筑用途名称",
+            "建筑类别",
+            "建筑类型名称",
+            "建筑编号",
+            "形状",
+            "户数",
+            "投影面积",
+            "檐口高度",
+            "民用建筑",
+            "海拔高度",
+            "消防高度",
+            "结构类型",
+            "耐火等级",
+            "装配式奖励面积",
+            "规划高度"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "临时永久",
+              "人数",
+              "保障房户数",
+              "地上建筑层数",
+              "地下建筑层数",
+              "地下建筑高度",
+              "地坪标高",
+              "安全等级",
+              "室内外高差最大值",
+              "屋脊高度",
+              "山墙开窗",
+              "建筑体积",
+              "建筑名称",
+              "建筑状态",
+              "建筑用途名称",
+              "建筑类别",
+              "建筑类型名称",
+              "建筑编号",
+              "建筑面积",
+              "形状",
+              "户数",
+              "投影面积",
+              "檐口高度",
+              "民用建筑",
+              "海拔高度",
+              "消防高度",
+              "结构类型",
+              "耐火等级",
+              "装配式奖励面积",
+              "规划高度"
+            ]
+          },
+          "not_observed_reference_fields": [
+            "地下建筑层数",
+            "建筑面积"
+          ],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_建筑楼层信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 3,
+          "direct_owner_entities": {
+            "IfcBuildingStorey": 3
+          },
+          "type_definition_entities": {},
+          "inherited_owner_entities": {},
+          "effective_occurrences": 3,
+          "direct_occurrences": 3,
+          "inherited_occurrences": 0,
+          "type_definitions": 0,
+          "observed_properties": [
+            "建筑基底",
+            "建筑层高",
+            "楼层名称",
+            "楼层面积",
+            "计算标高"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "底标高",
+              "建筑基底",
+              "建筑层高",
+              "楼层名称",
+              "楼层面积",
+              "计算标高"
+            ]
+          },
+          "not_observed_reference_fields": [
+            "底标高"
+          ],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_总平构件信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 6,
+          "direct_owner_entities": {},
+          "type_definition_entities": {
+            "IfcSlabType": 6
+          },
+          "inherited_owner_entities": {
+            "IfcSlab": 6
+          },
+          "effective_occurrences": 6,
+          "direct_occurrences": 0,
+          "inherited_occurrences": 6,
+          "type_definitions": 6,
+          "observed_properties": [
+            "构件类型"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "备注",
+              "建筑密度",
+              "投影面积",
+              "构件类型",
+              "计容系数",
+              "计算系数"
+            ]
+          },
+          "not_observed_reference_fields": [
+            "备注",
+            "建筑密度",
+            "投影面积",
+            "计容系数",
+            "计算系数"
+          ],
+          "extra_observed_fields": []
+        },
+        {
+          "pset": "Pset_申报信息属性集",
+          "reference_hifc": true,
+          "pset_instances": 1,
+          "direct_owner_entities": {
+            "IfcBuilding": 1
+          },
+          "type_definition_entities": {},
+          "inherited_owner_entities": {},
+          "effective_occurrences": 1,
+          "direct_occurrences": 1,
+          "inherited_occurrences": 0,
+          "type_definitions": 0,
+          "observed_properties": [
+            "基点坐标X",
+            "基点坐标Y"
+          ],
+          "observed_empty_properties": [],
+          "reference_fields_by_binding": {
+            "实例": [
+              "基点坐标X",
+              "基点坐标Y"
+            ]
+          },
+          "not_observed_reference_fields": [],
+          "extra_observed_fields": []
+        }
+      ]
+    }
+  ],
+  "single_building_common_psets": [
+    {
+      "pset": "Pset_建筑区域信息属性集",
+      "observed_properties_common": [
+        "主功能类别",
+        "子功能类别",
+        "投影面积",
+        "计容系数",
+        "计算系数"
+      ]
+    },
+    {
+      "pset": "Pset_建筑技术信息属性集",
+      "observed_properties_common": [
+        "临时永久",
+        "人数",
+        "保障房户数",
+        "地上建筑层数",
+        "地下建筑高度",
+        "地坪标高",
+        "安全等级",
+        "室内外高差最大值",
+        "屋脊高度",
+        "山墙开窗",
+        "建筑体积",
+        "建筑名称",
+        "建筑状态",
+        "建筑用途名称",
+        "建筑类别",
+        "建筑类型名称",
+        "建筑编号",
+        "形状",
+        "户数",
+        "投影面积",
+        "檐口高度",
+        "民用建筑",
+        "海拔高度",
+        "消防高度",
+        "结构类型",
+        "耐火等级",
+        "装配式奖励面积",
+        "规划高度"
+      ]
+    },
+    {
+      "pset": "Pset_建筑楼层信息属性集",
+      "observed_properties_common": [
+        "建筑基底",
+        "建筑层高",
+        "楼层名称",
+        "楼层面积",
+        "计算标高"
+      ]
+    },
+    {
+      "pset": "Pset_总平构件信息属性集",
+      "observed_properties_common": [
+        "构件类型"
+      ]
+    },
+    {
+      "pset": "Pset_申报信息属性集",
+      "observed_properties_common": [
+        "基点坐标X",
+        "基点坐标Y"
+      ]
+    }
+  ],
+  "single_building_case_additions": [
+    {
+      "file": "厂房-属性写入-3.ifc",
+      "psets": [
+        "Pset_窗信息属性集"
+      ]
+    },
+    {
+      "file": "职工后勤楼-属性写入-9.ifc",
+      "psets": []
+    }
+  ]
+}

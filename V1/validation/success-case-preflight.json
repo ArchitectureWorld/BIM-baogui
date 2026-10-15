@@ -1,0 +1,2145 @@
+[
+  {
+    "file": "厂房-属性写入-3.ifc",
+    "rows": [
+      {
+        "pset_id": 82472,
+        "name": "Pset_建筑区域信息属性集",
+        "inverse": [
+          {
+            "id": 82479,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 82454,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_150:468302",
+                "tag": "468302"
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "主功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('厂房')"
+          },
+          {
+            "name": "子功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('车间')"
+          },
+          {
+            "name": "计容系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "计算系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "投影面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(2060.39)"
+          }
+        ]
+      },
+      {
+        "pset_id": 82602,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 82457,
+            "entity": "IfcSlabType",
+            "name": "楼板:楼面_150",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 82454,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_150:468302"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 92376,
+        "name": "Pset_窗信息属性集",
+        "inverse": [
+          {
+            "id": 92204,
+            "entity": "IfcWindowType",
+            "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 92236,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:472759"
+              },
+              {
+                "id": 92406,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:473086"
+              },
+              {
+                "id": 92478,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:473094"
+              },
+              {
+                "id": 92550,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:473102"
+              },
+              {
+                "id": 92622,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:473110"
+              },
+              {
+                "id": 92694,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:473119"
+              },
+              {
+                "id": 105605,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:476591"
+              },
+              {
+                "id": 105679,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:476592"
+              },
+              {
+                "id": 105751,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:476593"
+              },
+              {
+                "id": 105823,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:476594"
+              },
+              {
+                "id": 105895,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:476595"
+              },
+              {
+                "id": 105967,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:476596"
+              },
+              {
+                "id": 120852,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:481667"
+              },
+              {
+                "id": 120926,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:481668"
+              },
+              {
+                "id": 120998,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:481669"
+              },
+              {
+                "id": 121070,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:481670"
+              },
+              {
+                "id": 121142,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:481671"
+              },
+              {
+                "id": 121214,
+                "entity": "IfcWindow",
+                "name": "双扇铝合金平开窗:普通窗_双扇铝合金平开窗_C1509:481672"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "高度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(2.95275590551181)"
+          },
+          {
+            "name": "宽度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(4.92125984251969)"
+          }
+        ]
+      },
+      {
+        "pset_id": 92819,
+        "name": "Pset_建筑区域信息属性集",
+        "inverse": [
+          {
+            "id": 92824,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 92812,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_150:473137",
+                "tag": "473137"
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "计容系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "计算系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "主功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('厂房')"
+          },
+          {
+            "name": "子功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('车间')"
+          },
+          {
+            "name": "投影面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1861.6)"
+          }
+        ]
+      },
+      {
+        "pset_id": 92897,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 92815,
+            "entity": "IfcSlabType",
+            "name": "楼板:楼面_150",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 92812,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_150:473137"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 93549,
+        "name": "Pset_建筑区域信息属性集",
+        "inverse": [
+          {
+            "id": 93556,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 93540,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_150:473574",
+                "tag": "473574"
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "主功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('厂房')"
+          },
+          {
+            "name": "子功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('不上人屋面')"
+          },
+          {
+            "name": "计容系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "计算系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "投影面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          }
+        ]
+      },
+      {
+        "pset_id": 93635,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 93543,
+            "entity": "IfcSlabType",
+            "name": "楼板:楼面_150",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 93540,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_150:473574"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 110064,
+        "name": "Pset_建筑区域信息属性集",
+        "inverse": [
+          {
+            "id": 110069,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 110057,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_150:478866",
+                "tag": "478866"
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "计容系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "计算系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "主功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('厂房')"
+          },
+          {
+            "name": "子功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('车间')"
+          },
+          {
+            "name": "投影面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(198.79)"
+          }
+        ]
+      },
+      {
+        "pset_id": 110138,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 110060,
+            "entity": "IfcSlabType",
+            "name": "楼板:楼面_150",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 110057,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_150:478866"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 122191,
+        "name": "Pset_建筑区域信息属性集",
+        "inverse": [
+          {
+            "id": 122196,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 122184,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_150:481696",
+                "tag": "481696"
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "计容系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "计算系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "主功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('厂房')"
+          },
+          {
+            "name": "子功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('车间')"
+          },
+          {
+            "name": "投影面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(198.79)"
+          }
+        ]
+      },
+      {
+        "pset_id": 122265,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 122187,
+            "entity": "IfcSlabType",
+            "name": "楼板:楼面_150",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 122184,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_150:481696"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 136504,
+        "name": "Pset_建筑楼层信息属性集",
+        "inverse": [
+          {
+            "id": 136511,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 160,
+                "entity": "IfcBuildingStorey",
+                "name": "室外地坪",
+                "tag": null
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "建筑层高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.15)"
+          },
+          {
+            "name": "计算标高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(-0.15)"
+          },
+          {
+            "name": "楼层面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "建筑基底",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcBoolean(.F.)"
+          },
+          {
+            "name": "楼层名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('室外地坪')"
+          }
+        ]
+      },
+      {
+        "pset_id": 136609,
+        "name": "Pset_建筑楼层信息属性集",
+        "inverse": [
+          {
+            "id": 136616,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 176,
+                "entity": "IfcBuildingStorey",
+                "name": "一层",
+                "tag": null
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "建筑层高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(5.5)"
+          },
+          {
+            "name": "计算标高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "楼层面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(2060.39)"
+          },
+          {
+            "name": "建筑基底",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcBoolean(.T.)"
+          },
+          {
+            "name": "楼层名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('一层')"
+          }
+        ]
+      },
+      {
+        "pset_id": 136766,
+        "name": "Pset_建筑楼层信息属性集",
+        "inverse": [
+          {
+            "id": 136771,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 183,
+                "entity": "IfcBuildingStorey",
+                "name": "BG-2",
+                "tag": null
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "建筑基底",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcBoolean(.F.)"
+          },
+          {
+            "name": "建筑层高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(5.5)"
+          },
+          {
+            "name": "计算标高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(5.5)"
+          },
+          {
+            "name": "楼层面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(2259.18)"
+          },
+          {
+            "name": "楼层名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('二层')"
+          }
+        ]
+      },
+      {
+        "pset_id": 136871,
+        "name": "Pset_建筑楼层信息属性集",
+        "inverse": [
+          {
+            "id": 136874,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 190,
+                "entity": "IfcBuildingStorey",
+                "name": "二层",
+                "tag": null
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "楼层面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "建筑基底",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcBoolean(.F.)"
+          },
+          {
+            "name": "建筑层高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(5.5)"
+          },
+          {
+            "name": "计算标高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(5.5)"
+          },
+          {
+            "name": "楼层名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('二层')"
+          }
+        ]
+      },
+      {
+        "pset_id": 136948,
+        "name": "Pset_建筑楼层信息属性集",
+        "inverse": [
+          {
+            "id": 136952,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 197,
+                "entity": "IfcBuildingStorey",
+                "name": "三层",
+                "tag": null
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "楼层面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "建筑基底",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcBoolean(.F.)"
+          },
+          {
+            "name": "建筑层高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(5.5)"
+          },
+          {
+            "name": "计算标高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(3.2)"
+          },
+          {
+            "name": "楼层名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('三层')"
+          }
+        ]
+      },
+      {
+        "pset_id": 137026,
+        "name": "Pset_建筑楼层信息属性集",
+        "inverse": [
+          {
+            "id": 137031,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 204,
+                "entity": "IfcBuildingStorey",
+                "name": "屋面",
+                "tag": null
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "楼层面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "建筑基底",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcBoolean(.F.)"
+          },
+          {
+            "name": "建筑层高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "计算标高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(11.)"
+          },
+          {
+            "name": "楼层名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('屋面')"
+          }
+        ]
+      },
+      {
+        "pset_id": 137116,
+        "name": "Pset_申报信息属性集",
+        "inverse": [
+          {
+            "id": 137177,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 145,
+                "entity": "IfcBuilding",
+                "name": "1#车间",
+                "tag": null
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "基点坐标X",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "基点坐标Y",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          }
+        ]
+      },
+      {
+        "pset_id": 137138,
+        "name": "Pset_建筑技术信息属性集",
+        "inverse": [
+          {
+            "id": 137180,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 145,
+                "entity": "IfcBuilding",
+                "name": "1#车间",
+                "tag": null
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "人数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcInteger(0)"
+          },
+          {
+            "name": "保障房户数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcInteger(0)"
+          },
+          {
+            "name": "地上建筑层数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcInteger(2)"
+          },
+          {
+            "name": "地下建筑高度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "建筑体积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "户数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcInteger(0)"
+          },
+          {
+            "name": "民用建筑",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcBoolean(.F.)"
+          },
+          {
+            "name": "装配式奖励面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "耐火等级",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('一级')"
+          },
+          {
+            "name": "室内外高差最大值",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.15)"
+          },
+          {
+            "name": "建筑名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('1#车间')"
+          },
+          {
+            "name": "建筑类型名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('厂房')"
+          },
+          {
+            "name": "建筑用途名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('生产厂房')"
+          },
+          {
+            "name": "安全等级",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('一级')"
+          },
+          {
+            "name": "建筑类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('工业建筑')"
+          },
+          {
+            "name": "投影面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(2060.39)"
+          },
+          {
+            "name": "建筑编号",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('1#')"
+          },
+          {
+            "name": "规划高度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(11.65)"
+          },
+          {
+            "name": "地坪标高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(-0.15)"
+          },
+          {
+            "name": "消防高度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(11.65)"
+          },
+          {
+            "name": "檐口高度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(11.65)"
+          },
+          {
+            "name": "屋脊高度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(11.65)"
+          },
+          {
+            "name": "海拔高度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(127.5)"
+          },
+          {
+            "name": "建筑状态",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('拟建')"
+          },
+          {
+            "name": "临时永久",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('永久')"
+          },
+          {
+            "name": "结构类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('钢架')"
+          },
+          {
+            "name": "形状",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('条形')"
+          },
+          {
+            "name": "山墙开窗",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('东侧')"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "总图-属性写入-15.ifc",
+    "rows": [
+      {
+        "pset_id": 234,
+        "name": "Pset_停车位信息属性集",
+        "inverse": [
+          {
+            "id": 250,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 210,
+                "entity": "IfcSpace",
+                "name": "1",
+                "tag": null
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "是否为室外停车场",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcBoolean(.T.)"
+          },
+          {
+            "name": "停车位类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('其他')"
+          },
+          {
+            "name": "停车位位置信息",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcText('停车位')"
+          },
+          {
+            "name": "停车位类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('标准车位')"
+          },
+          {
+            "name": "备注",
+            "type": "IfcPropertySingleValue",
+            "value": "None"
+          },
+          {
+            "name": "层数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcInteger(1)"
+          },
+          {
+            "name": "车位数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcInteger(4)"
+          },
+          {
+            "name": "充电车位",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcBoolean(.F.)"
+          },
+          {
+            "name": "折算系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          }
+        ]
+      },
+      {
+        "pset_id": 359,
+        "name": "Pset_停车位信息属性集",
+        "inverse": [
+          {
+            "id": 366,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 350,
+                "entity": "IfcSpace",
+                "name": "2",
+                "tag": null
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "是否为室外停车场",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcBoolean(.T.)"
+          },
+          {
+            "name": "层数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcInteger(1)"
+          },
+          {
+            "name": "充电车位",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcBoolean(.F.)"
+          },
+          {
+            "name": "折算系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "停车位类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('其他')"
+          },
+          {
+            "name": "停车位位置信息",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcText('停车位')"
+          },
+          {
+            "name": "停车位类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('大型车位')"
+          },
+          {
+            "name": "备注",
+            "type": "IfcPropertySingleValue",
+            "value": "None"
+          },
+          {
+            "name": "车位数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcInteger(3)"
+          }
+        ]
+      },
+      {
+        "pset_id": 746,
+        "name": "Pset_道路边界线信息属性集",
+        "inverse": [
+          {
+            "id": 750,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 712,
+                "entity": "IfcSlab",
+                "name": "楼板:道路:451481",
+                "tag": "451481"
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "区内道路类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('消防道路')"
+          },
+          {
+            "name": "道路宽度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(4.)"
+          }
+        ]
+      },
+      {
+        "pset_id": 896,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 727,
+            "entity": "IfcSlabType",
+            "name": "楼板:道路",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 712,
+                "entity": "IfcSlab",
+                "name": "楼板:道路:451481"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 1000,
+        "name": "Pset_规划净用地信息属性集",
+        "inverse": [
+          {
+            "id": 1006,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 983,
+                "entity": "IfcSlab",
+                "name": "楼板:场地:451959",
+                "tag": "451959"
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "投影面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(4689.89)"
+          },
+          {
+            "name": "名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcText('规划净用地')"
+          },
+          {
+            "name": "版本",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcText('1')"
+          },
+          {
+            "name": "类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcText('规划净用地')"
+          }
+        ]
+      },
+      {
+        "pset_id": 1129,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 986,
+            "entity": "IfcSlabType",
+            "name": "楼板:场地",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 983,
+                "entity": "IfcSlab",
+                "name": "楼板:场地:451959"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 1332,
+        "name": "Pset_绿地信息属性集",
+        "inverse": [
+          {
+            "id": 1336,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 1317,
+                "entity": "IfcSlab",
+                "name": "楼板:绿化:452264",
+                "tag": "452264"
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "折算系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "投影面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(486.3)"
+          },
+          {
+            "name": "绿地类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('附属绿地')"
+          }
+        ]
+      },
+      {
+        "pset_id": 1455,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 1320,
+            "entity": "IfcSlabType",
+            "name": "楼板:绿化",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 1317,
+                "entity": "IfcSlab",
+                "name": "楼板:绿化:452264"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 1617,
+        "name": "Pset_消防回车场信息属性集",
+        "inverse": [
+          {
+            "id": 1621,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 1607,
+                "entity": "IfcSlab",
+                "name": "楼板:回车场:454070",
+                "tag": "454070"
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "投影面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(148.)"
+          },
+          {
+            "name": "名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcText('消防回车场')"
+          }
+        ]
+      },
+      {
+        "pset_id": 1744,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 1610,
+            "entity": "IfcSlabType",
+            "name": "楼板:回车场",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 1607,
+                "entity": "IfcSlab",
+                "name": "楼板:回车场:454070"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 1893,
+        "name": "Pset_道路边界线信息属性集",
+        "inverse": [
+          {
+            "id": 1897,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 1888,
+                "entity": "IfcBuildingElementProxy",
+                "name": "停车位1:停车位:455815",
+                "tag": "455815"
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "区内道路类型",
+            "type": "IfcPropertySingleValue",
+            "value": "None"
+          },
+          {
+            "name": "道路宽度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          }
+        ]
+      },
+      {
+        "pset_id": 2112,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 2055,
+            "entity": "IfcSlabType",
+            "name": "楼板:道路",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 2052,
+                "entity": "IfcSlab",
+                "name": "楼板:道路:455890"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 2176,
+        "name": "Pset_规划控制线信息属性集",
+        "inverse": [
+          {
+            "id": 2181,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 2170,
+                "entity": "IfcBuildingElementProxy",
+                "name": "规划红线:规划红线:456868",
+                "tag": "456868"
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcText('净用地控制红线')"
+          },
+          {
+            "name": "编号",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('0#')"
+          },
+          {
+            "name": "红线类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('净用地控制红线')"
+          }
+        ]
+      },
+      {
+        "pset_id": 2297,
+        "name": "Pset_道路红线信息属性集",
+        "inverse": [
+          {
+            "id": 2302,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 2290,
+                "entity": "IfcSlab",
+                "name": "楼板:道路:457029",
+                "tag": "457029"
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcText('道路红线')"
+          },
+          {
+            "name": "道路类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('主干路')"
+          },
+          {
+            "name": "红线宽度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(20.)"
+          }
+        ]
+      },
+      {
+        "pset_id": 2381,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 2293,
+            "entity": "IfcSlabType",
+            "name": "楼板:道路",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 2290,
+                "entity": "IfcSlab",
+                "name": "楼板:道路:457029"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "职工后勤楼-属性写入-9.ifc",
+    "rows": [
+      {
+        "pset_id": 25488,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 25378,
+            "entity": "IfcSlabType",
+            "name": "楼板:楼面_50",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 25375,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_50:464984"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 31452,
+        "name": "Pset_建筑区域信息属性集",
+        "inverse": [
+          {
+            "id": 31459,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 31439,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_100:466199",
+                "tag": "466199"
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "主功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('厂房')"
+          },
+          {
+            "name": "子功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('附属办公')"
+          },
+          {
+            "name": "计容系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "计算系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "投影面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(115.08)"
+          }
+        ]
+      },
+      {
+        "pset_id": 31582,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 31442,
+            "entity": "IfcSlabType",
+            "name": "楼板:楼面_100",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 31439,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_100:466199"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 31648,
+        "name": "Pset_建筑区域信息属性集",
+        "inverse": [
+          {
+            "id": 31653,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 31641,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_100:466241",
+                "tag": "466241"
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "计容系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "计算系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "主功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('厂房')"
+          },
+          {
+            "name": "子功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('附属办公')"
+          },
+          {
+            "name": "投影面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(133.38)"
+          }
+        ]
+      },
+      {
+        "pset_id": 31726,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 31644,
+            "entity": "IfcSlabType",
+            "name": "楼板:楼面_100",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 31641,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_100:466241"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 31785,
+        "name": "Pset_建筑区域信息属性集",
+        "inverse": [
+          {
+            "id": 31790,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 31778,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_100:466521",
+                "tag": "466521"
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "计容系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "计算系数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(1.)"
+          },
+          {
+            "name": "主功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('厂房')"
+          },
+          {
+            "name": "子功能类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('附属办公')"
+          },
+          {
+            "name": "投影面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(133.38)"
+          }
+        ]
+      },
+      {
+        "pset_id": 31863,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 31781,
+            "entity": "IfcSlabType",
+            "name": "楼板:楼面_100",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 31778,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_100:466521"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 40096,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 40035,
+            "entity": "IfcSlabType",
+            "name": "楼板:楼面_100",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 40032,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_100:468289"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 43567,
+        "name": "Pset_总平构件信息属性集",
+        "inverse": [
+          {
+            "id": 43510,
+            "entity": "IfcSlabType",
+            "name": "楼板:楼面_100",
+            "related": [],
+            "type_instances": [
+              {
+                "id": 43507,
+                "entity": "IfcSlab",
+                "name": "楼板:楼面_100:468853"
+              }
+            ]
+          }
+        ],
+        "properties": [
+          {
+            "name": "构件类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('250')"
+          }
+        ]
+      },
+      {
+        "pset_id": 58229,
+        "name": "Pset_建筑楼层信息属性集",
+        "inverse": [
+          {
+            "id": 58236,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 164,
+                "entity": "IfcBuildingStorey",
+                "name": "F1",
+                "tag": null
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "建筑层高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(3.6)"
+          },
+          {
+            "name": "计算标高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(3600.)"
+          },
+          {
+            "name": "楼层面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(115.08)"
+          },
+          {
+            "name": "建筑基底",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcBoolean(.T.)"
+          },
+          {
+            "name": "楼层名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('一层')"
+          }
+        ]
+      },
+      {
+        "pset_id": 58349,
+        "name": "Pset_建筑楼层信息属性集",
+        "inverse": [
+          {
+            "id": 58356,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 182,
+                "entity": "IfcBuildingStorey",
+                "name": "F2",
+                "tag": null
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "建筑层高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(3.3)"
+          },
+          {
+            "name": "计算标高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(3300.)"
+          },
+          {
+            "name": "楼层面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(115.08)"
+          },
+          {
+            "name": "建筑基底",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcBoolean(.F.)"
+          },
+          {
+            "name": "楼层名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('二层')"
+          }
+        ]
+      },
+      {
+        "pset_id": 58465,
+        "name": "Pset_建筑楼层信息属性集",
+        "inverse": [
+          {
+            "id": 58471,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 189,
+                "entity": "IfcBuildingStorey",
+                "name": "F3",
+                "tag": null
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "建筑基底",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcBoolean(.F.)"
+          },
+          {
+            "name": "建筑层高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(3.3)"
+          },
+          {
+            "name": "计算标高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(3300.)"
+          },
+          {
+            "name": "楼层面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(115.08)"
+          },
+          {
+            "name": "楼层名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('三层')"
+          }
+        ]
+      },
+      {
+        "pset_id": 58606,
+        "name": "Pset_申报信息属性集",
+        "inverse": [
+          {
+            "id": 58667,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 145,
+                "entity": "IfcBuilding",
+                "name": "职工后勤楼",
+                "tag": null
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "基点坐标X",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "基点坐标Y",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          }
+        ]
+      },
+      {
+        "pset_id": 58628,
+        "name": "Pset_建筑技术信息属性集",
+        "inverse": [
+          {
+            "id": 58670,
+            "entity": "IfcRelDefinesByProperties",
+            "name": null,
+            "related": [
+              {
+                "id": 145,
+                "entity": "IfcBuilding",
+                "name": "职工后勤楼",
+                "tag": null
+              }
+            ],
+            "type_instances": []
+          }
+        ],
+        "properties": [
+          {
+            "name": "人数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcInteger(0)"
+          },
+          {
+            "name": "保障房户数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcInteger(0)"
+          },
+          {
+            "name": "地上建筑层数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcInteger(3)"
+          },
+          {
+            "name": "地下建筑高度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "建筑体积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "户数",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcInteger(0)"
+          },
+          {
+            "name": "民用建筑",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcBoolean(.F.)"
+          },
+          {
+            "name": "装配式奖励面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.)"
+          },
+          {
+            "name": "耐火等级",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('二级')"
+          },
+          {
+            "name": "室内外高差最大值",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(0.15)"
+          },
+          {
+            "name": "建筑名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('职工后勤楼')"
+          },
+          {
+            "name": "建筑类型名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('厂房')"
+          },
+          {
+            "name": "建筑用途名称",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('生产厂房')"
+          },
+          {
+            "name": "安全等级",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('二级')"
+          },
+          {
+            "name": "建筑类别",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('工业建筑')"
+          },
+          {
+            "name": "投影面积",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(115.08)"
+          },
+          {
+            "name": "建筑编号",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('2')"
+          },
+          {
+            "name": "规划高度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(10.5)"
+          },
+          {
+            "name": "地坪标高",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(-0.15)"
+          },
+          {
+            "name": "消防高度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(10.5)"
+          },
+          {
+            "name": "檐口高度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(10.5)"
+          },
+          {
+            "name": "屋脊高度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(10.5)"
+          },
+          {
+            "name": "海拔高度",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcReal(126.7)"
+          },
+          {
+            "name": "建筑状态",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('拟建')"
+          },
+          {
+            "name": "临时永久",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('永久')"
+          },
+          {
+            "name": "结构类型",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('框架')"
+          },
+          {
+            "name": "形状",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('条形')"
+          },
+          {
+            "name": "山墙开窗",
+            "type": "IfcPropertySingleValue",
+            "value": "IfcLabel('东侧')"
+          }
+        ]
+      }
+    ]
+  }
+]

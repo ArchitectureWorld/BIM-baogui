@@ -1,0 +1,238 @@
+[
+  {
+    "Scope": "单体建筑",
+    "ExpectedSlot": "建筑区域",
+    "Row": {
+      "Id": 468302,
+      "UniqueId": "9c518ffe-1476-4c41-87cb-4781692380b0-0007254e",
+      "Name": "楼面_150",
+      "TypeName": "楼面_150",
+      "Category": "楼板",
+      "Entity": "IfcSlab",
+      "Slots": [
+        "总平构件"
+      ],
+      "Classified": true
+    }
+  },
+  {
+    "Scope": "单体建筑",
+    "ExpectedSlot": "建筑区域",
+    "Row": {
+      "Id": 473137,
+      "UniqueId": "9c518ffe-1476-4c41-87cb-4781692380b0-00073831",
+      "Name": "楼面_150",
+      "TypeName": "楼面_150",
+      "Category": "楼板",
+      "Entity": "IfcSlab",
+      "Slots": [
+        "总平构件"
+      ],
+      "Classified": true
+    }
+  },
+  {
+    "Scope": "单体建筑",
+    "ExpectedSlot": "建筑区域",
+    "Row": {
+      "Id": 473574,
+      "UniqueId": "687b9e87-6a08-472c-8501-eae87c40f220-000739e6",
+      "Name": "楼面_150",
+      "TypeName": "楼面_150",
+      "Category": "楼板",
+      "Entity": "IfcSlab",
+      "Slots": [
+        "总平构件"
+      ],
+      "Classified": true
+    }
+  },
+  {
+    "Scope": "单体建筑",
+    "ExpectedSlot": "建筑区域",
+    "Row": {
+      "Id": 478866,
+      "UniqueId": "687b9e87-6a08-472c-8501-eae87c40f220-00074e92",
+      "Name": "楼面_150",
+      "TypeName": "楼面_150",
+      "Category": "楼板",
+      "Entity": "IfcSlab",
+      "Slots": [
+        "总平构件"
+      ],
+      "Classified": true
+    }
+  },
+  {
+    "Scope": "单体建筑",
+    "ExpectedSlot": "建筑区域",
+    "Row": {
+      "Id": 481696,
+      "UniqueId": "687b9e87-6a08-472c-8501-eae87c40f220-000759a0",
+      "Name": "楼面_150",
+      "TypeName": "楼面_150",
+      "Category": "楼板",
+      "Entity": "IfcSlab",
+      "Slots": [
+        "总平构件"
+      ],
+      "Classified": true
+    }
+  },
+  {
+    "Scope": "总图",
+    "ExpectedSlot": "道路边界线",
+    "Row": {
+      "Id": 451481,
+      "UniqueId": "21ecc80f-f0f9-4fd0-a0f9-2560dc44a408-0006e399",
+      "Name": "道路",
+      "TypeName": "道路",
+      "Category": "楼板",
+      "Entity": "IfcSlab",
+      "Slots": [
+        "总平构件"
+      ],
+      "Classified": true
+    }
+  },
+  {
+    "Scope": "总图",
+    "ExpectedSlot": "规划净用地",
+    "Row": {
+      "Id": 451959,
+      "UniqueId": "21ecc80f-f0f9-4fd0-a0f9-2560dc44a408-0006e577",
+      "Name": "场地",
+      "TypeName": "场地",
+      "Category": "楼板",
+      "Entity": "IfcSlab",
+      "Slots": [
+        "总平构件"
+      ],
+      "Classified": true
+    }
+  },
+  {
+    "Scope": "总图",
+    "ExpectedSlot": "绿地",
+    "Row": {
+      "Id": 452264,
+      "UniqueId": "21ecc80f-f0f9-4fd0-a0f9-2560dc44a408-0006e6a8",
+      "Name": "绿化",
+      "TypeName": "绿化",
+      "Category": "楼板",
+      "Entity": "IfcSlab",
+      "Slots": [
+        "总平构件"
+      ],
+      "Classified": true
+    }
+  },
+  {
+    "Scope": "总图",
+    "ExpectedSlot": "消防回车场",
+    "Row": {
+      "Id": 454070,
+      "UniqueId": "c4a02945-7021-4c10-8c5f-ecbce180817b-0006edb6",
+      "Name": "回车场",
+      "TypeName": "回车场",
+      "Category": "楼板",
+      "Entity": "IfcSlab",
+      "Slots": [
+        "总平构件"
+      ],
+      "Classified": true
+    }
+  },
+  {
+    "Scope": "总图",
+    "ExpectedSlot": "道路边界线",
+    "Row": {
+      "Id": 455815,
+      "UniqueId": "c4a02945-7021-4c10-8c5f-ecbce180817b-0006f487",
+      "Name": "停车位",
+      "TypeName": "停车位",
+      "Category": "常规模型",
+      "Entity": "IfcBuildingElementProxy",
+      "Slots": [],
+      "Classified": false
+    }
+  },
+  {
+    "Scope": "总图",
+    "ExpectedSlot": "规划控制线",
+    "Row": {
+      "Id": 456868,
+      "UniqueId": "b4ced3f6-9178-4022-a288-819e24aaca54-0006f8a4",
+      "Name": "规划红线",
+      "TypeName": "规划红线",
+      "Category": "常规模型",
+      "Entity": "IfcBuildingElementProxy",
+      "Slots": [],
+      "Classified": false
+    }
+  },
+  {
+    "Scope": "总图",
+    "ExpectedSlot": "道路红线",
+    "Row": {
+      "Id": 457029,
+      "UniqueId": "1fb69dfc-b539-47cb-9434-b63c23aa1a72-0006f945",
+      "Name": "道路",
+      "TypeName": "道路",
+      "Category": "楼板",
+      "Entity": "IfcSlab",
+      "Slots": [
+        "总平构件"
+      ],
+      "Classified": true
+    }
+  },
+  {
+    "Scope": "单体建筑",
+    "ExpectedSlot": "建筑区域",
+    "Row": {
+      "Id": 466199,
+      "UniqueId": "9b7c7be0-6a0c-459e-b68c-a3d2849f40ba-00071d17",
+      "Name": "楼面_100",
+      "TypeName": "楼面_100",
+      "Category": "楼板",
+      "Entity": "IfcSlab",
+      "Slots": [
+        "总平构件"
+      ],
+      "Classified": true
+    }
+  },
+  {
+    "Scope": "单体建筑",
+    "ExpectedSlot": "建筑区域",
+    "Row": {
+      "Id": 466241,
+      "UniqueId": "9b7c7be0-6a0c-459e-b68c-a3d2849f40ba-00071d41",
+      "Name": "楼面_100",
+      "TypeName": "楼面_100",
+      "Category": "楼板",
+      "Entity": "IfcSlab",
+      "Slots": [
+        "总平构件"
+      ],
+      "Classified": true
+    }
+  },
+  {
+    "Scope": "单体建筑",
+    "ExpectedSlot": "建筑区域",
+    "Row": {
+      "Id": 466521,
+      "UniqueId": "9b7c7be0-6a0c-459e-b68c-a3d2849f40ba-00071e59",
+      "Name": "楼面_100",
+      "TypeName": "楼面_100",
+      "Category": "楼板",
+      "Entity": "IfcSlab",
+      "Slots": [
+        "总平构件"
+      ],
+      "Classified": true
+    }
+  }
+]

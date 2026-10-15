@@ -1,0 +1,99 @@
+{
+  "schema": "hifc.development-status/1.0",
+  "version": "0.2.0",
+  "client_date": "2026-10-14",
+  "updated_local": "2026-10-14T20:15:44.4924617+08:00",
+  "phase": "SUCCESS_CASE_REFERENCE_ESTABLISHED_PLUGIN_INTEGRATION_PENDING",
+  "core_tests": {
+    "passed": 35,
+    "exit_code": 0,
+    "log": "validation/core-tests-0.2.0.log"
+  },
+  "wpf_ui_tests": {
+    "passed": 13,
+    "failures": 0,
+    "scope": "Standalone actual WPF window with fake Revit adapter; not live-model API verification",
+    "report": "validation/ui-0.2.0/ui-tests.json"
+  },
+  "ifc_checker_tests": {
+    "passed": 11,
+    "exit_code": 0,
+    "log": "validation/ifc-checker-tests-0.2.0.log"
+  },
+  "host_test": {
+    "status": "PASSED_ISOLATED",
+    "report_present": true,
+    "report_path": "validation/revit-20261014-195855-cdd1f2b1/host-smoke.json",
+    "assembly_sha256": "fa19bc1d346f610a8ac0a970fafecd212e09701b62eed2f39ec0d722ced3a938",
+    "ribbon_buttons": [
+      "HifcV1Manager",
+      "HifcV1Prepare",
+      "HifcV1Capture",
+      "HifcV1Export",
+      "HifcV1About"
+    ],
+    "prepare_idempotent": true,
+    "temporary_parameters_rolled_back": true,
+    "missing_slot_blocked": true,
+    "management": {
+      "allPassed": true,
+      "scan_unselected_instances": 3,
+      "partial_scan_blocked": true,
+      "instance_write_verified": true,
+      "stale_preview_blocked": true,
+      "classification_prepared": true,
+      "unset_boolean_preserved": true,
+      "false_preserved": true,
+      "scope": "Real Revit API services in fresh unsaved specimen; ExternalEvent/UI workflow verified separately"
+    },
+    "test_document": "Fresh unsaved project; closed after checks"
+  },
+  "actual_ifc_verification": {
+    "status": "PASSED_ISOLATED_SAMPLE",
+    "report_path": "validation/revit-20261014-195855-cdd1f2b1/mapping-verification.json",
+    "ifc_path": "validation/revit-20261014-195855-cdd1f2b1/reproduction.ifc",
+    "verified_properties": 18,
+    "observed_properties": 18,
+    "sample_roles": [
+      "规划净用地",
+      "阳台"
+    ],
+    "sample_ifc_entity": "IfcSlab",
+    "unexpected_hifc_psets": 0,
+    "temporary_bridge_property_count": 0,
+    "schema_error_count": 0,
+    "ifc_sha256": "ab9ac92f6b94ce138d8653cfbe3af269fb7f3cf67fb54aa8870845d9e7b44321",
+    "read_only_hash_unchanged": true,
+    "document_export_calls": 1,
+    "ifc_postprocessed": false,
+    "model_transaction": "RolledBack",
+    "source_snapshot_before": "2ba9ccc63413a294f68eaf67a17de59abc83ad87aa5aefad25841a26579b063d",
+    "source_snapshot_after": "2ba9ccc63413a294f68eaf67a17de59abc83ad87aa5aefad25841a26579b063d"
+  },
+  "management_status": "validation/management-development-status.json",
+  "actual_project_external_event_flow": "FAILED_0_2_0_DOCUMENT_REFERENCE_IDENTITY",
+  "installed_binaries": [
+    {
+      "name": "Hifc.Revit.dll",
+      "matches": true,
+      "build_sha256": "fa19bc1d346f610a8ac0a970fafecd212e09701b62eed2f39ec0d722ced3a938",
+      "installed_sha256": "fa19bc1d346f610a8ac0a970fafecd212e09701b62eed2f39ec0d722ced3a938"
+    },
+    {
+      "name": "Hifc.Reference.Core.dll",
+      "matches": true,
+      "build_sha256": "d0b44e45b6dd0a5d151670f7d9f50326c416165203c061ecca93d083f93408ab",
+      "installed_sha256": "d0b44e45b6dd0a5d151670f7d9f50326c416165203c061ecca93d083f93408ab"
+    }
+  ],
+  "install_receipt": "outputs/install-20261014-195855-4e57b212/install-receipt.json",
+  "previous_plugin_unchanged": true,
+  "previous_plugin_sha256": "181c92f6fa6aa85c960e0b3d2ffbcaf60509716de91d35a66bdb23e559955626",
+  "preservation_proof": "validation/revit-20261014-195855-cdd1f2b1/installation-preservation.json",
+  "original_software_ab": "WAITING_FOR_NEW_RVT",
+  "platform_acceptance": "NOT_RUN",
+  "official_supplement": "DEFERRED_BY_USER",
+  "coverage_basis": "Native management services on isolated samples, simulated WPF, and 18 actual IFC fields; real-project modeless scans pending; not all 280 mappings or original-software A/B",
+  "previous_verified_run": "validation/revit-20261014-163550-624c21ba",
+  "successful_case_baseline": "reference/success-case-01/baseline-manifest.json"
+}

@@ -1,0 +1,19 @@
+PASS complete_280_reference_rows
+PASS preserve_205_source_names
+PASS legacy_slot_selects_only_net_land
+PASS canonical_slot_selects_same_definition
+PASS empty_slot_blocks
+PASS unknown_slot_blocks
+PASS bad_contract_blocks
+PASS uuid5_source_matches_python
+PASS uuid5_bridge_matches_python
+PASS same_property_different_psets_have_separate_bridges
+PASS instance_value_precedes_type
+PASS unset_instance_uses_type
+PASS zero_is_not_missing
+PASS false_is_not_missing
+PASS duplicate_source_names_block
+PASS boolean_bridge_uses_numeric_encoding
+PASS number_bridge_uses_invariant_precision
+PASS generated_tsv_uses_property_scoped_bridge
+RESULT failures=0; tests=18

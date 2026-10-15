@@ -1,0 +1,73 @@
+{
+  "schema_version": "hifc.reference-baseline/1.0",
+  "prepared_on": "2026-10-14",
+  "scope": "参考软件工规 HIFC 映射复现；官方补齐延后",
+  "reference_profile": "湖北_工规",
+  "reference_config": "config_backup1.tsv",
+  "user_model_status": "awaiting_new_rvt",
+  "sources": [
+    {
+      "kind": "tsv",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\反编译\\_hifc\\psets_2025\\config_backup1.tsv",
+      "sha256": "eb40b2dbd7518994dd7f7ac0a6a2950942781dcda20555f53eaa762ec741dd27"
+    },
+    {
+      "kind": "properties",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\反编译\\_hifc\\out\\H-IFC_厂商实际属性定义.csv",
+      "sha256": "be0e95f0d8d0a4889a13e418f0324dc12ae6232b6a0ae11ede3413af60b77982"
+    },
+    {
+      "kind": "mapping",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\反编译\\_hifc\\out\\H-IFC_Revit参数映射表.csv",
+      "sha256": "c4871e165f64d26cb6231fb36e9b01250997a79f952fad9166e194ffffe30dd1"
+    }
+  ],
+  "snapshots": [
+    {
+      "path": "reference/gonggui/config_backup1.tsv",
+      "sha256": "eb40b2dbd7518994dd7f7ac0a6a2950942781dcda20555f53eaa762ec741dd27",
+      "bytes": 12857
+    },
+    {
+      "path": "reference/gonggui/property_definitions.csv",
+      "sha256": "81b856af78487579feeaf7914600c8b9b90367b4c83764a6558f64ca3387ecb9",
+      "bytes": 31289
+    },
+    {
+      "path": "reference/gonggui/parameter_mapping.csv",
+      "sha256": "1e67fbb199a9bf0355877255e4ce6150e87d25b910deaf602c6eb909db3eb069",
+      "bytes": 16799
+    },
+    {
+      "path": "reference/gonggui/contract.json",
+      "sha256": "c1f3d74e17229aee4ed10bc4980532d2c7c61a5a783061c6e979562b808052c9",
+      "bytes": 118071
+    }
+  ],
+  "statistics": {
+    "property_set_names": 45,
+    "property_set_entity_pairs": 64,
+    "property_definitions": 280,
+    "explicit_mapping_rows": 148,
+    "same_name_fallback_rows": 132,
+    "distinct_ifc_property_names": 113,
+    "distinct_revit_source_parameter_names": 205,
+    "raw_type_counts": {
+      "Boolean": 26,
+      "Integer": 10,
+      "Integerl": 1,
+      "Label": 73,
+      "Real": 119,
+      "Reall": 2,
+      "Text": 49
+    }
+  },
+  "preservation_policy": {
+    "raw_tsv_byte_identical": true,
+    "raw_type_spellings_preserved": true,
+    "raw_mapping_columns_preserved": true,
+    "official_content_added": false,
+    "source_files_modified": false
+  },
+  "runtime_reference_verified": false
+}

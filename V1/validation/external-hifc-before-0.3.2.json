@@ -1,0 +1,14 @@
+[
+  {
+    "sha256": "756a79a8bb1f853bbfc34f1233d623b8cc132e778998898f8be050b3548e769b",
+    "path": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.Revit.addin"
+  },
+  {
+    "sha256": "8fc37950cb1cd946479077ab2810051ce98b1a1585c1104ab6d23323fcfced15",
+    "path": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\H-IFC\\Hifc.Core.dll"
+  },
+  {
+    "sha256": "a7dc338dd1102536b569c58f615636e1eff5a369db2254cf692efee9d9b4aa5f",
+    "path": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\H-IFC\\Hifc.Revit.dll"
+  }
+]

@@ -1,0 +1,72 @@
+{
+  "schema": "hifc.management-development-status/2.0",
+  "updated_local": "2026-10-14T23:20:36.1229719+08:00",
+  "version": "0.3.0",
+  "installed_version": "0.3.0",
+  "candidate_version": "0.3.1",
+  "stage": "CANDIDATE_BUILT_NATIVE_ACCEPTANCE_WAITING_FOR_REVIT_LOAD",
+  "installed_receipt": "outputs/install-20261014-224021-aaad7f59/install-receipt.json",
+  "installed_binaries": [
+    {
+      "sha256": "b598d38fcb321bf5e0e584d94373cc6690efc69f73b09294780f91d9e0fa2bdc",
+      "matches_build": true,
+      "name": "Hifc.Revit.dll"
+    },
+    {
+      "sha256": "1675f8735249ceca94e3007be332f2d430e93441ed0ba98d8e19a232d0c2e073",
+      "matches_build": true,
+      "name": "Hifc.Reference.Core.dll"
+    }
+  ],
+  "candidate_package": "dist/Hifc.V1.Revit2020-0.3.1",
+  "candidate_installed": false,
+  "build_log": "validation/build-0.3.1.log",
+  "core_tests": {
+    "failures": 0,
+    "passed": 51
+  },
+  "wpf_tests": {
+    "passed": 18,
+    "scope": "Production WPF window with fake Revit adapter",
+    "report": "validation/ui-0.3.1/ui-tests.json",
+    "failures": 0
+  },
+  "python_tests": {
+    "passed": 16,
+    "log": "validation/python-tests-current.log",
+    "failures": 0
+  },
+  "scope": "Model objects, boundaries, project information, levels, related types and link coverage; materials and auxiliary resources excluded",
+  "successful_case_basis": {
+    "official_rules": false,
+    "windows": "optional case difference",
+    "common_building_sets": 5,
+    "integrated": true,
+    "profile": "reference/success-case-01/case-profiles.json",
+    "site_sets": 8,
+    "stage": "报规"
+  },
+  "actual_project_external_event_flow": "PENDING",
+  "native_acceptance": {
+    "loaded_build_expected": "0.3.0",
+    "run": "validation/workflow-20261014-230810",
+    "state": "WAITING_FOR_PUBLISHER_LOAD",
+    "report_present": false,
+    "pid": 17352
+  },
+  "regressions": {
+    "close_exception_stack": "validation/workflow-20261014-224021/crash-225728/managed-exception-stack.txt",
+    "close_fix": "ExternalEvent cleanup",
+    "close_root_cause": "DocumentChanged event removal from WPF Closed outside Revit API context",
+    "native_retest": "PENDING",
+    "scope_before": "validation/workflow-20261014-224021/model-scope-regression-before.json"
+  },
+  "preservation": "validation/workflow-20261014-230810/preservation.json",
+  "construction_rules": "NOT_ESTABLISHED",
+  "linked_models": "UNCHECKED_SOURCE_DOCUMENT_REQUIRED",
+  "full_multiset_ifc": "NOT_VERIFIED",
+  "reference_software_ab": "NOT_RUN",
+  "platform_acceptance": "NOT_RUN",
+  "official_supplement": "DEFERRED_BY_USER",
+  "history": "validation/history/management-development-status-before-0.3.json"
+}

@@ -1,0 +1,52 @@
+test_business_and_general_type_psets_coexist_on_same_slab (test_success_case_inventory.SuccessCaseInventory.test_business_and_general_type_psets_coexist_on_same_slab) ... FAIL
+test_quantity_and_unattached_pset_are_not_occurrence_requirements (test_success_case_inventory.SuccessCaseInventory.test_quantity_and_unattached_pset_are_not_occurrence_requirements) ... FAIL
+test_shared_direct_pset_does_not_duplicate_owner (test_success_case_inventory.SuccessCaseInventory.test_shared_direct_pset_does_not_duplicate_owner) ... FAIL
+test_type_definition_and_inheriting_occurrences_are_separate (test_success_case_inventory.SuccessCaseInventory.test_type_definition_and_inheriting_occurrences_are_separate) ... FAIL
+test_zero_false_and_missing_values_keep_their_types (test_success_case_inventory.SuccessCaseInventory.test_zero_false_and_missing_values_keep_their_types) ... FAIL
+
+======================================================================
+FAIL: test_business_and_general_type_psets_coexist_on_same_slab (test_success_case_inventory.SuccessCaseInventory.test_business_and_general_type_psets_coexist_on_same_slab)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\18_建模项目\湖北BIM云平台\V1\tests\test_success_case_inventory.py", line 69, in test_business_and_general_type_psets_coexist_on_same_slab
+    self.assertEqual({r["pset_name"] for r in bindings}, {direct.Name, general.Name})
+AssertionError: Items in the second set but not the first:
+'Pset_建筑区域信息属性集'
+'Pset_总平构件信息属性集'
+
+======================================================================
+FAIL: test_quantity_and_unattached_pset_are_not_occurrence_requirements (test_success_case_inventory.SuccessCaseInventory.test_quantity_and_unattached_pset_are_not_occurrence_requirements)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\18_建模项目\湖北BIM云平台\V1\tests\test_success_case_inventory.py", line 56, in test_quantity_and_unattached_pset_are_not_occurrence_requirements
+    self.assertEqual(len(report["psets"]), 1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_shared_direct_pset_does_not_duplicate_owner (test_success_case_inventory.SuccessCaseInventory.test_shared_direct_pset_does_not_duplicate_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\18_建模项目\湖北BIM云平台\V1\tests\test_success_case_inventory.py", line 37, in test_shared_direct_pset_does_not_duplicate_owner
+    self.assertEqual(len(report["bindings"]), 2)
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_type_definition_and_inheriting_occurrences_are_separate (test_success_case_inventory.SuccessCaseInventory.test_type_definition_and_inheriting_occurrences_are_separate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\18_建模项目\湖北BIM云平台\V1\tests\test_success_case_inventory.py", line 46, in test_type_definition_and_inheriting_occurrences_are_separate
+    self.assertEqual(sum(r["origin"] == "type_definition" for r in report["bindings"]), 1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_zero_false_and_missing_values_keep_their_types (test_success_case_inventory.SuccessCaseInventory.test_zero_false_and_missing_values_keep_their_types)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\18_建模项目\湖北BIM云平台\V1\tests\test_success_case_inventory.py", line 78, in test_zero_false_and_missing_values_keep_their_types
+    self.assertEqual(len(report["psets"]), 1)
+AssertionError: 0 != 1
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.009s
+
+FAILED (failures=5)

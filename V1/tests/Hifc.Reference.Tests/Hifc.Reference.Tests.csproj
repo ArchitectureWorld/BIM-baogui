@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net48</TargetFramework><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../../src/Hifc.Reference.Core/Hifc.Reference.Core.csproj" /></ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Web.Extensions" />
+    <None Include="../fixtures/recognition-rows.json" Link="recognition-rows.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

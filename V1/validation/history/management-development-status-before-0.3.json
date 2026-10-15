@@ -1,0 +1,78 @@
+{
+  "schema": "hifc.management-development-status/1.0",
+  "version": "0.2.0",
+  "updated_local": "2026-10-14T20:15:44.4881039+08:00",
+  "stage": "SUCCESS_CASE_BASELINE_PREPARED_PLUGIN_INTEGRATION_PENDING",
+  "core_tests": 35,
+  "wpf_ui_tests": 13,
+  "ifc_checker_tests": 11,
+  "core_test_log": "validation/core-tests-0.2.0.log",
+  "ifc_checker_test_log": "validation/ifc-checker-tests-0.2.0.log",
+  "ui_scope": "Standalone actual WPF window with fake Revit adapter; not live-model API verification",
+  "ui_report": "validation/ui-0.2.0/ui-tests.json",
+  "native_services": "PASSED_ISOLATED",
+  "native_service_evidence": {
+    "allPassed": true,
+    "scan_unselected_instances": 3,
+    "partial_scan_blocked": true,
+    "instance_write_verified": true,
+    "stale_preview_blocked": true,
+    "classification_prepared": true,
+    "unset_boolean_preserved": true,
+    "false_preserved": true,
+    "scope": "Real Revit API services in fresh unsaved specimen; ExternalEvent/UI workflow verified separately"
+  },
+  "native_report": "validation/revit-20261014-195855-cdd1f2b1/host-smoke.json",
+  "actual_ifc_regression": {
+    "status": "PASSED_ISOLATED_SAMPLE",
+    "verified_properties": 18,
+    "observed_properties": 18,
+    "report": "validation/revit-20261014-195855-cdd1f2b1/mapping-verification.json"
+  },
+  "actual_project_external_event_flow": "FAILED_0_2_0_DOCUMENT_REFERENCE_IDENTITY",
+  "project_inputs": "validation/revit-20261014-195855-cdd1f2b1/management-project-inputs.json",
+  "live_project_scan_reports": [],
+  "reference_software_ab": "WAITING_FOR_NEW_RVT",
+  "platform_acceptance": "NOT_RUN",
+  "installed_binaries": [
+    {
+      "name": "Hifc.Revit.dll",
+      "matches": true,
+      "build_sha256": "fa19bc1d346f610a8ac0a970fafecd212e09701b62eed2f39ec0d722ced3a938",
+      "installed_sha256": "fa19bc1d346f610a8ac0a970fafecd212e09701b62eed2f39ec0d722ced3a938"
+    },
+    {
+      "name": "Hifc.Reference.Core.dll",
+      "matches": true,
+      "build_sha256": "d0b44e45b6dd0a5d151670f7d9f50326c416165203c061ecca93d083f93408ab",
+      "installed_sha256": "d0b44e45b6dd0a5d151670f7d9f50326c416165203c061ecca93d083f93408ab"
+    }
+  ],
+  "install_receipt": "outputs/install-20261014-195855-4e57b212/install-receipt.json",
+  "preservation_proof": "validation/revit-20261014-195855-cdd1f2b1/installation-preservation.json",
+  "modeless_failure": {
+    "report": "validation/revit-20261014-195855-cdd1f2b1/modeless-guard-before.json",
+    "root_cause": "Reference identity differs for wrappers of the same native Revit Document; Guard rejects the current project and Changed ignores its events",
+    "fix_version": "0.2.1",
+    "fix_installed": false,
+    "native_regression_pending": true,
+    "regression_before": "validation/revit-20261014-195855-cdd1f2b1/modeless-guard-regression-before.json"
+  },
+  "candidate_build": {
+    "version": "0.2.1",
+    "package": "dist/Hifc.V1.Revit2020-0.2.1",
+    "build_log": "validation/build-0.2.1.log",
+    "core_tests": 35,
+    "wpf_ui_tests": 13,
+    "native_guard_regression": "PENDING_NEW_HOST",
+    "project_scans": "PENDING_NEW_HOST"
+  },
+  "successful_case_basis": {
+    "manifest": "reference/success-case-01/baseline-manifest.json",
+    "analysis": "docs/成功案例01-Pset与构件基线分析.md",
+    "official_rules": false,
+    "integrated": false,
+    "user_direction": "Use actual Pset-bearing carriers in the three successful IFCs as the first reference scope; official supplementation later",
+    "workflow_stage": "报规"
+  }
+}

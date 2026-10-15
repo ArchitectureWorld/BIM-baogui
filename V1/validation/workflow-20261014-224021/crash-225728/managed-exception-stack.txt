@@ -1,0 +1,15 @@
+Thread 55636 Autodesk.Revit.Exceptions.InvalidOperationException Invalid call to Revit API! Revit is currently not within an API context.
+Autodesk.Revit.ApplicationServices.Application.remove_DocumentChanged(System.EventHandler`1<Autodesk.Revit.DB.Events.DocumentChangedEventArgs>)
+Hifc.Revit.Management.ManagerController.Close()
+System.Windows.Window.OnClosed(System.EventArgs)
+System.Windows.Window.WmDestroy()
+System.Windows.Window.WindowFilterMessage(IntPtr, Int32, IntPtr, IntPtr, Boolean ByRef)
+System.Windows.Interop.HwndSource.PublicHooksFilterMessage(IntPtr, Int32, IntPtr, IntPtr, Boolean ByRef)
+MS.Win32.HwndWrapper.WndProc(IntPtr, Int32, IntPtr, IntPtr, Boolean ByRef)
+MS.Win32.HwndSubclass.DispatcherCallbackOperation(System.Object)
+System.Windows.Threading.ExceptionWrapper.InternalRealCall(System.Delegate, System.Object, Int32)
+System.Windows.Threading.ExceptionWrapper.TryCatchWhen(System.Object, System.Delegate, System.Object, Int32, System.Delegate)
+System.Windows.Threading.Dispatcher.LegacyInvokeImpl(System.Windows.Threading.DispatcherPriority, System.TimeSpan, System.Delegate, System.Object, Int32)
+MS.Win32.HwndSubclass.SubclassWndProc(IntPtr, Int32, IntPtr, IntPtr)
+Current stack:
+[HelperMethodFrame]

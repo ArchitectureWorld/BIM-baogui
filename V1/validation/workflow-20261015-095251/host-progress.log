@@ -1,0 +1,9 @@
+2026-10-15T09:53:16.9359835+08:00 registered: 3 copies
+2026-10-15T09:53:36.6674149+08:00 open D:\18_建模项目\湖北BIM云平台\V1\validation\workflow-20261015-095251\models\总图.0008_干净.rvt
+2026-10-15T09:54:03.6530861+08:00 native start 总图.0008_干净
+2026-10-15T09:54:05.2135350+08:00 native end 总图.0008_干净
+2026-10-15T09:54:09.4655276+08:00 finished 总图.0008_干净
+2026-10-15T09:54:09.4675220+08:00 open D:\18_建模项目\湖北BIM云平台\V1\validation\workflow-20261015-095251\models\厂房_干净.rvt
+2026-10-15T09:54:09.4753832+08:00 ERROR Autodesk.Revit.Exceptions.InvalidOperationException: Switching active documents is not allowed during API event handling.
+   在 Autodesk.Revit.UI.UIApplication.OpenAndActivateDocument(String fileName)
+   在 HifcAcceptanceHost.Tick(Object sender, IdlingEventArgs args)

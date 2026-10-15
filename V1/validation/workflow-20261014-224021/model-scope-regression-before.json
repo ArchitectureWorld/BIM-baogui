@@ -1,0 +1,40 @@
+{
+  "allPassed": false,
+  "categories": [
+    {
+      "category": "<草图>",
+      "count": 135
+    },
+    {
+      "category": "材质",
+      "count": 124
+    },
+    {
+      "category": "材质资源",
+      "count": 23
+    },
+    {
+      "category": "管段",
+      "count": 12
+    },
+    {
+      "category": "日光路径",
+      "count": 17
+    },
+    {
+      "category": "图例构件",
+      "count": 64
+    },
+    {
+      "category": "图纸",
+      "count": 1
+    },
+    {
+      "category": "相机",
+      "count": 3
+    }
+  ],
+  "test": "only_model_inventory_excludes_material_and_support_records",
+  "excluded_count": 379,
+  "source": "V1\\validation\\workflow-20261014-224021\\总图.0008_干净-native.json"
+}

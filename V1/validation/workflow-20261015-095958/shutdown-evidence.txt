@@ -1,0 +1,4 @@
+ Jrn.Command "KeyboardShortcut" , "�˳�Ӧ�ó�����ʾ������Ŀ , ID_APP_EXIT"
+'C 15-10��-2026 10:04:37.533;  ->desktop ExitNativeInstance 
+'C 15-10��-2026 10:04:44.009;  <-desktop ExitNativeInstance 
+'C 15-10��-2026 10:04:44.010;  finished recording journal file 

@@ -1,0 +1,84 @@
+  正在确定要还原的项目…
+  已还原 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Reference.Tests\Hifc.Reference.Tests.csproj (用时 67 ms)。
+  已还原 D:\18_建模项目\湖北BIM云平台\V1\src\Hifc.Reference.Core\Hifc.Reference.Core.csproj (用时 65 ms)。
+  Hifc.Reference.Core -> D:\18_建模项目\湖北BIM云平台\V1\src\Hifc.Reference.Core\bin\Release\net48\Hifc.Reference.Core.dll
+  Hifc.Reference.Tests -> D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Reference.Tests\bin\Release\net48\Hifc.Reference.Tests.exe
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:02.00
+PASS complete_280_reference_rows
+PASS preserve_205_source_names
+PASS legacy_slot_selects_only_net_land
+PASS canonical_slot_selects_same_definition
+PASS empty_slot_blocks
+PASS unknown_slot_blocks
+PASS bad_contract_blocks
+PASS uuid5_source_matches_python
+PASS uuid5_bridge_matches_python
+PASS same_property_different_psets_have_separate_bridges
+PASS instance_value_precedes_type
+PASS unset_instance_uses_type
+PASS zero_is_not_missing
+PASS false_is_not_missing
+PASS duplicate_source_names_block
+PASS boolean_bridge_uses_numeric_encoding
+PASS number_bridge_uses_invariant_precision
+PASS generated_tsv_uses_property_scoped_bridge
+PASS manager_zero_is_valid
+PASS manager_false_is_valid
+PASS manager_distinguishes_missing_parameter_and_empty
+PASS manager_ambiguous_names_are_not_complete
+PASS manager_bad_number_is_not_complete
+PASS manager_unknown_reference_type_remains_unverified
+PASS manager_type_source_is_read_only
+PASS manager_missing_required_model_blocks_ready
+PASS manager_unclassified_candidate_is_not_declared_absent
+PASS manager_unconfirmed_scope_is_not_ready
+PASS manager_no_fields_is_not_100_percent
+PASS manager_complete_assigned_sample_has_separate_metrics
+PASS manager_nonfinite_and_invalid_boolean_are_rejected
+PASS manager_preview_guard_accepts_same_document_snapshot
+PASS manager_preview_guard_rejects_changed_value
+PASS manager_preview_guard_rejects_other_document
+PASS manager_preview_guard_requires_evidence
+RESULT failures=0; tests=35
+  正在确定要还原的项目…
+  已还原 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\Hifc.Ui.Tests.csproj (用时 106 ms)。
+  1 个项目(共 2 个)是最新的，无法还原。
+  Hifc.Reference.Core -> D:\18_建模项目\湖北BIM云平台\V1\src\Hifc.Reference.Core\bin\Release\net48\Hifc.Reference.Core.dll
+  Hifc.Ui.Tests -> D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\bin\Release\net48\Hifc.Ui.Tests.exe
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:01.32
+PASS window_load_starts_scan_without_preselection
+PASS overview_shows_separate_counts
+PASS unconfirmed_requirements_cannot_show_ready
+PASS unclassified_filter_works
+PASS missing_field_filter_works
+PASS text_search_works
+PASS classification_preview_uses_panel_targets
+PASS attribute_preview_uses_original_source_name
+PASS locate_uses_panel_selection
+PASS stale_scan_blocks_new_edit
+PASS missing_required_model_blocks_overall_status
+PASS standard_window_layout_renders
+PASS minimum_window_layout_renders
+RESULT failures=0; tests=13
+  正在确定要还原的项目…
+  已还原 D:\18_建模项目\湖北BIM云平台\V1\src\Hifc.Revit\Hifc.Revit.csproj (用时 92 ms)。
+  1 个项目(共 2 个)是最新的，无法还原。
+  Hifc.Reference.Core -> D:\18_建模项目\湖北BIM云平台\V1\src\Hifc.Reference.Core\bin\Release\net48\Hifc.Reference.Core.dll
+  Hifc.Revit -> D:\18_建模项目\湖北BIM云平台\V1\src\Hifc.Revit\bin\Release\net48\Hifc.Revit.dll
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:01.31
+Package: D:\18_建模项目\湖北BIM云平台\V1\dist\Hifc.V1.Revit2020-0.2.1

@@ -1,0 +1,9 @@
+﻿{
+    "expected_identity":  "Hifc.V1.Revit, Version=0.3.2.0, Culture=neutral, PublicKeyToken=null",
+    "other_identity":  "Hifc.Revit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+    "actual_identity":  "Hifc.V1.Revit, Version=0.3.2.0, Culture=neutral, PublicKeyToken=null",
+    "actual_location":  "D:\\18_建模项目\\湖北BIM云平台\\V1\\dist\\Hifc.V1.Revit2020-0.3.2\\Hifc.V1.Revit.dll",
+    "expected_location":  "D:\\18_建模项目\\湖北BIM云平台\\V1\\dist\\Hifc.V1.Revit2020-0.3.2\\Hifc.V1.Revit.dll",
+    "shared_assembly_instance":  false,
+    "allPassed":  true
+}

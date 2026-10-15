@@ -1,0 +1,17 @@
+[
+  {
+    "copy": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\workflow-20261014-230810\\models\\总图.0008_干净.rvt",
+    "source": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\revit原文件\\总图.0008_干净.rvt",
+    "sha256": "3515C8AE482CD94681E224F08F1790300EAB410E627BE88FFF67E96522A151B3"
+  },
+  {
+    "copy": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\workflow-20261014-230810\\models\\厂房_干净.rvt",
+    "source": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\revit原文件\\厂房_干净.rvt",
+    "sha256": "A4FDF8255A5EAA825747CA9E73491A28DE2623CDE15729717DFA5962EC74C3ED"
+  },
+  {
+    "copy": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\workflow-20261014-230810\\models\\职工后勤楼_干净.rvt",
+    "source": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\revit原文件\\职工后勤楼_干净.rvt",
+    "sha256": "C5738A480556D7099A4CE666A185C37D7E238A93BE129A3D9AAE1ECBA62398E8"
+  }
+]
