@@ -13,6 +13,11 @@ namespace Hifc.Revit.Management
     // The opaque data cells intentionally remain readable; no WebView or native-window blur hooks.
     internal static class LiquidGlassTheme
     {
+        // Revit 2020 WPF uses device-independent pixels (DIP), scaled by Windows DPI.
+        internal const double ControlHeight = 36;
+        internal const double ControlRadius = 10;
+        internal const double ControlGap = 8;
+        internal const double ControlFontSize = 12;
         internal static SolidColorBrush Color(string hex) =>
             new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
 
@@ -30,15 +35,19 @@ namespace Hifc.Revit.Management
             window.Background = Gradient("#F9FCFF", "#E8F1FA");
             window.Foreground = Color("#19324F");
             window.FontFamily = new FontFamily("Microsoft YaHei UI");
-            window.FontSize = 12;
+            window.FontSize = ControlFontSize;
             var style = new Style(typeof(Button));
             style.Setters.Add(new Setter(Control.BackgroundProperty, Gradient("#FAFFFFFF", "#E6EDF6FF")));
             style.Setters.Add(new Setter(Control.ForegroundProperty, Color("#28476A")));
             style.Setters.Add(new Setter(Control.BorderBrushProperty, Color("#C7D8EA")));
             style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
-            style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(15, 8, 15, 8)));
-            style.Setters.Add(new Setter(FrameworkElement.MinHeightProperty, 36.0));
+            style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(15, 0, 15, 0)));
+            style.Setters.Add(new Setter(FrameworkElement.HeightProperty, ControlHeight));
+            style.Setters.Add(new Setter(FrameworkElement.MinHeightProperty, ControlHeight));
+            style.Setters.Add(new Setter(Control.FontSizeProperty, ControlFontSize));
             style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.Medium));
+            style.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Center));
+            style.Setters.Add(new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
             style.Setters.Add(new Setter(FrameworkElement.CursorProperty, Cursors.Hand));
             style.Setters.Add(new Setter(Control.TemplateProperty, ButtonTemplate()));
             window.Resources[typeof(Button)] = style;
@@ -48,7 +57,7 @@ namespace Hifc.Revit.Management
         {
             var border = new FrameworkElementFactory(typeof(Border));
             border.Name = "surface";
-            border.SetValue(Border.CornerRadiusProperty, new CornerRadius(10));
+            border.SetValue(Border.CornerRadiusProperty, new CornerRadius(ControlRadius));
             border.SetBinding(Border.BackgroundProperty, new Binding("Background") { RelativeSource = RelativeSource.TemplatedParent });
             border.SetBinding(Border.BorderBrushProperty, new Binding("BorderBrush") { RelativeSource = RelativeSource.TemplatedParent });
             border.SetBinding(Border.BorderThicknessProperty, new Binding("BorderThickness") { RelativeSource = RelativeSource.TemplatedParent });
@@ -98,28 +107,130 @@ namespace Hifc.Revit.Management
 
         internal static Border Pill(string value) => new Border
         {
-            Background = Gradient("#EAF4FF", "#D7EAFD"),
-            BorderBrush = Color("#F3FFFFFF"), BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(11), Padding = new Thickness(13, 9, 13, 9),
-            Child = new TextBlock { Text = value, Foreground = Color("#35669E"), VerticalAlignment = VerticalAlignment.Center }
+            Background = Gradient("#F2F7FC", "#EAF1F8"),
+            BorderBrush = Color("#E1EBF5"), BorderThickness = new Thickness(1),
+            Height = ControlHeight, CornerRadius = new CornerRadius(ControlRadius),
+            Padding = new Thickness(12, 0, 12, 0),
+            Child = new TextBlock { Text = value, Foreground = Color("#617B98"), FontSize = ControlFontSize, VerticalAlignment = VerticalAlignment.Center }
         };
+
+
+        private static ControlTemplate ComboTemplate()
+        {
+            // Native ComboBox template with a full-height hit target and a real Popup.
+            // WPF still owns keyboard navigation, item selection, and IsDropDownOpen.
+            var root = new FrameworkElementFactory(typeof(Grid));
+            var surface = new FrameworkElementFactory(typeof(Border));
+            surface.Name = "comboSurface";
+            surface.SetValue(Border.CornerRadiusProperty, new CornerRadius(ControlRadius));
+            surface.SetBinding(Border.BackgroundProperty, new Binding("Background") { RelativeSource = RelativeSource.TemplatedParent });
+            surface.SetBinding(Border.BorderBrushProperty, new Binding("BorderBrush") { RelativeSource = RelativeSource.TemplatedParent });
+            surface.SetBinding(Border.BorderThicknessProperty, new Binding("BorderThickness") { RelativeSource = RelativeSource.TemplatedParent });
+            root.AppendChild(surface);
+
+            var selected = new FrameworkElementFactory(typeof(ContentPresenter));
+            selected.Name = "SelectionContent";
+            selected.SetBinding(ContentPresenter.ContentProperty, new Binding("SelectionBoxItem") { RelativeSource = RelativeSource.TemplatedParent });
+            selected.SetBinding(ContentPresenter.ContentTemplateProperty, new Binding("SelectionBoxItemTemplate") { RelativeSource = RelativeSource.TemplatedParent });
+            selected.SetValue(FrameworkElement.MarginProperty, new Thickness(14, 0, 28, 0));
+            selected.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+            selected.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Left);
+            selected.SetValue(UIElement.IsHitTestVisibleProperty, false);
+            root.AppendChild(selected);
+
+            var arrow = new FrameworkElementFactory(typeof(System.Windows.Shapes.Path));
+            arrow.SetValue(System.Windows.Shapes.Path.DataProperty, Geometry.Parse("M 1,1 L 5,5 L 9,1"));
+            arrow.SetValue(System.Windows.Shapes.Path.StrokeProperty, Color("#6483A4"));
+            arrow.SetValue(System.Windows.Shapes.Path.StrokeThicknessProperty, 1.7);
+            arrow.SetValue(FrameworkElement.WidthProperty, 10.0);
+            arrow.SetValue(FrameworkElement.HeightProperty, 6.0);
+            arrow.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Right);
+            arrow.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+            arrow.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 13, 0));
+            arrow.SetValue(UIElement.IsHitTestVisibleProperty, false);
+            root.AppendChild(arrow);
+
+            var toggleVisual = new FrameworkElementFactory(typeof(Border));
+            toggleVisual.SetValue(Border.BackgroundProperty, Brushes.Transparent);
+            var toggleTemplate = new ControlTemplate(typeof(ToggleButton)) { VisualTree = toggleVisual };
+            var toggle = new FrameworkElementFactory(typeof(ToggleButton));
+            toggle.Name = "DropDownToggle";
+            toggle.SetValue(Control.TemplateProperty, toggleTemplate);
+            toggle.SetValue(Control.FocusableProperty, false);
+            toggle.SetBinding(ToggleButton.IsCheckedProperty,
+                new Binding("IsDropDownOpen") { RelativeSource = RelativeSource.TemplatedParent, Mode = BindingMode.TwoWay });
+            root.AppendChild(toggle);
+
+            var popup = new FrameworkElementFactory(typeof(Popup));
+            popup.Name = "PART_Popup";
+            popup.SetValue(Popup.PlacementProperty, PlacementMode.Bottom);
+            popup.SetValue(Popup.AllowsTransparencyProperty, true);
+            popup.SetValue(Popup.StaysOpenProperty, false);
+            popup.SetBinding(Popup.IsOpenProperty,
+                new Binding("IsDropDownOpen") { RelativeSource = RelativeSource.TemplatedParent, Mode = BindingMode.TwoWay });
+            var dropSurface = new FrameworkElementFactory(typeof(Border));
+            dropSurface.SetValue(Border.BackgroundProperty, Color("#FAFFFFFF"));
+            dropSurface.SetValue(Border.BorderBrushProperty, Color("#CFDFEE"));
+            dropSurface.SetValue(Border.BorderThicknessProperty, new Thickness(1));
+            dropSurface.SetValue(Border.CornerRadiusProperty, new CornerRadius(ControlRadius));
+            dropSurface.SetValue(Border.PaddingProperty, new Thickness(4));
+            dropSurface.SetValue(UIElement.EffectProperty, new DropShadowEffect
+            {
+                Color = (Color)ColorConverter.ConvertFromString("#6D8BAB"),
+                BlurRadius = 13, ShadowDepth = 4, Opacity = 0.21
+            });
+            dropSurface.SetBinding(FrameworkElement.MinWidthProperty,
+                new Binding("ActualWidth") { RelativeSource = RelativeSource.TemplatedParent });
+            var listScroll = new FrameworkElementFactory(typeof(ScrollViewer));
+            listScroll.SetValue(ScrollViewer.VerticalScrollBarVisibilityProperty, ScrollBarVisibility.Auto);
+            listScroll.SetValue(ScrollViewer.HorizontalScrollBarVisibilityProperty, ScrollBarVisibility.Disabled);
+            listScroll.SetValue(ScrollViewer.CanContentScrollProperty, true);
+            listScroll.SetValue(FrameworkElement.MaxHeightProperty, 280.0);
+            var items = new FrameworkElementFactory(typeof(ItemsPresenter));
+            listScroll.AppendChild(items);
+            dropSurface.AppendChild(listScroll);
+            popup.AppendChild(dropSurface);
+            root.AppendChild(popup);
+
+            var template = new ControlTemplate(typeof(ComboBox)) { VisualTree = root };
+            var disabled = new Trigger { Property = UIElement.IsEnabledProperty, Value = false };
+            disabled.Setters.Add(new Setter(UIElement.OpacityProperty, 0.46));
+            template.Triggers.Add(disabled);
+            var hover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+            hover.Setters.Add(new Setter(Border.BorderBrushProperty, Color("#80AEDC"), "comboSurface"));
+            template.Triggers.Add(hover);
+            return template;
+        }
 
         internal static void Combo(ComboBox combo)
         {
-            combo.Background = Color("#F9FCFF");
+            combo.Height = ControlHeight;
+            combo.MinHeight = ControlHeight;
+            combo.Background = Gradient("#FCFFFFFF", "#EDF5FD");
             combo.Foreground = Color("#213F62");
             combo.BorderBrush = Color("#C6D7E9");
             combo.BorderThickness = new Thickness(1);
-            combo.Padding = new Thickness(7, 5, 7, 5);
-            combo.MinHeight = 36;
+            combo.Padding = new Thickness(14, 0, 30, 0);
+            combo.FontSize = ControlFontSize;
+            combo.FontWeight = FontWeights.Medium;
+            combo.VerticalContentAlignment = VerticalAlignment.Center;
+            combo.Margin = new Thickness(0, 0, ControlGap, 0);
+            combo.Template = ComboTemplate();
+            var itemStyle = new Style(typeof(ComboBoxItem));
+            itemStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(12, 7, 12, 7)));
+            itemStyle.Setters.Add(new Setter(Control.FontSizeProperty, ControlFontSize));
+            combo.ItemContainerStyle = itemStyle;
         }
 
         internal static void SearchBox(TextBox box)
         {
+            box.Height = ControlHeight;
+            box.MinHeight = ControlHeight;
             box.BorderThickness = new Thickness(0);
             box.Background = Brushes.Transparent;
             box.Foreground = Color("#193A5F");
-            box.Padding = new Thickness(5, 6, 5, 6);
+            box.FontSize = ControlFontSize;
+            box.Padding = new Thickness(5, 0, 5, 0);
             box.VerticalContentAlignment = VerticalAlignment.Center;
         }
 
