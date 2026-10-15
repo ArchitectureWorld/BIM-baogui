@@ -174,13 +174,25 @@ namespace Hifc.Revit.Management
             DockPanel.SetDock(heading, Dock.Left); tableHeading.Children.Add(heading);
             Search.Width = 220;
             LiquidGlassTheme.SearchBox(Search);
+            var searchHost = new Grid();
+            searchHost.Children.Add(Search);
+            var searchWatermark = new TextBlock
+            {
+                Text = "搜索 ID / 名称 / 类别 / 楼层",
+                Foreground = LiquidGlassTheme.Color("#8CA4BD"),
+                VerticalAlignment = VerticalAlignment.Center,
+                IsHitTestVisible = false, Margin = new Thickness(13, 0, 0, 0)
+            };
+            searchHost.Children.Add(searchWatermark);
+            Search.TextChanged += (s, e) =>
+                searchWatermark.Visibility = string.IsNullOrEmpty(Search.Text) ? Visibility.Visible : Visibility.Collapsed;
             var searchOuter = new Border
             {
                 Background = LiquidGlassTheme.Color("#EFF7FF"),
                 BorderBrush = LiquidGlassTheme.Color("#D3E1F0"),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(11), Padding = new Thickness(8, 0, 8, 0),
-                Child = Search
+                Child = searchHost
             };
             DockPanel.SetDock(searchOuter, Dock.Right); tableHeading.Children.Add(searchOuter);
             Put(center, tableHeading, 0);
@@ -395,13 +407,13 @@ namespace Hifc.Revit.Management
             SetMetric(coverageMetric, "参考项覆盖\n" + present + " / " + required, required == 0 ? (double?)null : 100.0 * present / required);
             SetMetric(presenceMetric, "字段存在（类型去重）\n" + Summary.PresentFields + " / " + Summary.FieldCount, Summary.FieldCount == 0 ? (double?)null : 100.0 * Summary.PresentFields / Summary.FieldCount); SetMetric(valueMetric, "有效属性值\n" + Summary.ValidFields + " / " + Summary.FieldCount, Summary.FieldPercent);
             readyMetric.Content = "本轮状态\n" + (Summary.PendingRequirements > 0 ? Summary.Basis : Summary.Ready ? "案例数据检查完成" : "未找到 " + Summary.MissingRequired + " · 待确认类 " + Summary.PendingClassificationRoles + "\n待补属性 " + result.Elements.SelectMany(e => e.Fields).Count(f => !f.Acceptable) + " · 未覆盖 " + Summary.CoverageGaps);
-            var rules = CaseWorkflow.ForModel(result.Stage, result.ModelKind); roleList.ItemsSource = Summary.Roles.Select(r => new RoleItem { Role = r, Source = string.Join("、", rules.Single(rule => rule.Slot == r.Slot).Sources) }).ToArray(); roleList.DisplayMemberPath = "Text";
+            var rules = CaseWorkflow.ForModel(result.Stage, result.ModelKind); roleList.ItemsSource = Summary.Roles.Select(r => new RoleItem { Role = r, Source = string.Join("、", rules.Single(rule => rule.Slot == r.Slot).Sources) }).ToArray();
             conflicts.ItemsSource = result.Elements.Where(e => !string.IsNullOrEmpty(e.Issue) || !string.IsNullOrEmpty(e.CoverageNote)).Select(e => e.Id + " / " + e.Name + "：" + e.StatusText).ToArray();
             RefreshRows(); SetBusy(false, result.Stage == "施工图" ? "基础盘点完成；施工图检查规则待建立。" : "全面检查完成，正在整理可补齐项。", result.Elements.Length, result.Elements.Length);
             if (state == null) InitializeState(result.DocumentKey);
             state.Snapshot = result; PersistState(); UpdateWriteButton();
         }
-        private sealed class RoleItem { public RoleCoverage Role { get; set; } public string Source { get; set; } public string Text => Role.Slot + "\n" + ProductStatus.Text(Role.State) + " · 已识别 " + Role.Count + " / 候选 " + Role.Candidates; }
+        private sealed class RoleItem { public RoleCoverage Role { get; set; } public string Source { get; set; } public string Subtitle => ProductStatus.Text(Role.State) + " · 已识别 " + Role.Count + " / 候选 " + Role.Candidates; public string Text => Role.Slot + "\n" + Subtitle; }
         internal void SetFilter(string value) { filter = value ?? "全部"; roleFilter = null; RefreshRows(); }
         private void RefreshRows()
         {
