@@ -61,7 +61,7 @@ namespace Hifc.Revit.Management
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
             LiquidGlassTheme.Apply(this);
 
-            var root = new Grid { Margin = new Thickness(21, 17, 21, 15) };
+            var root = new Grid { Margin = new Thickness(21, 17, 21, 15), Background = Background };
             foreach (var height in new[] { GridLength.Auto, GridLength.Auto, new GridLength(1, GridUnitType.Star), GridLength.Auto, GridLength.Auto })
                 root.RowDefinitions.Add(new RowDefinition { Height = height });
 
@@ -169,7 +169,7 @@ namespace Hifc.Revit.Management
             center.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             center.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             center.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            var tableHeading = new DockPanel { Margin = new Thickness(3, 0, 1, 11) };
+            var tableHeading = new DockPanel { Margin = new Thickness(3, 0, 1, 11), LastChildFill = false };
             var heading = LiquidGlassTheme.Title("模型对象列表");
             DockPanel.SetDock(heading, Dock.Left); tableHeading.Children.Add(heading);
             Search.Width = 220;
@@ -224,8 +224,9 @@ namespace Hifc.Revit.Management
                 catch (Exception ex) { SetStatus(ex.Message, true); }
             };
             Put(center, ElementGrid, 2);
-            Grid.SetColumn(center, 1);
-            work.Children.Add(LiquidGlassTheme.Card(center, new Thickness(0, 0, 9, 0)));
+            var centerCard = LiquidGlassTheme.Card(center, new Thickness(0, 0, 9, 0));
+            Grid.SetColumn(centerCard, 1);
+            work.Children.Add(centerCard);
 
             // Right: direct property editing and explicit classification correction.
             var right = new Grid();
@@ -233,7 +234,7 @@ namespace Hifc.Revit.Management
             right.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             right.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
             right.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            var inspectorHeader = new DockPanel { Margin = new Thickness(4, 0, 2, 14) };
+            var inspectorHeader = new DockPanel { Margin = new Thickness(4, 0, 2, 14), LastChildFill = false };
             var inspectorTitle = LiquidGlassTheme.Title("属性编辑");
             DockPanel.SetDock(inspectorTitle, Dock.Left);
             inspectorHeader.Children.Add(inspectorTitle);
@@ -323,8 +324,9 @@ namespace Hifc.Revit.Management
                 Margin = new Thickness(0, 13, 0, 0)
             });
             Put(right, editor, 3);
-            Grid.SetColumn(right, 2);
-            work.Children.Add(LiquidGlassTheme.Card(right, new Thickness(0)));
+            var rightCard = LiquidGlassTheme.Card(right, new Thickness(0));
+            Grid.SetColumn(rightCard, 2);
+            work.Children.Add(rightCard);
             Put(root, work, 2);
 
             var diagnostics = new DockPanel { MaxHeight = 270 };
