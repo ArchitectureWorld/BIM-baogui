@@ -31,12 +31,12 @@ namespace Hifc.Revit.Management
         private readonly Button coverageMetric, presenceMetric, valueMetric, readyMetric, applyButton, cancelButton;
         private readonly ListBox roleList = new ListBox { HorizontalContentAlignment = HorizontalAlignment.Stretch }, conflicts = new ListBox();
         private readonly TabControl rightTabs = new TabControl();
-        internal readonly ComboBox StageSelector = new ComboBox { ItemsSource = new[] { "报规", "施工图" }, Width = 100, MinHeight = 29 };
-        internal readonly ComboBox KindSelector = new ComboBox { ItemsSource = new[] { "自动识别", "总图", "单体建筑" }, SelectedIndex = 0, Width = 120, MinHeight = 29 };
-        internal readonly ComboBox SlotSelector = new ComboBox { MinHeight = 28 };
+        internal readonly ComboBox StageSelector = new ComboBox { ItemsSource = new[] { "报规", "施工图" }, Width = 100 };
+        internal readonly ComboBox KindSelector = new ComboBox { ItemsSource = new[] { "自动识别", "总图", "单体建筑" }, SelectedIndex = 0, Width = 120 };
+        internal readonly ComboBox SlotSelector = new ComboBox();
         internal readonly DataGrid ElementGrid = GridTable(), FieldGrid = GridTable(), PreviewGrid = GridTable();
-        internal readonly TextBox NewValue = new TextBox { MinHeight = 28 };
-        internal readonly TextBox Search = new TextBox { MinHeight = 28, Width = 165, ToolTip = "名称、ID、类别、楼层、属性组" };
+        internal readonly TextBox NewValue = new TextBox();
+        internal readonly TextBox Search = new TextBox { Width = 165, ToolTip = "名称、ID、类别、楼层、属性组" };
         internal string SelectedStage => StageSelector.SelectedItem as string;
         internal string RequestedKind => KindSelector.SelectedItem as string ?? "自动识别";
         internal ModelSummary Summary { get; private set; }
@@ -60,6 +60,7 @@ namespace Hifc.Revit.Management
             Width = Math.Min(Width, SystemParameters.WorkArea.Width);
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
             LiquidGlassTheme.Apply(this);
+            LiquidGlassTheme.SearchBox(NewValue);
 
             var root = new Grid { Margin = new Thickness(21, 17, 21, 15), Background = Background };
             foreach (var height in new[] { GridLength.Auto, GridLength.Auto, new GridLength(1, GridUnitType.Star), GridLength.Auto, GridLength.Auto })
@@ -111,7 +112,7 @@ namespace Hifc.Revit.Management
             Put(root, header, 0);
 
             // Four-step workflow remains exactly the same as v0.4.0.
-            var choices = new WrapPanel { Margin = new Thickness(0, 0, 0, 14), VerticalAlignment = VerticalAlignment.Center };
+            var choices = new WrapPanel { Margin = new Thickness(0, 0, 0, 14), VerticalAlignment = VerticalAlignment.Center, ItemHeight = LiquidGlassTheme.ControlHeight };
             choices.Children.Add(Label("1  人工确认阶段"));
             LiquidGlassTheme.Combo(StageSelector); choices.Children.Add(StageSelector);
             choices.Children.Add(Label("2  模型类型"));
@@ -174,6 +175,7 @@ namespace Hifc.Revit.Management
             DockPanel.SetDock(heading, Dock.Left); tableHeading.Children.Add(heading);
             Search.Width = 220;
             LiquidGlassTheme.SearchBox(Search);
+            Search.Height = LiquidGlassTheme.ControlHeight - 2;
             var searchHost = new Grid();
             searchHost.Children.Add(Search);
             var searchWatermark = new TextBlock
@@ -191,13 +193,14 @@ namespace Hifc.Revit.Management
                 Background = LiquidGlassTheme.Color("#EFF7FF"),
                 BorderBrush = LiquidGlassTheme.Color("#D3E1F0"),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(11), Padding = new Thickness(8, 0, 8, 0),
+                CornerRadius = new CornerRadius(LiquidGlassTheme.ControlRadius),
+                Height = LiquidGlassTheme.ControlHeight, Padding = new Thickness(8, 0, 8, 0),
                 Child = searchHost
             };
             DockPanel.SetDock(searchOuter, Dock.Right); tableHeading.Children.Add(searchOuter);
             Put(center, tableHeading, 0);
             Search.TextChanged += (s, e) => RefreshRows();
-            var toolbar = new WrapPanel { Margin = new Thickness(0, 0, 0, 10) };
+            var toolbar = new WrapPanel { Margin = new Thickness(0, 0, 0, 10), ItemHeight = LiquidGlassTheme.ControlHeight };
             var filters = new ComboBox
             {
                 ItemsSource = new[] { "全部", "待处理", "未分类", "缺字段", "已完成", "普通构件" },
@@ -209,10 +212,20 @@ namespace Hifc.Revit.Management
             toolbar.Children.Add(ActionButton("全选列表", () => ElementGrid.SelectAll()));
             toolbar.Children.Add(ActionButton("定位所选", LocateSelected));
             range.Text = "显示 0 / 全量 0";
-            range.Margin = new Thickness(10, 0, 0, 0);
+            range.Margin = new Thickness(0);
+            range.FontSize = LiquidGlassTheme.ControlFontSize;
             range.Foreground = LiquidGlassTheme.Color("#7590AC");
             range.VerticalAlignment = VerticalAlignment.Center;
-            toolbar.Children.Add(range);
+            toolbar.Children.Add(new Border
+            {
+                Child = range,
+                Height = LiquidGlassTheme.ControlHeight,
+                CornerRadius = new CornerRadius(LiquidGlassTheme.ControlRadius),
+                Background = LiquidGlassTheme.Color("#F4F7FB"),
+                Padding = new Thickness(10, 0, 10, 0),
+                BorderBrush = LiquidGlassTheme.Color("#E4ECF5"),
+                BorderThickness = new Thickness(1)
+            });
             Put(center, toolbar, 1);
 
             Column(ElementGrid, "ID", "Id", 65);
@@ -324,6 +337,7 @@ namespace Hifc.Revit.Management
                 Margin = new Thickness(0, 0, 0, 7)
             });
             LiquidGlassTheme.Combo(SlotSelector);
+            SlotSelector.Margin = new Thickness(0);
             editor.Children.Add(SlotSelector);
             var categoryButton = ActionButton("设置所选分类", PreviewClassification);
             categoryButton.Margin = new Thickness(0, 10, 0, 0);
@@ -385,13 +399,13 @@ namespace Hifc.Revit.Management
             };
             Closed += (s, e) => session.Close();
         }
-        private static TextBlock Label(string text) => new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(6, 3, 9, 3) };
+        private static TextBlock Label(string text) => new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center, FontSize = LiquidGlassTheme.ControlFontSize, Foreground = LiquidGlassTheme.Color("#334D68"), Margin = new Thickness(6, 0, 9, 0) };
         private static SolidColorBrush Brush(string color) => (SolidColorBrush)new BrushConverter().ConvertFromString(color);
         private static void Put(Grid grid, UIElement element, int row) { Grid.SetRow(element, row); grid.Children.Add(element); }
         private static DataGrid GridTable() => new DataGrid { AutoGenerateColumns = false, IsReadOnly = true, CanUserAddRows = false, CanUserDeleteRows = false, RowHeight = 30, EnableRowVirtualization = true, EnableColumnVirtualization = true, Background = Brushes.White, SelectionUnit = DataGridSelectionUnit.FullRow };
         private static void Column(DataGrid grid, string title, string path, double width) => grid.Columns.Add(new DataGridTextColumn { Header = title, Binding = new Binding(path), Width = width });
-        private Button ActionButton(string title, Action action) { var button = new Button { Content = title, Padding = new Thickness(13, 7, 13, 7), Margin = new Thickness(7, 2, 0, 2), MinHeight = 36 }; button.Click += (s, e) => { try { action(); } catch (Exception ex) { SetStatus(ex.Message, true); } }; return button; }
-        private Button Metric(string title, Action action) { var b = ActionButton(title, action); b.HorizontalContentAlignment = HorizontalAlignment.Left; b.Background = Brushes.White; b.Padding = new Thickness(12); b.FontSize = 14; return b; }
+        private Button ActionButton(string title, Action action) { var button = new Button { Content = title, Height = LiquidGlassTheme.ControlHeight, MinHeight = LiquidGlassTheme.ControlHeight, FontSize = LiquidGlassTheme.ControlFontSize, Padding = new Thickness(14, 0, 14, 0), Margin = new Thickness(0, 0, LiquidGlassTheme.ControlGap, 0), VerticalContentAlignment = VerticalAlignment.Center }; button.Click += (s, e) => { try { action(); } catch (Exception ex) { SetStatus(ex.Message, true); } }; return button; }
+        private Button Metric(string title, Action action) { var b = ActionButton(title, action); b.Height = 78; b.MinHeight = 78; b.HorizontalContentAlignment = HorizontalAlignment.Left; b.Background = Brushes.White; b.Padding = new Thickness(12); b.FontSize = 14; return b; }
         private static void SetMetric(Button button, string text, double? value) { var panel = new StackPanel(); panel.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap }); panel.Children.Add(new ProgressBar { Height = 4, Value = value ?? 0, Maximum = 100, Margin = new Thickness(0, 7, 0, 0) }); button.Content = panel; }
         internal void StartFullCheck() { if (SelectedStage != "报规" && SelectedStage != "施工图") throw new InvalidOperationException("请先人工选择阶段。"); if (busy) throw new InvalidOperationException("检查进行中。"); session.Scan(); }
         internal void SetBusy(bool value, string message, int done = 0, int total = 0)
