@@ -107,6 +107,15 @@ internal static class SimplifiedWorkflowTests
             Assert(range.Parent is Border tag && Math.Abs(tag.Height - LiquidGlassTheme.ControlHeight) < 0.01,
                 "Object count must remain a non-interactive, aligned 36 DIP status tag");
         });
+        check("object_table_toolbar_stays_on_one_row_at_ci_window_width", () => {
+            window.UpdateLayout();
+            var toolbar = Tree((DependencyObject)window.Content).OfType<WrapPanel>()
+                .Single(p => p.Children.OfType<ComboBox>().Any(c => c.Items.Count == 6));
+            var positions = toolbar.Children.OfType<FrameworkElement>()
+                .Select(element => element.TranslatePoint(new Point(0, 0), toolbar).Y).ToArray();
+            Assert(positions.Length == 4 && positions.Max() - positions.Min() < 1,
+                "Table filter, two actions and read-only status tag must share the same baseline");
+        });
         check("native_dropdown_selection_still_operates", () => {
             var combo = window.KindSelector;
             var prior = combo.SelectedItem;
