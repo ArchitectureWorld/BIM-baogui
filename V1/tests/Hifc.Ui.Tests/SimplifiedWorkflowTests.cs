@@ -65,6 +65,11 @@ internal static class SimplifiedWorkflowTests
                 "All three work cards must occupy distinct columns; a child column assignment is not enough");
             Assert(((Grid)window.Content).Background != null, "Window content canvas cannot be transparent in screenshots");
         });
+        check("category_navigation_uses_business_label_template", () => {
+            var list = (ListBox)typeof(ManagerWindow).GetField("roleList", Flags).GetValue(window);
+            Assert(list.ItemTemplate != null && string.IsNullOrEmpty(list.DisplayMemberPath),
+                "Custom glass item template must bind Role.Slot and Subtitle, not show the CLR type name");
+        });
         check("glass_skin_preserves_real_selection_and_edit_controls", () => {
             Assert(window.StageSelector.Items.Count == 2 && window.KindSelector.Items.Count == 3, "Workflow selectors changed");
             Assert(window.FieldGrid.Columns.Cast<DataGridColumn>().Count(c => !c.IsReadOnly) == 1,
