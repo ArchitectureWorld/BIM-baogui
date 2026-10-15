@@ -28,4 +28,9 @@ validation/active-workflow-run.txt
 validation/workflow-*/models/
 validation/workflow-*/*-native.json
 validation/**/journal*.txt
+validation/**/host-journal.txt
+validation/ui-*/profiles/
+validation/ui-*/simplified-*/
+validation/ui-*/auto-profiles/
+validation/ui-*/four-value-profiles/
 validation/success-case-01/inventory.json

@@ -27,6 +27,7 @@ namespace Hifc.Revit.Management
             owner = ui; document = ui.ActiveUIDocument.Document;
             external = ExternalEvent.Create(this);
             Window = new ManagerWindow(this, Path.Combine(RuntimePaths.OutputDirectory(), "management-profiles"));
+            Window.RestoreState(ModelReader.Key(document));
             new System.Windows.Interop.WindowInteropHelper(Window).Owner = ui.MainWindowHandle;
             ui.Application.DocumentChanged += Changed;
         }
@@ -35,6 +36,7 @@ namespace Hifc.Revit.Management
             var doc = ui.ActiveUIDocument.Document;
             if (Windows.TryGetValue(doc, out var current) && !current.closed) { current.Window.Activate(); return; }
             var controller = new ManagerController(ui); Windows[doc] = controller; controller.Window.Show();
+            if (controller.Window.HasRememberedStage) controller.Scan();
         }
         private void Changed(object sender, DocumentChangedEventArgs args)
         {
@@ -122,7 +124,18 @@ namespace Hifc.Revit.Management
         public void Apply(EditPreview preview) => Queue(ui => {
             RequireCurrent();
             if (epoch != previewEpoch || preview.ScanId != snapshot.ScanId) throw new InvalidOperationException("预览后模型已变化，请重新生成预览。");
-            CaseEdits.Apply(document, preview); Window.InvalidatePreview("修改已写入并回读验证，开始全面复检。"); StartScan(ui);
+            var requests = Window.DraftRequests;
+            CaseEdits.Apply(document, preview); Window.RecordCommitted(preview, requests); Window.InvalidatePreview("修改已写入并回读验证，开始全面复检。"); StartScan(ui);
+        });
+        public void Write(EditRequest[] requests) => Queue(ui => {
+            RequireCurrent();
+            EditPreview combined;
+            try { combined = CaseEdits.PreviewBatch(document, snapshot, requests); }
+            catch (Exception ex) { Window.SetStatus("无法写入，修改已保留：" + ex.Message, true); return; }
+            if (combined.Changes.Length == 0) { Window.SetStatus("当前没有需要写入的变更。"); return; }
+            Window.ShowPreview(combined); Window.SetBusy(true, "正在写入 Revit 并回读验证…");
+            CaseEdits.Apply(document, combined); Window.RecordCommitted(combined, requests);
+            Window.InvalidatePreview("已写入 Revit；正在全面复检。请按需要保存 RVT 文件。"); StartScan(ui);
         });
         public void Export(int[] ids, string path) => Queue(ui => {
             var elements = ids.Select(id => document.GetElement(new ElementId(id)) ?? throw new InvalidOperationException("导出目标已删除，请复检。")).ToArray();

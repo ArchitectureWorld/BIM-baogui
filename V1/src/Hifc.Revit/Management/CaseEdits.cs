@@ -65,7 +65,12 @@ namespace Hifc.Revit.Management
                     if (field.State == "缺参数" || field.State == "未填写")
                     {
                         if (field.State != "缺参数" && !field.Editable) throw new InvalidOperationException("参数只读或有歧义");
-                        changes.Add(Change(doc, owner, field.Source, "赋值", field.SuggestedValue, field.SuggestionReason));
+                        var parameter = field.State == "缺参数" ? null : owner.GetParameters(field.Source).Single();
+                        var raw = field.SuggestedValue;
+                        if (parameter?.StorageType == StorageType.Double && field.SuggestionUnit == "m²" && parameter.Definition.UnitType == UnitType.UT_Area)
+                            raw = UnitUtils.ConvertToInternalUnits(double.Parse(raw, CultureInfo.InvariantCulture), DisplayUnitType.DUT_SQUARE_METERS).ToString("R", CultureInfo.InvariantCulture);
+                        else raw = ModelEdits.Normalize(doc, parameter, new ReferenceProperty { RawType = field.RawType }, raw);
+                        changes.Add(Change(doc, owner, field.Source, "赋值", raw, field.SuggestionReason));
                     }
                     else if (field.Value != field.SuggestedValue) conflicts.Add(owner.Id.IntegerValue + " / " + field.Source + "：现值与 " + field.SuggestionReason + " 不同，保留现值并请人工复核");
                 }
@@ -104,11 +109,14 @@ namespace Hifc.Revit.Management
                 if (request?.Kind == "赋值")
                 {
                     var field = row.Fields.SingleOrDefault(f => f.PropertySet == request.PropertySet && f.Source == request.Source && f.Binding == request.Binding);
-                    if (field == null || !field.Editable) throw new InvalidOperationException("所选构件不共享可写的该属性，请缩小面板选择范围。");
-                    var owner = doc.GetElement(new ElementId(field.OwnerId)); var parameter = owner.GetParameters(field.Source).Single();
+                    if (field == null || !field.Editable && field.State != "缺参数") throw new InvalidOperationException("所选构件不共享可写的该属性，请缩小面板选择范围。");
+                    var owner = doc.GetElement(new ElementId(field.OwnerId));
+                    if (owner == null) throw new InvalidOperationException("属性载体已不存在，请全面检查。");
+                    var parameter = field.State == "缺参数" ? null : owner.GetParameters(field.Source).Single();
+                    if (parameter == null) { ValidateCreate(doc, owner, field.Source); changes.Add(Change(doc, owner, field.Source, "新增参数", null, "手工填写缺失属性")); }
                     var property = new ReferenceProperty { RawType = field.RawType };
                     var raw = ModelEdits.Normalize(doc, parameter, property, request.Value);
-                    if (!changes.Any(c => c.Id == field.OwnerId && c.Source == field.Source)) changes.Add(Change(doc, owner, field.Source, "赋值", raw, "人工属性修改"));
+                    if (!changes.Any(c => c.Id == field.OwnerId && c.Source == field.Source && c.Action == "赋值")) changes.Add(Change(doc, owner, field.Source, "赋值", raw, "人工属性修改"));
                     continue;
                 }
                 if (request?.Kind == "分类")
@@ -132,6 +140,50 @@ namespace Hifc.Revit.Management
             var array = changes.ToArray();
             return new EditPreview { DocumentKey = snapshot.DocumentKey, ScanId = snapshot.ScanId, SnapshotHash = Fingerprint(doc, array), Changes = array,
                 Conflicts = conflicts.Distinct().ToArray(), Request = request ?? new EditRequest { Kind = "案例补齐", Ids = rows.Select(r => r.Id).ToArray() } };
+        }
+        internal static EditPreview PreviewBatch(Document doc, ModelSnapshot snapshot, EditRequest[] requests)
+        {
+            requests = requests ?? new EditRequest[0];
+            foreach (var request in requests)
+            {
+                if (request.Baselines == null || request.Baselines.Length != request.Ids.Length) throw new InvalidOperationException("修改缺少原值记录，请重新填写该属性。");
+                foreach (var baseline in request.Baselines)
+                {
+                    var row = snapshot.Elements.SingleOrDefault(r => r.Id == baseline.ElementId && r.UniqueId == baseline.ElementUniqueId);
+                    if (row == null) throw new InvalidOperationException("暂存构件已被替换，请重新检查并确认修改。");
+                    if (request.Kind == "分类")
+                    {
+                        if (row.Slot != baseline.Value) throw new InvalidOperationException("暂存分类与模型现状有冲突，请重新确认分类。");
+                        continue;
+                    }
+                    var field = row.Fields.SingleOrDefault(f => f.PropertySet == request.PropertySet && f.Source == request.Source && f.Binding == request.Binding);
+                    if (field == null || field.OwnerUniqueId != baseline.OwnerUniqueId || field.Value != baseline.Value || field.State != baseline.State || field.SourceSignature != baseline.SourceSignature)
+                        throw new InvalidOperationException("暂存属性与模型现状有冲突，请重新确认：" + request.Source);
+                }
+            }
+            var automatic = Preview(doc, snapshot);
+            var changes = automatic.Changes.ToList(); var conflicts = automatic.Conflicts.ToList();
+            var manualValues = new Dictionary<string, string>();
+            foreach (var request in requests.OrderBy(r => r.Kind == "分类" ? 0 : 1))
+            {
+                var proposed = Preview(doc, snapshot, request);
+                if (proposed.Conflicts.Length > 0) throw new InvalidOperationException(string.Join("\n", proposed.Conflicts));
+                if (request.Kind == "分类") changes.RemoveAll(c => request.Ids.Contains(c.Id));
+                foreach (var change in proposed.Changes)
+                {
+                    if (request.Kind == "赋值" && change.Action == "赋值")
+                    {
+                        var key = change.OwnerUniqueId + "|" + change.Source;
+                        if (manualValues.TryGetValue(key, out var previous) && previous != change.ExpectedRaw) throw new InvalidOperationException("同一来源参数在不同属性组中输入了不同的值，请统一后写入：" + change.Source);
+                        manualValues[key] = change.ExpectedRaw;
+                    }
+                    changes.RemoveAll(c => c.OwnerUniqueId == change.OwnerUniqueId && c.Source == change.Source && c.Action == change.Action);
+                    changes.Add(change);
+                }
+            }
+            var array = changes.ToArray();
+            return new EditPreview { DocumentKey = snapshot.DocumentKey, ScanId = snapshot.ScanId, SnapshotHash = Fingerprint(doc, array),
+                Changes = array, Conflicts = conflicts.Distinct().ToArray(), Request = new EditRequest { Kind = "统一写入", Ids = snapshot.Elements.Select(r => r.Id).ToArray() } };
         }
         internal static void Apply(Document doc, EditPreview preview)
         {

@@ -1,0 +1,67 @@
+  正在确定要还原的项目…
+  所有项目均是最新的，无法还原。
+  Hifc.Reference.Core -> D:\18_建模项目\湖北BIM云平台\V1\src\Hifc.Reference.Core\bin\Release\net48\Hifc.Reference.Core.dll
+  Hifc.Ui.Tests -> D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\bin\Release\net48\Hifc.Ui.Tests.exe
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:01.82
+PASS window_requires_explicit_stage_before_scanning
+PASS scan_without_stage_is_rejected
+PASS confirmed_phase_starts_scan_without_preselection
+PASS overview_separates_parameter_presence_and_values
+PASS case_missing_reference_cannot_show_ready
+PASS unclassified_filter_works
+PASS missing_field_filter_works
+PASS text_search_works
+PASS classification_preview_uses_panel_targets
+PASS attribute_preview_uses_property_set_and_source
+PASS locate_uses_panel_selection
+PASS stale_scan_blocks_new_edit
+PASS display_filter_never_changes_full_summary
+PASS stage_switch_invalidates_existing_preview
+PASS construction_shows_no_planning_pass
+PASS partial_snapshot_cannot_enable_writes
+PASS type_complete_candidate_stays_out_of_completed_filter
+PASS selecting_candidate_shows_evidence_and_proposed_class
+PASS role_list_displays_candidate_count
+PASS standard_window_layout_renders
+PASS minimum_window_layout_renders
+FAIL four_step_toolbar_exposes_check_and_write: System.Exception: Check/write actions are not explicit top-level steps
+   在 SimplifiedWorkflowTests.<>c__DisplayClass5_0.<Run>b__0() 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\SimplifiedWorkflowTests.cs:行号 44
+   在 Program.Check(String name, Action action) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\Program.cs:行号 33
+FAIL reference_metrics_are_inside_bottom_diagnostics: System.Exception: Development detail must start collapsed
+   在 SimplifiedWorkflowTests.<>c__DisplayClass5_0.<Run>b__1() 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\SimplifiedWorkflowTests.cs:行号 48
+   在 Program.Check(String name, Action action) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\Program.cs:行号 33
+FAIL attribute_values_are_editable_without_separate_preview_button: System.Exception: Property table still read only
+   在 SimplifiedWorkflowTests.<>c__DisplayClass5_0.<Run>b__2() 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\SimplifiedWorkflowTests.cs:行号 53
+   在 Program.Check(String name, Action action) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\Program.cs:行号 33
+FAIL remembered_model_state_can_be_initialized: System.Exception: Missing behavior: RestoreState
+   在 SimplifiedWorkflowTests.Call(Object target, String name, Object[] args) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\SimplifiedWorkflowTests.cs:行号 17
+   在 Program.Check(String name, Action action) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\Program.cs:行号 33
+FAIL inline_changes_accumulate_and_are_pending_red: System.Exception: Missing behavior: StageValue
+   在 SimplifiedWorkflowTests.Call(Object target, String name, Object[] args) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\SimplifiedWorkflowTests.cs:行号 17
+   在 SimplifiedWorkflowTests.<>c__DisplayClass5_0.<Run>b__4() 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\SimplifiedWorkflowTests.cs:行号 61
+   在 Program.Check(String name, Action action) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\Program.cs:行号 33
+FAIL top_write_submits_all_pending_properties_once: System.Exception: Missing behavior: WriteChanges
+   在 SimplifiedWorkflowTests.Call(Object target, String name, Object[] args) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\SimplifiedWorkflowTests.cs:行号 17
+   在 SimplifiedWorkflowTests.<>c__DisplayClass5_0.<Run>b__5() 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\SimplifiedWorkflowTests.cs:行号 68
+   在 Program.Check(String name, Action action) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\Program.cs:行号 33
+FAIL reopen_restores_phase_type_and_view_but_requires_fresh_check: System.Exception: Missing behavior: RestoreState
+   在 SimplifiedWorkflowTests.Call(Object target, String name, Object[] args) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\SimplifiedWorkflowTests.cs:行号 17
+   在 SimplifiedWorkflowTests.<>c__DisplayClass5_0.<Run>b__6() 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\SimplifiedWorkflowTests.cs:行号 76
+   在 Program.Check(String name, Action action) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\Program.cs:行号 33
+FAIL successful_write_is_orange_and_second_edit_is_pending_again: System.Exception: Draft behavior missing
+   在 SimplifiedWorkflowTests.<>c__DisplayClass5_0.<Run>b__7() 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\SimplifiedWorkflowTests.cs:行号 82
+   在 Program.Check(String name, Action action) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\Program.cs:行号 33
+FAIL model_changes_after_cached_edit_block_unsafe_write: System.Exception: Missing behavior: FieldMark
+   在 SimplifiedWorkflowTests.Call(Object target, String name, Object[] args) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\SimplifiedWorkflowTests.cs:行号 17
+   在 SimplifiedWorkflowTests.<>c__DisplayClass5_0.<Run>b__8() 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\SimplifiedWorkflowTests.cs:行号 96
+   在 Program.Check(String name, Action action) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\Program.cs:行号 33
+FAIL different_models_do_not_share_phase_drafts_or_colors: System.Exception: Missing behavior: RestoreState
+   在 SimplifiedWorkflowTests.Call(Object target, String name, Object[] args) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\SimplifiedWorkflowTests.cs:行号 17
+   在 SimplifiedWorkflowTests.<>c__DisplayClass5_0.<Run>b__9() 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\SimplifiedWorkflowTests.cs:行号 103
+   在 Program.Check(String name, Action action) 位置 D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Ui.Tests\Program.cs:行号 33
+RESULT failures=10; tests=31

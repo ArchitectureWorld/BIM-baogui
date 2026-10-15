@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$HarnessName='Hifc.Native.Tests.R7')
+param([string]$HarnessName='Hifc.Native.Tests.R9')
 $ErrorActionPreference='Stop'
 if (Get-Process -Name Revit -ErrorAction SilentlyContinue) { throw 'A fresh host is required; existing Revit is left intact.' }
 $workspace=Split-Path -Parent $PSScriptRoot

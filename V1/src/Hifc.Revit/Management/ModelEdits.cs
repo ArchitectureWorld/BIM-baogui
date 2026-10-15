@@ -42,7 +42,7 @@ namespace Hifc.Revit.Management
                 if (string.Equals(input, "false", StringComparison.OrdinalIgnoreCase) || input == "否") input = "0";
                 if (string.Equals(input, "true", StringComparison.OrdinalIgnoreCase) || input == "是") input = "1";
             }
-            if (parameter.StorageType == StorageType.Double)
+            if (parameter?.StorageType == StorageType.Double)
             {
                 if (!UnitFormatUtils.TryParse(doc.GetUnits(), parameter.Definition.UnitType, input, out var raw))
                     throw new InvalidOperationException("数值或单位无法按项目单位解析：" + input);

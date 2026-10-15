@@ -1,0 +1,214 @@
+{
+  "allPassed": true,
+  "version": "0.4.0",
+  "harness": "Hifc.Native.Tests.R9",
+  "checked_local": "2026-10-15T16:25:32.431082+08:00",
+  "native_checks_passed": 67,
+  "modeless_checks_passed": 73,
+  "models": [
+    {
+      "name": "总图.0008_干净.rvt",
+      "detected_kind": "总图",
+      "native_passed": true,
+      "modeless_passed": true,
+      "native_checks": 25,
+      "modeless_checks": 25,
+      "inventory_count": 37,
+      "fields_present": 21,
+      "valid_fields": 14,
+      "field_count": 21,
+      "roles": [
+        {
+          "Slot": "停车位",
+          "Mode": "必要",
+          "Count": 0,
+          "Candidates": 2,
+          "State": "待确认分类"
+        },
+        {
+          "Slot": "总平构件",
+          "Mode": "必要",
+          "Count": 4,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "消防回车场",
+          "Mode": "必要",
+          "Count": 1,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "绿地",
+          "Mode": "必要",
+          "Count": 1,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "规划净用地",
+          "Mode": "必要",
+          "Count": 1,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "规划控制线",
+          "Mode": "必要",
+          "Count": 1,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "道路红线",
+          "Mode": "必要",
+          "Count": 1,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "道路边界线",
+          "Mode": "必要",
+          "Count": 1,
+          "Candidates": 1,
+          "State": "已识别"
+        }
+      ],
+      "model_ready": false
+    },
+    {
+      "name": "厂房_干净.rvt",
+      "detected_kind": "单体建筑",
+      "native_passed": true,
+      "modeless_passed": true,
+      "native_checks": 21,
+      "modeless_checks": 24,
+      "inventory_count": 1758,
+      "fields_present": 86,
+      "valid_fields": 15,
+      "field_count": 86,
+      "roles": [
+        {
+          "Slot": "建筑区域",
+          "Mode": "必要",
+          "Count": 5,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "建筑技术",
+          "Mode": "必要",
+          "Count": 1,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "建筑楼层",
+          "Mode": "必要",
+          "Count": 6,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "总平构件",
+          "Mode": "必要",
+          "Count": 1,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "申报",
+          "Mode": "必要",
+          "Count": 1,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "窗",
+          "Mode": "案例补充",
+          "Count": 0,
+          "Candidates": 0,
+          "State": "案例差异项 · 按实际适用"
+        }
+      ],
+      "model_ready": false
+    },
+    {
+      "name": "职工后勤楼_干净.rvt",
+      "detected_kind": "单体建筑",
+      "native_passed": true,
+      "modeless_passed": true,
+      "native_checks": 21,
+      "modeless_checks": 24,
+      "inventory_count": 681,
+      "fields_present": 72,
+      "valid_fields": 13,
+      "field_count": 72,
+      "roles": [
+        {
+          "Slot": "建筑区域",
+          "Mode": "必要",
+          "Count": 3,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "建筑技术",
+          "Mode": "必要",
+          "Count": 1,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "建筑楼层",
+          "Mode": "必要",
+          "Count": 5,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "总平构件",
+          "Mode": "必要",
+          "Count": 2,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "申报",
+          "Mode": "必要",
+          "Count": 1,
+          "Candidates": 0,
+          "State": "已识别"
+        },
+        {
+          "Slot": "窗",
+          "Mode": "案例补充",
+          "Count": 0,
+          "Candidates": 0,
+          "State": "案例差异项 · 按实际适用"
+        }
+      ],
+      "model_ready": false
+    }
+  ],
+  "net_land_values": {
+    "投影面积": "4689.888048",
+    "名称": "场地",
+    "版本": "1",
+    "类型": "规划净用地"
+  },
+  "area_unit": "m²",
+  "geometry_regressions": {
+    "10m_by_10m_with_2m_by_2m_opening": 96,
+    "sloped_10m_by_10m_horizontal_projection": 100
+  },
+  "loaded_version": "0.4.0.0",
+  "loaded_sha256": "e4bba1c81d3395aeef1adcd4ddabe21bd18470da2672deec827bde10afe625a0",
+  "preserved_files": 21,
+  "all_hashes_unchanged": true,
+  "temporary_manifest_removed": true,
+  "normal_exit_journal": "host-journal.txt",
+  "prior_failed_harness_run": "../workflow-20261015-161026/verification-summary.json",
+  "scope": "Production Revit 2020 scan/write/WPF/ExternalEvent on three model copies; geometry and writes checked; original model files never opened or saved; not full IFC software A/B or platform acceptance"
+}

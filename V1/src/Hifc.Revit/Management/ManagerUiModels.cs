@@ -25,6 +25,16 @@ namespace Hifc.Revit.Management
         public string Value { get; set; }
         public string PropertySet { get; set; }
         public string Binding { get; set; }
+        public EditBaseline[] Baselines { get; set; } = new EditBaseline[0];
+    }
+    internal sealed class EditBaseline
+    {
+        public int ElementId { get; set; }
+        public string ElementUniqueId { get; set; }
+        public string OwnerUniqueId { get; set; }
+        public string Value { get; set; }
+        public string State { get; set; }
+        public string SourceSignature { get; set; }
     }
     internal sealed class EditChange
     {
@@ -56,6 +66,7 @@ namespace Hifc.Revit.Management
         void Locate(int[] ids);
         void Preview(EditRequest request);
         void Apply(EditPreview preview);
+        void Write(EditRequest[] requests);
         void Export(int[] ids, string path);
         void Close();
     }

@@ -4,6 +4,7 @@
     <ProjectReference Include="../../src/Hifc.Reference.Core/Hifc.Reference.Core.csproj" />
     <Compile Include="../../src/Hifc.Revit/Management/ManagerWindow.cs" Link="ManagerWindow.cs" />
     <Compile Include="../../src/Hifc.Revit/Management/ManagerUiModels.cs" Link="ManagerUiModels.cs" />
+    <Compile Include="../../src/Hifc.Revit/Management/ManagementState.cs" Link="ManagementState.cs" />
     <Compile Include="../../src/Hifc.Revit/Management/ManagementReport.cs" Link="ManagementReport.cs" />
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>

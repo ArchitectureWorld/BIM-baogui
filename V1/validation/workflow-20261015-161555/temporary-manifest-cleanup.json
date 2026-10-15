@@ -1,0 +1,7 @@
+{
+  "test_host_exited": true,
+  "removed": true,
+  "temporary_manifest": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1.Acceptance.addin",
+  "expected_sha256": "3a05f449a5cb40b4af7c07347cc2e45481ad5cbb02a606a859e742a4dab0b5b3",
+  "scope": "Only this run owned temporary addin manifest removed."
+}

@@ -1,0 +1,37 @@
+{
+  "allPassed": false,
+  "models": [
+    {
+      "name": "总图.0008_干净.rvt",
+      "native_passed": true,
+      "native_checks": 25,
+      "window_passed": true,
+      "window_checks": 24,
+      "failed": [],
+      "error": null
+    },
+    {
+      "name": "厂房_干净.rvt",
+      "native_passed": true,
+      "native_checks": 21,
+      "window_passed": false,
+      "window_checks": 23,
+      "failed": [
+        "modeless_reclose_safe"
+      ],
+      "error": "System.InvalidOperationException: 检查进行中。\r\n   在 Hifc.Revit.Management.ManagerWindow.StartFullCheck()"
+    },
+    {
+      "name": "职工后勤楼_干净.rvt",
+      "native_passed": true,
+      "native_checks": 21,
+      "window_passed": true,
+      "window_checks": 23,
+      "failed": [],
+      "error": null
+    }
+  ],
+  "root_cause": "Test harness calls StartFullCheck again after reopening has automatically begun the full scan; the production window correctly rejects duplicate work.",
+  "harness_fix": "R9 checks active and queued scan before scheduling; closes with a verified pending scan.",
+  "preservation": true
+}

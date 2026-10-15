@@ -1,0 +1,7 @@
+{
+  "run": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\workflow-20261015-161555",
+  "scope": "Model copies only, never saved. Native mutations roll back; modeless mutations discarded by closing copies.",
+  "temporary_manifest": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1.Acceptance.addin",
+  "pid": 69320,
+  "harness": "D:\\18_建模项目\\湖北BIM云平台\\V1\\tests\\Hifc.Native.Tests\\bin\\Release\\net48\\Hifc.Native.Tests.R9.dll"
+}

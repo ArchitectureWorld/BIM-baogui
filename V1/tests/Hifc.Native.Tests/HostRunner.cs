@@ -30,6 +30,7 @@ public sealed class HifcAcceptanceHost : IExternalApplication, IExternalEventHan
     int index, startupTicks;
     object controller, manager;
     Type controllerType;
+    readonly Dictionary<string, string> manualExpected = new Dictionary<string, string>();
     Window window;
     Document doc;
     Dictionary<string, object> report;
@@ -113,6 +114,14 @@ public sealed class HifcAcceptanceHost : IExternalApplication, IExternalEventHan
                     .ToDictionary(r => (int)Get(r, "Id"), r => (string)Get(Items(Get(r, "Candidates"))[0], "Slot"));
                 var preview = Field(manager, "preview"); report["preview_changes"] = Items(Get(preview, "Changes")).Length;
                 checks["automatic_batch_preview"] = preview != null && (string)Get(preview, "ScanId") == firstScan;
+                if (Path.GetFileName(doc.PathName).StartsWith("总图"))
+                {
+                    var land = Items(Get(Get(manager, "Snapshot"), "Elements")).Single(r => (int)Get(r, "Id") == 451959);
+                    ((DataGrid)Field(manager, "ElementGrid")).SelectedItem = land;
+                    var editors = ((DataGrid)Field(manager, "FieldGrid")).Items.Cast<object>().Where(e => (string)Get(Get(e, "Field"), "PropertySet") == "Pset_规划净用地信息属性集").ToArray();
+                    checks["actual_property_table_shows_all_net_land_automatic_values"] = editors.Length == 4 && editors.All(e => !string.IsNullOrWhiteSpace((string)Get(e, "Value")));
+                    Capture("automatic-values");
+                }
                 if (Items(Get(preview, "Changes")).Length == 0)
                 {
                     // An empty completion preview is valid for a clean inventory.
@@ -123,7 +132,7 @@ public sealed class HifcAcceptanceHost : IExternalApplication, IExternalEventHan
                     var kind = Path.GetFileName(doc.PathName).StartsWith("总图") ? "规划净用地" : "建筑区域";
                     OnUi(() => { ((DataGrid)Field(manager, "ElementGrid")).SelectedItem = row; ((ComboBox)Field(manager, "SlotSelector")).SelectedItem = kind; Call(manager, "PreviewClassification"); });
                 }
-                else { phase = "apply"; OnUi(() => Call(controller, "Apply", preview)); }
+                else { phase = "apply"; OnUi(WriteFromPanel); }
             }
             else if (phase == "manual_preview")
             {
@@ -131,7 +140,7 @@ public sealed class HifcAcceptanceHost : IExternalApplication, IExternalEventHan
                 var preview = Field(manager, "preview");
                 if (ReferenceEquals(preview, priorPreview)) { if (Field(controller, "pending") == null) throw new InvalidOperationException("Classification preview failed: " + Get(manager, "StatusText")); args.SetRaiseWithoutDelay(); return; }
                 checks["manual_classification_from_panel"] = Items(Get(preview, "Changes")).Length > 0;
-                phase = "apply"; OnUi(() => Call(controller, "Apply", preview));
+                phase = "apply"; OnUi(WriteFromPanel);
             }
             else if (phase == "apply")
             {
@@ -141,8 +150,12 @@ public sealed class HifcAcceptanceHost : IExternalApplication, IExternalEventHan
                     if (Field(controller, "pending") == null && Field(controller, "scan") == null) throw new InvalidOperationException("Apply/recheck failed: " + Get(manager, "StatusText"));
                     args.SetRaiseWithoutDelay(); return;
                 }
-                checks["apply_triggers_full_new_scan"] = (bool)Get(Get(manager, "Snapshot"), "Complete"); report["after_summary"] = Get(manager, "Summary"); Capture("after");
+                checks["apply_triggers_full_new_scan"] = (bool)Get(Get(manager, "Snapshot"), "Complete"); report["after_summary"] = Get(manager, "Summary");
                 var afterRows = Items(Get(Get(manager, "Snapshot"), "Elements"));
+                var manualFields = afterRows.SelectMany(r => Items(Get(r, "Fields"))).GroupBy(f => (string)Get(f, "OwnerUniqueId") + "|" + (string)Get(f, "Source")).Select(g => g.First()).ToArray();
+                checks["inline_values_written_and_marked_orange_after_full_recheck"] = manualExpected.Count == 2 && manualExpected.All(pair => manualFields.Any(f => (string)Get(f, "OwnerUniqueId") + "|" + (string)Get(f, "Source") == pair.Key && (string)Get(f, "Value") == pair.Value && (string)Call(manager, "FieldMark", f) == "已手工写入"));
+                ((DataGrid)Field(manager, "ElementGrid")).SelectedItem = afterRows.First(r => Items(Get(r, "Fields")).Any(f => manualExpected.ContainsKey((string)Get(f, "OwnerUniqueId") + "|" + (string)Get(f, "Source"))));
+                Capture("after");
                 checks["reviewed_candidates_written_and_found_on_full_rescan"] = reviewedCandidateRoles.Count > 0 && reviewedCandidateRoles.All(pair => afterRows.Any(r => (int)Get(r, "Id") == pair.Key && (string)Get(r, "Slot") == pair.Value && Items(Get(r, "SuggestedSlots")).Length == 0));
                 // A real external document edit must invalidate the actual window.
                 using (var tx = new Transaction(doc, "Acceptance manual change")) { tx.Start(); doc.ProjectInformation.BuildingName = "test-only changed building name"; tx.Commit(); }
@@ -165,7 +178,17 @@ public sealed class HifcAcceptanceHost : IExternalApplication, IExternalEventHan
                 controllerType.GetMethod("Open", Static).Invoke(null, new object[] { ui });
                 controller = map[doc]; manager = Get(controller, "Window"); window = (Window)manager;
                 checks["reopen_after_close"] = window.IsVisible; phase = "reclose";
-                OnUi(() => { ((ComboBox)Field(manager, "StageSelector")).SelectedItem = "报规"; Call(manager, "StartFullCheck"); window.Close(); });
+                checks["reopen_restores_stage_type_and_last_check"] = (string)Get(manager, "SelectedStage") == "报规" && Get(manager, "Snapshot") != null;
+                checks["restored_check_requires_automatic_full_recheck"] = !(bool)Get(manager, "Current");
+                checks["orange_manual_history_survives_actual_window_reopen"] = Items(Get(Get(manager, "Snapshot"), "Elements")).SelectMany(r => Items(Get(r, "Fields"))).Any(f => manualExpected.ContainsKey((string)Get(f, "OwnerUniqueId") + "|" + (string)Get(f, "Source")) && (string)Call(manager, "FieldMark", f) == "已手工写入");
+                OnUi(() => {
+                    // Reopen now starts a full check automatically. Large models
+                    // may already be scanning by this Dispatcher callback.
+                    // Queue another check only if that automatic check finished.
+                    if (Field(controller, "scan") == null && Field(controller, "pending") == null) Call(manager, "StartFullCheck");
+                    checks["full_recheck_is_pending_before_modeless_close"] = Field(controller, "scan") != null || Field(controller, "pending") != null;
+                    window.Close();
+                });
             }
             else if (phase == "reclose")
             {
@@ -183,6 +206,24 @@ public sealed class HifcAcceptanceHost : IExternalApplication, IExternalEventHan
             args.SetRaiseWithoutDelay();
         }
         catch (Exception e) { Fail(e); }
+    }
+    void WriteFromPanel()
+    {
+        manualExpected.Clear();
+        var rows = Items(Get(Get(manager, "Snapshot"), "Elements"));
+        var targets = rows.Where(r => (string)Get(r, "Entity") == "IfcSlab").SelectMany(r => Items(Get(r, "Fields")).Where(f => (string)Get(f, "RawType") == "Real" && (string)Get(f, "Binding") == "实例" && ((bool)Get(f, "Editable") || (string)Get(f, "State") == "缺参数")).Select(f => new { Row = r, Field = f }))
+            .GroupBy(x => (string)Get(x.Field, "OwnerUniqueId") + "|" + (string)Get(x.Field, "Source")).Select(g => g.First()).Take(2).ToArray();
+        if (targets.Length != 2) throw new InvalidOperationException("Two inline editable model fields are required.");
+        for (int i = 0; i < targets.Length; i++)
+        {
+            var target = targets[i]; ((DataGrid)Field(manager, "ElementGrid")).SelectedItem = target.Row;
+            var editor = ((DataGrid)Field(manager, "FieldGrid")).Items.Cast<object>().Single(x => ReferenceEquals(Get(x, "Field"), target.Field));
+            var value = (123.25 + i).ToString(System.Globalization.CultureInfo.InvariantCulture); editor.GetType().GetProperty("Value").SetValue(editor, value);
+            manualExpected[(string)Get(target.Field, "OwnerUniqueId") + "|" + (string)Get(target.Field, "Source")] = value;
+        }
+        checks["actual_property_table_keeps_multiple_pending_edits"] = Items(Get(manager, "DraftRequests")).Count(r => (string)Get(r, "Kind") == "赋值") == 2;
+        checks["top_step_four_write_is_enabled"] = (bool)Get(manager, "CanApply");
+        Capture("manual-drafts"); Call(manager, "WriteChanges");
     }
     void OpenNext(UIApplication ui)
     {

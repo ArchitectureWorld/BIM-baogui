@@ -104,7 +104,7 @@ namespace Hifc.Revit
     {
         public Result Execute(ExternalCommandData data, ref string message, ElementSet set)
         {
-            TaskDialog.Show("H-IFC V1 · 0.3.2", "Revit 2020 全面检查与属性管理\n人工确认阶段 → 识别模型类型 → 全量检查 → 补齐预览与写入 → 全面复检。\n报规依据：成功案例 01；总图 8 项、单体共同 5 项及窗补充项。\n施工图规则待建立；链接源文档单列未覆盖。\n检查报告不等于原软件同模型 A/B 或平台验收。");
+            TaskDialog.Show("H-IFC V1 · 0.4.0", "Revit 2020 全面检查与属性管理\n1 阶段 → 2 模型类型 → 3 全面检查 → 4 写入 Revit。\n模型可读取/计算的值自动填写；在右侧直接修改，红色待写入，橙色已手工写入。\n阶段、类型、检查和修改按模型暂存，重开后全面复检。\n报规依据：成功案例 01；施工图规则待建立，链接源文档单列未覆盖。\n检查报告不等于原软件同模型 A/B 或平台验收。");
             return Result.Succeeded;
         }
     }

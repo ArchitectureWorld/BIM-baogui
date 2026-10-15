@@ -1,0 +1,13 @@
+{
+  "model": "总图.0008_干净.rvt",
+  "element_id": 451959,
+  "source": "after_preparation production readback; automatic-values screenshot from actual window",
+  "values": {
+    "投影面积": "4689.888048",
+    "名称": "场地",
+    "版本": "1",
+    "类型": "规划净用地"
+  },
+  "unit": "m²",
+  "passed": true
+}

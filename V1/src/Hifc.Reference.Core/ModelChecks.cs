@@ -19,9 +19,11 @@ namespace Hifc.Reference
         public bool Editable { get; set; }
         public int OwnerId { get; set; }
         public string OwnerUniqueId { get; set; }
+        public string SourceSignature { get; set; }
         public string Binding { get; set; }
         public bool AllowedEmpty { get; set; }
         public string SuggestedValue { get; set; }
+        public string SuggestionUnit { get; set; }
         public string SuggestionReason { get; set; }
         public bool Acceptable => Valid || AllowedEmpty && State == "未填写";
         public bool Valid => State == "有效";

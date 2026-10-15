@@ -37,6 +37,10 @@ var candidatePreview = edits.GetMethod("Preview",statics).Invoke(null,new object
 checks["candidate_preview_preserves_source_evidence"] = expectedRoles.All(pair=>items(get(candidatePreview,"Changes")).Any(c=>(int)get(c,"Id")==pair.Key && (string)get(c,"Action")=="分类" && (string)get(c,"NewValue")==pair.Value && ((string)get(c,"Detail")).Contains(".ifc")));
 if(expectedKind=="总图") {
     checks["parking_mismatch_and_case_anomaly_never_enter_automatic_write"] = !items(get(candidatePreview,"Changes")).Any(c=>new[]{455344,455815}.Contains((int)get(c,"Id"))) && beforeRows.Where(r=>new[]{455344,455815}.Contains((int)get(r,"Id"))).All(r=>items(get(r,"Candidates")).Any() && items(get(r,"Candidates")).All(c=>!(bool)get(c,"CanPrepare")));
+    var netLand=beforeRows.Single(r=>(int)get(r,"Id")==451959);
+    var netFields=items(get(netLand,"Fields")).Where(f=>(string)get(f,"PropertySet")=="Pset_规划净用地信息属性集").ToArray();
+    checks["net_land_four_values_are_populated_before_write"] = netFields.Length==4 && netFields.All(f=>!string.IsNullOrWhiteSpace((string)get(f,"Value")) || !string.IsNullOrWhiteSpace((string)get(f,"SuggestedValue")));
+    result["net_land_automatic_values"] = netFields;
 }
 result["initial"] = initial;
 try { scan(null,"自动识别"); checks["stage_required"] = false; } catch { checks["stage_required"] = true; }
@@ -44,6 +48,48 @@ var construction = scan("施工图","总图");
 checks["construction_no_planning_fields"] = System.Linq.Enumerable.All(items(get(construction,"Elements")),r=>items(get(r,"Fields")).Length==0);
 var group = new Autodesk.Revit.DB.TransactionGroup(document,"HIFC 0.3 acceptance - rollback only"); group.Start();
 try {
+    var baselineType = assembly.GetType("Hifc.Revit.Management.EditBaseline");
+    System.Func<object,object,string,object> draft = (row,field,value) => {
+        var request = System.Activator.CreateInstance(requestType); var baseline = System.Activator.CreateInstance(baselineType);
+        foreach(var pair in new System.Collections.Generic.Dictionary<string,object> { {"Kind","赋值"},{"Ids",new[]{(int)get(row,"Id")}},{"Source",get(field,"Source")},{"PropertySet",get(field,"PropertySet")},{"Binding",get(field,"Binding")},{"Value",value} }) requestType.GetProperty(pair.Key).SetValue(request,pair.Value,null);
+        foreach(var pair in new System.Collections.Generic.Dictionary<string,object> { {"ElementId",get(row,"Id")},{"ElementUniqueId",get(row,"UniqueId")},{"OwnerUniqueId",get(field,"OwnerUniqueId")},{"Value",get(field,"Value")},{"State",get(field,"State")},{"SourceSignature",get(field,"SourceSignature")} }) baselineType.GetProperty(pair.Key).SetValue(baseline,pair.Value,null);
+        var baselines=System.Array.CreateInstance(baselineType,1); baselines.SetValue(baseline,0); requestType.GetProperty("Baselines").SetValue(request,baselines,null); return request;
+    };
+    System.Func<object,object[],object> batch = (snapshot,requests) => { var array=System.Array.CreateInstance(requestType,requests.Length); for(int i=0;i<requests.Length;i++) array.SetValue(requests[i],i); return edits.GetMethod("PreviewBatch",statics).Invoke(null,new object[]{document,snapshot,array}); };
+    var missingRow=beforeRows.First(r=>items(get(r,"Fields")).Any(f=>(string)get(f,"State")=="缺参数" && (string)get(f,"RawType")=="Real"));
+    var missingField=items(get(missingRow,"Fields")).First(f=>(string)get(f,"State")=="缺参数" && (string)get(f,"RawType")=="Real");
+    using(var inlineGroup=new Autodesk.Revit.DB.TransactionGroup(document,"Direct missing-field edit regression")) {
+        inlineGroup.Start();
+        var proposed=batch(initial,new[]{draft(missingRow,missingField,"123.45")});
+        edits.GetMethod("Apply",statics).Invoke(null,new object[]{document,proposed});
+        var owner=document.GetElement(new Autodesk.Revit.DB.ElementId((int)get(missingField,"OwnerId")));
+        checks["direct_edit_creates_missing_parameter_and_writes_in_one_action"] = owner.GetParameters((string)get(missingField,"Source")).Single().AsString()=="123.45";
+        inlineGroup.RollBack();
+    }
+    using(var geometryGroup=new Autodesk.Revit.DB.TransactionGroup(document,"Measured projection regression")) {
+        geometryGroup.Start();
+        var floorType = (Autodesk.Revit.DB.FloorType)document.GetElement(new Autodesk.Revit.DB.FilteredElementCollector(document).OfClass(typeof(Autodesk.Revit.DB.Floor)).FirstElement().GetTypeId());
+        var level = new Autodesk.Revit.DB.FilteredElementCollector(document).OfClass(typeof(Autodesk.Revit.DB.Level)).Cast<Autodesk.Revit.DB.Level>().First();
+        double metre = Autodesk.Revit.DB.UnitUtils.ConvertToInternalUnits(1,Autodesk.Revit.DB.DisplayUnitType.DUT_METERS);
+        System.Func<double,double,double,double,Autodesk.Revit.DB.CurveArray> rectangle = (x,y,w,h) => {
+            var points=new[]{new Autodesk.Revit.DB.XYZ(x,y,0),new Autodesk.Revit.DB.XYZ(x+w,y,0),new Autodesk.Revit.DB.XYZ(x+w,y+h,0),new Autodesk.Revit.DB.XYZ(x,y+h,0)};
+            var curves=new Autodesk.Revit.DB.CurveArray(); for(int i=0;i<4;i++) curves.Append(Autodesk.Revit.DB.Line.CreateBound(points[i],points[(i+1)%4])); return curves;
+        };
+        Autodesk.Revit.DB.Floor perforated,sloped;
+        using(var tx=new Autodesk.Revit.DB.Transaction(document,"Create measured test slabs")) {
+            tx.Start(); tx.SetFailureHandlingOptions(tx.GetFailureHandlingOptions().SetFailuresPreprocessor(new NativeTestWarnings()));
+            perforated=document.Create.NewFloor(rectangle(1000,1000,10*metre,10*metre),floorType,level,false);
+            document.Regenerate(); document.Create.NewOpening(perforated,rectangle(1000+2*metre,1000+2*metre,2*metre,2*metre),true);
+            sloped=document.Create.NewSlab(rectangle(1100,1000,10*metre,10*metre),level,Autodesk.Revit.DB.Line.CreateBound(new Autodesk.Revit.DB.XYZ(1100,1000,0),new Autodesk.Revit.DB.XYZ(1100+10*metre,1000,0)),0.1,false);
+            tx.Commit();
+        }
+        var geometry=assembly.GetType("Hifc.Revit.Management.ModelGeometry").GetMethod("ProjectedAreaM2",statics);
+        var perforatedArea=(double?)geometry.Invoke(null,new object[]{perforated}); var slopedArea=(double?)geometry.Invoke(null,new object[]{sloped});
+        checks["projected_area_respects_model_openings"] = perforatedArea.HasValue && System.Math.Abs(perforatedArea.Value-96)<0.001;
+        checks["sloped_floor_uses_horizontal_area_in_square_metres"] = slopedArea.HasValue && System.Math.Abs(slopedArea.Value-100)<0.001;
+        checks["unsupported_geometry_is_not_replaced_with_zero"] = geometry.Invoke(null,new object[]{document.ProjectInformation})==null;
+        geometryGroup.RollBack();
+    }
     // Exercise the approved manual type path even when automatic recognition fails.
     var selected = scan("报规",expectedKind);
     var specimen = System.Linq.Enumerable.First(new Autodesk.Revit.DB.FilteredElementCollector(document).OfClass(typeof(Autodesk.Revit.DB.Floor)).Cast<Autodesk.Revit.DB.Floor>());
@@ -58,6 +104,19 @@ try {
     var changes = items(get(preview,"Changes"));
     if (changes.Length>0) edits.GetMethod("Apply",statics).Invoke(null,new object[]{document,preview});
     var after = scan("报规",expectedKind); result["after_preparation"] = after;
+    if(expectedKind=="总图") {
+        var netLand=document.GetElement(new Autodesk.Revit.DB.ElementId(451959));
+        var actualArea=Autodesk.Revit.DB.UnitUtils.ConvertFromInternalUnits(netLand.get_Parameter(Autodesk.Revit.DB.BuiltInParameter.HOST_AREA_COMPUTED).AsDouble(),Autodesk.Revit.DB.DisplayUnitType.DUT_SQUARE_METERS);
+        double writtenArea; checks["net_land_actual_model_area_is_written_in_square_metres"] = double.TryParse(netLand.LookupParameter("规划净用地投影面积").AsString(),System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out writtenArea) && System.Math.Abs(actualArea-writtenArea)<0.001;
+        checks["net_land_name_version_and_type_are_written_together"] = netLand.LookupParameter("规划净用地名称").AsString()==netLand.Name && netLand.LookupParameter("版本").AsString()=="1" && netLand.LookupParameter("规划净用地类型").AsString()=="规划净用地";
+    }
+    var editableRows=items(get(after,"Elements")).SelectMany(row=>items(get(row,"Fields")).Where(f=>(bool)get(f,"Editable") && (string)get(f,"RawType")=="Real" && document.GetElement(new Autodesk.Revit.DB.ElementId((int)get(f,"OwnerId"))).GetParameters((string)get(f,"Source")).Single().StorageType==Autodesk.Revit.DB.StorageType.String).Select(field=>new{Row=row,Field=field})).GroupBy(x=>(string)get(x.Field,"OwnerUniqueId")+"|"+(string)get(x.Field,"Source")).Select(g=>g.First()).Take(2).ToArray();
+    if(editableRows.Length!=2) throw new System.InvalidOperationException("Two writable fields are required for batch regression.");
+    var drafts=editableRows.Select((x,i)=>draft(x.Row,x.Field,i==0?"345.25":"456.75")).ToArray();
+    var multi=batch(after,drafts); edits.GetMethod("Apply",statics).Invoke(null,new object[]{document,multi});
+    checks["multiple_inline_edits_are_written_together"] = editableRows.Select((x,i)=>document.GetElement(new Autodesk.Revit.DB.ElementId((int)get(x.Field,"OwnerId"))).GetParameters((string)get(x.Field,"Source")).Single().AsString()==(i==0?"345.25":"456.75")).All(v=>v);
+    var current=scan("报规",expectedKind); bool conflict=false; try {batch(current,drafts);}catch {conflict=true;}
+    checks["restored_draft_cannot_overwrite_new_model_values"] = conflict;
     var repeat = edits.GetMethod("Preview",statics).Invoke(null,new object[]{document,after,null});
     checks["repeat_preparation_idempotent"] = items(get(repeat,"Changes")).Length == 0;
     var afterRows = items(get(after,"Elements"));
@@ -97,4 +156,4 @@ var serializer=new System.Web.Script.Serialization.JavaScriptSerializer(); seria
 var reportPath=System.IO.Path.Combine(run,System.IO.Path.GetFileNameWithoutExtension(document.PathName)+"-native.json"); System.IO.File.WriteAllText(reportPath,serializer.Serialize(result),new System.Text.UTF8Encoding(false));
 return new {allPassed=result["allPassed"], checks=checks, report=reportPath, error=result.ContainsKey("error")?result["error"]:null};
 
-} }
+}}

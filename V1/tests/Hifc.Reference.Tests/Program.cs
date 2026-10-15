@@ -59,6 +59,7 @@ internal static class Program
         ModelChecksTests.Run(Check);
         CaseWorkflowTests.Run(Check);
         RecognitionTests.Run(Check);
+        AutoFillTests.Run(Check);
         Console.WriteLine("RESULT failures=" + failures + "; tests=" + tests);
         return failures == 0 ? 0 : 1;
     }

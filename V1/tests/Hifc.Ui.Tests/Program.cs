@@ -15,12 +15,14 @@ internal sealed class FakeSession : IManagerSession
     internal int Scans;
     internal int[] Located;
     internal EditRequest LastPreview;
+    internal EditRequest[] Written;
     public void Scan() { Scans++; Snapshot.Stage = Window.SelectedStage; Snapshot.RequestedKind = Window.RequestedKind; Window.Accept(Snapshot); }
     public void PrepareAll() { }
     public void Cancel() { Window.MarkStale("扫描已取消"); }
     public void Locate(int[] ids) { Located = ids; }
     public void Preview(EditRequest request) { LastPreview = request; }
     public void Apply(EditPreview preview) { }
+    public void Write(EditRequest[] requests) { Written = requests; }
     public void Export(int[] ids, string path) { }
     public void Close() { }
 }
@@ -38,7 +40,7 @@ internal static class Program
                 new[] { new ParameterRead { Name = p.SourceParameter, Origin = "instance", StorageType = "String", HasValue = true,
                     Value = p.RawType == "Boolean" ? "0" : p.RawType == "Real" ? "26.25" : "示例值" } })).ToArray() };
     }
-    private static void Screenshot(ManagerWindow window, string path)
+    internal static void Screenshot(ManagerWindow window, string path)
     {
         window.UpdateLayout(); Pump();
         var root = (FrameworkElement)window.Content;
@@ -70,7 +72,7 @@ internal static class Program
         Check("missing_field_filter_works", () => { window.SetFilter("缺字段"); Assert(window.VisibleCount == 1); });
         Check("text_search_works", () => { window.SetFilter("全部"); window.Search.Text = "1001"; Assert(window.VisibleCount == 1); window.Search.Clear(); });
         Check("classification_preview_uses_panel_targets", () => { window.SetFilter("未分类"); window.ElementGrid.SelectedItem = unknown; window.SlotSelector.SelectedItem = "绿地"; window.PreviewClassification(); Assert(fake.LastPreview.Kind == "分类" && fake.LastPreview.Ids.Single() == 1003); });
-        Check("attribute_preview_uses_property_set_and_source", () => { window.SetFilter("全部"); window.ElementGrid.SelectedItem = land; window.FieldGrid.SelectedItem = land.Fields[0]; window.NewValue.Text = "40.5"; window.PreviewValue(); Assert(fake.LastPreview.PropertySet == "Pset_规划净用地信息属性集" && fake.LastPreview.Source == land.Fields[0].Source && fake.LastPreview.Value == "40.5"); });
+        Check("attribute_preview_uses_property_set_and_source", () => { window.SetFilter("全部"); window.ElementGrid.SelectedItem = land; window.SelectProperty(land.Fields[0]); window.NewValue.Text = "40.5"; window.PreviewValue(); Assert(fake.LastPreview.PropertySet == "Pset_规划净用地信息属性集" && fake.LastPreview.Source == land.Fields[0].Source && fake.LastPreview.Value == "40.5"); });
         Check("locate_uses_panel_selection", () => { window.LocateSelected(); Assert(fake.Located.Single() == 1001); });
         Check("stale_scan_blocks_new_edit", () => { window.MarkStale("模型已变化"); bool blocked = false; try { window.PreviewValue(); } catch (InvalidOperationException) { blocked = true; } Assert(blocked); window.Accept(fake.Snapshot); });
         Check("display_filter_never_changes_full_summary", () => { window.Search.Text = "1001"; Assert(window.VisibleCount == 1 && window.Summary.ElementCount == 3); window.Search.Clear(); });
@@ -85,7 +87,7 @@ internal static class Program
         });
         Check("selecting_candidate_shows_evidence_and_proposed_class", () => {
             window.SetFilter("未分类"); window.ElementGrid.SelectedItem = unknown;
-            Assert(window.DetailText.Contains("UniqueId") && (string)window.SlotSelector.SelectedItem == "绿地");
+            Assert(window.DiagnosticText.Contains("UniqueId") && (string)window.SlotSelector.SelectedItem == "绿地");
         });
         Check("role_list_displays_candidate_count", () => {
             var list = (System.Windows.Controls.ListBox)typeof(ManagerWindow).GetField("roleList", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(window);
@@ -94,7 +96,9 @@ internal static class Program
         window.SetFilter("全部");
         Check("standard_window_layout_renders", () => Screenshot(window, Path.Combine(output, "manager-1320.png")));
         Check("minimum_window_layout_renders", () => { window.Width = 1080; window.Height = 650; Pump(); Screenshot(window, Path.Combine(output, "manager-1080.png")); });
-        window.Close(); Console.WriteLine("RESULT failures=" + failures + "; tests=" + tests);
+        window.Close();
+        SimplifiedWorkflowTests.Run(Check, output);
+        Console.WriteLine("RESULT failures=" + failures + "; tests=" + tests);
         File.WriteAllText(Path.Combine(output, "ui-tests.json"), new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(new { passed = tests - failures, tests, failures, scope = "Standalone actual WPF window with fake Revit adapter; not live-model API verification" }));
         return failures == 0 ? 0 : 1;
     }

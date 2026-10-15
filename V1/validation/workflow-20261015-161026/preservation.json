@@ -1,0 +1,153 @@
+{
+  "allPassed": true,
+  "files": [
+    {
+      "kind": "original_rvt",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\revit原文件\\总图.0008_干净.rvt",
+      "sha256": "3515c8ae482cd94681e224f08f1790300eab410e627be88fff67e96522a151b3",
+      "expected_sha256": "3515c8ae482cd94681e224f08f1790300eab410e627be88fff67e96522a151b3",
+      "matches": true
+    },
+    {
+      "kind": "original_rvt",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\revit原文件\\厂房_干净.rvt",
+      "sha256": "a4fdf8255a5eaa825747ca9e73491a28de2623cde15729717dfa5962ec74c3ed",
+      "expected_sha256": "a4fdf8255a5eaa825747ca9e73491a28de2623cde15729717dfa5962ec74c3ed",
+      "matches": true
+    },
+    {
+      "kind": "original_rvt",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\revit原文件\\职工后勤楼_干净.rvt",
+      "sha256": "c5738a480556d7099a4ce666a185c37d7e238a93be129a3d9aae1ecba62398e8",
+      "expected_sha256": "c5738a480556d7099a4ce666a185c37d7e238a93be129a3d9aae1ecba62398e8",
+      "matches": true
+    },
+    {
+      "kind": "source_ifc",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\成功通过HIFC\\厂房-属性写入-3.ifc",
+      "sha256": "420e35ce85628933a28608d378f499bf932bb603eb2c95c0f14426db781cd346",
+      "expected_sha256": "420e35ce85628933a28608d378f499bf932bb603eb2c95c0f14426db781cd346",
+      "matches": true
+    },
+    {
+      "kind": "source_ifc",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\成功通过HIFC\\总图-属性写入-15.ifc",
+      "sha256": "5a15376c8203c09956998049b34c2f5457d4821c5b96a35e007221fa1986914f",
+      "expected_sha256": "5a15376c8203c09956998049b34c2f5457d4821c5b96a35e007221fa1986914f",
+      "matches": true
+    },
+    {
+      "kind": "source_ifc",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\成功通过HIFC\\职工后勤楼-属性写入-9.ifc",
+      "sha256": "3888eb115c38c89f84c859395ef0ae43eb5cbef18fd9b53c0cc75a66c8eb41ba",
+      "expected_sha256": "3888eb115c38c89f84c859395ef0ae43eb5cbef18fd9b53c0cc75a66c8eb41ba",
+      "matches": true
+    },
+    {
+      "kind": "frozen_case",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\V1\\reference\\success-case-01\\case-profiles.json",
+      "sha256": "2118bcea847210f562a6b40d286fae71517db9b087639f0025f658cf31e700e2",
+      "expected_sha256": "2118bcea847210f562a6b40d286fae71517db9b087639f0025f658cf31e700e2",
+      "matches": true
+    },
+    {
+      "kind": "reference_source",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\反编译\\_hifc\\psets_2025\\config_backup1.tsv",
+      "sha256": "eb40b2dbd7518994dd7f7ac0a6a2950942781dcda20555f53eaa762ec741dd27",
+      "expected_sha256": "eb40b2dbd7518994dd7f7ac0a6a2950942781dcda20555f53eaa762ec741dd27",
+      "matches": true
+    },
+    {
+      "kind": "reference_source",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\反编译\\_hifc\\out\\H-IFC_厂商实际属性定义.csv",
+      "sha256": "be0e95f0d8d0a4889a13e418f0324dc12ae6232b6a0ae11ede3413af60b77982",
+      "expected_sha256": "be0e95f0d8d0a4889a13e418f0324dc12ae6232b6a0ae11ede3413af60b77982",
+      "matches": true
+    },
+    {
+      "kind": "reference_source",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\反编译\\_hifc\\out\\H-IFC_Revit参数映射表.csv",
+      "sha256": "c4871e165f64d26cb6231fb36e9b01250997a79f952fad9166e194ffffe30dd1",
+      "expected_sha256": "c4871e165f64d26cb6231fb36e9b01250997a79f952fad9166e194ffffe30dd1",
+      "matches": true
+    },
+    {
+      "kind": "frozen_mapping",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\V1\\reference\\gonggui\\config_backup1.tsv",
+      "sha256": "eb40b2dbd7518994dd7f7ac0a6a2950942781dcda20555f53eaa762ec741dd27",
+      "expected_sha256": "eb40b2dbd7518994dd7f7ac0a6a2950942781dcda20555f53eaa762ec741dd27",
+      "matches": true
+    },
+    {
+      "kind": "frozen_mapping",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\V1\\reference\\gonggui\\property_definitions.csv",
+      "sha256": "81b856af78487579feeaf7914600c8b9b90367b4c83764a6558f64ca3387ecb9",
+      "expected_sha256": "81b856af78487579feeaf7914600c8b9b90367b4c83764a6558f64ca3387ecb9",
+      "matches": true
+    },
+    {
+      "kind": "frozen_mapping",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\V1\\reference\\gonggui\\parameter_mapping.csv",
+      "sha256": "1e67fbb199a9bf0355877255e4ce6150e87d25b910deaf602c6eb909db3eb069",
+      "expected_sha256": "1e67fbb199a9bf0355877255e4ce6150e87d25b910deaf602c6eb909db3eb069",
+      "matches": true
+    },
+    {
+      "kind": "frozen_mapping",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\V1\\reference\\gonggui\\contract.json",
+      "sha256": "c1f3d74e17229aee4ed10bc4980532d2c7c61a5a783061c6e979562b808052c9",
+      "expected_sha256": "c1f3d74e17229aee4ed10bc4980532d2c7c61a5a783061c6e979562b808052c9",
+      "matches": true
+    },
+    {
+      "kind": "old_plugin",
+      "path": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\BIMBaoGui.RevitAddin\\BIMBaoGui.RevitAddin.dll",
+      "sha256": "181c92f6fa6aa85c960e0b3d2ffbcaf60509716de91d35a66bdb23e559955626",
+      "expected_sha256": "181c92f6fa6aa85c960e0b3d2ffbcaf60509716de91d35a66bdb23e559955626",
+      "matches": true
+    },
+    {
+      "kind": "external_plugin",
+      "path": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.Revit.addin",
+      "sha256": "756a79a8bb1f853bbfc34f1233d623b8cc132e778998898f8be050b3548e769b",
+      "expected_sha256": "756a79a8bb1f853bbfc34f1233d623b8cc132e778998898f8be050b3548e769b",
+      "matches": true
+    },
+    {
+      "kind": "external_plugin",
+      "path": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\H-IFC\\Hifc.Core.dll",
+      "sha256": "8fc37950cb1cd946479077ab2810051ce98b1a1585c1104ab6d23323fcfced15",
+      "expected_sha256": "8fc37950cb1cd946479077ab2810051ce98b1a1585c1104ab6d23323fcfced15",
+      "matches": true
+    },
+    {
+      "kind": "external_plugin",
+      "path": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\H-IFC\\Hifc.Revit.dll",
+      "sha256": "a7dc338dd1102536b569c58f615636e1eff5a369db2254cf692efee9d9b4aa5f",
+      "expected_sha256": "a7dc338dd1102536b569c58f615636e1eff5a369db2254cf692efee9d9b4aa5f",
+      "matches": true
+    },
+    {
+      "kind": "test_copy_file",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\workflow-20261015-161026\\models\\总图.0008_干净.rvt",
+      "sha256": "3515c8ae482cd94681e224f08f1790300eab410e627be88fff67e96522a151b3",
+      "expected_sha256": "3515c8ae482cd94681e224f08f1790300eab410e627be88fff67e96522a151b3",
+      "matches": true
+    },
+    {
+      "kind": "test_copy_file",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\workflow-20261015-161026\\models\\厂房_干净.rvt",
+      "sha256": "a4fdf8255a5eaa825747ca9e73491a28de2623cde15729717dfa5962ec74c3ed",
+      "expected_sha256": "a4fdf8255a5eaa825747ca9e73491a28de2623cde15729717dfa5962ec74c3ed",
+      "matches": true
+    },
+    {
+      "kind": "test_copy_file",
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\workflow-20261015-161026\\models\\职工后勤楼_干净.rvt",
+      "sha256": "c5738a480556d7099a4ce666a185c37d7e238a93be129a3d9aae1ecba62398e8",
+      "expected_sha256": "c5738a480556d7099a4ce666a185c37d7e238a93be129a3d9aae1ecba62398e8",
+      "matches": true
+    }
+  ],
+  "checked_local": "2026-10-15T16:16:35.012831+08:00"
+}

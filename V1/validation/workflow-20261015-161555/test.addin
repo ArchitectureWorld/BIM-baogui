@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns><AddIn Type="Application"><Name>H-IFC V1 Acceptance</Name><Assembly>D:\18_建模项目\湖北BIM云平台\V1\tests\Hifc.Native.Tests\bin\Release\net48\Hifc.Native.Tests.R9.dll</Assembly><AddInId>44257616-18ad-481a-b6b8-6b7a1bfe1088</AddInId><FullClassName>HifcAcceptanceHost</FullClassName><VendorId>HIV1</VendorId><VendorDescription>Temporary model copy validation</VendorDescription></AddIn></RevitAddIns>

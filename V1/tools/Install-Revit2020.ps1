@@ -3,7 +3,7 @@ param()
 $ErrorActionPreference = 'Stop'
 if (Get-Process -Name Revit -ErrorAction SilentlyContinue) { throw 'Close Revit normally before installing. No process will be stopped.' }
 $workspace = Split-Path -Parent $PSScriptRoot
-$package = Join-Path $workspace 'dist\Hifc.V1.Revit2020-0.3.2'
+$package = Join-Path $workspace 'dist\Hifc.V1.Revit2020-0.4.0'
 $addinRoot = Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'Autodesk\Revit\Addins\2020'
 $target = Join-Path $addinRoot 'Hifc.V1'
 $manifestPath = Join-Path $addinRoot 'Hifc.V1.addin'
@@ -49,7 +49,7 @@ $files = @('Hifc.V1.Revit.dll','Hifc.Reference.Core.dll') | ForEach-Object {
     if ($sourceHash -ne $installedHash) { throw "Installed hash mismatch: $_" }
     @{ name=$_; sha256=$installedHash.ToLowerInvariant(); matches_build=$true }
 }
-@{ version='0.3.2'; installed_directory=$target; addin_manifest=$manifestPath; files=@($files); previous_plugin_sha256=$oldHash; previous_plugin_unchanged=($oldHash -eq $newOldHash) } |
+@{ version='0.4.0'; installed_directory=$target; addin_manifest=$manifestPath; files=@($files); previous_plugin_sha256=$oldHash; previous_plugin_unchanged=($oldHash -eq $newOldHash) } |
     ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $run 'install-receipt.json') -Encoding utf8
 Write-Output "Installed: $target"
 Write-Output "Receipt: $(Join-Path $run 'install-receipt.json')"

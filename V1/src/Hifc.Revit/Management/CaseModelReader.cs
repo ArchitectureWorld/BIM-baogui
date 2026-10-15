@@ -132,6 +132,7 @@ namespace Hifc.Revit.Management
                 applicable = applicable.Distinct().ToList();
                 row.Slots = applicable.Where(r => r.Binding == "类型" || info || r.Slot == row.Slot).Select(r => r.Slot).Distinct().ToArray();
                 row.Classified = row.Slots.Length > 0; row.InventoryOnly = applicable.Count == 0 && row.SuggestedSlots.Length == 0 && string.IsNullOrEmpty(row.CoverageNote);
+                double? projectedArea = applicable.Any(r => r.Properties.Any(p => p.Property == "投影面积")) ? ModelGeometry.ProjectedAreaM2(element) : null;
                 row.Fields = applicable.SelectMany(rule => rule.Properties.Select(property => {
                     var owner = rule.Binding == "类型" ? doc.GetElement(element.GetTypeId()) : element;
                     var reads = owner == null ? new ParameterRead[0] : rule.Binding == "类型"
@@ -140,15 +141,15 @@ namespace Hifc.Revit.Management
                     var field = ModelChecks.Evaluate(property, reads);
                     if (rule.Binding == "实例" && field.Origin == "type") owner = doc.GetElement(element.GetTypeId());
                     field.OwnerId = owner?.Id.IntegerValue ?? -1; field.OwnerUniqueId = owner?.UniqueId;
+                    field.SourceSignature = Evidence.Hash(Evidence.Json(reads));
                     field.Binding = rule.Binding; field.AllowedEmpty = rule.EmptyAllowed.Contains(property.Property);
                     var parameters = owner?.GetParameters(property.SourceParameter);
                     field.Editable = parameters != null && parameters.Count == 1 && !parameters[0].IsReadOnly && parameters[0].StorageType != StorageType.ElementId;
                     if (field.AllowedEmpty && field.State == "未填写") field.Detail = "案例中允许空值；参数已存在";
                     if (field.Origin == "type") field.Detail = (field.Valid ? "类型来源" : field.Detail) + "；修改将影响当前文档同类型实例，预览显示范围";
-                    // Only native text with unambiguous semantics is filled automatically.
-                    // Areas, heights, coordinate units and business codes are not guessed.
-                    if (element is Level && property.Property == "楼层名称") { field.SuggestedValue = element.Name; field.SuggestionReason = "Revit 标高名称"; }
-                    if (element is ProjectInfo && property.Property == "建筑名称" && !string.IsNullOrWhiteSpace(doc.ProjectInformation.BuildingName))
+                    AutoFillPolicy.Populate(field, rule.Slot, element.Name, projectedArea);
+                    if ((field.State == "缺参数" || field.State == "未填写") && element is Level && property.Property == "楼层名称") { field.SuggestedValue = element.Name; field.SuggestionReason = "Revit 标高名称"; }
+                    if ((field.State == "缺参数" || field.State == "未填写") && element is ProjectInfo && property.Property == "建筑名称" && !string.IsNullOrWhiteSpace(doc.ProjectInformation.BuildingName))
                     { field.SuggestedValue = doc.ProjectInformation.BuildingName; field.SuggestionReason = "Revit 项目信息 / 建筑名称"; }
                     return field;
                 })).ToArray();
