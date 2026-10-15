@@ -287,6 +287,7 @@ namespace Hifc.Revit.Management
             var itemTemplate = new DataTemplate { VisualTree = layout };
             list.ItemTemplate = itemTemplate;
             list.Background = Brushes.Transparent;
+            list.SetValue(ScrollViewer.HorizontalScrollBarVisibilityProperty, ScrollBarVisibility.Disabled);
             list.BorderThickness = new Thickness(0);
             list.Padding = new Thickness(0);
             var style = new Style(typeof(ListBoxItem));
@@ -302,6 +303,7 @@ namespace Hifc.Revit.Management
             border.SetBinding(Border.PaddingProperty, new Binding("Padding") { RelativeSource = RelativeSource.TemplatedParent });
             var presenter = new FrameworkElementFactory(typeof(ContentPresenter));
             presenter.SetBinding(ContentPresenter.ContentProperty, new Binding("Content") { RelativeSource = RelativeSource.TemplatedParent });
+            presenter.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Stretch);
             presenter.SetValue(ContentPresenter.ContentTemplateProperty, itemTemplate);
             border.AppendChild(presenter);
             var template = new ControlTemplate(typeof(ListBoxItem)) { VisualTree = border };
