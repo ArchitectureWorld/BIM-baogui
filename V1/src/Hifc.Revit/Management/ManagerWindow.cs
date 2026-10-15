@@ -142,9 +142,9 @@ namespace Hifc.Revit.Management
             }
 
             var work = new Grid();
-            work.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(225) });
+            work.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(205) });
             work.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            work.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(350) });
+            work.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(335) });
 
             // Left: original business classification list, now a quiet navigation surface.
             var left = new DockPanel();
