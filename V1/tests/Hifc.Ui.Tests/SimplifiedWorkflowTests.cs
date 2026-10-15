@@ -50,6 +50,21 @@ internal static class SimplifiedWorkflowTests
             var captions = Tree((DependencyObject)window.Content).OfType<Button>().Select(b => b.Content as string).ToArray();
             Assert(captions.Contains("3  全面检查") && captions.Any(c => c != null && c.StartsWith("4  写入")), "Check/write actions are not explicit top-level steps");
         });
+        check("glass_theme_renders_three_frosted_work_surfaces", () => {
+            var panels = Tree((DependencyObject)window.Content).OfType<Border>()
+                .Where(b => b.CornerRadius.TopLeft >= 16 && b.BorderThickness.Left > 0).ToArray();
+            Assert(panels.Length >= 3, "The left, inventory, and inspector panels must each have a glass surface");
+            Assert(window.ElementGrid.EnableRowVirtualization && window.ElementGrid.AlternationCount == 2,
+                "Glass UI must retain a virtualized, legible object table");
+        });
+        check("glass_skin_preserves_real_selection_and_edit_controls", () => {
+            Assert(window.StageSelector.Items.Count == 2 && window.KindSelector.Items.Count == 3, "Workflow selectors changed");
+            Assert(window.FieldGrid.Columns.Cast<DataGridColumn>().Count(c => !c.IsReadOnly) == 1,
+                "Direct property editing must remain available on exactly the editable value column");
+            var buttons = Tree((DependencyObject)window.Content).OfType<Button>().ToArray();
+            Assert(buttons.Any(b => (b.Content as string) == "3  全面检查" && b.Background is LinearGradientBrush),
+                "The scan action is not visually distinguished");
+        });
         check("reference_metrics_are_inside_bottom_diagnostics", () => {
             var panel = Tree((DependencyObject)window.Content).OfType<Expander>().SingleOrDefault();
             Assert(panel != null && !panel.IsExpanded && (panel.Header as string).Contains("开发"), "Development detail must start collapsed");
