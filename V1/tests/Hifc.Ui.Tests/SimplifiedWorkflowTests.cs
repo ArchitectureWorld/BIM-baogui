@@ -69,6 +69,8 @@ internal static class SimplifiedWorkflowTests
             var list = (ListBox)typeof(ManagerWindow).GetField("roleList", Flags).GetValue(window);
             Assert(list.ItemTemplate != null && string.IsNullOrEmpty(list.DisplayMemberPath),
                 "Custom glass item template must bind Role.Slot and Subtitle, not show the CLR type name");
+            Assert(ScrollViewer.GetHorizontalScrollBarVisibility(list) == ScrollBarVisibility.Disabled,
+                "Classification counts must wrap rather than create a horizontal navigation scrollbar");
         });
         check("all_action_buttons_use_one_exact_36_dip_height", () => {
             window.UpdateLayout();
