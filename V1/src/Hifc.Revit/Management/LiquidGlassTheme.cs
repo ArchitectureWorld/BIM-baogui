@@ -158,6 +158,23 @@ namespace Hifc.Revit.Management
 
         internal static void Categories(ListBox list)
         {
+            // Use an explicit item template. A custom ListBoxItem ControlTemplate
+            // does not automatically honor DisplayMemberPath on all WPF hosts.
+            var layout = new FrameworkElementFactory(typeof(StackPanel));
+            var name = new FrameworkElementFactory(typeof(TextBlock));
+            name.SetBinding(TextBlock.TextProperty, new Binding("Role.Slot"));
+            name.SetValue(TextBlock.ForegroundProperty, Color("#234C76"));
+            name.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold);
+            name.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
+            var subtitle = new FrameworkElementFactory(typeof(TextBlock));
+            subtitle.SetBinding(TextBlock.TextProperty, new Binding("Subtitle"));
+            subtitle.SetValue(TextBlock.ForegroundProperty, Color("#7088A4"));
+            subtitle.SetValue(TextBlock.FontSizeProperty, 11.0);
+            subtitle.SetValue(TextBlock.MarginProperty, new Thickness(0, 5, 0, 0));
+            subtitle.SetValue(TextBlock.TextWrappingProperty, TextWrapping.Wrap);
+            layout.AppendChild(name); layout.AppendChild(subtitle);
+            var itemTemplate = new DataTemplate { VisualTree = layout };
+            list.ItemTemplate = itemTemplate;
             list.Background = Brushes.Transparent;
             list.BorderThickness = new Thickness(0);
             list.Padding = new Thickness(0);
@@ -174,7 +191,7 @@ namespace Hifc.Revit.Management
             border.SetBinding(Border.PaddingProperty, new Binding("Padding") { RelativeSource = RelativeSource.TemplatedParent });
             var presenter = new FrameworkElementFactory(typeof(ContentPresenter));
             presenter.SetBinding(ContentPresenter.ContentProperty, new Binding("Content") { RelativeSource = RelativeSource.TemplatedParent });
-            presenter.SetBinding(ContentPresenter.ContentTemplateProperty, new Binding("ContentTemplate") { RelativeSource = RelativeSource.TemplatedParent });
+            presenter.SetValue(ContentPresenter.ContentTemplateProperty, itemTemplate);
             border.AppendChild(presenter);
             var template = new ControlTemplate(typeof(ListBoxItem)) { VisualTree = border };
             var chosen = new Trigger { Property = ListBoxItem.IsSelectedProperty, Value = true };
