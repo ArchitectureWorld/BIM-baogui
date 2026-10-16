@@ -38,6 +38,15 @@ namespace Hifc.Revit.Management
             var controller = new ManagerController(ui); Windows[doc] = controller; controller.Window.Show();
             if (controller.Window.HasRememberedStage) controller.Scan();
         }
+        internal static void CheckAfterSelection(UIApplication ui,string stage,string kind,ManualWrite[] history)
+        {
+            var doc=ui.ActiveUIDocument.Document;
+            if(!Windows.TryGetValue(doc,out var c)||c.closed){c=new ManagerController(ui);Windows[doc]=c;c.Window.Show();}
+            c.Window.MergeManualHistory(history);
+            c.Window.StageSelector.SelectedItem=stage;c.Window.KindSelector.SelectedItem=kind;
+            if(c.scan!=null)c.StopScan(ui);
+            c.StartScan(ui);
+        }
         private void Changed(object sender, DocumentChangedEventArgs args)
         {
             if (closed || !document.Equals(args.GetDocument())) return;

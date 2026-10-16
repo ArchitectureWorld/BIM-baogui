@@ -100,6 +100,8 @@ internal static class Program
         window.Close();
         SimplifiedWorkflowTests.Run(Check, output);
         ManagerImprovementsTests.Run(Check, output);
+        SelectionDraftTests.Run(Check);
+        SelectionWindowTests.Run(Check,output);
         Console.WriteLine("RESULT failures=" + failures + "; tests=" + tests);
         File.WriteAllText(Path.Combine(output, "ui-tests.json"), new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(new { passed = tests - failures, tests, failures, scope = "Standalone actual WPF window with fake Revit adapter; not live-model API verification" }));
         return failures == 0 ? 0 : 1;

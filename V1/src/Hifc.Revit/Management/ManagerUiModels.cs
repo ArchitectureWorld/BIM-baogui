@@ -5,6 +5,7 @@ namespace Hifc.Revit.Management
 {
     internal sealed class ModelSnapshot
     {
+        public string Scope { get; set; } = "全项目";
         public string DocumentKey { get; set; }
         public string Title { get; set; }
         public string Stage { get; set; }

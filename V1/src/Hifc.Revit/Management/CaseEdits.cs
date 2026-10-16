@@ -117,7 +117,7 @@ namespace Hifc.Revit.Management
             var keep = proposed.Fields.Select(f => f.Source).Concat(original.Fields.Where(f => f.Binding == "类型").Select(f => f.Source)).ToArray();
             // Clear physical instance values only. Definitions and values owned by a
             // shared type remain available to the other instances using that type.
-            var sources = RevitMappingService.Catalog.ForSlot(original.Slot).Where(p => p.Binding == "实例")
+            var sources = RevitMappingService.Catalog.Properties.Where(p => !p.NativeGroup && ReferenceCatalog.LegacySlot(p.PropertySet) == original.Slot && p.Binding == "实例")
                 .Select(p => p.SourceParameter).Except(keep).Where(s => s != "类目").Distinct();
             foreach (var source in sources)
             {
@@ -180,6 +180,14 @@ namespace Hifc.Revit.Management
                 ProposedElements = proposedRows.ToArray(), Conflicts = conflicts.Distinct().ToArray(), Request = request ?? new EditRequest { Kind = "案例补齐", Ids = rows.Select(r => r.Id).ToArray() } };
         }
         internal static EditPreview PreviewBatch(Document doc, ModelSnapshot snapshot, EditRequest[] requests)
+            => PreviewBatchCore(doc, snapshot, requests, true);
+        internal static EditPreview PreviewSelection(Document doc, ModelSnapshot snapshot, EditRequest[] requests)
+        {
+            if (snapshot?.Scope != "所选构件") throw new InvalidOperationException("请重新读取当前选择。");
+            if ((requests ?? new EditRequest[0]).Any(r => r.Kind == "赋值" && r.Binding != "实例")) throw new InvalidOperationException("快捷赋属性只支持所选实例，类型属性请在 Revit 类型属性中编辑。");
+            return PreviewBatchCore(doc, snapshot, requests, false);
+        }
+        private static EditPreview PreviewBatchCore(Document doc, ModelSnapshot snapshot, EditRequest[] requests, bool includeAutomatic)
         {
             requests = requests ?? new EditRequest[0];
             var effective = new Dictionary<int, ModelElementCheck>();
@@ -207,9 +215,9 @@ namespace Hifc.Revit.Management
                         throw new InvalidOperationException("暂存属性与模型现状有冲突，请重新确认：" + request.Source);
                 }
             }
-            var automatic = Preview(doc, snapshot);
+            var automatic = includeAutomatic ? Preview(doc, snapshot) : new EditPreview { Changes = new EditChange[0] };
             var changes = automatic.Changes.ToList(); var conflicts = automatic.Conflicts.ToList();
-            var valueSnapshot = new ModelSnapshot { DocumentKey = snapshot.DocumentKey, ScanId = snapshot.ScanId, Stage = snapshot.Stage, ModelKind = snapshot.ModelKind, Complete = true,
+            var valueSnapshot = new ModelSnapshot { Scope = snapshot.Scope, DocumentKey = snapshot.DocumentKey, ScanId = snapshot.ScanId, Stage = snapshot.Stage, ModelKind = snapshot.ModelKind, Complete = true,
                 Elements = snapshot.Elements.Select(r => effective.TryGetValue(r.Id, out var proposed) ? proposed : r).ToArray() };
             var manualValues = new Dictionary<string, string>();
             foreach (var request in requests.OrderBy(r => r.Kind == "分类" ? 0 : 1))
@@ -229,7 +237,9 @@ namespace Hifc.Revit.Management
                     changes.Add(change);
                 }
             }
-            var array = changes.ToArray();
+            // Quick assignment is strictly instance scoped. Preparing a business
+            // class must not create or overwrite values on a shared family type.
+            var array = changes.Where(c => includeAutomatic || c.Binding == "实例").ToArray();
             return new EditPreview { DocumentKey = snapshot.DocumentKey, ScanId = snapshot.ScanId, SnapshotHash = Fingerprint(doc, array),
                 ProposedElements = effective.Values.ToArray(), Changes = array, Conflicts = conflicts.Distinct().ToArray(), Request = new EditRequest { Kind = "统一写入", Ids = snapshot.Elements.Select(r => r.Id).ToArray() } };
         }

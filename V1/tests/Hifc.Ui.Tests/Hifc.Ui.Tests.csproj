@@ -7,6 +7,8 @@
     <Compile Include="../../src/Hifc.Revit/Management/ManagerUiModels.cs" Link="ManagerUiModels.cs" />
     <Compile Include="../../src/Hifc.Revit/Management/ManagementState.cs" Link="ManagementState.cs" />
     <Compile Include="../../src/Hifc.Revit/Management/ManagementReport.cs" Link="ManagementReport.cs" />
+    <Compile Include="../../src/Hifc.Revit/Management/SelectionDraft.cs" Link="SelectionDraft.cs" />
+    <Compile Include="../../src/Hifc.Revit/Management/SelectionWindow.cs" Link="SelectionWindow.cs" />
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
 </Project>

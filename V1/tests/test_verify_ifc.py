@@ -111,6 +111,61 @@ class VerifyNativeExport(unittest.TestCase):
         self.assertEqual(raised.exception.code, 2)
         self.assertEqual(path.read_bytes(), before)
 
+    def parking_fixture(self, *, wrong_entity=False, guid_override=False, missing_owner=False):
+        model = ifcopenshell.file(schema="IFC4")
+        export_id = "11111111222233334444555555555555"
+        global_id = "1qCzKEnzX4z9jdKcdDoNjX" if guid_override else ifcopenshell.guid.compress(export_id)
+        if wrong_entity:
+            owner = model.create_entity("IfcSlab", GlobalId=global_id, Name="停车区域", Tag="1001")
+        else:
+            owner = model.create_entity("IfcSpace", GlobalId=global_id, Name="1", LongName="面积", CompositionType="ELEMENT", PredefinedType="SPACE")
+        prop = model.create_entity("IfcPropertySingleValue", Name="车位数", NominalValue=model.create_entity("IfcInteger", 19))
+        pset = model.create_entity("IfcPropertySet", GlobalId=ifcopenshell.guid.new(), Name="Pset_停车位信息属性集", HasProperties=[prop])
+        model.create_entity("IfcRelDefinesByProperties", GlobalId=ifcopenshell.guid.new(), RelatedObjects=[owner], RelatingPropertyDefinition=pset)
+        if missing_owner:
+            owner.GlobalId = ifcopenshell.guid.new()
+        directory = Path(self.temp.name)
+        path = directory / "parking.ifc"
+        model.write(str(path))
+        receipt = {
+            "doc_export_calls": 1, "ifc_postprocessed": False,
+            "ifc_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            "source_snapshot_before": "a" * 64, "source_snapshot_after": "a" * 64, "model_transaction": "RolledBack",
+            "spatial_export_identities": [{"element_id": 1001, "unique_id": "source-area-1001", "ifc_entity": "IfcSpace", "export_id": export_id, "ifc_guid_override": global_id if guid_override else None}],
+            "materialization": [{"element_id": 1001, "property_set": "Pset_停车位信息属性集", "property": "车位数", "raw_type": "Integer", "value": "19", "status": "MATERIALIZED"}],
+        }
+        receipt_path = path.with_suffix(".receipt.json")
+        receipt_path.write_text(json.dumps(receipt, ensure_ascii=False), encoding="utf-8")
+        return path, receipt_path
+
+    def test_area_space_without_tag_uses_source_export_guid(self):
+        result = verify.verify_export(*self.parking_fixture())
+        self.assertTrue(result["all_passed"], result)
+        self.assertEqual(result["verified_properties"], 1)
+
+    def test_area_existing_ifc_guid_override_is_respected(self):
+        result = verify.verify_export(*self.parking_fixture(guid_override=True))
+        self.assertTrue(result["all_passed"], result)
+
+    def test_parking_pset_on_slab_does_not_pass_as_area(self):
+        result = verify.verify_export(*self.parking_fixture(wrong_entity=True))
+        self.assertFalse(result["all_passed"])
+        self.assertIn("OWNER_ENTITY_MISMATCH", [x.get("code") for x in result["failures"]])
+
+    def test_area_owner_is_not_guessed_from_name_or_parking_pset(self):
+        result = verify.verify_export(*self.parking_fixture(missing_owner=True))
+        self.assertFalse(result["all_passed"])
+        self.assertIn("OWNER_NOT_UNIQUE", [x.get("code") for x in result["failures"]])
+
+    def test_invalid_area_export_identity_is_reported(self):
+        path, receipt_path = self.parking_fixture()
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        receipt["spatial_export_identities"][0]["export_id"] = "invalid"
+        receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+        result = verify.verify_export(path, receipt_path)
+        self.assertFalse(result["all_passed"])
+        self.assertIn("INVALID_SPATIAL_EXPORT_IDENTITY", [x.get("code") for x in result["failures"]])
+
 
 if __name__ == "__main__":
     unittest.main()

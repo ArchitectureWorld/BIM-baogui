@@ -429,6 +429,7 @@ namespace Hifc.Revit.Management
         internal void SetStatus(string message, bool error = false) { status.Text = message; status.Foreground = Brush(error ? "#AE3D38" : "#26465B"); }
         internal void Accept(ModelSnapshot result)
         {
+            if (result.Scope != "全项目") throw new InvalidOperationException("所选构件读取不能作为全项目检查结果。");
             snapshot = result; proposedRows.Clear(); preview = null; needsRecheck = !result.Complete; PreviewGrid.ItemsSource = null; Summary = CaseWorkflow.Summarize(result.Stage, result.ModelKind, result.Elements);
             project.Text = result.Title + " · " + result.Stage + " / " + result.ModelKind + " · 已检查 " + result.Elements.Length + " 个对象";
             contextBadge.Text = result.Stage + "  /  " + result.ModelKind + "\n已检查 " + result.Elements.Length + " 个对象";
@@ -615,6 +616,12 @@ namespace Hifc.Revit.Management
             state.ManualWrites = records.ToArray();
             state.Drafts = state.Drafts.Where(d => !completed.Any(r => DraftKey(r) == DraftKey(d) && r.Value == d.Value && r.Slot == d.Slot)).ToArray();
             PersistState(); UpdateWriteButton();
+        }
+        internal void MergeManualHistory(ManualWrite[] records)
+        {
+            if (state == null) return;
+            state.ManualWrites = state.ManualWrites.Concat(records ?? new ManualWrite[0]).GroupBy(r => r.Key)
+                .Select(g => g.OrderByDescending(r => r.WrittenUtc, StringComparer.Ordinal).First()).ToArray();
         }
         internal void SelectProperty(FieldCheck field) => FieldGrid.SelectedItem = FieldGrid.Items.Cast<PropertyEditor>().FirstOrDefault(r => r.Field == field);
         private sealed class ProductStatus : IValueConverter

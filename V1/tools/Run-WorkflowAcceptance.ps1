@@ -6,7 +6,7 @@ $workspace=Split-Path -Parent $PSScriptRoot
 $run=Join-Path $workspace ('validation\workflow-' + (Get-Date -Format yyyyMMdd-HHmmss))
 $copies=Join-Path $run 'models'
 New-Item -ItemType Directory -Path $copies -Force | Out-Null
-$sources=if ($SourceDirectory) { [IO.Path]::GetFullPath($SourceDirectory) } else { [IO.Path]::GetFullPath((Join-Path $workspace '..\..\..\测试文件\01\revit原文件')) }
+$sources=if ($SourceDirectory) { [IO.Path]::GetFullPath($SourceDirectory) } else { [IO.Path]::GetFullPath((Join-Path $workspace '..\测试文件\01\revit原文件')) }
 $models=@('总图.0008_干净.rvt','厂房_干净.rvt','职工后勤楼_干净.rvt') | ForEach-Object {
     $source=Join-Path $sources $_; $copy=Join-Path $copies $_
     Copy-Item -LiteralPath $source -Destination $copy

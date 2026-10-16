@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -23,6 +24,14 @@ namespace Hifc.Revit
             if (File.Exists(configPath)) throw new InvalidOperationException("导出配置目标已存在。");
             File.WriteAllText(configPath, RevitMappingService.Catalog.BuildExportConfiguration(), new UTF8Encoding(false));
             var before = Evidence.Hash(Evidence.Json(RevitMappingService.Capture(doc, elements)));
+            // IfcSpace has no Tag attribute. Keep Revit's native export identity so
+            // the read-only IFC audit can resolve an Area without guessing by name.
+            var spatialIdentities = elements.OfType<Area>().Select(area => new
+            {
+                element_id = area.Id.IntegerValue, unique_id = area.UniqueId, ifc_entity = "IfcSpace",
+                export_id = ExportUtils.GetExportId(doc, area.Id).ToString("N"),
+                ifc_guid_override = area.get_Parameter(BuiltInParameter.IFC_GUID)?.AsString()
+            }).ToArray();
             var service = ExternalServiceRegistry.GetService(ExternalServices.BuiltInExternalServices.IFCExporterService) as SingleServerService;
             var server = service?.GetActiveServerId();
             object materialization = null;
@@ -43,6 +52,11 @@ namespace Hifc.Revit
                     doc.Regenerate();
                     using (var options = new IFCExportOptions { FileVersion = IFCVersion.IFC4RV, FilterViewId = view.Id })
                     {
+                        // Area is not visible in 3D. A view-only collector silently
+                        // omits it; the explicit list also prevents exporting other Areas.
+                        options.AddOption("ElementsForExport", string.Join(";", elements.Select(e => e.Id.IntegerValue)
+                            .Distinct().OrderBy(id => id).Select(id => id.ToString(CultureInfo.InvariantCulture))));
+                        options.AddOption("ExportRoomsInView", "true");
                         options.AddOption("ExportUserDefinedPsets", "true");
                         options.AddOption("ExportUserDefinedPsetsFileName", configPath);
                         // Internal Revit Psets would expose temporary bridge names in the IFC.
@@ -63,10 +77,11 @@ namespace Hifc.Revit
                 throw new InvalidOperationException("Revit 未产生有效 IFC 文件。");
             var receipt = new
             {
-                schema_version = "hifc.native-export-receipt/1.0", ifc_path = path, ifc_sha256 = Evidence.FileHash(path),
+                schema_version = "hifc.native-export-receipt/1.1", ifc_path = path, ifc_sha256 = Evidence.FileHash(path),
                 configuration_path = configPath, configuration_sha256 = Evidence.FileHash(configPath),
                 doc_export_calls = 1, ifc_postprocessed = false, source_snapshot_before = before, source_snapshot_after = after,
                 model_transaction = rollback.ToString(), exporter_server_id = server?.ToString(), selected_elements = elements.Length,
+                spatial_export_identities = spatialIdentities,
                 materialization, reference_software_ab_verified = false
             };
             Evidence.Write(Path.ChangeExtension(path, ".receipt.json"), receipt);

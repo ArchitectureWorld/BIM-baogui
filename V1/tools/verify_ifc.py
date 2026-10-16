@@ -5,10 +5,12 @@ import json
 import math
 from pathlib import Path
 import sys
+import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / ".deps"))
 import ifcopenshell
+import ifcopenshell.guid
 import ifcopenshell.validate
 
 IFC_TYPES = {"Real": "IfcReal", "Integer": "IfcInteger", "Boolean": "IfcBoolean", "Label": "IfcLabel", "Text": "IfcText", "Duration": "IfcDuration"}
@@ -56,11 +58,42 @@ def verify_export(ifc_path: Path, receipt_path: Path) -> dict:
     if leaked_bridges:
         failures.append({"code": "TEMPORARY_BRIDGE_LEAK", "count": len(leaked_bridges)})
     owners = {}
+    owners_by_guid = {}
+    spatial_owner_checks = []
     attached = {}
     for item in model.by_type("IfcProduct"):
+        owners_by_guid.setdefault(item.GlobalId, []).append(item)
         tag = getattr(item, "Tag", None)
         if tag is not None:
             owners.setdefault(str(tag), []).append(item)
+    spatial_ids = set()
+    for identity in receipt.get("spatial_export_identities", []):
+        element_id = str(identity["element_id"])
+        # A declared spatial identity must never fall back to a matching Tag.
+        owners[element_id] = []
+        try:
+            if element_id in spatial_ids or identity.get("ifc_entity") != "IfcSpace":
+                raise ValueError("duplicate identity or unsupported spatial entity")
+            spatial_ids.add(element_id)
+            override = identity.get("ifc_guid_override")
+            if override:
+                global_id = override
+                uuid.UUID(hex=ifcopenshell.guid.expand(global_id))
+            else:
+                global_id = ifcopenshell.guid.compress(uuid.UUID(identity["export_id"]).hex)
+        except (KeyError, TypeError, ValueError):
+            failures.append({"code": "INVALID_SPATIAL_EXPORT_IDENTITY", "element_id": element_id})
+            continue
+        candidates = owners_by_guid.get(global_id, [])
+        expected_entity = identity["ifc_entity"]
+        valid_entity = len(candidates) == 1 and candidates[0].is_a() == expected_entity
+        spatial_owner_checks.append({"element_id": element_id, "global_id": global_id,
+                                     "expected_entity": expected_entity, "matches": len(candidates), "passed": valid_entity})
+        if len(candidates) == 1 and not valid_entity:
+            failures.append({"code": "OWNER_ENTITY_MISMATCH", "element_id": element_id,
+                             "expected": expected_entity, "actual": candidates[0].is_a()})
+        elif valid_entity:
+            owners[element_id] = candidates
     for relation in model.by_type("IfcRelDefinesByProperties"):
         definition = relation.RelatingPropertyDefinition
         if not definition.is_a("IfcPropertySet"):
@@ -128,6 +161,7 @@ def verify_export(ifc_path: Path, receipt_path: Path) -> dict:
         "property_set_templates": len(model.by_type("IfcPropertySetTemplate")),
         "schema_error_count": len(schema_errors), "schema_errors": schema_errors,
         "temporary_bridge_property_count": len(leaked_bridges),
+        "spatial_owner_checks": spatial_owner_checks,
         "checks": checks, "failures": failures,
         "reference_software_ab_verified": False, "coverage_basis": "receipt materialization rows; not all 280 reference definitions",
     }
