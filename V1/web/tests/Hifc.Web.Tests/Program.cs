@@ -28,5 +28,10 @@ Test("manual draft survives rescan with unchanged source", () => { var result = 
 Test("concurrent model edit produces three-way conflict", () => { var result = DraftRebaser.Rebase(new[] { new EditDraft { FieldKey = "a", OriginalSignature = "s1", OriginalValue = "4", Value = "5" } }, new[] { new FieldResult { Key = "a", SourceSignature = "s2", Value = "6" } }); Require(result.Conflicts.Length == 1 && result.Conflicts[0].CurrentValue == "6" && result.Conflicts[0].Draft.OriginalValue == "4" && result.Conflicts[0].Draft.Value == "5", "Conflict lost one of its values"); });
 Test("deleted target retains its draft for review", () => { var result = DraftRebaser.Rebase(new[] { new EditDraft { FieldKey = "deleted", Value = "5" } }, Array.Empty<FieldResult>()); Require(result.InvalidTargets.Length == 1, "Deleted draft was silently lost"); });
 RuleCases.Run(Test);
+ClientCases.Run(Test);
+AccountCases.Run(Test);
+SignerCases.Run(Test);
+TransportCases.Run(Test);
+PackageCases.Run(Test);
 Console.WriteLine($"RESULT {passed} passed; {failed} failed");
 return failed == 0 ? 0 : 1;

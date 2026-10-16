@@ -1,4 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
   <ItemGroup><ProjectReference Include="../../src/Hifc.Web.Contracts/Hifc.Web.Contracts.csproj" /><ProjectReference Include="../../src/Hifc.Web.RuleEngine/Hifc.Web.RuleEngine.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../src/Hifc.Web.Client/Hifc.Web.Client.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../src/Hifc.Web.Server/Hifc.Web.Server.csproj" /></ItemGroup>
+  <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
 </Project>

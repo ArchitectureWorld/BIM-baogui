@@ -1,0 +1,36 @@
+{
+  "schema": "hifc.web.development-checkpoint/1",
+  "verifiedUtc": "2026-10-16T17:54:01.7170435Z",
+  "branch": "hifc-web",
+  "scope": "Web only; Local unchanged",
+  "webTests": {
+    "passed": 61,
+    "failed": 0
+  },
+  "existingRuleTests": {
+    "failed": 0,
+    "tests": 85
+  },
+  "nativeHarnessBuilt": true,
+  "nativeHostTestsExecuted": false,
+  "linuxServiceDeployed": false,
+  "experienceAcceptancePassed": false,
+  "protectedLocalState": {
+    "sourceModels": 6,
+    "installedFiles": 3,
+    "unchanged": true
+  },
+  "pending": [
+    "Ordinary-user credential scheme confirmation",
+    "Docker interactive sudo installation",
+    "Revit one-time publisher loading prompt",
+    "Repository publishing scope before push"
+  ],
+  "unimplemented": [
+    "Database and authentication",
+    "HTTP API host",
+    "Native inventory and transactions",
+    "Web product UI and installer",
+    "Linux complete deployment and model-copy experience acceptance"
+  ]
+}

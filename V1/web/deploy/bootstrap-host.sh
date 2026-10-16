@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Official Docker Engine / Compose installation for this Web service only.
+# Default is read-only. A human runs --apply in an interactive sudo terminal.
+mode="${1:---check}"
+if [[ "$mode" != --check && "$mode" != --apply ]]; then
+  echo 'usage: bootstrap-host.sh [--check|--apply]' >&2; exit 64
+fi
+if [[ "$(id -un)" != zetta && "$EUID" != 0 ]] || [[ "$(hostname)" != pc ]]; then
+  echo 'HOST_IDENTITY_MISMATCH' >&2; exit 3
+fi
+source /etc/os-release
+if [[ "$ID" != ubuntu || "$VERSION_ID" != 24.04 || "$(dpkg --print-architecture)" != amd64 ]]; then
+  echo 'EXPECTED_UBUNTU_24_04_AMD64' >&2; exit 3
+fi
+failures=0
+if command -v docker >/dev/null 2>&1; then
+  docker --version
+  if ! docker compose version; then echo 'COMPOSE_MISSING'; failures=$((failures+1)); fi
+else
+  echo 'DOCKER_MISSING'; failures=$((failures+1))
+fi
+for port in 8443 9443; do
+  if ss -H -ltn | awk '{print $4}' | grep -Eq ":${port}$"; then
+    echo "PORT_IN_USE:${port}"; failures=$((failures+1))
+  fi
+done
+if [[ -L /srv/hifc-web ]]; then echo 'TARGET_IS_SYMLINK'; exit 3; fi
+if [[ -e /srv/hifc-web && ! -d /srv/hifc-web ]]; then echo 'TARGET_IS_NOT_DIRECTORY'; exit 3; fi
+if [[ "$mode" == --check ]]; then
+  if sudo -n true >/dev/null 2>&1; then echo 'SUDO_NONINTERACTIVE_AVAILABLE'; else echo 'SUDO_INTERACTIVE_REQUIRED'; fi
+  echo "failures=${failures}"
+  exit "$(( failures > 0 ? 2 : 0 ))"
+fi
+if [[ "$EUID" != 0 ]]; then echo 'RUN_WITH_INTERACTIVE_SUDO' >&2; exit 4; fi
+if ss -H -ltn | awk '{print $4}' | grep -Eq ':(8443|9443)$'; then echo 'PORT_CONFLICT_NO_CHANGES_MADE'; exit 3; fi
+
+backup="/var/backups/hifc-web-bootstrap/$(date -u +%Y%m%dT%H%M%SZ)"
+install -d -m 0700 "$backup"
+ss -H -ltn > "$backup/listeners-before.txt"
+if command -v iptables-save >/dev/null 2>&1; then iptables-save > "$backup/iptables-before.txt"; fi
+if command -v nft >/dev/null 2>&1; then nft list ruleset > "$backup/nft-before.txt"; fi
+if ! command -v docker >/dev/null 2>&1; then
+  for package in docker.io docker-compose docker-compose-v2 podman-docker containerd runc; do
+    if dpkg-query -W -f='${db:Status-Status}' "$package" 2>/dev/null | grep -qx installed; then
+      echo "EXISTING_PACKAGE_REQUIRES_REVIEW:${package}" >&2; exit 5
+    fi
+  done
+  if [[ -e /etc/apt/sources.list.d/docker.sources ]]; then
+    echo 'EXISTING_DOCKER_APT_SOURCE_REQUIRES_REVIEW' >&2; exit 5
+  fi
+  apt-get update
+  apt-get install -y ca-certificates curl
+  install -m 0755 -d /etc/apt/keyrings
+  curl --fail --show-error --location https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  chmod a+r /etc/apt/keyrings/docker.asc
+  cat > /etc/apt/sources.list.d/docker.sources <<'SOURCES'
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: noble
+Components: stable
+Architectures: amd64
+Signed-By: /etc/apt/keyrings/docker.asc
+SOURCES
+  apt-get update
+  apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  systemctl enable --now docker.service
+fi
+docker version
+docker compose version
+docker run --rm hello-world
+if [[ -e /srv/hifc-web && "$(stat -c %u /srv/hifc-web)" != 0 ]]; then echo 'TARGET_OWNER_REQUIRES_REVIEW'; exit 5; fi
+install -d -m 0750 /srv/hifc-web /srv/hifc-web/releases /srv/hifc-web/config /srv/hifc-web/data /srv/hifc-web/logs
+install -d -m 0700 /srv/hifc-web/secrets
+ss -H -ltn > "$backup/listeners-after.txt"
+dpkg-query -W docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin > "$backup/versions.txt"
+echo "HIFC_WEB_HOST_READY backup=${backup}"
+echo 'No user was added to the Docker group. No Web service or new LAN listener has been started.'
