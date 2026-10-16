@@ -1,0 +1,58 @@
+{
+  "schema": "hifc.read-only-preflight/1.0",
+  "verified_date": "2026-10-16",
+  "timezone": "Asia/Shanghai",
+  "scope": "Read-only SSH, local project reads, official .NET metadata and GitHub repository metadata; no deployment performed",
+  "windows": {
+    "hostname": "DESKTOP-7JBS9KV",
+    "primary_ipv4": "192.168.218.195",
+    "prefix_length": 24,
+    "dotnet_sdks_found": ["7.0.400"],
+    "revit_2020_api_exists": true
+  },
+  "linux": {
+    "ssh_alias": "zetta-pc",
+    "verified_user": "zetta",
+    "verified_hostname": "pc",
+    "ssh_exit_code": 0,
+    "ipv4": "192.168.6.45",
+    "prefix_length": 23,
+    "os": "Ubuntu 24.04.4 LTS",
+    "architecture": "x86_64",
+    "virtualization": "kvm",
+    "logical_processors": 8,
+    "memory_total_kib": 32866588,
+    "root_total_gib": 195.27,
+    "root_free_gib": 117.57,
+    "secondary_mount": "/media/zetta/55c3d58e-22b5-4ac9-80d7-435081fb7a10",
+    "secondary_total_gib": 983.24,
+    "secondary_free_gib": 885.57,
+    "docker_found_in_path": false,
+    "dotnet_found_in_path": false,
+    "passwordless_sudo_available": false,
+    "ntp_synchronized": true,
+    "proposed_srv_hifc_exists": false,
+    "proposed_ports_absent_from_current_tcp_listener_snapshot": [8443, 9443],
+    "firewall_configuration_verified": false,
+    "reboot_and_backup_mount_verified": false
+  },
+  "repository": {
+    "root": "D:\\18_建模项目\\湖北BIM云平台\\work\\hifc-v1-0.3.2",
+    "canonical_root_at_plan_completion": "D:\\18_建模项目\\湖北BIM云平台",
+    "workspace_moved_during_planning": true,
+    "branch": "main",
+    "head": "ecc768b491d38b60d9785c06f3bbd12f0237ba67",
+    "working_tree_clean_before_plan": true,
+    "remote": "ArchitectureWorld/BIM-baogui",
+    "remote_visibility": "public",
+    "visibility_verified_by": "GitHub get_repo connector",
+    "installed_or_runtime_tests_executed_this_planning_run": false
+  },
+  "official_dotnet_metadata": {
+    "source": "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/releases-index.json",
+    "selected_channel": "10.0",
+    "sdk": "10.0.402",
+    "support_type": "lts",
+    "eol": "2028-11-14"
+  }
+}
