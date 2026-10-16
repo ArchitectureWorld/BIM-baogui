@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Hifc.Web.Contracts/Hifc.Web.Contracts.csproj" />
+    <Compile Include="../../../src/Hifc.Reference.Core/*.cs" Link="ExistingRules/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../../reference/gonggui/contract.json" LogicalName="Hifc.Reference.Contract.json" />
+    <EmbeddedResource Include="../../../reference/success-case-01/case-profiles.json" LogicalName="Hifc.Reference.SuccessCase.json" />
+    <EmbeddedResource Include="../../../reference/success-case-01/recognition-evidence.json" LogicalName="Hifc.Reference.RecognitionEvidence.json" />
+  </ItemGroup>
+</Project>
