@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-10-16",
+  "scope": "Planning total-site standardization; historical receipts, not a new model run or official platform acceptance",
+  "base_commit": "ecc768b491d38b60d9785c06f3bbd12f0237ba67",
+  "source_repository": "D:\\18_建模项目\\湖北BIM云平台",
+  "files": [
+    {
+      "file": "verification-summary.json",
+      "source_relative_path": "artifacts/hifc-standardize/20261016-173914-connectivity/verification-summary.json",
+      "sha256": "44b4b52cde0add0ea7c0fc6e2729ad4cc4f76e775a53407af06ae3d582dcf826",
+      "source_sha256": "6888bf06a246464afc06cce0220458a60ac4b5e0061fa80aea2b3216ac38a8db"
+    },
+    {
+      "file": "hash-verification.json",
+      "source_relative_path": "artifacts/hifc-standardize/20261016-173914-connectivity/hash-verification.json",
+      "sha256": "7f534983e299201483376d4b273b5f373871a58688b4faee7d8cef271be55510",
+      "source_sha256": "7a38866d2eddc195fee5f0e5bf73e064db5ff55e3a5c6a08f3372ee3a357ec0b"
+    },
+    {
+      "file": "ifc-green-verification.json",
+      "source_relative_path": "artifacts/hifc-standardize/20261016-173914-connectivity/ifc-green-verification.json",
+      "sha256": "4c5bee53fe9a228d01560b5febf6255eeebeb3d9b41420717c74381efe3d3989",
+      "source_sha256": "785e5921f3cc52fbf1dfeb6d1aceb2621cca91e083ef335945512ca4b378ec38"
+    },
+    {
+      "file": "ifc-profile-diagnostic.json",
+      "source_relative_path": "artifacts/hifc-standardize/20261016-173914-connectivity/ifc-profile-diagnostic.json",
+      "sha256": "c1d6d6cbcbf23228208ebfaf65983f93144fe517992a8697f8aa5bfd2a948339",
+      "source_sha256": "de7f5ed0af6c2c700de3762cdcc04264bc93cd02073fde6ddbecd848b9437f21"
+    },
+    {
+      "file": "parking-export-audit.json",
+      "source_relative_path": "artifacts/hifc-export-fix/20261016-201342/verified/parking-export-audit.json",
+      "sha256": "107b748aec7140f555afe41b2892ab5f19958449bf3d4ff567fe1b66a5a8b410",
+      "source_sha256": "a6e54237f694b4a114c29499e2b5957e7a5e058d0083520c0107aafd674acd2a"
+    },
+    {
+      "file": "installation-verification.json",
+      "source_relative_path": "artifacts/hifc-export-fix/20261016-201342/verified/installation-verification.json",
+      "sha256": "9292175df8277c9bc23a53829b764aea550e0a4089a4559eddc86f6cb0b3366f",
+      "source_sha256": "ad71991e0ccb798b7d4e86e5df493f5d7e44a42e2e5a929174aaf1f809ad1328"
+    }
+  ],
+  "text_normalization": "UTF-8 without BOM, LF, single final newline; JSON values unchanged. source_sha256 identifies original receipt bytes; sha256 identifies the versioned copy."
+}

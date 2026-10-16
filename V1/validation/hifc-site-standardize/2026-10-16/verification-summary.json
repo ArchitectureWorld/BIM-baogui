@@ -1,0 +1,42 @@
+{
+  "checks": {
+    "ten_independent_green_carriers": true,
+    "road_one_connected_preserved": true,
+    "exact_total_area_preserved": true,
+    "curves_preserved": true,
+    "no_missing_added_or_overlapping_volume": true,
+    "saved_reopened": true,
+    "repeat_run_needs_no_classification_or_split": true,
+    "source_file_unchanged": true,
+    "source_model_and_ui_unchanged": true,
+    "green_ifc_owners_and_area_values": true,
+    "ifc_geometry_all_verified": false
+  },
+  "allModelChecksPassed": true,
+  "source": "D:\\18_建模项目\\湖北BIM云平台\\artifacts\\hifc-standardize\\20261016-163910\\黄冈营养膳食中心_标准化实验.rvt",
+  "target": "D:\\18_建模项目\\湖北BIM云平台\\artifacts\\hifc-standardize\\20261016-173914-connectivity\\黄冈营养膳食中心_逐块标准化.rvt",
+  "oldGreenId": 393385,
+  "newGreenIds": [
+    396445,
+    396454,
+    396462,
+    396470,
+    396482,
+    396490,
+    396499,
+    396506,
+    396514,
+    396522
+  ],
+  "curveExactAreaBeforeM2": 1491.461275670051,
+  "curveExactAreaAfterM2": 1491.4612757317225,
+  "pluginProjectionBeforeM2": 1491.0530278492952,
+  "pluginProjectionAfterM2": 1491.053027849295,
+  "writtenRoundedAreasSumM2": 1491.053028,
+  "maxCurveDeviationM": 9.323831840329302e-13,
+  "sumNativeAreaBeforeM2": 1491.4646955449846,
+  "sumNativeAreaAfterM2": 1491.452159213846,
+  "maxNativeAreaReadoutDifferenceM2": 0.01982836765932916,
+  "maxNativeVolumeReadoutDifferenceM3": 0.0012342787529036059,
+  "officialPlatformAcceptance": false
+}

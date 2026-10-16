@@ -1,0 +1,23 @@
+{
+  "assembly_path": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1\\Hifc.V1.Revit.dll",
+  "host_reloaded": false,
+  "files": [
+    {
+      "name": "Hifc.V1.Revit.dll",
+      "matches_package": true,
+      "matches_receipt": true,
+      "sha256": "215cb046d7c34b81ed7ae588182c175c455d7e3bbdaa06673b9d9a48b75cabfd"
+    },
+    {
+      "name": "Hifc.Reference.Core.dll",
+      "matches_package": true,
+      "matches_receipt": true,
+      "sha256": "cec2d51e6dd540955ffca8aa3339b0f1f6e3f51c1d740d4740085033b6f864ee"
+    }
+  ],
+  "addin_manifest": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1.addin",
+  "receipt": "D:\\18_建模项目\\湖北BIM云平台\\V1\\outputs\\install-20261016-203839-bfe45714\\install-receipt.json",
+  "workspace_root": "D:\\18_建模项目\\湖北BIM云平台\\V1",
+  "revit_process_count": 0,
+  "installed": true
+}

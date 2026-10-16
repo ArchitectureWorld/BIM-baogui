@@ -1,0 +1,220 @@
+{
+  "parking_export_passed": true,
+  "active_source_unchanged": true,
+  "copy_model_unchanged": true,
+  "closed_copy": true,
+  "cases": [
+    {
+      "name": "standardized",
+      "ifc_path": "D:\\18_建模项目\\湖北BIM云平台\\artifacts\\hifc-export-fix\\20261016-201342\\verified\\standardized.ifc",
+      "parking_export_passed": true,
+      "space_count": 1,
+      "slab_count": 3,
+      "parking_pset_count": 1,
+      "parking_fields": [
+        {
+          "name": "是否为室外停车场",
+          "type": "IfcBoolean",
+          "value": true
+        },
+        {
+          "name": "停车位位置信息",
+          "type": "IfcText",
+          "value": "室外地坪；建筑外侧连续停车区"
+        },
+        {
+          "name": "备注",
+          "type": "IfcText",
+          "value": "依据总平面、三维及19个停车族实例推断为同一室外地面停车区；既有面积边界切过末端车位，数量按连续车位组统计，边界待复核。"
+        },
+        {
+          "name": "层数",
+          "type": "IfcInteger",
+          "value": 1
+        },
+        {
+          "name": "车位数",
+          "type": "IfcInteger",
+          "value": 19
+        }
+      ],
+      "geometry": [
+        {
+          "step_id": 196,
+          "global_id": "3x8VXNYr98fxoo3ITjFHEh",
+          "ifc_footprint_m2": 261.24926034499816,
+          "source_area_m2": 261.2492603449993,
+          "difference_m2": 1.1368683772161603e-12,
+          "passed": true
+        }
+      ],
+      "verified_written_fields": 10,
+      "unfilled_source_fields": [
+        {
+          "element_id": 393030,
+          "property_set": "Pset_道路边界线信息属性集",
+          "property": "区内道路类型"
+        },
+        {
+          "element_id": 393030,
+          "property_set": "Pset_道路边界线信息属性集",
+          "property": "道路宽度"
+        },
+        {
+          "element_id": 393385,
+          "property_set": "Pset_绿地信息属性集",
+          "property": "绿地类型"
+        },
+        {
+          "element_id": 393385,
+          "property_set": "Pset_绿地信息属性集",
+          "property": "折算系数"
+        },
+        {
+          "element_id": 396396,
+          "property_set": "Pset_停车位信息属性集",
+          "property": "停车位类别"
+        },
+        {
+          "element_id": 396396,
+          "property_set": "Pset_停车位信息属性集",
+          "property": "停车位类型"
+        },
+        {
+          "element_id": 396396,
+          "property_set": "Pset_停车位信息属性集",
+          "property": "充电车位"
+        },
+        {
+          "element_id": 396396,
+          "property_set": "Pset_停车位信息属性集",
+          "property": "公建车位"
+        },
+        {
+          "element_id": 396396,
+          "property_set": "Pset_停车位信息属性集",
+          "property": "折算系数"
+        }
+      ],
+      "all_source_values_complete": false,
+      "schema_errors": 0,
+      "sha256": "e2fa815ccaf9a5941eef603cc247b69ea1bff38e3acc8fdef14c78a2ce7dbf11",
+      "ifc_postprocessed": false
+    },
+    {
+      "name": "parking-only",
+      "ifc_path": "D:\\18_建模项目\\湖北BIM云平台\\artifacts\\hifc-export-fix\\20261016-201342\\verified\\parking-only.ifc",
+      "parking_export_passed": true,
+      "space_count": 1,
+      "slab_count": 0,
+      "parking_pset_count": 1,
+      "parking_fields": [
+        {
+          "name": "是否为室外停车场",
+          "type": "IfcBoolean",
+          "value": true
+        },
+        {
+          "name": "停车位位置信息",
+          "type": "IfcText",
+          "value": "室外地坪；建筑外侧连续停车区"
+        },
+        {
+          "name": "备注",
+          "type": "IfcText",
+          "value": "依据总平面、三维及19个停车族实例推断为同一室外地面停车区；既有面积边界切过末端车位，数量按连续车位组统计，边界待复核。"
+        },
+        {
+          "name": "层数",
+          "type": "IfcInteger",
+          "value": 1
+        },
+        {
+          "name": "车位数",
+          "type": "IfcInteger",
+          "value": 19
+        }
+      ],
+      "geometry": [
+        {
+          "step_id": 196,
+          "global_id": "3x8VXNYr98fxoo3ITjFHEh",
+          "ifc_footprint_m2": 261.24926034499816,
+          "source_area_m2": 261.2492603449993,
+          "difference_m2": 1.1368683772161603e-12,
+          "passed": true
+        }
+      ],
+      "verified_written_fields": 5,
+      "unfilled_source_fields": [
+        {
+          "element_id": 396396,
+          "property_set": "Pset_停车位信息属性集",
+          "property": "停车位类别"
+        },
+        {
+          "element_id": 396396,
+          "property_set": "Pset_停车位信息属性集",
+          "property": "停车位类型"
+        },
+        {
+          "element_id": 396396,
+          "property_set": "Pset_停车位信息属性集",
+          "property": "充电车位"
+        },
+        {
+          "element_id": 396396,
+          "property_set": "Pset_停车位信息属性集",
+          "property": "公建车位"
+        },
+        {
+          "element_id": 396396,
+          "property_set": "Pset_停车位信息属性集",
+          "property": "折算系数"
+        }
+      ],
+      "all_source_values_complete": false,
+      "schema_errors": 0,
+      "sha256": "84c5d1005d8055950ad3f4b83972bbd838f349d63e643ebb21bc8c967d424d37",
+      "ifc_postprocessed": false
+    },
+    {
+      "name": "slabs-only",
+      "ifc_path": "D:\\18_建模项目\\湖北BIM云平台\\artifacts\\hifc-export-fix\\20261016-201342\\verified\\slabs-only.ifc",
+      "parking_export_passed": true,
+      "space_count": 0,
+      "slab_count": 3,
+      "parking_pset_count": 0,
+      "parking_fields": [],
+      "geometry": [],
+      "verified_written_fields": 5,
+      "unfilled_source_fields": [
+        {
+          "element_id": 393030,
+          "property_set": "Pset_道路边界线信息属性集",
+          "property": "区内道路类型"
+        },
+        {
+          "element_id": 393030,
+          "property_set": "Pset_道路边界线信息属性集",
+          "property": "道路宽度"
+        },
+        {
+          "element_id": 393385,
+          "property_set": "Pset_绿地信息属性集",
+          "property": "绿地类型"
+        },
+        {
+          "element_id": 393385,
+          "property_set": "Pset_绿地信息属性集",
+          "property": "折算系数"
+        }
+      ],
+      "all_source_values_complete": false,
+      "schema_errors": 0,
+      "sha256": "6049f623d81b88b43325a73ff19b7e0dd9507c87f84260b448399616d9cc8ff6",
+      "ifc_postprocessed": false
+    }
+  ],
+  "scope": "Native parking Area export and supplied source values; missing values and parking boundary review remain explicit; no platform acceptance claimed."
+}
