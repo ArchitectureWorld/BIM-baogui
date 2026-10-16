@@ -27,6 +27,7 @@ namespace Hifc.Reference
         public string SuggestionReason { get; set; }
         public bool Acceptable => Valid || AllowedEmpty && State == "未填写";
         public bool Valid => State == "有效";
+        public bool ManualInputRequired => PropertySet == "Pset_道路边界线信息属性集" && Property == "道路宽度";
     }
     public sealed class ModelElementCheck
     {
@@ -42,6 +43,7 @@ namespace Hifc.Reference
         public bool Classified { get; set; }
         public int TypeId { get; set; }
         public string TypeName { get; set; }
+        public string AreaScheme { get; set; }
         public string[] Slots { get; set; } = new string[0];
         public string[] SuggestedSlots { get; set; } = new string[0];
         public ClassificationCandidate[] Candidates { get; set; } = new ClassificationCandidate[0];
@@ -64,6 +66,10 @@ namespace Hifc.Reference
         public string Mode { get; set; }
         public int Count { get; set; }
         public int Candidates { get; set; }
+        public int MissingFields { get; set; }
+        public int MissingManualFields { get; set; }
+        public int IncompleteObjects { get; set; }
+        public bool NeedsAttention => MissingManualFields > 0;
         public string State { get; set; }
     }
     public sealed class ModelSummary

@@ -33,4 +33,16 @@ validation/ui-*/profiles/
 validation/ui-*/simplified-*/
 validation/ui-*/auto-profiles/
 validation/ui-*/four-value-profiles/
+validation/ui-*/six-item-*/
+validation/mouse-*/probe-profile/
+# Local exploratory captures and superseded runs are archived outside Git.
+validation/ui-0.4.1/
+validation/ui-0.4.2-red/
+validation/mouse-*/
+validation/mouse-event-without-handler.log
+validation/ui-0.4.2-run.log
+validation/ui-0.4.2-error.log
+validation/build-0.4.2.log
+validation/ui-*/test-*.log
+validation/workflow-20261016-132303/
 validation/success-case-01/inventory.json

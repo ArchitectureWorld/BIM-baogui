@@ -274,12 +274,12 @@ namespace Hifc.Revit.Management
             var layout = new FrameworkElementFactory(typeof(StackPanel));
             var name = new FrameworkElementFactory(typeof(TextBlock));
             name.SetBinding(TextBlock.TextProperty, new Binding("Role.Slot"));
-            name.SetValue(TextBlock.ForegroundProperty, Color("#234C76"));
+            name.SetBinding(TextBlock.ForegroundProperty, new Binding("Foreground"));
             name.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold);
             name.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
             var subtitle = new FrameworkElementFactory(typeof(TextBlock));
             subtitle.SetBinding(TextBlock.TextProperty, new Binding("Subtitle"));
-            subtitle.SetValue(TextBlock.ForegroundProperty, Color("#7088A4"));
+            subtitle.SetBinding(TextBlock.ForegroundProperty, new Binding("Foreground"));
             subtitle.SetValue(TextBlock.FontSizeProperty, 11.0);
             subtitle.SetValue(TextBlock.MarginProperty, new Thickness(0, 5, 0, 0));
             subtitle.SetValue(TextBlock.TextWrappingProperty, TextWrapping.Wrap);

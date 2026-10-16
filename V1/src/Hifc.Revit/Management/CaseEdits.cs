@@ -95,11 +95,49 @@ namespace Hifc.Revit.Management
             }
             catch (Exception ex) { conflicts.Add(element.Id.IntegerValue + " / 类目：" + ex.Message); }
         }
+        private static void ValidateClear(Document doc, Parameter parameter)
+        {
+            if (parameter.IsReadOnly || parameter.StorageType == StorageType.ElementId) throw new InvalidOperationException("旧属性只读或不支持清空");
+            if (parameter.StorageType == StorageType.String) return;
+            if (parameter.IsShared && SharedParameterElement.Lookup(doc, parameter.GUID)?.ShouldHideWhenNoValue() == true) return;
+            throw new InvalidOperationException("该数值参数不支持恢复未填写，请先在 Revit 中调整参数定义；不会用 0 或 否 代替空值");
+        }
+        private static ModelElementCheck Proposed(Document doc, ModelSnapshot snapshot, ModelElementCheck row, string slot)
+        {
+            var rule = CaseWorkflow.ForModel(snapshot.Stage, snapshot.ModelKind).SingleOrDefault(r => r.Slot == slot && r.Binding == "实例" && r.Entities.Contains(row.Entity));
+            var element = doc.GetElement(new ElementId(row.Id));
+            if (rule == null || element is Level || element is ProjectInfo) throw new InvalidOperationException("当前案例没有适用的实体业务分类。");
+            var proposed = CaseModelReader.Inventory(doc, element); proposed.Slot = slot; proposed.SuggestedSlots = new string[0];
+            CaseModelReader.ReadFields(doc, element, proposed, CaseWorkflow.ForModel(snapshot.Stage, snapshot.ModelKind), snapshot.ModelKind);
+            return proposed;
+        }
+        private static void AddOldClassCleanup(Document doc, Element element, ModelElementCheck original, ModelElementCheck proposed, List<EditChange> changes, List<string> conflicts)
+        {
+            if (string.IsNullOrEmpty(original.Slot) || original.Slot == proposed.Slot || original.Slot == "总平构件") return;
+            var keep = proposed.Fields.Select(f => f.Source).Concat(original.Fields.Where(f => f.Binding == "类型").Select(f => f.Source)).ToArray();
+            // Clear physical instance values only. Definitions and values owned by a
+            // shared type remain available to the other instances using that type.
+            var sources = RevitMappingService.Catalog.ForSlot(original.Slot).Where(p => p.Binding == "实例")
+                .Select(p => p.SourceParameter).Except(keep).Where(s => s != "类目").Distinct();
+            foreach (var source in sources)
+            {
+                try
+                {
+                    var reads = RevitMappingService.ReadOwner(element, source, "instance").ToArray();
+                    var value = ReferencePolicy.ToBridgeValue(ReferencePolicy.Resolve(reads, source));
+                    if (value == null) continue;
+                    var parameter = element.GetParameters(source).Single(); ValidateClear(doc, parameter);
+                    changes.Add(Change(doc, element, source, "清空", null, "从“" + original.Slot + "”改为“" + proposed.Slot + "”：清空原类目专属实例值，保留参数定义及共用值"));
+                }
+                catch (Exception ex) { conflicts.Add(element.Id.IntegerValue + " / 清理 " + source + "：" + ex.Message); }
+            }
+        }
         internal static EditPreview Preview(Document doc, ModelSnapshot snapshot, EditRequest request = null)
         {
             if (snapshot == null || !snapshot.Complete || snapshot.Stage != "报规" || CaseWorkflow.ForModel(snapshot.Stage, snapshot.ModelKind).Length == 0)
                 throw new InvalidOperationException("请先完成报规阶段及模型类型明确的全面检查。");
             var changes = new List<EditChange>(); var conflicts = new List<string>();
+            var proposedRows = new List<ModelElementCheck>();
             var rows = request == null ? snapshot.Elements : snapshot.Elements.Where(r => request.Ids.Contains(r.Id)).ToArray();
             if (request != null && rows.Length != request.Ids.Distinct().Count()) throw new InvalidOperationException("部分目标不属于本轮完整扫描。");
             foreach (var row in rows)
@@ -115,17 +153,17 @@ namespace Hifc.Revit.Management
                     var parameter = field.State == "缺参数" ? null : owner.GetParameters(field.Source).Single();
                     if (parameter == null) { ValidateCreate(doc, owner, field.Source); changes.Add(Change(doc, owner, field.Source, "新增参数", null, "手工填写缺失属性")); }
                     var property = new ReferenceProperty { RawType = field.RawType };
-                    var raw = ModelEdits.Normalize(doc, parameter, property, request.Value);
-                    if (!changes.Any(c => c.Id == field.OwnerId && c.Source == field.Source && c.Action == "赋值")) changes.Add(Change(doc, owner, field.Source, "赋值", raw, "人工属性修改"));
+                    var clear = string.IsNullOrWhiteSpace(request.Value);
+                    if (clear && parameter != null) ValidateClear(doc, parameter);
+                    var raw = clear ? null : ModelEdits.Normalize(doc, parameter, property, request.Value);
+                    if (!changes.Any(c => c.Id == field.OwnerId && c.Source == field.Source && c.Action == (clear ? "清空" : "赋值"))) changes.Add(Change(doc, owner, field.Source, clear ? "清空" : "赋值", raw, "人工属性修改"));
                     continue;
                 }
                 if (request?.Kind == "分类")
                 {
-                    var rule = CaseWorkflow.ForModel(snapshot.Stage, snapshot.ModelKind).SingleOrDefault(r => r.Slot == request.Slot && r.Binding == "实例" && r.Entities.Contains(row.Entity));
-                    if (rule == null || element is Level || element is ProjectInfo) throw new InvalidOperationException("当前案例没有适用的实体业务分类。");
+                    var proposed = Proposed(doc, snapshot, row, request.Slot); proposedRows.Add(proposed);
                     AddClassification(doc, element, request.Slot, changes, conflicts);
-                    var proposed = CaseModelReader.Inventory(doc, element); proposed.Slot = request.Slot; proposed.SuggestedSlots = new string[0];
-                    CaseModelReader.ReadFields(doc, element, proposed, CaseWorkflow.ForModel(snapshot.Stage, snapshot.ModelKind), snapshot.ModelKind);
+                    AddOldClassCleanup(doc, element, row, proposed, changes, conflicts);
                     foreach (var field in proposed.Fields) AddPreparation(doc, doc.GetElement(new ElementId(field.OwnerId)), field, changes, conflicts);
                     continue;
                 }
@@ -139,11 +177,18 @@ namespace Hifc.Revit.Management
             }
             var array = changes.ToArray();
             return new EditPreview { DocumentKey = snapshot.DocumentKey, ScanId = snapshot.ScanId, SnapshotHash = Fingerprint(doc, array), Changes = array,
-                Conflicts = conflicts.Distinct().ToArray(), Request = request ?? new EditRequest { Kind = "案例补齐", Ids = rows.Select(r => r.Id).ToArray() } };
+                ProposedElements = proposedRows.ToArray(), Conflicts = conflicts.Distinct().ToArray(), Request = request ?? new EditRequest { Kind = "案例补齐", Ids = rows.Select(r => r.Id).ToArray() } };
         }
         internal static EditPreview PreviewBatch(Document doc, ModelSnapshot snapshot, EditRequest[] requests)
         {
             requests = requests ?? new EditRequest[0];
+            var effective = new Dictionary<int, ModelElementCheck>();
+            foreach (var classification in requests.Where(r => r.Kind == "分类"))
+                foreach (var id in classification.Ids)
+                {
+                    if (effective.ContainsKey(id)) throw new InvalidOperationException("同一构件有多个分类修改，请重新确认。");
+                    var row = snapshot.Elements.Single(r => r.Id == id); effective[id] = Proposed(doc, snapshot, row, classification.Slot);
+                }
             foreach (var request in requests)
             {
                 if (request.Baselines == null || request.Baselines.Length != request.Ids.Length) throw new InvalidOperationException("修改缺少原值记录，请重新填写该属性。");
@@ -156,34 +201,37 @@ namespace Hifc.Revit.Management
                         if (row.Slot != baseline.Value) throw new InvalidOperationException("暂存分类与模型现状有冲突，请重新确认分类。");
                         continue;
                     }
-                    var field = row.Fields.SingleOrDefault(f => f.PropertySet == request.PropertySet && f.Source == request.Source && f.Binding == request.Binding);
+                    if (!string.IsNullOrEmpty(request.Slot) && (!effective.TryGetValue(row.Id, out var target) || target.Slot != request.Slot)) throw new InvalidOperationException("暂存属性不属于本轮确认的新分类。");
+                    var field = (effective.TryGetValue(row.Id, out var proposed) ? proposed : row).Fields.SingleOrDefault(f => f.PropertySet == request.PropertySet && f.Source == request.Source && f.Binding == request.Binding);
                     if (field == null || field.OwnerUniqueId != baseline.OwnerUniqueId || field.Value != baseline.Value || field.State != baseline.State || field.SourceSignature != baseline.SourceSignature)
                         throw new InvalidOperationException("暂存属性与模型现状有冲突，请重新确认：" + request.Source);
                 }
             }
             var automatic = Preview(doc, snapshot);
             var changes = automatic.Changes.ToList(); var conflicts = automatic.Conflicts.ToList();
+            var valueSnapshot = new ModelSnapshot { DocumentKey = snapshot.DocumentKey, ScanId = snapshot.ScanId, Stage = snapshot.Stage, ModelKind = snapshot.ModelKind, Complete = true,
+                Elements = snapshot.Elements.Select(r => effective.TryGetValue(r.Id, out var proposed) ? proposed : r).ToArray() };
             var manualValues = new Dictionary<string, string>();
             foreach (var request in requests.OrderBy(r => r.Kind == "分类" ? 0 : 1))
             {
-                var proposed = Preview(doc, snapshot, request);
+                var proposed = Preview(doc, request.Kind == "分类" ? snapshot : valueSnapshot, request);
                 if (proposed.Conflicts.Length > 0) throw new InvalidOperationException(string.Join("\n", proposed.Conflicts));
                 if (request.Kind == "分类") changes.RemoveAll(c => request.Ids.Contains(c.Id));
                 foreach (var change in proposed.Changes)
                 {
-                    if (request.Kind == "赋值" && change.Action == "赋值")
+                    if (request.Kind == "赋值" && (change.Action == "赋值" || change.Action == "清空"))
                     {
                         var key = change.OwnerUniqueId + "|" + change.Source;
                         if (manualValues.TryGetValue(key, out var previous) && previous != change.ExpectedRaw) throw new InvalidOperationException("同一来源参数在不同属性组中输入了不同的值，请统一后写入：" + change.Source);
                         manualValues[key] = change.ExpectedRaw;
                     }
-                    changes.RemoveAll(c => c.OwnerUniqueId == change.OwnerUniqueId && c.Source == change.Source && c.Action == change.Action);
+                    changes.RemoveAll(c => c.OwnerUniqueId == change.OwnerUniqueId && c.Source == change.Source && (c.Action == change.Action || change.Action != "新增参数" && c.Action != "新增参数"));
                     changes.Add(change);
                 }
             }
             var array = changes.ToArray();
             return new EditPreview { DocumentKey = snapshot.DocumentKey, ScanId = snapshot.ScanId, SnapshotHash = Fingerprint(doc, array),
-                Changes = array, Conflicts = conflicts.Distinct().ToArray(), Request = new EditRequest { Kind = "统一写入", Ids = snapshot.Elements.Select(r => r.Id).ToArray() } };
+                ProposedElements = effective.Values.ToArray(), Changes = array, Conflicts = conflicts.Distinct().ToArray(), Request = new EditRequest { Kind = "统一写入", Ids = snapshot.Elements.Select(r => r.Id).ToArray() } };
         }
         internal static void Apply(Document doc, EditPreview preview)
         {
@@ -212,7 +260,9 @@ namespace Hifc.Revit.Management
                                 var parameters = owner.GetParameters(change.Source);
                                 if (parameters.Count != 1 || parameters[0].IsReadOnly) throw new InvalidOperationException("写入来源有歧义或只读：" + change.Source);
                                 var parameter = parameters[0]; var raw = change.ExpectedRaw;
-                                bool ok = parameter.StorageType == StorageType.String ? parameter.Set(raw) : parameter.StorageType == StorageType.Integer
+                                if (change.Action == "清空") ValidateClear(doc, parameter);
+                                bool ok = change.Action == "清空" ? parameter.StorageType == StorageType.String ? parameter.Set("") : parameter.ClearValue()
+                                    : parameter.StorageType == StorageType.String ? parameter.Set(raw) : parameter.StorageType == StorageType.Integer
                                     ? parameter.Set(int.Parse(raw, CultureInfo.InvariantCulture)) : parameter.StorageType == StorageType.Double && parameter.Set(double.Parse(raw, CultureInfo.InvariantCulture));
                                 if (!ok) throw new InvalidOperationException("参数写入失败：" + change.Source);
                             }

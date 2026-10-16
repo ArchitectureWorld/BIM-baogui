@@ -17,7 +17,7 @@ using Autodesk.Revit.UI.Events;
 using ComboBox = System.Windows.Controls.ComboBox;
 
 // Temporary acceptance application. Registered only for the explicitly launched
-// test process. Refuses all documents except the run's model copies; never saves.
+// test process. Refuses all documents except the run's model copies.
 public sealed class HifcAcceptanceHost : IExternalApplication, IExternalEventHandler
 {
     static readonly BindingFlags Instance = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
@@ -196,8 +196,17 @@ public sealed class HifcAcceptanceHost : IExternalApplication, IExternalEventHan
                 checks["modeless_reclose_safe"] = uiError == null; if (uiError != null) { report["reclose_error"] = uiError; try { Call(controller, "Close"); } catch { } }
                 if (!(bool)Field(controller, "disposed")) { args.SetRaiseWithoutDelay(); return; }
                 checks["pending_scan_close_disposes_controller"] = true;
-                report["allPassed"] = checks.Values.All(v => v); report["scope"] = "Live production WPF/ExternalEvent/Idling on a model copy; no RVT save; snapshots captured from actual window.";
-                Write(Path.GetFileNameWithoutExtension(doc.PathName) + "-modeless.json", report); results.Add(report); Log("finished " + doc.Title); index++; deadline = DateTime.UtcNow.AddMinutes(8); phase = "open";
+                phase = "persistence_wait";
+                Schedule(activeUi => {
+                    var expected = ManagerImprovementsAcceptance.PreparePersistence(doc,run,checks);
+                    Write(Path.GetFileNameWithoutExtension(doc.PathName) + "-save-expected.json",expected);
+                    var savedPath = doc.PathName; doc.Save();
+                    var bridge = activeUi.OpenAndActivateDocument(paths[(index + 1) % paths.Length]).Document;
+                    doc.Close(false); doc = activeUi.OpenAndActivateDocument(savedPath).Document; bridge.Close(false);
+                    checks["save_copy_reopen_preserves_new_values_and_old_class_cleanup"] = ManagerImprovementsAcceptance.VerifyReopened(doc,run,expected);
+                    report["allPassed"] = checks.Values.All(v => v); report["scope"] = "Production WPF/ExternalEvent/Idling and native Area tests; only validation model copies saved and reopened; original RVTs untouched.";
+                    Write(Path.GetFileNameWithoutExtension(doc.PathName) + "-modeless.json", report); results.Add(report); Log("finished " + doc.Title); index++; deadline = DateTime.UtcNow.AddMinutes(8); phase = "open";
+                });
             }
             else if (phase == "exit" && ui.ActiveUIDocument == null && !ui.Application.Documents.Cast<Document>().Any())
             {
@@ -231,6 +240,7 @@ public sealed class HifcAcceptanceHost : IExternalApplication, IExternalEventHan
                 var old = doc; doc = ui.OpenAndActivateDocument(path).Document; if (old != null && old.IsValidObject) old.Close(false);
                 checks = new Dictionary<string, bool>(); report = new Dictionary<string, object> { ["document"] = path, ["checks"] = checks };
                 Log("native start " + doc.Title); report["native"] = NativeAcceptance.Run(doc, run); checks["native_service_regressions"] = (bool)Get(report["native"], "allPassed"); Log("native end " + doc.Title);
+                report["six_item_native"] = ManagerImprovementsAcceptance.Fixtures(doc,run); checks["native_area_regressions"] = (bool)Get(report["six_item_native"],"allPassed");
                 var a = controllerType.Assembly; var scan = a.GetType("Hifc.Revit.Management.CaseScanJob");
                 var job = Activator.CreateInstance(scan, Instance, null, new object[] { doc, "报规", "自动识别" }, null);
                 while (!(bool)Get(job, "Complete")) Call(job, "ReadNext", doc, 75);
@@ -262,6 +272,6 @@ public sealed class HifcAcceptanceHost : IExternalApplication, IExternalEventHan
         if (doc.IsModified) throw new InvalidOperationException("The reopened copy is modified; automatic close refused.");
         phase = "exit";
         ui.PostCommand(RevitCommandId.LookupPostableCommandId(PostableCommand.Close));
-        Write("host-results.json", new { allPassed = results.Count == paths.Length && results.Cast<Dictionary<string, object>>().All(r => (bool)r["allPassed"]), models = results, note = "All changed test copies closed without saving. No original model has been opened." }); Log("complete");
+        Write("host-results.json", new { allPassed = results.Count == paths.Length && results.Cast<Dictionary<string, object>>().All(r => (bool)r["allPassed"]), models = results, note = "Validation copies were saved and reopened to verify persistence. No original model has been opened." }); Log("complete");
     }
 }

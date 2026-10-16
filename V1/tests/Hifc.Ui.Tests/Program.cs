@@ -55,6 +55,7 @@ internal static class Program
     public static int Main(string[] args)
     {
         var output = Path.GetFullPath(args.Length > 0 ? args[0] : "ui-validation"); Directory.CreateDirectory(output);
+        if (args.Contains("--mouse-probe")) return MouseProbe.Run(output);
         var catalog = ReferenceCatalog.FromEmbeddedBaseline();
         var land = Element(catalog, 1001, "规划净用地"); var balcony = Element(catalog, 1002, "绿地");
         land.Fields = land.Fields.Take(2).ToArray(); balcony.Fields = balcony.Fields.Take(1).ToArray(); balcony.Fields[0].State = "未填写";
@@ -98,6 +99,7 @@ internal static class Program
         Check("minimum_window_layout_renders", () => { window.Width = 1080; window.Height = 650; Pump(); Screenshot(window, Path.Combine(output, "manager-1080.png")); });
         window.Close();
         SimplifiedWorkflowTests.Run(Check, output);
+        ManagerImprovementsTests.Run(Check, output);
         Console.WriteLine("RESULT failures=" + failures + "; tests=" + tests);
         File.WriteAllText(Path.Combine(output, "ui-tests.json"), new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(new { passed = tests - failures, tests, failures, scope = "Standalone actual WPF window with fake Revit adapter; not live-model API verification" }));
         return failures == 0 ? 0 : 1;

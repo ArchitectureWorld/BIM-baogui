@@ -76,6 +76,9 @@ namespace Hifc.Reference
             var rules = BusinessRules(kind);
             if (!string.IsNullOrWhiteSpace(row.Slot) && row.Slot != "总平构件") return new ClassificationCandidate[0];
             var candidates = new List<ClassificationCandidate>();
+            if (row.AreaScheme != null && (row.AreaScheme.Contains("停车") || row.AreaScheme.Contains("车位") || (row.Name ?? "").Contains("停车") || (row.Name ?? "").Contains("车位")))
+                candidates.Add(new ClassificationCandidate { Slot = "停车位", CanPrepare = row.Entity == "IfcSpace" && string.IsNullOrEmpty(row.CoverageNote),
+                    RequiresReview = !string.IsNullOrEmpty(row.CoverageNote), Evidence = "Revit 面积对象；面积方案：“" + row.AreaScheme + "”；名称：“" + row.Name + "”" + (row.CoverageNote ?? "") });
             foreach (var slot in row.SuggestedSlots.Where(s => rules.Any(r => r.Slot == s)))
                 candidates.Add(new ClassificationCandidate { Slot = slot, Evidence = "本轮读取到该业务的非空专用来源参数", CanPrepare = rules.Single(r => r.Slot == slot).Entities.Contains(row.Entity) });
             foreach (var source in RecognitionEvidence.Match(row, kind).Where(e => rules.Any(r => r.Slot == e.Slot)))
@@ -132,8 +135,17 @@ namespace Hifc.Reference
                 var rows = elements.Where(e => Roles(e).Contains(rule.Slot)).ToArray();
                 var count = rule.Binding == "类型" ? rows.Select(e => e.TypeId > 0 ? "type:" + e.TypeId : e.UniqueId).Distinct().Count() : rows.Length;
                 var candidates = elements.Count(e => !Roles(e).Contains(rule.Slot) && (e.SuggestedSlots.Contains(rule.Slot) || string.IsNullOrEmpty(e.Slot) && SuggestSlots(e, kind).Contains(rule.Slot)));
+                var fields = rows.SelectMany(e => e.Fields.Where(f => f.PropertySet == rule.Properties.FirstOrDefault()?.PropertySet)
+                    .Select(f => new { Row = e, Field = f }))
+                    .GroupBy(x => (x.Field.OwnerUniqueId ?? x.Row.UniqueId) + "|" + x.Field.PropertySet + "|" + x.Field.Binding + "|" + x.Field.Property)
+                    .Select(g => g.First().Field).ToArray();
+                var missing = fields.Count(f => !f.Acceptable);
+                var manualMissing = elements.SelectMany(e => e.Fields.Where(f => f.PropertySet == rule.Properties.FirstOrDefault()?.PropertySet && f.ManualInputRequired && !f.Valid)
+                    .Select(f => new { Row=e, Field=f })).GroupBy(x => (x.Field.OwnerUniqueId ?? x.Row.UniqueId) + "|" + x.Field.Source).Count();
+                var incomplete = rows.Count(e => !string.IsNullOrEmpty(e.CoverageNote) || !string.IsNullOrEmpty(e.Issue));
                 return new RoleCoverage { Slot = rule.Slot, Mode = rule.Required ? "必要" : "案例补充", Count = count, Candidates = candidates,
-                    State = count > 0 ? "已识别" : candidates > 0 ? "待确认分类" : rule.Required ? "参考项未找到" : "案例差异项 · 按实际适用" };
+                    MissingFields = missing, MissingManualFields = manualMissing, IncompleteObjects = incomplete,
+                    State = manualMissing > 0 ? "道路宽度待手填 " + manualMissing + " 项" : count > 0 ? incomplete > 0 ? "模型待核对 " + incomplete + " 项" : missing > 0 ? "已识别 · 属性可查看" : "本轮属性已齐" : candidates > 0 ? "待确认分类" : rule.Required ? "参考项未找到" : "案例差异项 · 按实际适用" };
             }).ToArray();
             var fields = elements.SelectMany(e => e.Fields.Select(f => new { Row = e, Field = f }))
                 .GroupBy(x => (x.Field.OwnerUniqueId ?? x.Row.UniqueId) + "|" + x.Field.PropertySet + "|" + x.Field.Binding + "|" + x.Field.Property).Select(g => g.First().Field).ToArray();

@@ -29,7 +29,7 @@ namespace Hifc.Revit.Management
         }
         private static bool IsModelRecord(Element element)
         {
-            if (element is ProjectInfo || element is Level || element is RevitLinkInstance) return true;
+            if (element is ProjectInfo || element is Level || element is RevitLinkInstance || element is Area) return true;
             if (element.ViewSpecific || element.Category?.CategoryType != CategoryType.Model) return false;
             // Revit's Model category also contains non-model resource definitions.
             // Exclude them before reading any object metadata or business fields.
@@ -76,6 +76,19 @@ namespace Hifc.Revit.Management
                 TypeId = type?.Id.IntegerValue ?? -1, TypeName = type?.Name, Category = element.Category?.Name ?? element.GetType().Name,
                 Building = doc.ProjectInformation.BuildingName ?? doc.Title, Level = element is Level ? element.Name : level?.Name ?? "项目信息 / 无所属楼层",
                 Entity = "UNKNOWN", InventoryOnly = true };
+            if (element is Area area)
+            {
+                row.AreaScheme = area.AreaScheme?.Name ?? "";
+                if (area.Location == null) row.CoverageNote = "面积对象未放置，请补充模型";
+                else if (area.Area <= 0)
+                {
+                    using (var options = new SpatialElementBoundaryOptions())
+                    {
+                        var boundaries = area.GetBoundarySegments(options);
+                        row.CoverageNote = boundaries == null || boundaries.Count == 0 ? "面积对象未封闭，请补充面积边界" : "面积对象面积为零，请核对模型";
+                    }
+                }
+            }
             if (element is RevitLinkInstance link)
             {
                 row.Entity = "LINK"; row.CoverageNote = link.GetLinkDocument() == null ? "链接未加载 · 尚未检查" : "链接模型 · 请在源文档全面检查";

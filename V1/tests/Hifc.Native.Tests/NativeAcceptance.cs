@@ -32,7 +32,7 @@ var expectedRoles = expectedKind == "总图"
 checks["all_known_case_business_carriers_are_reviewable_candidates"] = expectedRoles.All(pair => beforeRows.Any(row => (int)get(row,"Id")==pair.Key && items(get(row,"Candidates")).Any(c => (string)get(c,"Slot")==pair.Value && (bool)get(c,"CanPrepare") && ((string)get(c,"Evidence")).Contains(".ifc"))));
 var core = System.AppDomain.CurrentDomain.GetAssemblies().Single(a=>a.GetName().Name=="Hifc.Reference.Core");
 var summary = core.GetType("Hifc.Reference.CaseWorkflow").GetMethod("Summarize").Invoke(null,new object[]{"报规",expectedKind,get(initial,"Elements")});
-checks["known_roles_are_pending_confirmation_not_missing"] = expectedRoles.Values.Distinct().All(slot => items(get(summary,"Roles")).Any(r=>(string)get(r,"Slot")==slot && (string)get(r,"State")=="待确认分类" && (int)get(r,"Candidates")>0));
+checks["known_roles_are_pending_confirmation_not_missing"] = expectedRoles.Values.Distinct().All(slot => items(get(summary,"Roles")).Any(r=>(string)get(r,"Slot")==slot && ((string)get(r,"State")=="待确认分类" || slot=="道路边界线" && ((string)get(r,"State")).Contains("道路宽度")) && (int)get(r,"Candidates")>0));
 var candidatePreview = edits.GetMethod("Preview",statics).Invoke(null,new object[]{document,initial,null}); result["candidate_preview"]=candidatePreview;
 checks["candidate_preview_preserves_source_evidence"] = expectedRoles.All(pair=>items(get(candidatePreview,"Changes")).Any(c=>(int)get(c,"Id")==pair.Key && (string)get(c,"Action")=="分类" && (string)get(c,"NewValue")==pair.Value && ((string)get(c,"Detail")).Contains(".ifc")));
 if(expectedKind=="总图") {

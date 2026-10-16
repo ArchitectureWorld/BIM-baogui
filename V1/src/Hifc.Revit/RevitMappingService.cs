@@ -57,6 +57,7 @@ namespace Hifc.Revit
         {
             if (element is ProjectInfo) return "IfcBuilding";
             if (element is Level) return "IfcBuildingStorey";
+            if (element is Area) return "IfcSpace";
             if (element is Autodesk.Revit.DB.Architecture.TopographySurface) return "IfcSite";
             var explicitType = ReferencePolicy.ToBridgeValue(ReferencePolicy.Resolve(Reads(doc, element, "IfcExportAs"), "IfcExportAs"));
             if (!string.IsNullOrWhiteSpace(explicitType) && explicitType.StartsWith("Ifc", StringComparison.Ordinal))

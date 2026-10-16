@@ -89,7 +89,9 @@ namespace Hifc.Revit.Management
                     EditPreview batchPreview = null;
                     if (result.Stage == "报规" && Hifc.Reference.CaseWorkflow.ForModel(result.Stage, result.ModelKind).Length > 0)
                     {
-                        batchPreview = CaseEdits.Preview(document, snapshot); previewEpoch = epoch; Window.ShowPreview(batchPreview);
+                        try { batchPreview = CaseEdits.PreviewBatch(document, snapshot, Window.DraftRequests); }
+                        catch (Exception ex) { batchPreview = CaseEdits.Preview(document, snapshot); Window.SetStatus("暂存修改需重新确认：" + ex.Message, true); }
+                        previewEpoch = epoch; Window.ShowPreview(batchPreview);
                     }
                     try
                     {

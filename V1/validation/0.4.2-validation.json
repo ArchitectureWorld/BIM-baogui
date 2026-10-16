@@ -1,0 +1,54 @@
+{
+  "version": "0.4.2.0",
+  "installed_plugin": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1\\Hifc.V1.Revit.dll",
+  "sha256": "dfcb805c80a0d20e89ae19c02cf966e07e0fc407f9938475bf17c87004ed07e0",
+  "core": {
+    "tests": 85,
+    "failures": 0
+  },
+  "wpf": {
+    "tests": 51,
+    "failures": 0
+  },
+  "python": {
+    "tests": 16,
+    "failures": 0
+  },
+  "native_run": "D:\\18_建模项目\\湖北BIM云平台\\work\\hifc-v1-0.3.2\\V1\\validation\\workflow-20261016-133217",
+  "native_all_passed": true,
+  "models": [
+    {
+      "file": "总图.0008_干净.rvt",
+      "passed": true,
+      "checks": 32
+    },
+    {
+      "file": "厂房_干净.rvt",
+      "passed": true,
+      "checks": 28
+    },
+    {
+      "file": "职工后勤楼_干净.rvt",
+      "passed": true,
+      "checks": 28
+    }
+  ],
+  "manual_red_roles": [
+    "道路边界线"
+  ],
+  "original_models": [
+    {
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\revit原文件\\总图.0008_干净.rvt",
+      "unchanged": true
+    },
+    {
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\revit原文件\\厂房_干净.rvt",
+      "unchanged": true
+    },
+    {
+      "path": "D:\\18_建模项目\\湖北BIM云平台\\测试文件\\01\\revit原文件\\职工后勤楼_干净.rvt",
+      "unchanged": true
+    }
+  ],
+  "physical_mouse_verification": "Pending: Windows capture and mouse geometry unavailable; routed WPF input tested."
+}

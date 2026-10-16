@@ -57,6 +57,7 @@ namespace Hifc.Revit.Management
         public EditChange[] Changes { get; set; }
         public string[] Conflicts { get; set; } = new string[0];
         public string ScanId { get; set; }
+        public ModelElementCheck[] ProposedElements { get; set; } = new ModelElementCheck[0];
     }
     internal interface IManagerSession
     {

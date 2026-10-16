@@ -1,0 +1,7 @@
+{
+  "run": "D:\\18_建模项目\\湖北BIM云平台\\work\\hifc-v1-0.3.2\\V1\\validation\\workflow-20261016-133217",
+  "temporary_manifest": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1.Acceptance.addin",
+  "scope": "Only model copies. Native fixtures roll back; approved values on test copies are saved and reopened to verify persistence.",
+  "harness": "D:\\18_建模项目\\湖北BIM云平台\\work\\hifc-v1-0.3.2\\V1\\tests\\Hifc.Native.Tests\\bin\\Release\\net48\\Hifc.Native.Tests.R11.dll",
+  "pid": 123880
+}

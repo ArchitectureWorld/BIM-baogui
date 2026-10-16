@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Input;
 using Hifc.Reference;
 using Microsoft.Win32;
 
@@ -24,6 +25,7 @@ namespace Hifc.Revit.Management
         private ManagementStateStore stateStore;
         private ManagementState state;
         private bool restoring;
+        private readonly Dictionary<int, ModelElementCheck> proposedRows = new Dictionary<int, ModelElementCheck>();
         private readonly TextBlock diagnosticText = new TextBlock { TextWrapping = TextWrapping.Wrap };
         private readonly TextBlock project = new TextBlock(), status = new TextBlock(), detail = new TextBlock(), range = new TextBlock();
         private readonly TextBlock contextBadge = new TextBlock(), selectionCount = new TextBlock();
@@ -278,7 +280,7 @@ namespace Hifc.Revit.Management
             FieldGrid.IsReadOnly = false;
             Column(FieldGrid, "属性", "Property", 100);
             FieldGrid.Columns[0].IsReadOnly = true;
-            var valueColumn = new DataGridTextColumn
+            var valueColumn = new PropertyValueColumn
             {
                 Header = "属性值（可修改）",
                 Width = new DataGridLength(1, DataGridLengthUnitType.Star),
@@ -306,11 +308,25 @@ namespace Hifc.Revit.Management
             FieldGrid.BeginningEdit += (s, e) =>
             {
                 var f = (e.Row.Item as PropertyEditor)?.Field;
-                if (!Current || f == null || !f.Editable && f.State != "缺参数")
+                var reason = EditReason(f);
+                if (!string.IsNullOrEmpty(reason))
                 {
                     e.Cancel = true;
-                    SetStatus("该属性当前不可编辑；请先完成全面检查，或核对只读/冲突原因。", true);
+                    detail.Text = reason; SetStatus(reason, true);
                 }
+            };
+            FieldGrid.PreviewMouseLeftButtonDown += (s, e) => {
+                var item = e.OriginalSource as DependencyObject;
+                while (item != null && !(item is DataGridCell)) item = VisualTreeHelper.GetParent(item);
+                var cell = item as DataGridCell;
+                if (cell == null || cell.Column != valueColumn || cell.IsEditing) return;
+                var editor = cell.DataContext as PropertyEditor;
+                var reason = EditReason(editor?.Field);
+                if (!string.IsNullOrEmpty(reason)) { detail.Text = reason; SetStatus(reason, true); e.Handled = true; return; }
+                FieldGrid.SelectedItem = editor;
+                FieldGrid.CurrentCell = new DataGridCellInfo(editor, valueColumn);
+                cell.Focus();
+                if (FieldGrid.BeginEdit(e)) e.Handled = true;
             };
             Put(right, FieldGrid, 2);
 
@@ -409,11 +425,11 @@ namespace Hifc.Revit.Management
         private static void SetMetric(Button button, string text, double? value) { var panel = new StackPanel(); panel.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap }); panel.Children.Add(new ProgressBar { Height = 4, Value = value ?? 0, Maximum = 100, Margin = new Thickness(0, 7, 0, 0) }); button.Content = panel; }
         internal void StartFullCheck() { if (SelectedStage != "报规" && SelectedStage != "施工图") throw new InvalidOperationException("请先人工选择阶段。"); if (busy) throw new InvalidOperationException("检查进行中。"); session.Scan(); }
         internal void SetBusy(bool value, string message, int done = 0, int total = 0)
-        { busy = value; StageSelector.IsEnabled = KindSelector.IsEnabled = FieldGrid.IsEnabled = !value; cancelButton.IsEnabled = value; progress.Value = total == 0 ? 0 : 100.0 * done / total; if (value) { preview = null; needsRecheck = true; readyMetric.Content = "本轮状态\n全面检查中"; } UpdateWriteButton(); SetStatus(message); }
+        { busy = value; StageSelector.IsEnabled = KindSelector.IsEnabled = !value; cancelButton.IsEnabled = value; progress.Value = total == 0 ? 0 : 100.0 * done / total; if (value) { preview = null; needsRecheck = true; readyMetric.Content = "本轮状态\n全面检查中"; } NotifyEditors(); UpdateWriteButton(); SetStatus(message); }
         internal void SetStatus(string message, bool error = false) { status.Text = message; status.Foreground = Brush(error ? "#AE3D38" : "#26465B"); }
         internal void Accept(ModelSnapshot result)
         {
-            snapshot = result; preview = null; needsRecheck = !result.Complete; PreviewGrid.ItemsSource = null; Summary = CaseWorkflow.Summarize(result.Stage, result.ModelKind, result.Elements);
+            snapshot = result; proposedRows.Clear(); preview = null; needsRecheck = !result.Complete; PreviewGrid.ItemsSource = null; Summary = CaseWorkflow.Summarize(result.Stage, result.ModelKind, result.Elements);
             project.Text = result.Title + " · " + result.Stage + " / " + result.ModelKind + " · 已检查 " + result.Elements.Length + " 个对象";
             contextBadge.Text = result.Stage + "  /  " + result.ModelKind + "\n已检查 " + result.Elements.Length + " 个对象";
             diagnosticText.Text = Summary.Basis + "\n" + string.Join("；", result.DetectionEvidence);
@@ -427,7 +443,7 @@ namespace Hifc.Revit.Management
             if (state == null) InitializeState(result.DocumentKey);
             state.Snapshot = result; PersistState(); UpdateWriteButton();
         }
-        private sealed class RoleItem { public RoleCoverage Role { get; set; } public string Source { get; set; } public string Subtitle => ProductStatus.Text(Role.State) + " · 已识别 " + Role.Count + " / 候选 " + Role.Candidates; public string Text => Role.Slot + "\n" + Subtitle; }
+        private sealed class RoleItem { public RoleCoverage Role { get; set; } public string Source { get; set; } public Brush Foreground => Brush(Role.NeedsAttention ? "#B83138" : "#234C76"); public string Subtitle => ProductStatus.Text(Role.State) + " · 已识别 " + Role.Count + " / 候选 " + Role.Candidates; public string Text => Role.Slot + "\n" + Subtitle; }
         internal void SetFilter(string value) { filter = value ?? "全部"; roleFilter = null; RefreshRows(); }
         private void RefreshRows()
         {
@@ -442,14 +458,15 @@ namespace Hifc.Revit.Management
             ElementGrid.ItemsSource = rows.ToArray(); range.Text = "显示 " + VisibleCount + " / 全量 " + snapshot.Elements.Length;
         }
         private ModelElementCheck[] Selected() => ElementGrid.SelectedItems.Cast<ModelElementCheck>().ToArray();
+        private ModelElementCheck Effective(ModelElementCheck row) => proposedRows.TryGetValue(row.Id, out var proposed) ? proposed : row;
         private int[] SelectedIds() { var rows = Selected(); if (rows.Length == 0) throw new InvalidOperationException("请在管理清单中选取需要人工处理的对象。"); return rows.Select(e => e.Id).ToArray(); }
         private void RefreshFields()
         {
-            var rows = Selected(); selectionCount.Text = rows.Length == 0 ? "未选择对象" : "已选择 " + rows.Length + " 个对象"; FieldGrid.ItemsSource = rows.FirstOrDefault()?.Fields.Select(f => new PropertyEditor(this, f, rows)).ToArray(); if (snapshot == null) return;
-            if (rows.Length > 0) { detail.Text = rows[0].Name + " · " + ProductStatus.Text(rows[0].StatusText) + (rows.Length > 1 ? "\n已选 " + rows.Length + " 个对象，共同属性修改将应用到所选对象。" : "\n直接修改属性值，完成后点顶部“4 写入 Revit”。"); detail.ToolTip = detail.Text; diagnosticText.Text = Summary.Basis + "\n" + string.Join("；", snapshot.DetectionEvidence) + "\n" + rows[0].Recognition; }
+            var rows = Selected(); selectionCount.Text = rows.Length == 0 ? "未选择对象" : "已选择 " + rows.Length + " 个对象"; FieldGrid.ItemsSource = rows.FirstOrDefault() == null ? null : Effective(rows[0]).Fields.Select(f => new PropertyEditor(this, f, rows)).ToArray(); if (snapshot == null) return;
+            if (rows.Length > 0) { detail.Text = rows[0].Name + " · " + (Effective(rows[0]).Slot != rows[0].Slot ? "分类拟改为“" + Effective(rows[0]).Slot + "”（待写入）\n写入时清空旧类目专属值，保留共用值。" : ProductStatus.Text(rows[0].StatusText)) + (rows.Length > 1 ? "\n已选 " + rows.Length + " 个对象，共同属性修改将应用到所选对象。" : "\n直接修改属性值，完成后点顶部“4 写入 Revit”。"); detail.ToolTip = detail.Text; diagnosticText.Text = Summary.Basis + "\n" + string.Join("；", snapshot.DetectionEvidence) + "\n" + rows[0].Recognition; }
             SlotSelector.ItemsSource = CaseWorkflow.ForModel(snapshot.Stage, snapshot.ModelKind).Where(r => r.Binding == "实例" && rows.Length > 0 && rows.All(e => r.Entities.Contains(e.Entity) && e.Entity != "IfcBuilding" && e.Entity != "IfcBuildingStorey")).Select(r => r.Slot).ToArray();
-            var preferred = rows.Length > 0 ? rows[0].Slot ?? (rows[0].SuggestedSlots.Length == 1 ? rows[0].SuggestedSlots[0] : null) : null;
-            SlotSelector.SelectedItem = rows.All(r => r.Slot == preferred || r.SuggestedSlots.Contains(preferred)) ? preferred : null;
+            var preferred = rows.Length > 0 ? Effective(rows[0]).Slot ?? (rows[0].SuggestedSlots.Length == 1 ? rows[0].SuggestedSlots[0] : null) : null;
+            SlotSelector.SelectedItem = rows.All(r => Effective(r).Slot == preferred || r.SuggestedSlots.Contains(preferred)) ? preferred : null;
         }
         private void EnsureEditableScope() { if (!Current) throw new InvalidOperationException("当前结果尚未完成或已过期，请先全面复检。"); if (snapshot.Stage != "报规" || Summary.PendingRequirements > 0) throw new InvalidOperationException("当前阶段/类型的检查规则尚未确定。"); }
         internal void PreviewClassification()
@@ -457,23 +474,30 @@ namespace Hifc.Revit.Management
             EnsureEditableScope(); if (!(SlotSelector.SelectedItem is string slot)) throw new InvalidOperationException("请选择业务分类。");
             foreach (var row in Selected())
             {
+                if (state != null) state.Drafts = state.Drafts.Where(r => r.Kind != "赋值" || !r.Ids.Contains(row.Id) || string.IsNullOrEmpty(r.Slot) || r.Slot == slot).ToArray();
+                proposedRows.Remove(row.Id);
                 if (row.Slot == slot) { if (state != null) state.Drafts = state.Drafts.Where(r => r.Kind != "分类" || r.Baselines[0].ElementUniqueId != row.UniqueId).ToArray(); continue; }
                 StageRequest(new EditRequest { Kind = "分类", Ids = new[] { row.Id }, Slot = slot, Baselines = new[] { new EditBaseline { ElementId = row.Id, ElementUniqueId = row.UniqueId, OwnerUniqueId = row.UniqueId, Value = row.Slot } } });
             }
-            PersistState(); UpdateWriteButton(); session.Preview(new EditRequest { Kind = "分类", Ids = SelectedIds(), Slot = slot });
+            PersistState(); UpdateWriteButton(); FieldGrid.ItemsSource = null; detail.Text = "正在读取“" + slot + "”的属性和模型自动值；点“4 写入 Revit”后提交分类及旧值清理。"; session.Preview(new EditRequest { Kind = "分类", Ids = SelectedIds(), Slot = slot });
         }
         internal void PreviewValue()
         { EnsureEditableScope(); var field = (FieldGrid.SelectedItem as PropertyEditor)?.Field; if (field == null || !field.Editable) throw new InvalidOperationException("请选择可写属性；缺参数请先执行补齐预览。"); session.Preview(new EditRequest { Kind = "赋值", Ids = SelectedIds(), Source = field.Source, PropertySet = field.PropertySet, Binding = field.Binding, Value = NewValue.Text }); }
         internal void ShowPreview(EditPreview value)
         {
             if (!Current || value.ScanId != snapshot.ScanId) throw new InvalidOperationException("补齐预览不属于当前完整检查。");
+            foreach (var row in value.ProposedElements) proposedRows[row.Id] = row;
+            if (value.ProposedElements.Length > 0) {
+                state.Drafts = state.Drafts.Where(r => r.Kind != "赋值" || !r.Baselines.Any(b => proposedRows.ContainsKey(b.ElementId)) || r.Baselines.All(b => Effective(snapshot.Elements.Single(e => e.Id == b.ElementId)).Fields.Any(f => f.Source == r.Source && f.PropertySet == r.PropertySet && f.Binding == r.Binding))).ToArray();
+                RefreshFields(); PersistState();
+            }
             preview = value; PreviewGrid.ItemsSource = value.Changes; conflicts.ItemsSource = value.Conflicts; rightTabs.SelectedIndex = value.Changes.Length > 0 ? 1 : value.Conflicts.Length > 0 ? 2 : 0; UpdateWriteButton();
             SetStatus("全面检查完成；可补齐 " + value.Changes.Length + " 项，手工待写入 " + DraftRequests.Length + " 项。修改完成后点顶部“4 写入 Revit”。");
             var clashes = DraftRequests.Count(r => !Matches(r));
             if (clashes > 0) SetStatus("有 " + clashes + " 项暂存修改与模型现值冲突；请重新确认红色属性。失效对象的暂存可在底部开发信息中清除。", true);
         }
         internal void InvalidatePreview(string reason) { preview = null; applyButton.IsEnabled = false; PreviewGrid.ItemsSource = null; SetStatus(reason, true); }
-        internal void MarkStale(string reason) { needsRecheck = true; if (readyMetric != null) readyMetric.Content = "本轮状态\n需要全面复检"; if (applyButton != null) InvalidatePreview(reason); }
+        internal void MarkStale(string reason) { needsRecheck = true; NotifyEditors(); if (readyMetric != null) readyMetric.Content = "本轮状态\n需要全面复检"; if (applyButton != null) InvalidatePreview(reason); }
         internal void LocateSelected() => session.Locate(SelectedIds());
         private void InitializeState(string key)
         {
@@ -518,13 +542,14 @@ namespace Hifc.Revit.Management
             foreach (var row in selected)
             {
                 if (!snapshot.Elements.Contains(row)) throw new InvalidOperationException("属性对应的检查结果已更新，请重新选择构件。");
-                var target = row.Fields.SingleOrDefault(f => f.PropertySet == field.PropertySet && f.Source == field.Source && f.Binding == field.Binding);
+                var target = Effective(row).Fields.SingleOrDefault(f => f.PropertySet == field.PropertySet && f.Source == field.Source && f.Binding == field.Binding);
                 if (target == null || !target.Editable && target.State != "缺参数") throw new InvalidOperationException("部分所选对象没有可写的共同属性，请缩小选择范围。");
             }
             foreach (var row in selected)
             {
-                var target = row.Fields.Single(f => f.PropertySet == field.PropertySet && f.Source == field.Source && f.Binding == field.Binding);
+                var target = Effective(row).Fields.Single(f => f.PropertySet == field.PropertySet && f.Source == field.Source && f.Binding == field.Binding);
                 var request = new EditRequest { Kind = "赋值", Ids = new[] { row.Id }, Source = target.Source, PropertySet = target.PropertySet, Binding = target.Binding, Value = value,
+                    Slot = Effective(row).Slot != row.Slot ? Effective(row).Slot : null,
                     Baselines = new[] { new EditBaseline { ElementId = row.Id, ElementUniqueId = row.UniqueId, OwnerUniqueId = target.OwnerUniqueId, Value = target.Value, State = target.State, SourceSignature = target.SourceSignature } } };
                 if (state == null) InitializeState(snapshot.DocumentKey);
                 if (value == ModelFieldValue(target)) state.Drafts = state.Drafts.Where(r => DraftKey(r) != DraftKey(request)).ToArray();
@@ -539,7 +564,8 @@ namespace Hifc.Revit.Management
                 var row = snapshot.Elements.SingleOrDefault(r => r.Id == b.ElementId && r.UniqueId == b.ElementUniqueId);
                 if (row == null) return false;
                 if (request.Kind == "分类") return row.Slot == b.Value;
-                var f = row.Fields.SingleOrDefault(x => x.PropertySet == request.PropertySet && x.Source == request.Source && x.Binding == request.Binding);
+                if (!string.IsNullOrEmpty(request.Slot) && !DraftRequests.Any(r => r.Kind == "分类" && r.Ids.Contains(row.Id) && r.Slot == request.Slot)) return false;
+                var f = Effective(row).Fields.SingleOrDefault(x => x.PropertySet == request.PropertySet && x.Source == request.Source && x.Binding == request.Binding);
                 return f != null && f.OwnerUniqueId == b.OwnerUniqueId && f.Value == b.Value && f.State == b.State && f.SourceSignature == b.SourceSignature;
             });
         }
@@ -552,7 +578,7 @@ namespace Hifc.Revit.Management
             if ((field.State == "缺参数" || field.State == "未填写") && !string.IsNullOrWhiteSpace(field.SuggestedValue)) return "自动待写入";
             return field.State;
         }
-        private static string ModelFieldValue(FieldCheck field) => !string.IsNullOrWhiteSpace(field.Value) ? field.DisplayValue ?? field.Value : (field.State == "缺参数" || field.State == "未填写") ? field.SuggestedValue ?? "" : field.DisplayValue ?? field.Value ?? "";
+        private static string ModelFieldValue(FieldCheck field) => !string.IsNullOrWhiteSpace(field.Value) ? field.RawType == "Boolean" ? BooleanRaw(field.Value) : field.DisplayValue ?? field.Value : (field.State == "缺参数" || field.State == "未填写") ? field.SuggestedValue ?? "" : field.DisplayValue ?? field.Value ?? "";
         private string FieldValue(FieldCheck field) => DraftRequests.FirstOrDefault(r => r.Kind == "赋值" && DraftKey(r) == FieldKey(field))?.Value ?? ModelFieldValue(field);
         private void UpdateWriteButton()
         {
@@ -569,7 +595,7 @@ namespace Hifc.Revit.Management
         private void DiscardDrafts()
         {
             if (state == null) return;
-            state.Drafts = new EditRequest[0]; PersistState(); RefreshFields(); UpdateWriteButton(); SetStatus("未写入的暂存修改已清除，Revit 中的值保持原状。");
+            state.Drafts = new EditRequest[0]; proposedRows.Clear(); PersistState(); RefreshFields(); UpdateWriteButton(); SetStatus("未写入的暂存修改已清除，Revit 中的值保持原状。");
         }
         internal void RecordCommitted(EditPreview applied, EditRequest[] requests)
         {
@@ -580,7 +606,7 @@ namespace Hifc.Revit.Management
                 if (request.Kind == "分类") { if (applied.Changes.Any(c => c.Action == "分类" && request.Ids.Contains(c.Id) && c.ExpectedRaw == request.Slot)) completed.Add(request); continue; }
                 foreach (var baseline in request.Baselines)
                 {
-                    var change = applied.Changes.LastOrDefault(c => c.Action == "赋值" && c.OwnerUniqueId == baseline.OwnerUniqueId && c.Source == request.Source);
+                    var change = applied.Changes.LastOrDefault(c => (c.Action == "赋值" || c.Action == "清空") && c.OwnerUniqueId == baseline.OwnerUniqueId && c.Source == request.Source);
                     if (change == null) continue;
                     var key = Key(baseline.OwnerUniqueId, request.PropertySet, request.Binding, request.Source); var prior = records.FirstOrDefault(r => r.Key == key);
                     records.RemoveAll(r => r.Key == key); records.Add(new ManualWrite { Key = key, Value = change.ExpectedRaw, PreviousValue = baseline.Value, WrittenUtc = DateTime.UtcNow.ToString("O"), Count = (prior?.Count ?? 0) + 1 }); completed.Add(request);
@@ -603,16 +629,65 @@ namespace Hifc.Revit.Management
             readonly ModelElementCheck[] targets;
             public FieldCheck Field { get; }
             public string Property => Field.Property;
-            public string SourceDetail => Field.SuggestionReason ?? Field.Detail;
-            public string State => window.FieldMark(Field);
+            public string SourceDetail => window.EditReason(Field) ?? Field.SuggestionReason ?? Field.Detail;
+            public string State => window.EditReason(Field) ?? window.FieldMark(Field);
+            public string BooleanValue { get => BooleanLabel(Value); set { if (value != null) Value = value == "未填写" ? "" : value == "是" ? "1" : "0"; } }
             public Brush Background => Brush(State.StartsWith("待写入") ? "#FFFFDADA" : State == "已手工写入" ? "#FFFFD9AD" : "#FFFFFFFF");
             public string Value
             {
-                get => window.FieldValue(Field);
-                set { window.StageTargets(Field, value, targets); foreach (var name in new[] { "Value", "State", "Background" }) PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name)); }
+                get => Field.RawType == "Boolean" ? BooleanLabel(window.FieldValue(Field)) : window.FieldValue(Field);
+                set { window.StageTargets(Field, Field.RawType == "Boolean" ? BooleanRaw(value) : value ?? "", targets); Notify(); }
             }
             internal PropertyEditor(ManagerWindow window, FieldCheck field, ModelElementCheck[] targets) { this.window = window; Field = field; this.targets = targets; }
             public event PropertyChangedEventHandler PropertyChanged;
+            internal void Notify() { foreach (var name in new[] { "Value", "BooleanValue", "State", "Background", "SourceDetail" }) PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name)); }
+        }
+        private void NotifyEditors() { foreach (var item in FieldGrid.Items.OfType<PropertyEditor>()) item.Notify(); }
+        private string EditReason(FieldCheck field)
+        {
+            if (busy) return "全面检查或写入进行中，暂不可编辑";
+            if (snapshot?.Complete != true) return "请先完成全面检查";
+            if (needsRecheck) return "结果已过期，请先全面复检";
+            if (field == null) return "请选择属性";
+            if (!field.Editable && field.State != "缺参数") return "只读或来源有冲突：" + (field.Detail ?? field.State);
+            return null;
+        }
+        private static string BooleanLabel(string value) => string.IsNullOrWhiteSpace(value) ? "未填写" : value == "1" || value == "是" || value.Equals("true", StringComparison.OrdinalIgnoreCase) ? "是" : value == "0" || value == "否" || value.Equals("false", StringComparison.OrdinalIgnoreCase) ? "否" : value;
+        private static string BooleanRaw(string value) => BooleanLabel(value) == "是" ? "1" : BooleanLabel(value) == "否" ? "0" : BooleanLabel(value) == "未填写" ? "" : value;
+        private sealed class PropertyValueColumn : DataGridTextColumn
+        {
+            protected override FrameworkElement GenerateEditingElement(DataGridCell cell, object dataItem)
+            {
+                var property = (dataItem as PropertyEditor)?.Field;
+                string[] choices = property?.RawType == "Boolean" ? new[] { "未填写", "是", "否" }
+                    : property?.PropertySet == "Pset_建筑技术信息属性集" && property.Property == "建筑类型名称" ? new[] { "住宅", "公建", "中小学等", "幼儿园等", "厂房", "办公", "生活服务设施", "其它设施" }
+                    : property?.PropertySet == "Pset_建筑技术信息属性集" && property.Property == "建筑类别" ? new[] { "住宅", "商业", "商住", "配套车库", "中小学" } : null;
+                if (choices == null) return base.GenerateEditingElement(cell, dataItem);
+                var boolean = property.RawType == "Boolean";
+                var existing = ((PropertyEditor)dataItem).Value;
+                if (!boolean && !string.IsNullOrWhiteSpace(existing) && !choices.Contains(existing)) choices = choices.Concat(new[] { existing }).ToArray();
+                var editable = !boolean && property.Property == "建筑类别";
+                var combo = new ComboBox { ItemsSource = choices, IsEditable = editable, IsTextSearchEnabled = !boolean, VerticalContentAlignment = VerticalAlignment.Center, Padding = new Thickness(3, 0, 3, 0) };
+                combo.SetBinding(editable ? ComboBox.TextProperty : ComboBox.SelectedItemProperty,
+                    new Binding(boolean ? "BooleanValue" : "Value") { Mode = BindingMode.TwoWay, UpdateSourceTrigger = UpdateSourceTrigger.LostFocus, ValidatesOnExceptions = true });
+                return combo;
+            }
+            protected override object PrepareCellForEdit(FrameworkElement element, RoutedEventArgs args)
+            {
+                if (element is ComboBox combo) { combo.Focus(); return combo.Text; }
+                return base.PrepareCellForEdit(element, args);
+            }
+            protected override bool CommitCellEdit(FrameworkElement element)
+            {
+                if (!(element is ComboBox combo)) return base.CommitCellEdit(element);
+                combo.GetBindingExpression(combo.IsEditable ? ComboBox.TextProperty : ComboBox.SelectedItemProperty)?.UpdateSource();
+                return !Validation.GetHasError(combo);
+            }
+            protected override void CancelCellEdit(FrameworkElement element, object uneditedValue)
+            {
+                if (element is ComboBox combo) combo.GetBindingExpression(combo.IsEditable ? ComboBox.TextProperty : ComboBox.SelectedItemProperty)?.UpdateTarget();
+                else base.CancelCellEdit(element, uneditedValue);
+            }
         }
         private void SaveReport()
         {

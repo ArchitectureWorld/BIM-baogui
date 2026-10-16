@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace Hifc.Reference
 {
@@ -32,6 +33,13 @@ namespace Hifc.Reference
             else if (slot == "规划净用地" && field.Property == "类型")
             {
                 field.SuggestedValue = slot; field.SuggestionReason = "本轮确认或识别的业务分类";
+            }
+            else if (slot == "建筑楼层" && field.Property == "建筑基底")
+            {
+                var name = (nativeName ?? "").Trim().ToUpperInvariant();
+                var first = Regex.IsMatch(name, @"^(一层|首层|1层|1F(?![0-9])|F1(?![0-9]))");
+                field.SuggestedValue = first ? "1" : "0";
+                field.SuggestionReason = "按 Revit 标高名称“" + nativeName + "”预置建筑基底：" + (first ? "首层为是" : "其余标高为否") + "，可人工调整";
             }
         }
     }
