@@ -55,6 +55,7 @@ services:
     user: '1000:1000'
     read_only: true
     cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
     security_opt: [no-new-privileges:true]
     tmpfs: ['/config:size=16m,mode=1777']
     ports: ['192.168.6.45:8443:8443/tcp']
@@ -63,6 +64,11 @@ services:
       - /srv/hifc-web/data/caddy:/data
     networks: [frontend]
     depends_on: {hifc: {condition: service_healthy}}
+    healthcheck:
+      test: [CMD, caddy, version]
+      interval: 5s
+      timeout: 3s
+      retries: 6
     mem_limit: 128m
     logging: {driver: json-file, options: {max-size: 10m, max-file: '3'}}
 networks:

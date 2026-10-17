@@ -32,6 +32,9 @@ with tarfile.open(sys.argv[1]) as archive:
         if path.is_absolute() or '..' in path.parts or not (item.isdir() or item.isfile()): raise RuntimeError('Unsafe archive entry')
 PY
 tar --no-same-owner --no-same-permissions -xf "$archive" -C "$release"
+for tests in web-tests rule-tests database-tests; do
+  chown -R 1654:1654 "$release/$tests"
+done
 cp "$stage/image-lock.json" "$release/image-lock.json"
 for name in app_db_password postgres_admin_password; do
   [[ ! -L "$base/secrets/$name" ]] || exit 3

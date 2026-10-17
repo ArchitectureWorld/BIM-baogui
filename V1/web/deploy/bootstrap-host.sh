@@ -51,6 +51,7 @@ install -d -m 0700 "$backup"
 ss -H -ltn > "$backup/listeners-before.txt"
 if command -v iptables-save >/dev/null 2>&1; then iptables-save > "$backup/iptables-before.txt"; fi
 if command -v nft >/dev/null 2>&1; then nft list ruleset > "$backup/nft-before.txt"; fi
+forward_policy=$(iptables -S FORWARD 2>/dev/null | head -n 1 | awk '{print $3}')
 if ! command -v docker >/dev/null 2>&1; then
   for package in docker.io docker-compose docker-compose-v2 podman-docker containerd runc; do
     if dpkg-query -W -f='${db:Status-Status}' "$package" 2>/dev/null | grep -qx installed; then
@@ -75,6 +76,22 @@ if ! command -v docker >/dev/null 2>&1; then
   apt-get -o APT::Update::Error-Mode=any update
   apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   systemctl enable --now docker.service
+fi
+if [[ "$forward_policy" == ACCEPT ]]; then
+  [[ -z $(docker ps -q) ]] || { echo 'RUNNING_CONTAINERS_NO_DOCKER_RESTART'; exit 5; }
+  [[ ! -L /etc/docker/daemon.json ]] || exit 5
+  python3 - "$backup" <<'PY'
+import json, pathlib, shutil, sys
+path=pathlib.Path('/etc/docker/daemon.json')
+config=json.loads(path.read_text()) if path.exists() else {}
+if path.exists(): shutil.copy2(path, pathlib.Path(sys.argv[1])/'daemon.json.before')
+config['ip-forward-no-drop']=True
+path.write_text(json.dumps(config,indent=2)+'\n')
+path.chmod(0o644)
+PY
+  dockerd --validate --config-file /etc/docker/daemon.json
+  systemctl restart docker
+  iptables -P FORWARD ACCEPT
 fi
 docker version
 docker compose version
