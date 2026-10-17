@@ -1,4 +1,5 @@
 using System.Globalization;
+using Hifc.Reference;
 using Hifc.Web.Contracts;
 
 namespace Hifc.Web.RuleEngine;
@@ -12,14 +13,38 @@ public sealed partial class RuleAdapter
         var rebase = DraftRebaser.Rebase(drafts, basis.Fields);
         if (rebase.Conflicts.Length > 0 || rebase.InvalidTargets.Length > 0) throw new InvalidOperationException("人工草稿与当前模型存在冲突，请先确认原值、现值和拟写值。");
         var changes = new List<WriteChange>();
+        foreach (var result in basis.Elements.Where(e => !string.IsNullOrEmpty(e.Element.AssignedSlot) && e.Element.AssignedSlot != e.Element.DeclaredSlot))
+        {
+            var element = result.Element;
+            var original = values.Where(v => v.OwnerUniqueId == element.UniqueId && v.Source == "类目" && v.Origin == "instance").ToArray();
+            if (original.Length != 1 || original[0].ReadOnly || original[0].Exists && original[0].StorageType != "String") throw new InvalidOperationException("类目来源有歧义或不可写：" + element.Id);
+            changes.Add(new WriteChange { FieldKey = element.UniqueId + "|classification", OwnerId = element.Id, OwnerUniqueId = element.UniqueId,
+                Source = "类目", SourceGuid = ReferencePolicy.SourceGuid("类目").ToString("D"), Origin = "instance", RawType = "Text",
+                ExpectedSignature = Canonical.ValuesHash(original), ExpectedValue = original[0].RawValue, Value = element.AssignedSlot,
+                Action = original[0].Exists ? "Set" : "Create", Reason = "人工选择分类", Manual = true, AffectedInstances = 1 });
+            var rules = CaseWorkflow.ForModel(basis.Stage, basis.ModelKind);
+            var retained = rules.Where(r => r.Binding == "实例" && r.Slot == element.AssignedSlot).SelectMany(r => r.Properties).Select(p => p.SourceParameter).ToHashSet(StringComparer.Ordinal);
+            var oldSources = rules.Where(r => r.Binding == "实例" && r.Slot == element.DeclaredSlot).SelectMany(r => r.Properties)
+                .Select(p => p.SourceParameter).Where(s => s.StartsWith(element.DeclaredSlot, StringComparison.Ordinal) && !retained.Contains(s)).Distinct();
+            foreach (var source in oldSources)
+            {
+                var old = values.Where(v => v.OwnerUniqueId == element.UniqueId && v.Source == source && v.Origin == "instance").ToArray();
+                if (old.Length == 0 || old.Length == 1 && (!old[0].Exists || !old[0].HasValue || string.IsNullOrEmpty(old[0].RawValue))) continue;
+                if (old.Length != 1 || old[0].ReadOnly || old[0].StorageType != "String") throw new InvalidOperationException("旧分类来源无法安全清理，请先在模型中核对：" + source);
+                changes.Add(new WriteChange { FieldKey = element.UniqueId + "|cleanup|" + source, OwnerId = element.Id, OwnerUniqueId = element.UniqueId,
+                    Source = source, Origin = "instance", RawType = "Text", ExpectedSignature = Canonical.ValuesHash(old), ExpectedValue = old[0].RawValue,
+                    Value = "", Action = "Clear", Reason = "清理旧分类的实例值；保留参数定义与类型值", Manual = true, AffectedInstances = 1 });
+            }
+        }
         foreach (var field in basis.Fields)
         {
             var draft = drafts.SingleOrDefault(d => d.FieldKey == field.Key);
             if (draft != null && !field.Editable) throw new InvalidOperationException(field.ElementId + " / " + field.Property + "：来源有歧义、只读或载体不可写。");
-            if (!field.Editable || draft == null && !includeSuggestions) continue;
             var current = values.Where(v => v.OwnerUniqueId == field.OwnerUniqueId && v.Source == field.Source).ToArray();
             if (current.Length != 1) continue;
-            var value = draft != null ? Normalize(field.RawType, draft.Value) : field.SuggestedValue;
+            var changingClassification = field.Binding == "实例" && basis.Elements.Any(e => e.Element.UniqueId == field.ElementUniqueId && !string.IsNullOrEmpty(e.Element.AssignedSlot) && e.Element.AssignedSlot != e.Element.DeclaredSlot);
+            if (!field.Editable || draft == null && !includeSuggestions && !(changingClassification && !current[0].Exists)) continue;
+            var value = draft != null ? Normalize(field.RawType, draft.Value) : includeSuggestions ? field.SuggestedValue : null;
             if (draft == null && current[0].HasValue && !string.IsNullOrEmpty(current[0].RawValue)) continue;
             if (draft == null && current[0].Exists && value == null) continue;
             if (draft != null && current[0].Exists && current[0].HasValue && value == current[0].RawValue) continue;

@@ -39,6 +39,7 @@ public static class ServerApplication
         builder.Services.AddSingleton<AccountStore>();
         builder.Services.AddSingleton(new PlanSigner(options.SigningKeyPath));
         builder.Services.AddSingleton<RuleAdapter>();
+        builder.Services.AddSingleton<WorkflowStore>();
         var app = builder.Build();
         app.Use(async (context, next) => {
             context.Response.Headers.CacheControl = "no-store";

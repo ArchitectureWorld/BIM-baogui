@@ -14,9 +14,10 @@ $sourceHash=(Get-FileHash -LiteralPath $SourceModel -Algorithm SHA256).Hash
 if((Get-FileHash -LiteralPath $copy -Algorithm SHA256).Hash -ne $sourceHash){throw 'Model copy hash mismatch.'}
 @{model=$copy;source=$SourceModel;sourceSha256=$sourceHash}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $webRun 'config.json') -Encoding utf8
 $manifest=Join-Path $env:APPDATA 'Autodesk\Revit\Addins\2020\Hifc.Web.NativeTests.addin'
-if(Test-Path -LiteralPath $manifest){throw 'A previous Web native test manifest exists; inspect it before reusing the test host.'}
 $xml='<?xml version="1.0" encoding="utf-8"?><RevitAddIns><AddIn Type="Application"><Name>HIFC Web Native Tests</Name><Assembly>'+[Security.SecurityElement]::Escape($assembly)+'</Assembly><AddInId>82c20f55-e1f1-451a-918d-075405720287</AddInId><FullClassName>HifcWebNativeHost</FullClassName><VendorId>HIWB</VendorId><VendorDescription>Temporary Web model copy validation</VendorDescription></AddIn></RevitAddIns>'
-[IO.File]::WriteAllText($manifest,$xml,[Text.UTF8Encoding]::new($false))
+if(Test-Path -LiteralPath $manifest){
+    if([IO.File]::ReadAllText($manifest).Trim() -ne $xml){throw 'Existing test manifest does not match this Web harness; it will not be replaced.'}
+} else {[IO.File]::WriteAllText($manifest,$xml,[Text.UTF8Encoding]::new($false))}
 $previousRun=$env:HIFC_WEB_NATIVE_RUN
 try { $env:HIFC_WEB_NATIVE_RUN=$webRun; $hostProcess=Start-Process -FilePath 'C:\Program Files\Autodesk\Revit 2020\Revit.exe' -WindowStyle $WindowStyle -PassThru }
 finally { $env:HIFC_WEB_NATIVE_RUN=$previousRun }

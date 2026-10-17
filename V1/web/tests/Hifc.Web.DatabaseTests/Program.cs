@@ -143,5 +143,6 @@ await Test("an audit storage failure rolls back the deadline update", async () =
         await command.ExecuteNonQueryAsync();
     }
 });
+await WorkflowCases.Run(dataSource, Test);
 Console.WriteLine($"RESULT {passed} passed; {failed} failed");
 return failed == 0 ? 0 : 1;

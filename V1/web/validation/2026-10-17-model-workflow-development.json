@@ -1,0 +1,46 @@
+{
+  "verifiedUtc": "2026-10-17T11:25:17.4540460Z",
+  "branch": "hifc-web",
+  "stage": "model-workflow-development",
+  "experienceAcceptancePassed": false,
+  "deployed": false,
+  "webTests": {
+    "failed": 0,
+    "passed": 69
+  },
+  "existingRuleRegression": {
+    "failed": 0,
+    "passed": 85
+  },
+  "databaseTests": {
+    "passed": 17,
+    "dedicatedDatabase": "hifc_web_test",
+    "engine": "PostgreSQL 16.15",
+    "failed": 0
+  },
+  "native": {
+    "built": true,
+    "run": "native-20261017-192120",
+    "state": "waiting for user to select Load Once in Revit publisher dialog",
+    "hostVerified": false
+  },
+  "scope": {
+    "onlyWebSourceChanged": true,
+    "existingLocalSourceUnchanged": true,
+    "originalModelsVerified": 6,
+    "protectedLocalFilesVerified": 3
+  },
+  "remaining": [
+    "ordinary-user login decision",
+    "native host verification",
+    "HTTP authentication and model workflow integration",
+    "independent Web UI and installer",
+    "three-model full experience acceptance"
+  ],
+  "security": {
+    "browserWarningBypassed": false,
+    "publicModelRoutesClosed": true,
+    "windowsTrustChanged": false
+  },
+  "review": "author self-review; no subagents per user instruction"
+}

@@ -31,5 +31,35 @@ internal static class RuleCases
         test("manual edits cannot overwrite a concurrently changed source", () => { var fixture = Model(); var result = Evaluate(fixture); var field = result.Fields.Single(f => f.Property == "名称"); Reject(() => fixture.Engine.BuildEditPlan(result, fixture.Values, new[] { new EditDraft { FieldKey = field.Key, OriginalSignature = "stale", Value = "changed" } }, true, DateTime.UtcNow)); });
         test("server creates a plan from scoped automatic suggestions", () => { var fixture = Model(); var result = Evaluate(fixture); var plan = fixture.Engine.BuildEditPlan(result, fixture.Values, Array.Empty<EditDraft>(), true, new DateTime(2026, 10, 17, 0, 0, 0, DateTimeKind.Utc)); Require(plan.Changes.Any(c => c.Value == "123.5") && plan.ExpiresAtUtc == new DateTime(2026, 10, 17, 0, 2, 0, DateTimeKind.Utc) && plan.Hash == Canonical.PlanHash(plan), "Invalid or missing edit plan"); });
         test("assigned classification outside current model scope is refused", () => { var fixture = Model(); fixture.Pages[0].Elements[0].AssignedSlot = "任意私有类目"; fixture.Pages[0].Context.SnapshotHash = fixture.Pages[0].PageHash = Canonical.InventoryHash(fixture.Pages[0].Elements); Reject(() => fixture.Engine.CreateCapturePlan(fixture.Pages)); });
+        test("classification preview includes the actual instance classification write", () => {
+            var fixture = Reclassification(); var result = Evaluate(fixture);
+            var preview = fixture.Engine.BuildEditPlan(result, fixture.Values, Array.Empty<EditDraft>(), false, DateTime.UtcNow);
+            var change = preview.Changes.SingleOrDefault(c => c.Source == "类目");
+            Require(change != null && change.Value == "道路边界线" && change.OwnerUniqueId == "element-1" && change.Origin == "instance" && change.Action == "Set", "Classification remained a UI-only assignment");
+        });
+        test("classification cleanup clears old instance values and preserves type values", () => {
+            var fixture = Reclassification(); var result = Evaluate(fixture);
+            var preview = fixture.Engine.BuildEditPlan(result, fixture.Values, Array.Empty<EditDraft>(), false, DateTime.UtcNow);
+            Require(preview.Changes.Any(c => c.Source == "规划净用地投影面积" && c.Origin == "instance" && c.Action == "Clear" && c.Value == ""), "Old classification value would survive and confuse recognition");
+            Require(preview.Changes.All(c => c.OwnerUniqueId != "type-1"), "Reclassifying one instance would modify its shared type");
+        });
+        test("ambiguous classification sources cannot produce a classification plan", () => {
+            var fixture = Reclassification(); var original = fixture.Values.Single(v => v.Source == "类目" && v.Origin == "instance");
+            fixture.Values = fixture.Values.Append(new ParameterValue { OwnerUniqueId = original.OwnerUniqueId, OwnerId = original.OwnerId, Source = "类目", Origin = "instance", Exists = true, HasValue = true, RawValue = "绿地", StorageType = "String" }).ToArray();
+            var result = Evaluate(fixture);
+            Reject(() => fixture.Engine.BuildEditPlan(result, fixture.Values, Array.Empty<EditDraft>(), false, DateTime.UtcNow));
+        });
+    }
+    private static (RuleAdapter Engine, InventoryPage[] Pages, CapturePlan Plan, ParameterValue[] Values) Reclassification()
+    {
+        var fixture = Model(); var element = fixture.Pages[0].Elements[0]; element.AssignedSlot = "道路边界线";
+        fixture.Pages[0].Context.SnapshotHash = fixture.Pages[0].PageHash = Canonical.InventoryHash(fixture.Pages[0].Elements);
+        fixture.Plan = fixture.Engine.CreateCapturePlan(fixture.Pages);
+        foreach (var value in fixture.Values.Where(v => v.Source == "类目" || v.Source == "规划净用地投影面积"))
+        {
+            value.Exists = value.HasValue = true; value.StorageType = "String";
+            value.RawValue = value.Source == "类目" ? "规划净用地" : "88";
+        }
+        return fixture;
     }
 }

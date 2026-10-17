@@ -12,6 +12,7 @@ try
 {
     var app = ServerApplication.Create(args, WebRuntimeOptions.FromEnvironment());
     await app.Services.GetRequiredService<AccountStore>().InitializeAsync();
+    await app.Services.GetRequiredService<WorkflowStore>().InitializeAsync();
     await app.RunAsync();
     return 0;
 }
