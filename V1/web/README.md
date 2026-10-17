@@ -14,9 +14,9 @@
 
 已实现普通协议、两轮分页完整性、草稿冲突、只读复用的服务端规则适配、账号期限策略、持久化签名密钥、短期方案与许可签名，以及具有 HTTPS、超时和旧响应守卫的 HTTP 客户端。客户端不引用规则引擎或冻结资源。
 
-`Hifc.Web.Server` 目前包含策略、签名和 PostgreSQL 账号存储：数据库时钟登记、唯一手机号、168 小时期限、管理员延期、并发版本检查及事务内审计已实现。存储接口由后续认证服务调用，尚未开放公共登记或管理员 HTTP 接口；登录凭证方案仍待确认。检查、方案与回执的数据库持久化尚未实施。
+`Hifc.Web.Server` 已包含 HTTP 宿主、策略、签名和 PostgreSQL 账号存储：数据库时钟登记、唯一手机号、168 小时期限、管理员延期、并发版本检查及事务内审计已实现。2026-10-17 用户选择先部署服务器、稍后确定登录方案。当前仅开放状态、就绪检查、协议与公钥接口，账号、模型和管理操作统一返回 `AUTHENTICATION_NOT_CONFIGURED`。检查、方案与回执的数据库持久化尚未实施。
 
-`Hifc.Web.Revit` 的原生采集和事务及实机测试仍在开发中。当前没有可交给成员使用的 Web 安装包，也没有 Linux 服务部署或完整模型流程通过结论。
+`Hifc.Web.Revit` 的原生采集和事务及实机测试仍在开发中。服务器基础环境已部署，当前没有可交给成员使用的 Web 安装包，完整模型流程与用户体验验收尚未完成。
 
 ## 构建和验证
 
@@ -45,3 +45,18 @@ ssh -N -o ExitOnForwardFailure=yes -L '127.0.0.1:55432:/home/zetta/hifc-web-dev-
 在 Web 目录运行 `pwsh -File tools/Build-Web.ps1 -WithDatabase`，额外执行 12 项真实数据库测试。数据库测试程序另提供 `--write-persistence PATH` / `--verify-persistence PATH` 两阶段验证；中间通过远端脚本 `--restart` 重启。验证会检查 PostgreSQL 的实际启动时间已变化，再核对账号、到期时间、版本和审计记录。结束后以 `--stop` 停止本轮测试数据库，并关闭自己建立的隧道。
 
 2026-10-17 已在真实 PostgreSQL 16.15 上通过上述 12 项用例及重启验证，详细边界见 [SSH 数据库检查点](validation/2026-10-17-ssh-database-checkpoint.json)。
+
+## 已部署的服务器基础环境
+
+- 入口：`https://192.168.6.45:8443/`；仅放行当前已核实 Windows `192.168.218.195/32`。
+- 目录：`/srv/hifc-web/current` 指向独立版本目录，PostgreSQL、服务端签名密钥和 Caddy CA 各自保存在持久化目录。
+- 运行：Docker Engine 29.9.1 / Compose 5.6.0；PostgreSQL 17.11、HIFC 和 Caddy 2.11.7 三个容器均已通过健康检查，镜像按摘要或内容 ID 锁定。
+- 验证：实际 Linux 运行时通过 66 项 Web 测试和 85 项既有规则回归；真实 PostgreSQL 17 通过 12 项数据库用例。重建全部容器后，账号、期限、审计、CA 与签名身份保留。
+- 来源限制：Docker `DOCKER-USER` 与 Caddy 同时限制来源；隔离容器来源实际触发丢弃计数，服务器自身的未放行请求返回 403。第二台实体客户端尚未验证。
+- 主机保护：安装前的 FORWARD ACCEPT 策略已恢复并配置 `ip-forward-no-drop`；原有 TCP 监听均保留，只新增 LAN IPv4 的 8443。临时镜像下载代理和 SSH 转发已关闭。
+
+Windows 通过固定私有 CA 与主机名校验，实际取得状态页、就绪和协议接口的 200 响应。私有 CA 公共证书保存在本目录忽略的 `.local/certificates/hifc-web-root-ca.crt`；Windows 信任库尚未导入，浏览器访问前需单独处理信任。验证工具 `tools/Verify-WebServer.py` 使用指定 CA 的标准 SSL 上下文，不使用忽略证书选项；Windows curl 的 Schannel 因该私有 CA 未提供 CRL 而报告未知吊销状态。
+
+运维：`sudo systemctl status hifc-web`；组件状态：`sudo docker compose --project-directory /srv/hifc-web/current --project-name hifc-web ps`。部署与验证分别由 `tools/Publish-WebServer.ps1`、`deploy/install-release.sh`、`deploy/verify-runtime.sh` 和 `tools/Verify-WebServer.py` 负责。
+
+登录及后台、Portainer、备份和异机恢复、客户端安装、第二台实体机器与模型体验验收仍待后续阶段。完整回执见 [服务器基础部署检查点](validation/2026-10-17-server-foundation.json)。
