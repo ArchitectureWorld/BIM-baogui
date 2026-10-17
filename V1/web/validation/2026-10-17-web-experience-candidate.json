@@ -1,22 +1,22 @@
 {
-  "verifiedUtc": "2026-10-17T14:02:40.6777381Z",
-  "stage": "deployed-web-experience-candidate",
+  "verifiedUtc": "2026-10-17T14:37:46.3982500Z",
+  "stage": "ready-for-user-experience-acceptance",
   "experienceAcceptancePassed": false,
-  "release": "0.5.0-dev-20261017T132012Z",
-  "applicationSourceCommit": "20a4305732f191f574f88ecd336b971a55beffb0",
+  "release": "0.5.0-dev-20261017T140253Z",
+  "applicationSourceCommit": "78d2bef8d3947bfe72f89c1d124abe7d2104d577",
   "authenticationConfigured": true,
-  "clientPackageSha256": "382d7d8efd54594ba7f5b5cf07b510c7bb022b42dd25c618e6cc746a1f39f1a2",
+  "clientPackageSha256": "c540ba47fde1cfe37ab9fe724f1602ad1f7eea3ef79ac9b69165b3bed53ef52a",
   "linux": {
     "containerRecreationPersistencePassed": true,
     "webTests": 72,
     "dedicatedDatabase": "hifc_web_test",
     "existingRuleRegression": 85,
     "postgresVersion": "17.11",
-    "validatedServerAssemblySha256": "c2880d02dbe8518f2494512c8a1222c34151483422caa43a44336aa7cbbef9dc",
+    "validatedServerAssemblySha256": "c80aff14aff33873ef88404165f4504ac19305a5c8291a3911f56053a632ca90",
     "databaseAndHttpTests": 28
   },
   "windows": {
-    "productInstalled": false,
+    "productInstalled": true,
     "existingRuleRegression": 85,
     "dpapiWorkspaceTests": 4,
     "rootTrusted": true,
@@ -28,7 +28,11 @@
     "desktopTotal": 7,
     "optionalFrameworkHttpTotal": 8,
     "certificateCurrentlyInIntermediateStore": true,
-    "standardWindowsPowerShellHttpsVerified": true
+    "standardWindowsPowerShellHttpsVerified": true,
+    "installedClientFilesVerified": 4,
+    "productCommandRegisteredInActualRevit": true,
+    "productCommandUiVerified": true,
+    "productUiEvidence": "User confirmed the installed four-step window; actual Revit journal.0676 records WebCommand execution; installed assembly hash matches the production-validated package"
   },
   "https": {
     "downloadHashVerified": true,
@@ -37,24 +41,45 @@
     "rootAndSigningIdentityPreserved": true
   },
   "native": {
-    "fullFlowRun": "full-experience-20261017-213445",
+    "fullFlowRun": "full-experience-20261017-220556",
     "previousNativeCasesPassed": 6,
     "productionHttpsClientVerified": true,
-    "fullFlowStatus": "two production model workflows passed; site model binding failed and rolled back; candidate fix awaits complete production rerun",
+    "fullFlowStatus": "passed all three production HTTPS workflows and reopened all three saved business values",
     "harnessClientDllsMatchPublishedPackage": true,
     "productionTarget": "https://192.168.6.45:8443/",
-    "completedBeforeFailure": [
+    "results": [
       {
         "model": "厂房_干净.rvt",
         "changes": 84,
-        "saved": true
+        "classificationAssigned": false,
+        "TransactionCommitted": true,
+        "ReadbackPassed": true,
+        "RecheckCompleted": true,
+        "RvtSaved": true
       },
       {
         "model": "职工后勤楼_干净.rvt",
         "changes": 69,
-        "saved": true
+        "classificationAssigned": false,
+        "TransactionCommitted": true,
+        "ReadbackPassed": true,
+        "RecheckCompleted": true,
+        "RvtSaved": true
+      },
+      {
+        "model": "总图.0008_干净.rvt",
+        "changes": 19,
+        "classificationAssigned": true,
+        "TransactionCommitted": true,
+        "ReadbackPassed": true,
+        "RecheckCompleted": true,
+        "RvtSaved": true
       }
-    ]
+    ],
+    "passed": 3,
+    "failed": 0,
+    "reopened": 3,
+    "renderedPagesVisuallyInspected": 12
   },
   "protected": {
     "localSourceUnchanged": true,
@@ -62,13 +87,12 @@
     "installedLocalFilesVerified": 3
   },
   "pending": [
-    "Publish matching client candidate and rerun all three production HTTPS model workflows with save/reopen checks",
-    "Visual inspection of the final matching client",
-    "Web product installation",
-    "User administrator initialization with a password entered directly in their console",
-    "User experience acceptance"
+    "User production administrator browser login and deadline/rebind experience",
+    "User experience acceptance of the installed four-step workflow"
   ],
   "review": "author self-review; no subagents; no push or merge",
-  "appImage": "sha256:c5580b32c970b02c70fa5d9b2659bdc0902cebc930b607803c9d9b57066d6dfa",
-  "crossRuntimeFix": "IEEE754 canonical geometry encoding with signed-zero normalization; golden vectors and adjacent doubles verified in net48 and net10, plus real net48 HTTP client against the isolated modern NET host"
+  "appImage": "sha256:23237a6f622c2b966a43a8d11eb99623dedc5ef71c09e2bfeb9c0567634d198f",
+  "crossRuntimeFix": "IEEE754 canonical geometry encoding with signed-zero normalization; golden vectors and adjacent doubles verified in net48 and net10, plus real net48 HTTP client against the isolated modern NET host",
+  "administratorInitializationVerified": true,
+  "verifiedAdministratorPasswordRecords": 1
 }
