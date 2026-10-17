@@ -6,8 +6,10 @@ var connectionString = Environment.GetEnvironmentVariable("HIFC_TEST_DATABASE")
     ?? "Host=127.0.0.1;Port=55432;Username=zetta;Database=hifc_web_test;SSL Mode=Disable;Timeout=10";
 var settings = new NpgsqlConnectionStringBuilder(connectionString);
 if (settings.Database != "hifc_web_test") throw new InvalidOperationException("A dedicated hifc_web_test database is required.");
+settings.GssEncryptionMode = GssEncryptionMode.Disable;
 var passwordFile = Environment.GetEnvironmentVariable("HIFC_TEST_DATABASE_PASSWORD_FILE");
-if (passwordFile != null) { settings.Password = File.ReadAllText(passwordFile).TrimEnd('\r', '\n'); connectionString = settings.ConnectionString; }
+if (passwordFile != null) settings.Password = File.ReadAllText(passwordFile).TrimEnd('\r', '\n');
+connectionString = settings.ConnectionString;
 await using var dataSource = NpgsqlDataSource.Create(connectionString);
 await using (var version = dataSource.CreateCommand("SELECT version()"))
     Console.WriteLine("DATABASE " + await version.ExecuteScalarAsync());

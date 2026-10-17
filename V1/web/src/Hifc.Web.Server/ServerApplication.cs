@@ -17,7 +17,7 @@ public sealed class WebRuntimeOptions
             Host = Environment.GetEnvironmentVariable("HIFC_DATABASE_HOST") ?? "postgres",
             Database = Environment.GetEnvironmentVariable("HIFC_DATABASE_NAME") ?? "hifc_web",
             Username = Environment.GetEnvironmentVariable("HIFC_DATABASE_USER") ?? "hifc_web",
-            Password = File.ReadAllText(passwordPath).TrimEnd('\r', '\n'), SslMode = SslMode.Disable,
+            Password = File.ReadAllText(passwordPath).TrimEnd('\r', '\n'), SslMode = SslMode.Disable, GssEncryptionMode = GssEncryptionMode.Disable,
             Timeout = 15, CommandTimeout = 15
         };
         if (string.IsNullOrEmpty(connection.Password)) throw new InvalidOperationException("Database secret is empty.");
