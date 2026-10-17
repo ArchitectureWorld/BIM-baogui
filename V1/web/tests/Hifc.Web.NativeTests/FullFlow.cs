@@ -35,16 +35,21 @@ internal static class FullFlow
                     session.Changed += () => log(session.Status);
                     try
                     {
-                        await session.ConnectAsync("139" + RandomPhoneDigits(), "模型体验验收", true); await session.ScanAsync();
+                        await session.ConnectAsync("139" + RandomPhoneDigits(), "模型体验验收", true);
+                        var tab = ((DockPanel)window.Content).Children.OfType<TabControl>().Single();
+                        tab.SelectedIndex = 0; window.UpdateLayout(); Snapshot(window, Path.Combine(run, Path.GetFileNameWithoutExtension(path) + "-connection.png"));
+                        await session.ScanAsync();
                         if (session.Result?.Complete != true) throw new Exception("The actual model check did not complete.");
                         var target = session.Result.Elements.FirstOrDefault(e => e.Element.Entity == "IfcSlab");
                         if (target != null && session.Result.AvailableSlots.Contains("规划净用地")) { session.Assign(target.Element.UniqueId, "规划净用地"); await session.ScanAsync(); }
+                        tab.SelectedIndex = 1; window.UpdateLayout(); Snapshot(window, Path.Combine(run, Path.GetFileNameWithoutExtension(path) + "-inventory.png"));
                         var field = session.Result.Fields.FirstOrDefault(f => f.Editable && f.Binding == "实例" && (f.RawType == "Text" || f.RawType == "Label") && (f.Property == "名称" || f.Property == "建筑名称" || f.Property == "楼层名称"))
                             ?? session.Result.Fields.FirstOrDefault(f => f.Editable && (f.RawType == "Text" || f.RawType == "Label"));
                         if (field == null) throw new Exception("No real editable text field is available.");
                         var value = "Web体验验收-" + Guid.NewGuid().ToString("N").Substring(0, 8); session.SetDraft(field, value);
+                        tab.SelectedIndex = 2; window.UpdateLayout(); Snapshot(window, Path.Combine(run, Path.GetFileNameWithoutExtension(path) + "-fields.png"));
                         await session.PreviewAsync(); if (session.Plan == null || session.Plan.Changes.Length == 0) throw new Exception("Write preview contains no real changes.");
-                        var tab = ((DockPanel)window.Content).Children.OfType<TabControl>().Single(); tab.SelectedIndex = 3; window.UpdateLayout();
+                        tab.SelectedIndex = 3; window.UpdateLayout();
                         Snapshot(window, Path.Combine(run, Path.GetFileNameWithoutExtension(path) + "-preview.png"));
                         var changes = session.Plan.Changes.Length; await session.WriteAsync();
                         var receipt = session.Workspace.LastReceipt;
@@ -62,7 +67,7 @@ internal static class FullFlow
                         var actual = NativeInventory.ReadValues(application.ActiveUIDocument.Document, new[] { sample.Item2 }).Single(); if (actual.RawValue != sample.Item3) throw new Exception("Saved business value did not survive reopening."); return true; });
                     log("PASS reopen actual business value " + Path.GetFileName(sample.Item1));
                 }
-                File.WriteAllText(Path.Combine(run, "full-results.json"), JsonWire.Serialize(new { passed = results.Count, failed = 0, results, reopened = saved.Count, scope = "Real Revit 2020 model copies and actual HTTP client against the dedicated PostgreSQL test database; production HTTPS deployment remains a separate check" }));
+                File.WriteAllText(Path.Combine(run, "full-results.json"), JsonWire.Serialize(new { passed = results.Count, failed = 0, results, reopened = saved.Count, server = config["server"], scope = config["scope"], productionHttpsVerified = config["server"] == "https://192.168.6.45:8443/" }));
                 await bridge.Run(application => { application.PostCommand(RevitCommandId.LookupPostableCommandId(PostableCommand.ExitRevit)); return true; });
             }
             catch (Exception ex) { log("FULL_FLOW_ERROR " + ex); File.WriteAllText(Path.Combine(run, "full-error.json"), JsonWire.Serialize(new { error = ex.ToString(), results })); }

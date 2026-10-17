@@ -15,8 +15,10 @@ namespace Hifc.Web.Contracts
             foreach (var value in values)
             {
                 if (value == null) { output.Append("-1:"); continue; }
+                // Framework and modern .NET format doubles differently; hash their exact IEEE 754 value.
                 var date = value as DateTime?;
                 var text = date.HasValue ? DateTime.SpecifyKind(date.Value, DateTimeKind.Utc).ToString("O", CultureInfo.InvariantCulture)
+                    : value is double number ? BitConverter.DoubleToInt64Bits(number == 0 ? 0d : number).ToString("X16", CultureInfo.InvariantCulture)
                     : Convert.ToString(value, CultureInfo.InvariantCulture);
                 output.Append(text.Length.ToString(CultureInfo.InvariantCulture)).Append(':').Append(text);
             }

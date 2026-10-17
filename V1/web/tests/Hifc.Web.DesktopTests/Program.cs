@@ -33,6 +33,8 @@ internal static class Program
             bool refused = false; try { new WorkspaceStore(Path.Combine(root, "drafts")).Load("../outside"); } catch (InvalidOperationException) { refused = true; }
             require(refused, "A draft path escaped its root.");
         });
+        CanonicalCases.Run(test);
+        DesktopHttpCase.Run(test);
         Console.WriteLine("RESULT " + passed + " passed; " + failed + " failed"); return failed == 0 ? 0 : 1;
     }
 }

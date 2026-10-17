@@ -4,4 +4,5 @@
   <ItemGroup><ProjectReference Include="../../src/Hifc.Web.Client/Hifc.Web.Client.csproj" /></ItemGroup>
   <ItemGroup><ProjectReference Include="../../src/Hifc.Web.Server/Hifc.Web.Server.csproj" /></ItemGroup>
   <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
+  <ItemGroup><Compile Include="../CanonicalCases.cs" Link="CanonicalCases.cs" /></ItemGroup>
 </Project>
