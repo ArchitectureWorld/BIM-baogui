@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Autodesk.Revit.UI;
+using Autodesk.Revit.UI.Events;
 using Hifc.Web.Client;
 using Hifc.Web.Contracts;
 using Hifc.Web.Revit;
@@ -33,7 +34,7 @@ internal static class FullFlow
                 foreach (var path in models)
                 {
                     log("Opening " + Path.GetFileName(path));
-                    var access = await bridge.Run(application => { var previous = application.ActiveUIDocument?.Document; application.OpenAndActivateDocument(path); if (previous != null && previous.PathName != path) previous.Close(false); return new NativeModelAccess(application); });
+                    var access = await bridge.Run(application => { OpenCopy(application, path, run, log); return new NativeModelAccess(application); });
                     var session = new WebModelSession(access, new Uri(config["server"]), Path.Combine(run, "desktop-state", Path.GetFileNameWithoutExtension(path)));
                     var window = new WebModelWindow(session); window.Show(); System.Threading.SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(dispatcher));
                     session.Changed += () => log(session.Status);
@@ -45,7 +46,8 @@ internal static class FullFlow
                         await session.ScanAsync();
                         if (session.Result?.Complete != true) throw new Exception("The actual model check did not complete.");
                         var target = session.Result.Elements.FirstOrDefault(e => e.Element.Entity == "IfcSlab");
-                        if (target != null && session.Result.AvailableSlots.Contains("规划净用地")) { session.Assign(target.Element.UniqueId, "规划净用地"); await session.ScanAsync(); }
+                        var classificationAssigned = target != null && session.Result.AvailableSlots.Contains("规划净用地");
+                        if (classificationAssigned) { session.Assign(target.Element.UniqueId, "规划净用地"); await session.ScanAsync(); }
                         tab.SelectedIndex = 1; window.UpdateLayout(); Snapshot(window, Path.Combine(run, Path.GetFileNameWithoutExtension(path) + "-inventory.png"));
                         var field = session.Result.Fields.FirstOrDefault(f => f.Editable && f.Binding == "实例" && (f.RawType == "Text" || f.RawType == "Label") && (f.Property == "名称" || f.Property == "建筑名称" || f.Property == "楼层名称"))
                             ?? session.Result.Fields.FirstOrDefault(f => f.Editable && (f.RawType == "Text" || f.RawType == "Label"));
@@ -58,16 +60,17 @@ internal static class FullFlow
                         var changes = session.Plan.Changes.Length; await session.WriteAsync();
                         var receipt = session.Workspace.LastReceipt;
                         if (receipt?.TransactionCommitted != true || !receipt.ReadbackPassed || !receipt.RecheckCompleted) throw new Exception("Full native write/recheck failed: " + session.Status);
+                        if (classificationAssigned && session.Result.Elements.Single(e => e.Element.UniqueId == target.Element.UniqueId).Element.DeclaredSlot != "规划净用地") throw new Exception("The assigned business classification did not survive native write and recheck.");
                         await session.SaveModelAsync(); if (!receipt.RvtSaved) throw new Exception("Saved model receipt is missing.");
                         saved.Add(Tuple.Create(path, new CaptureTarget { OwnerId = field.OwnerId, OwnerUniqueId = field.OwnerUniqueId, Source = field.Source, Origin = field.Binding == "类型" ? "type" : "instance" }, value));
-                        results.Add(new { model = Path.GetFileName(path), changes, receipt.TransactionCommitted, receipt.ReadbackPassed, receipt.RecheckCompleted, receipt.RvtSaved });
+                        results.Add(new { model = Path.GetFileName(path), changes, classificationAssigned, receipt.TransactionCommitted, receipt.ReadbackPassed, receipt.RecheckCompleted, receipt.RvtSaved });
                         log("PASS complete native workflow " + Path.GetFileName(path));
                     }
                     finally { window.Close(); }
                 }
                 foreach (var sample in saved)
                 {
-                    await bridge.Run(application => { var previous = application.ActiveUIDocument?.Document; application.OpenAndActivateDocument(sample.Item1); if (previous != null && previous.PathName != sample.Item1) previous.Close(false);
+                    await bridge.Run(application => { OpenCopy(application, sample.Item1, run, log);
                         var actual = NativeInventory.ReadValues(application.ActiveUIDocument.Document, new[] { sample.Item2 }).Single(); if (actual.RawValue != sample.Item3) throw new Exception("Saved business value did not survive reopening."); return true; });
                     log("PASS reopen actual business value " + Path.GetFileName(sample.Item1));
                 }
@@ -76,6 +79,24 @@ internal static class FullFlow
             }
             catch (Exception ex) { log("FULL_FLOW_ERROR " + ex); File.WriteAllText(Path.Combine(run, "full-error.json"), JsonWire.Serialize(new { error = ex.ToString(), results })); }
         }));
+    }
+    private static void OpenCopy(UIApplication application, string path, string run, Action<string> log)
+    {
+        var allowedDirectory = Path.GetFullPath(Path.Combine(run, "models")) + Path.DirectorySeparatorChar;
+        if (!Path.GetFullPath(path).StartsWith(allowedDirectory, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Only this run's verified model copies can be opened.");
+        EventHandler<DialogBoxShowingEventArgs> handleReferences = (sender, args) => {
+            if (args is TaskDialogShowingEventArgs dialog && dialog.DialogId == "TaskDialog_Unresolved_References") {
+                log("Continuing verified model copy without unavailable external references: " + Path.GetFileName(path));
+                dialog.OverrideResult((int)TaskDialogResult.CommandLink2);
+            }
+        };
+        application.DialogBoxShowing += handleReferences;
+        try {
+            var previous = application.ActiveUIDocument?.Document;
+            application.OpenAndActivateDocument(path);
+            if (previous != null && previous.PathName != path) previous.Close(false);
+        }
+        finally { application.DialogBoxShowing -= handleReferences; }
     }
     private static bool RootTrusted()
     {

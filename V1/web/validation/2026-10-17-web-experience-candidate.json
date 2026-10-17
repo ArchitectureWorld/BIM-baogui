@@ -1,5 +1,5 @@
 {
-  "verifiedUtc": "2026-10-17T13:42:23.3306764Z",
+  "verifiedUtc": "2026-10-17T14:02:40.6777381Z",
   "stage": "deployed-web-experience-candidate",
   "experienceAcceptancePassed": false,
   "release": "0.5.0-dev-20261017T132012Z",
@@ -19,7 +19,7 @@
     "productInstalled": false,
     "existingRuleRegression": 85,
     "dpapiWorkspaceTests": 4,
-    "rootTrusted": false,
+    "rootTrusted": true,
     "nativeHarnessBuildErrors": 0,
     "nativeHarnessBuildWarnings": 0,
     "databaseAndHttpTests": 28,
@@ -27,7 +27,8 @@
     "canonicalCases": 3,
     "desktopTotal": 7,
     "optionalFrameworkHttpTotal": 8,
-    "certificateCurrentlyInIntermediateStore": true
+    "certificateCurrentlyInIntermediateStore": true,
+    "standardWindowsPowerShellHttpsVerified": true
   },
   "https": {
     "downloadHashVerified": true,
@@ -38,10 +39,22 @@
   "native": {
     "fullFlowRun": "full-experience-20261017-213445",
     "previousNativeCasesPassed": 6,
-    "productionHttpsClientVerified": false,
-    "fullFlowStatus": "waiting for native publisher and Windows root trust confirmations",
+    "productionHttpsClientVerified": true,
+    "fullFlowStatus": "two production model workflows passed; site model binding failed and rolled back; candidate fix awaits complete production rerun",
     "harnessClientDllsMatchPublishedPackage": true,
-    "productionTarget": "https://192.168.6.45:8443/"
+    "productionTarget": "https://192.168.6.45:8443/",
+    "completedBeforeFailure": [
+      {
+        "model": "厂房_干净.rvt",
+        "changes": 84,
+        "saved": true
+      },
+      {
+        "model": "职工后勤楼_干净.rvt",
+        "changes": 69,
+        "saved": true
+      }
+    ]
   },
   "protected": {
     "localSourceUnchanged": true,
@@ -49,10 +62,9 @@
     "installedLocalFilesVerified": 3
   },
   "pending": [
-    "User certificate import",
-    "User Revit publisher confirmation",
-    "Three-model complete workflow and visual inspection",
-    "Web product installation and production HTTPS native flow",
+    "Publish matching client candidate and rerun all three production HTTPS model workflows with save/reopen checks",
+    "Visual inspection of the final matching client",
+    "Web product installation",
     "User administrator initialization with a password entered directly in their console",
     "User experience acceptance"
   ],

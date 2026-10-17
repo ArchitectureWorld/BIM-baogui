@@ -136,8 +136,12 @@ namespace Hifc.Web.Revit
                 var group = file.Groups.get_Item("HIFC Web") ?? file.Groups.Create("HIFC Web");
                 Definition definition = SharedParameterElement.Lookup(document, guid)?.GetDefinition();
                 if (definition != null && (definition.Name != first.Source || definition.ParameterType != ParameterType.Text)) throw new InvalidOperationException("共享参数 GUID 定义冲突。");
+                // Only a definition already owned by this document can have an existing binding.
+                // Querying the binding map with a new external definition can resolve a stale
+                // native parameter handle after another model using the same GUID was closed.
+                var existing = definition == null ? null : document.ParameterBindings.get_Item(definition) as ElementBinding;
                 definition = definition ?? group.Definitions.Create(new ExternalDefinitionCreationOptions(first.Source, ParameterType.Text) { GUID = guid, Visible = true, UserModifiable = true });
-                var set = document.Application.Create.NewCategorySet(); var existing = document.ParameterBindings.get_Item(definition) as ElementBinding;
+                var set = document.Application.Create.NewCategorySet();
                 if (existing != null)
                 {
                     if ((existing is TypeBinding) != (first.Origin == "type")) throw new InvalidOperationException("已有参数绑定与方案来源不同。");
