@@ -14,7 +14,9 @@
 
 已实现普通协议、两轮分页完整性、草稿冲突、只读复用的服务端规则适配、账号期限策略、持久化签名密钥、短期方案与许可签名，以及具有 HTTPS、超时和旧响应守卫的 HTTP 客户端。客户端不引用规则引擎或冻结资源。
 
-`Hifc.Web.Server` 目前是策略和签名库，尚未交付 HTTP 宿主、数据库或登记登录；`Hifc.Web.Revit` 及实机测试仍在开发中。当前没有可交给成员使用的 Web 安装包，也没有 Linux 端到端通过结论。
+`Hifc.Web.Server` 目前包含策略、签名和 PostgreSQL 账号存储：数据库时钟登记、唯一手机号、168 小时期限、管理员延期、并发版本检查及事务内审计已实现。存储接口由后续认证服务调用，尚未开放公共登记或管理员 HTTP 接口；登录凭证方案仍待确认。检查、方案与回执的数据库持久化尚未实施。
+
+`Hifc.Web.Revit` 的原生采集和事务及实机测试仍在开发中。当前没有可交给成员使用的 Web 安装包，也没有 Linux 服务部署或完整模型流程通过结论。
 
 ## 构建和验证
 
@@ -29,3 +31,17 @@ pwsh -File V1/web/tools/Build-Web.ps1
 Revit 副本测试使用 `tools/Run-NativeTests.ps1`；有正在运行的 Revit 时会停止启动新宿主，不中断用户进程。测试模块首次加载的发布者提示需用户手动选择“载入一次”。测试模块与模型副本不属于正式安装或平台验收。
 
 Linux 环境脚本：[bootstrap-host.sh](deploy/bootstrap-host.sh)，默认只读 `--check`；管理员审阅后从当前 Windows 运行 [Install-WebHost.cmd](tools/Install-WebHost.cmd)，仅在交互终端输入 sudo 密码。
+
+## 真实数据库验证
+
+`tools/Prepare-PostgresTest.sh` 仅供 zetta-pc 的开发验证：将 Ubuntu 官方 PostgreSQL 包解压到 `/home/zetta/hifc-web-dev-20261017/postgres-test`，不安装系统包；数据库只监听该用户目录内的 Unix socket，使用 peer 认证。此环境用于验证持久化，不代替正式 Docker 部署。
+
+脚本已上传至 `/home/zetta/hifc-web-bootstrap-20261017/Prepare-PostgresTest.sh`。以 `--start` 启动后，在单独终端建立测试隧道：
+
+```powershell
+ssh -N -o ExitOnForwardFailure=yes -L '127.0.0.1:55432:/home/zetta/hifc-web-dev-20261017/postgres-test/socket/.s.PGSQL.55432' zetta-pc
+```
+
+在 Web 目录运行 `pwsh -File tools/Build-Web.ps1 -WithDatabase`，额外执行 12 项真实数据库测试。数据库测试程序另提供 `--write-persistence PATH` / `--verify-persistence PATH` 两阶段验证；中间通过远端脚本 `--restart` 重启。验证会检查 PostgreSQL 的实际启动时间已变化，再核对账号、到期时间、版本和审计记录。结束后以 `--stop` 停止本轮测试数据库，并关闭自己建立的隧道。
+
+2026-10-17 已在真实 PostgreSQL 16.15 上通过上述 12 项用例及重启验证，详细边界见 [SSH 数据库检查点](validation/2026-10-17-ssh-database-checkpoint.json)。
