@@ -11,9 +11,9 @@ using System.Text;
 
 internal static class EndpointCases
 {
-    internal static async Task Run(NpgsqlDataSource source, Func<string, Func<Task>, Task> test)
+    internal static async Task Run(NpgsqlDataSource source, string databaseConnectionString, Func<string, Func<Task>, Task> test)
     {
-        var app = ServerApplication.Create(new[] { "--urls", "http://127.0.0.1:0", "--Logging:LogLevel:Default", "None" }, new WebRuntimeOptions { DatabaseConnectionString = source.ConnectionString, SigningKeyPath = Path.Combine(Path.GetTempPath(), "HifcEndpointTests", Guid.NewGuid().ToString("N"), "signing.pem"), EnableAccounts = true });
+        var app = ServerApplication.Create(new[] { "--urls", "http://127.0.0.1:0", "--Logging:LogLevel:Default", "None" }, new WebRuntimeOptions { DatabaseConnectionString = databaseConnectionString, SigningKeyPath = Path.Combine(Path.GetTempPath(), "HifcEndpointTests", Guid.NewGuid().ToString("N"), "signing.pem"), EnableAccounts = true });
         await app.StartAsync(); var address = new Uri(app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>().Addresses.Single());
         using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { BaseAddress = address };
         static void Require(bool condition, string message) { if (!condition) throw new Exception(message); }
@@ -30,7 +30,8 @@ internal static class EndpointCases
                 foreach (var path in new[] { "health/live", "health/ready" }) {
                     using var reply = await http.GetAsync(path);
                     var payload = System.Text.Json.JsonDocument.Parse(await reply.Content.ReadAsStringAsync());
-                    Require(reply.IsSuccessStatusCode && payload.RootElement.GetProperty("authenticationConfigured").GetBoolean(), "Health metadata still reports the closed foundation mode.");
+                    Require(reply.IsSuccessStatusCode, path + " returned HTTP " + (int)reply.StatusCode);
+                    Require(payload.RootElement.GetProperty("authenticationConfigured").GetBoolean(), "Health metadata still reports the closed foundation mode.");
                 }
             });
             await test("enabled model endpoints require a real bearer session", async () => {

@@ -1,0 +1,54 @@
+{
+  "verifiedUtc": "2026-10-17T12:18:46.1721508Z",
+  "stage": "deployed-web-experience-candidate",
+  "experienceAcceptancePassed": false,
+  "release": "0.5.0-dev-20261017T120622Z",
+  "applicationSourceCommit": "08327bb1f24d892c6cd70679d7bddb6775c91669",
+  "authenticationConfigured": true,
+  "clientPackageSha256": "11cd476b667ae87a9af6d092d41d2991327a1a384e41531114eeac2558e1496a",
+  "linux": {
+    "containerRecreationPersistencePassed": true,
+    "webTests": 69,
+    "dedicatedDatabase": "hifc_web_test",
+    "existingRuleRegression": 85,
+    "postgresVersion": "17.11",
+    "validatedServerAssemblySha256": "7b7d87a777bf05329affc013075dfe0a7e7611b524172f4ea5c851a02d48474c",
+    "databaseAndHttpTests": 28
+  },
+  "windows": {
+    "productInstalled": false,
+    "existingRuleRegression": 85,
+    "dpapiWorkspaceTests": 4,
+    "rootTrusted": false,
+    "nativeHarnessBuildErrors": 0,
+    "nativeHarnessBuildWarnings": 0,
+    "databaseAndHttpTests": 28,
+    "webTests": 69
+  },
+  "https": {
+    "downloadHashVerified": true,
+    "hostnameValidated": true,
+    "certificateChainRequired": true,
+    "rootAndSigningIdentityPreserved": true
+  },
+  "native": {
+    "fullFlowRun": "full-experience-20261017-195825",
+    "previousNativeCasesPassed": 6,
+    "productionHttpsClientVerified": false,
+    "fullFlowStatus": "waiting for user publisher confirmation"
+  },
+  "protected": {
+    "localSourceUnchanged": true,
+    "originalModelsVerified": 6,
+    "installedLocalFilesVerified": 3
+  },
+  "pending": [
+    "User certificate import",
+    "User Revit publisher confirmation",
+    "Three-model complete workflow and visual inspection",
+    "Web product installation and production HTTPS native flow",
+    "User administrator initialization with a password entered directly in their console",
+    "User experience acceptance"
+  ],
+  "review": "author self-review; no subagents; no push or merge"
+}
