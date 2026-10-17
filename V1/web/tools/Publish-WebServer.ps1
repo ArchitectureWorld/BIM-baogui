@@ -1,0 +1,33 @@
+[CmdletBinding()]
+param([string]$ReleaseId=('0.5.0-dev-'+[DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ')))
+$ErrorActionPreference='Stop'
+if($ReleaseId -notmatch '^0\.5\.0-dev-[a-zA-Z0-9._-]+$'){throw 'Invalid Web release id.'}
+$webRoot=Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot 'Get-WebDotNet.ps1')
+$sdk=Get-HifcWebDotNet
+$releaseRoot=Join-Path $webRoot ('.local/releases/'+$ReleaseId)
+if(Test-Path -LiteralPath $releaseRoot){throw 'Release output already exists.'}
+$payload=Join-Path $releaseRoot 'payload'
+New-Item -ItemType Directory -Path $payload -Force|Out-Null
+Push-Location $webRoot
+try {
+    $branch=(& git branch --show-current)-join ''
+    if($branch -ne 'hifc-web'){throw 'Publish is restricted to the existing hifc-web branch.'}
+    $sourceCommit=(& git rev-parse HEAD)-join ''
+    foreach($entry in @(@('src/Hifc.Web.Server/Hifc.Web.Server.csproj','server'),@('tests/Hifc.Web.DatabaseTests/Hifc.Web.DatabaseTests.csproj','database-tests'),@('tests/Hifc.Web.Tests/Hifc.Web.Tests.csproj','web-tests'),@('tests/Hifc.Web.RuleRegression/Hifc.Web.RuleRegression.csproj','rule-tests'))){
+        $log=Join-Path $releaseRoot ($entry[1]+'-publish.log')
+        & $sdk publish $entry[0] -c Release -r linux-x64 --self-contained false -p:UseAppHost=false -o (Join-Path $payload $entry[1]) > $log 2>&1
+        if($LASTEXITCODE -ne 0){Get-Content -LiteralPath $log -Tail 12;throw 'Linux server publish failed.'}
+    }
+    foreach($file in @('Dockerfile','compose.yaml','Caddyfile.template','postgres-init.sql','apply-ingress.sh','hifc-web-ingress.service','hifc-web.service','install-release.sh')){
+        Copy-Item -LiteralPath (Join-Path $webRoot ('deploy/'+$file)) -Destination (Join-Path $payload $file)
+    }
+    [ordered]@{releaseId=$ReleaseId;sourceCommit=$sourceCommit;branch=$branch;createdUtc=[DateTime]::UtcNow.ToString('O');stage='server-foundation';authenticationConfigured=$false;experienceAcceptancePassed=$false}|
+        ConvertTo-Json|Set-Content -LiteralPath (Join-Path $payload 'release.json') -Encoding utf8
+    $archive=Join-Path $releaseRoot ($ReleaseId+'.tar.gz')
+    & tar.exe -czf $archive -C $payload .
+    if($LASTEXITCODE -ne 0){throw 'Web release packaging failed.'}
+    [ordered]@{releaseId=$ReleaseId;archive=$archive;sha256=(Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant();sourceCommit=$sourceCommit}|
+        ConvertTo-Json|Set-Content -LiteralPath (Join-Path $webRoot '.local/latest-server-release.json') -Encoding utf8
+    Get-Content -LiteralPath (Join-Path $webRoot '.local/latest-server-release.json')
+} finally {Pop-Location}

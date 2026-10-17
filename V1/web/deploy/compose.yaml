@@ -1,0 +1,73 @@
+name: hifc-web
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE}
+    pull_policy: never
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hifc_owner
+      POSTGRES_DB: hifc_web
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_admin_password
+    secrets: [postgres_admin_password, app_db_password]
+    volumes:
+      - /srv/hifc-web/data/postgres:/var/lib/postgresql/data
+      - ./postgres-init.sql:/docker-entrypoint-initdb.d/10-hifc.sql:ro
+    networks: [backend]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U hifc_owner -d hifc_web']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    mem_limit: 1g
+    logging: {driver: json-file, options: {max-size: 10m, max-file: '3'}}
+  hifc:
+    image: ${HIFC_IMAGE}
+    pull_policy: never
+    restart: unless-stopped
+    user: '1654:1654'
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ['/tmp:size=64m,mode=1777']
+    environment:
+      HIFC_DATABASE_HOST: postgres
+      HIFC_DATABASE_NAME: hifc_web
+      HIFC_DATABASE_USER: hifc_web
+      HIFC_DATABASE_PASSWORD_FILE: /run/secrets/app_db_password
+      HIFC_SIGNING_KEY_PATH: /var/lib/hifc/signing.pem
+      HIFC_BUILD_REVISION: ${BUILD_REVISION}
+    secrets: [app_db_password]
+    volumes: [/srv/hifc-web/data/server:/var/lib/hifc]
+    networks: [frontend, backend]
+    depends_on: {postgres: {condition: service_healthy}}
+    healthcheck:
+      test: [CMD, dotnet, Hifc.Web.Server.dll, --health-check]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 6
+    mem_limit: 768m
+    logging: {driver: json-file, options: {max-size: 10m, max-file: '3'}}
+  caddy:
+    image: ${CADDY_IMAGE}
+    pull_policy: never
+    restart: unless-stopped
+    user: '1000:1000'
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ['/config:size=16m,mode=1777']
+    ports: ['192.168.6.45:8443:8443/tcp']
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - /srv/hifc-web/data/caddy:/data
+    networks: [frontend]
+    depends_on: {hifc: {condition: service_healthy}}
+    mem_limit: 128m
+    logging: {driver: json-file, options: {max-size: 10m, max-file: '3'}}
+networks:
+  frontend: {name: hifc_web_frontend}
+  backend: {name: hifc_web_backend, internal: true}
+secrets:
+  postgres_admin_password: {file: /srv/hifc-web/secrets/postgres_admin_password}
+  app_db_password: {file: /srv/hifc-web/secrets/app_db_password}

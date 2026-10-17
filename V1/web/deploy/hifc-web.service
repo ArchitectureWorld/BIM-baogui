@@ -1,0 +1,16 @@
+[Unit]
+Description=HIFC Web server foundation
+Requires=docker.service hifc-web-ingress.service
+After=docker.service hifc-web-ingress.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/srv/hifc-web/current
+ExecStart=/usr/bin/docker compose --project-name hifc-web up -d --wait --wait-timeout 120
+ExecStop=/usr/bin/docker compose --project-name hifc-web stop
+TimeoutStartSec=180
+TimeoutStopSec=90
+
+[Install]
+WantedBy=multi-user.target

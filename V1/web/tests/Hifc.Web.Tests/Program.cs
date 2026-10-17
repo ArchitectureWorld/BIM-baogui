@@ -33,5 +33,6 @@ AccountCases.Run(Test);
 SignerCases.Run(Test);
 TransportCases.Run(Test);
 PackageCases.Run(Test);
+HostCases.Run(Test);
 Console.WriteLine($"RESULT {passed} passed; {failed} failed");
 return failed == 0 ? 0 : 1;

@@ -2,11 +2,19 @@
 set -Eeuo pipefail
 
 # Official Docker Engine / Compose installation for this Web service only.
-# Default is read-only. A human runs --apply in an interactive sudo terminal.
+# Default is read-only. --apply requires interactive sudo authentication.
 mode="${1:---check}"
+docker_apt_uri="${2:-https://download.docker.com/linux/ubuntu}"
 if [[ "$mode" != --check && "$mode" != --apply ]]; then
   echo 'usage: bootstrap-host.sh [--check|--apply]' >&2; exit 64
 fi
+case "$docker_apt_uri" in
+  https://download.docker.com/linux/ubuntu|https://mirrors.tuna.tsinghua.edu.cn/docker-ce/linux/ubuntu) ;;
+  *) echo 'UNRECOGNIZED_DOCKER_APT_MIRROR' >&2; exit 64 ;;
+esac
+docker_source() {
+  printf 'Types: deb\nURIs: %s\nSuites: noble\nComponents: stable\nArchitectures: amd64\nSigned-By: /etc/apt/keyrings/docker.asc\n' "$1"
+}
 if [[ "$(id -un)" != zetta && "$EUID" != 0 ]] || [[ "$(hostname)" != pc ]]; then
   echo 'HOST_IDENTITY_MISMATCH' >&2; exit 3
 fi
@@ -34,6 +42,8 @@ if [[ "$mode" == --check ]]; then
   exit "$(( failures > 0 ? 2 : 0 ))"
 fi
 if [[ "$EUID" != 0 ]]; then echo 'RUN_WITH_INTERACTIVE_SUDO' >&2; exit 4; fi
+export DEBIAN_FRONTEND=noninteractive
+export NEEDRESTART_MODE=l
 if ss -H -ltn | awk '{print $4}' | grep -Eq ':(8443|9443)$'; then echo 'PORT_CONFLICT_NO_CHANGES_MADE'; exit 3; fi
 
 backup="/var/backups/hifc-web-bootstrap/$(date -u +%Y%m%dT%H%M%SZ)"
@@ -48,22 +58,21 @@ if ! command -v docker >/dev/null 2>&1; then
     fi
   done
   if [[ -e /etc/apt/sources.list.d/docker.sources ]]; then
-    echo 'EXISTING_DOCKER_APT_SOURCE_REQUIRES_REVIEW' >&2; exit 5
+    if ! cmp -s /etc/apt/sources.list.d/docker.sources <(docker_source https://download.docker.com/linux/ubuntu) &&
+       ! cmp -s /etc/apt/sources.list.d/docker.sources <(docker_source https://mirrors.tuna.tsinghua.edu.cn/docker-ce/linux/ubuntu); then
+      echo 'EXISTING_DOCKER_APT_SOURCE_REQUIRES_REVIEW' >&2; exit 5
+    fi
+    cp -a /etc/apt/sources.list.d/docker.sources "$backup/docker.sources.before"
   fi
   apt-get update
   apt-get install -y ca-certificates curl
   install -m 0755 -d /etc/apt/keyrings
-  curl --fail --show-error --location https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  if [[ ! -s /etc/apt/keyrings/docker.asc ]]; then
+    curl --ipv4 --fail --show-error --location --retry 3 --retry-all-errors --connect-timeout 10 --max-time 60 https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  fi
   chmod a+r /etc/apt/keyrings/docker.asc
-  cat > /etc/apt/sources.list.d/docker.sources <<'SOURCES'
-Types: deb
-URIs: https://download.docker.com/linux/ubuntu
-Suites: noble
-Components: stable
-Architectures: amd64
-Signed-By: /etc/apt/keyrings/docker.asc
-SOURCES
-  apt-get update
+  docker_source "$docker_apt_uri" > /etc/apt/sources.list.d/docker.sources
+  apt-get -o APT::Update::Error-Mode=any update
   apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   systemctl enable --now docker.service
 fi

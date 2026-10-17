@@ -1,0 +1,14 @@
+[Unit]
+Description=HIFC Web source restriction
+After=docker.service
+Requires=docker.service
+PartOf=docker.service
+Before=hifc-web.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/hifc-web/apply-ingress.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=docker.service
