@@ -144,5 +144,7 @@ await Test("an audit storage failure rolls back the deadline update", async () =
     }
 });
 await WorkflowCases.Run(dataSource, Test);
+await IdentityCases.Run(dataSource, Test);
+await EndpointCases.Run(dataSource, Test);
 Console.WriteLine($"RESULT {passed} passed; {failed} failed");
 return failed == 0 ? 0 : 1;

@@ -37,6 +37,7 @@ public sealed class HifcWebNativeHost : IExternalApplication
     {
         var ui = sender as UIApplication; if (ui == null) return;
         ui.Idling -= Tick;
+        if (File.Exists(Path.Combine(run, "full-flow.json"))) { FullFlow.Start(ui, run); return; }
         Document doc = null;
         try
         {

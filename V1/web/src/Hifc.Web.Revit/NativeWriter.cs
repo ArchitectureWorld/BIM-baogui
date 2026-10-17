@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -24,6 +25,7 @@ namespace Hifc.Web.Revit
         private static readonly HashSet<string> ConsumedPermits = new HashSet<string>(StringComparer.Ordinal);
         public static WriteReceipt Apply(Document document, NativeWriteInput input, PublicSigningKey key, DateTime serverNowUtc)
         {
+            var elapsed = Stopwatch.StartNew();
             if (document == null || !document.IsValidObject || document.IsReadOnly || document.IsFamilyDocument || document.IsModifiable
                 || input?.Basis?.Context == null || input.Capture == null || input.DocumentSessionId != input.Basis.Context.DocumentSessionId)
                 throw new InvalidOperationException("文档状态已变化，请重新检查。");
@@ -51,6 +53,7 @@ namespace Hifc.Web.Revit
                 {
                     using (var transaction = new Transaction(document, "按服务器签名方案写入"))
                     {
+                        WriteGuard.Permit(input.Permit, input.Plan, key, serverNowUtc.Add(elapsed.Elapsed));
                         transaction.Start();
                         foreach (var sources in input.Plan.Changes.Where(c => c.Action == "Create").GroupBy(c => c.Source)) EnsureDefinition(document, sources.ToArray());
                         document.Regenerate();

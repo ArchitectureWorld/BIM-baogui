@@ -14,6 +14,9 @@ try {
     $branch=(& git branch --show-current)-join ''
     if($branch -ne 'hifc-web'){throw 'Publish is restricted to the existing hifc-web branch.'}
     $sourceCommit=(& git rev-parse HEAD)-join ''
+    & (Join-Path $PSScriptRoot 'Publish-WebClient.ps1')|Out-Null
+    $clientRelease=Get-Content -LiteralPath (Join-Path $webRoot '.local/latest-client-release.json')|ConvertFrom-Json
+    if($clientRelease.sourceCommit -ne $sourceCommit){throw 'Client/server source revisions differ.'}
     foreach($entry in @(@('src/Hifc.Web.Server/Hifc.Web.Server.csproj','server'),@('tests/Hifc.Web.DatabaseTests/Hifc.Web.DatabaseTests.csproj','database-tests'),@('tests/Hifc.Web.Tests/Hifc.Web.Tests.csproj','web-tests'),@('tests/Hifc.Web.RuleRegression/Hifc.Web.RuleRegression.csproj','rule-tests'))){
         $log=Join-Path $releaseRoot ($entry[1]+'-publish.log')
         & $sdk publish $entry[0] -c Release -r linux-x64 --self-contained false -p:UseAppHost=false -o (Join-Path $payload $entry[1]) > $log 2>&1
@@ -22,7 +25,9 @@ try {
     foreach($file in @('Dockerfile','compose.yaml','Caddyfile.template','postgres-init.sql','apply-ingress.sh','hifc-web-ingress.service','hifc-web.service','install-release.sh')){
         Copy-Item -LiteralPath (Join-Path $webRoot ('deploy/'+$file)) -Destination (Join-Path $payload $file)
     }
-    [ordered]@{releaseId=$ReleaseId;sourceCommit=$sourceCommit;branch=$branch;createdUtc=[DateTime]::UtcNow.ToString('O');stage='server-foundation';authenticationConfigured=$false;experienceAcceptancePassed=$false}|
+    New-Item -ItemType Directory -Path (Join-Path $payload 'server/downloads') -Force|Out-Null
+    Copy-Item -LiteralPath $clientRelease.archive -Destination (Join-Path $payload 'server/downloads/HIFC-0.5.0-Web.zip')
+    [ordered]@{releaseId=$ReleaseId;sourceCommit=$sourceCommit;branch=$branch;createdUtc=[DateTime]::UtcNow.ToString('O');stage='web-experience-candidate';authenticationConfigured=$true;clientPackageSha256=$clientRelease.sha256;experienceAcceptancePassed=$false}|
         ConvertTo-Json|Set-Content -LiteralPath (Join-Path $payload 'release.json') -Encoding utf8
     $archive=Join-Path $releaseRoot ($ReleaseId+'.tar.gz')
     & tar.exe -czf $archive -C $payload .

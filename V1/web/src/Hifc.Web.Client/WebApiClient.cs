@@ -42,6 +42,15 @@ namespace Hifc.Web.Client
             http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false, UseProxy = false }) { BaseAddress = baseUri, Timeout = Timeout.InfiniteTimeSpan };
         }
         public void SetSession(AccountSession session) { accessToken = session?.AccessToken; }
+        private async Task<AccountSession> SignInAsync(string path, object request, CancellationToken ct)
+        {
+            var session = await Request<AccountSession>(HttpMethod.Post, path, request, ct, false).ConfigureAwait(false);
+            if (session?.Account == null || string.IsNullOrEmpty(session.AccessToken)) throw new InvalidOperationException("服务器没有返回完整的登录结果。");
+            SetSession(session); return session;
+        }
+        public Task<AccountSession> RegisterAsync(Registration request, CancellationToken ct) => SignInAsync("accounts/register", request, ct);
+        public Task<AccountSession> LoginAsync(LoginRequest request, CancellationToken ct) => SignInAsync("sessions", request, ct);
+        public Task<AccountSession> RebindAsync(RebindRequest request, CancellationToken ct) => SignInAsync("accounts/rebind", request, ct);
         private async Task<T> Request<T>(HttpMethod method, string path, object body, CancellationToken ct, bool authenticated = true)
         {
             using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct))

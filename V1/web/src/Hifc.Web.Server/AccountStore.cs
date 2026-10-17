@@ -131,6 +131,13 @@ public sealed class AccountStore(NpgsqlDataSource dataSource)
         return account;
     }
 
+    public async Task<AccountInfo[]> ListForAdministratorAsync(Guid actorId, CancellationToken ct = default)
+    {
+        if ((await GetAsync(actorId, ct))?.IsAdmin != true) throw new WebOperationException("ADMIN_REQUIRED", 403, "只有管理员可以查看账号。");
+        await using var command = dataSource.CreateCommand("SELECT id,phone,real_name,registered_at,expires_at,is_admin,row_version,clock_timestamp() FROM hifc_web.accounts ORDER BY registered_at DESC LIMIT 1000");
+        await using var reader = await command.ExecuteReaderAsync(ct); var accounts = new List<AccountInfo>();
+        while (await reader.ReadAsync(ct)) accounts.Add(Read(reader)); return accounts.ToArray();
+    }
     private static AccountInfo Read(NpgsqlDataReader reader)
     {
         var account = new AccountInfo {

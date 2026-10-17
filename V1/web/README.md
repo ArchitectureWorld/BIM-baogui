@@ -14,11 +14,11 @@
 
 已实现普通协议、两轮分页完整性、草稿冲突、只读复用的服务端规则适配、账号期限策略、持久化签名密钥、短期方案与许可签名，以及具有 HTTPS、超时和旧响应守卫的 HTTP 客户端。客户端不引用规则引擎或冻结资源。
 
-`Hifc.Web.Server` 已包含 HTTP 宿主、策略、签名和 PostgreSQL 账号存储：数据库时钟登记、唯一手机号、168 小时期限、管理员延期、并发版本检查及事务内审计已实现。2026-10-17 用户选择先部署服务器、稍后确定登录方案。当前仅开放状态、就绪检查、协议与公钥接口，账号、模型和管理操作统一返回 `AUTHENTICATION_NOT_CONFIGURED`。
+`Hifc.Web.Server` 已包含真实登记登录、检查、预览、许可及回执接口。用户已确认“手机号、真实姓名登记，电脑保存凭证，换机由管理员发一次性绑定码”；默认 168 小时，重登与换机保持原期限。普通电脑凭证由 Windows DPAPI 加密；管理员使用独立密码、Cookie 和 CSRF 保护的网页后台，可自定义延期天数或截至日期。
 
-`Hifc.Web.Revit` 已实现模型盘点、限定字段采集、固定 GUID 参数创建、签名方案写入及提交后的回读回滚，原生宿主验证正等待用户确认发布者提示。分类预览现在包含实际类目写入和旧类目实例值清理，并保留类型值。检查、签名方案、幂等许可与回执的持久化已在独立 PostgreSQL 16.15 测试库通过验证，尚未部署或开放这些接口。
+`Hifc.Web.Revit` 提供连接登记、全面检查、字段编辑和写入复检四步窗口。草稿留在本机；所有 Revit 取数与事务通过 ExternalEvent 执行，网络返回后重新核对文档与快照。分类会实际写入类目、清理旧实例值并保留类型值。原生副本测试的 6 项检查通过，包含真实参数写入、旧快照拒绝、提交回读干扰回滚和保存重开；三个模型的完整界面流程仍须单独验证。
 
-当前没有可交给成员使用的 Web 安装包，完整模型流程与用户体验验收尚未完成。只有模型检查、编辑、写入和复检连通后，才能作为一次可操作体验交付。
+`tools/Publish-WebClient.ps1` 生成独立 Web ZIP，仅交付四个客户端 DLL、安装器、公共 CA 和操作说明。安装器核对文件与固定证书指纹，证书导入与 Revit 发布者安全提示由用户本人确认。`tools/Publish-WebServer.ps1` 同时打包该 ZIP；首页提供下载和管理员入口。完整模型流程、生产 HTTPS 客户端联调及用户体验验收分别记录，不用构建通过替代。
 
 ## 构建和验证
 
@@ -30,7 +30,7 @@ pwsh -File V1/web/tools/Build-Web.ps1
 
 脚本使用独立的 `%USERPROFILE%\.dotnet-hifc` SDK，不修改全局 PATH 或 Local 构建脚本。结果和详细日志位于忽略的 `.local/build`；有基线时同时核验旧源码、已安装 Local 文件和原 RVT。
 
-Revit 副本测试使用 `tools/Run-NativeTests.ps1`；有正在运行的 Revit 时会停止启动新宿主，不中断用户进程。测试模块首次加载的发布者提示需用户手动选择“载入一次”。测试模块与模型副本不属于正式安装或平台验收。
+Revit 原生测试使用 `tools/Run-NativeTests.ps1`，三模型完整流程使用 `tools/Run-FullExperience.ps1`。它们只打开核对过原文件哈希的副本；已有 Revit 时拒绝启动新宿主。发布者提示由用户手动选择“载入一次”。本机回环集成环境与生产 Linux HTTPS 分开验证。
 
 Linux 环境脚本：[bootstrap-host.sh](deploy/bootstrap-host.sh)，默认只读 `--check`；管理员审阅后从当前 Windows 运行 [Install-WebHost.cmd](tools/Install-WebHost.cmd)，仅在交互终端输入 sudo 密码。
 
@@ -48,7 +48,7 @@ ssh -N -o ExitOnForwardFailure=yes -L '127.0.0.1:55432:/home/zetta/hifc-web-dev-
 
 2026-10-17 已在真实 PostgreSQL 16.15 上通过上述 12 项用例及重启验证，详细边界见 [SSH 数据库检查点](validation/2026-10-17-ssh-database-checkpoint.json)。
 
-## 已部署的服务器基础环境
+## 服务器基础环境检查点（完整体验部署前）
 
 - 入口：`https://192.168.6.45:8443/`；仅放行当前已核实 Windows `192.168.218.195/32`。
 - 目录：`/srv/hifc-web/current` 指向独立版本目录，PostgreSQL、服务端签名密钥和 Caddy CA 各自保存在持久化目录。
@@ -61,4 +61,8 @@ Windows 通过固定私有 CA 与主机名校验，实际取得状态页、就�
 
 运维：`sudo systemctl status hifc-web`；组件状态：`sudo docker compose --project-directory /srv/hifc-web/current --project-name hifc-web ps`。部署与验证分别由 `tools/Publish-WebServer.ps1`、`deploy/install-release.sh`、`deploy/verify-runtime.sh` 和 `tools/Verify-WebServer.py` 负责。
 
-登录及后台、Portainer、备份和异机恢复、客户端安装、第二台实体机器与模型体验验收仍待后续阶段。完整回执见 [服务器基础部署检查点](validation/2026-10-17-server-foundation.json)。
+该段记录早先的基础环境，不能代表后续完整体验部署。历史回执见 [服务器基础部署检查点](validation/2026-10-17-server-foundation.json)。
+
+## 管理员初始化
+
+首次部署账号功能后，在已配置 `zetta-pc` SSH 的电脑运行安装包中的“初始化管理员.cmd”。手机号、真实姓名及 12–128 字符密码直接输入服务器交互终端，密码不回显。此入口只允许首次创建管理员，无默认密码或公开初始化接口。后台：`https://192.168.6.45:8443/admin`。

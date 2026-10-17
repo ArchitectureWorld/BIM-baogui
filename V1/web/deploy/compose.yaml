@@ -36,6 +36,7 @@ services:
       HIFC_DATABASE_PASSWORD_FILE: /run/secrets/app_db_password
       HIFC_SIGNING_KEY_PATH: /var/lib/hifc/signing.pem
       HIFC_BUILD_REVISION: ${BUILD_REVISION}
+      HIFC_AUTHENTICATION_ENABLED: '1'
     secrets: [app_db_password]
     volumes: [/srv/hifc-web/data/server:/var/lib/hifc]
     networks: [frontend, backend]

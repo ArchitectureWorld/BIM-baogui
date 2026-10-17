@@ -9,6 +9,7 @@ public sealed class WebRuntimeOptions
     public string DatabaseConnectionString { get; init; }
     public string SigningKeyPath { get; init; }
     public string BuildRevision { get; init; } = "development";
+    public bool EnableAccounts { get; init; }
 
     public static WebRuntimeOptions FromEnvironment()
     {
@@ -24,7 +25,8 @@ public sealed class WebRuntimeOptions
         return new WebRuntimeOptions {
             DatabaseConnectionString = connection.ConnectionString,
             SigningKeyPath = Environment.GetEnvironmentVariable("HIFC_SIGNING_KEY_PATH") ?? "/var/lib/hifc/signing.pem",
-            BuildRevision = Environment.GetEnvironmentVariable("HIFC_BUILD_REVISION") ?? "development"
+            BuildRevision = Environment.GetEnvironmentVariable("HIFC_BUILD_REVISION") ?? "development",
+            EnableAccounts = Environment.GetEnvironmentVariable("HIFC_AUTHENTICATION_ENABLED") == "1"
         };
     }
 }
@@ -40,13 +42,18 @@ public static class ServerApplication
         builder.Services.AddSingleton(new PlanSigner(options.SigningKeyPath));
         builder.Services.AddSingleton<RuleAdapter>();
         builder.Services.AddSingleton<WorkflowStore>();
+        builder.Services.AddSingleton<IdentityStore>();
+        if (options.EnableAccounts) AdminPortal.Configure(builder, options);
         var app = builder.Build();
         app.Use(async (context, next) => {
             context.Response.Headers.CacheControl = "no-store";
             context.Response.Headers.XContentTypeOptions = "nosniff";
-            await next();
+            try { await next(); }
+            catch (WebOperationException ex) when (!context.Response.HasStarted) { context.Response.StatusCode = ex.Status; await context.Response.WriteAsJsonAsync(new ApiError { Code = ex.Code, Message = ex.Message }); }
+            catch (InvalidOperationException ex) when (!context.Response.HasStarted) { context.Response.StatusCode = ex.Message.Contains("账号已到期", StringComparison.Ordinal) ? 403 : 400; await context.Response.WriteAsJsonAsync(new ApiError { Code = context.Response.StatusCode == 403 ? "ACCOUNT_EXPIRED" : "REQUEST_REJECTED", Message = ex.Message }); }
+            catch (NpgsqlException) when (!context.Response.HasStarted) { context.Response.StatusCode = 503; await context.Response.WriteAsJsonAsync(new ApiError { Code = "DATABASE_UNAVAILABLE", Message = "服务暂时不可用，请保留草稿后重试。" }); }
         });
-        app.MapGet("/health/live", () => Results.Ok(new { State = "live", Version = "0.5.0-dev", options.BuildRevision, AuthenticationConfigured = false }));
+        app.MapGet("/health/live", () => Results.Ok(new { State = "live", Version = "0.5.0-dev", options.BuildRevision, AuthenticationConfigured = options.EnableAccounts }));
         app.MapGet("/health/ready", async (NpgsqlDataSource source, HttpContext context) => {
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
             deadline.CancelAfter(TimeSpan.FromSeconds(3));
@@ -54,7 +61,7 @@ public static class ServerApplication
                 await using var command = source.CreateCommand("SELECT clock_timestamp(), version, to_regclass('hifc_web.accounts') IS NOT NULL AND to_regclass('hifc_web.account_audit') IS NOT NULL FROM hifc_web.schema_version WHERE singleton");
                 await using var reader = await command.ExecuteReaderAsync(deadline.Token);
                 if (!await reader.ReadAsync(deadline.Token) || reader.GetInt32(1) != 1 || !reader.GetBoolean(2)) throw new InvalidOperationException("Schema unavailable.");
-                return Results.Ok(new { State = "ready", Version = "0.5.0-dev", Database = "connected", AuthenticationConfigured = false, ServerTimeUtc = reader.GetDateTime(0) });
+                return Results.Ok(new { State = "ready", Version = "0.5.0-dev", Database = "connected", AuthenticationConfigured = options.EnableAccounts, ServerTimeUtc = reader.GetDateTime(0) });
             } catch (Exception ex) when (ex is NpgsqlException or OperationCanceledException or InvalidOperationException) {
                 return Results.Json(new { State = "not-ready", Code = "DATABASE_UNAVAILABLE" }, statusCode: StatusCodes.Status503ServiceUnavailable);
             }
@@ -64,9 +71,10 @@ public static class ServerApplication
         }));
         static IResult Closed() => Results.Json(new ApiError { Code = "AUTHENTICATION_NOT_CONFIGURED", Message = "登录方案尚未确定，账号和模型操作暂未开放。" }, statusCode: StatusCodes.Status503ServiceUnavailable);
         var methods = new[] { "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD" };
-        app.MapMethods("/api/v1/{**path}", methods, Closed);
-        app.MapMethods("/admin/{**path}", methods, Closed);
-        app.MapGet("/", () => Results.Content(StatusPage, "text/html; charset=utf-8"));
+        if (options.EnableAccounts) { app.UseRouting(); app.UseRateLimiter(); app.UseAuthentication(); app.UseAuthorization(); BusinessEndpoints.Map(app); AdminPortal.Map(app); }
+        app.MapMethods("/api/v1/{**path}", methods, () => options.EnableAccounts ? Results.NotFound() : Closed());
+        app.MapMethods("/admin/{**path}", methods, () => options.EnableAccounts ? Results.Unauthorized() : Closed());
+        app.MapGet("/", () => Results.Content(options.EnableAccounts ? AdminPortal.Home() : StatusPage, "text/html; charset=utf-8"));
         return app;
     }
 

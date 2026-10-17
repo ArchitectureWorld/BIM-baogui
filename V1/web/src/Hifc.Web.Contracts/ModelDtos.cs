@@ -2,6 +2,10 @@ using System;
 
 namespace Hifc.Web.Contracts
 {
+    public sealed class CompleteCheckRequest
+    {
+        public RequestContext Context { get; set; }
+    }
     public sealed class RequestContext
     {
         public int ProtocolMajor { get; set; } = 1;

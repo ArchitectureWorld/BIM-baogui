@@ -21,6 +21,10 @@ try {
     }
     $nativeBuilt=$false
     if(-not $SkipNative -and (Test-Path -LiteralPath 'C:\Program Files\Autodesk\Revit 2020\RevitAPI.dll')){
+        Invoke-WebCheck 'desktop-test-build' @('build','tests/Hifc.Web.DesktopTests/Hifc.Web.DesktopTests.csproj','-c','Release','--nologo','-v','minimal')
+        & 'tests/Hifc.Web.DesktopTests/bin/Release/net48/Hifc.Web.DesktopTests.exe' > (Join-Path $logs 'desktop-tests.log') 2>&1
+        if($LASTEXITCODE -ne 0){Get-Content (Join-Path $logs 'desktop-tests.log');throw 'Desktop credential and workspace tests failed.'}
+        Write-Output ('desktop-tests: '+(Get-Content (Join-Path $logs 'desktop-tests.log') -Tail 1))
         Invoke-WebCheck 'native-test-build' @('build','tests/Hifc.Web.NativeTests/Hifc.Web.NativeTests.csproj','-c','Release','--nologo','-v','minimal')
         $nativeBuilt=$true
     }

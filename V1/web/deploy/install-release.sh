@@ -61,7 +61,8 @@ import json, pathlib, sys
 release=pathlib.Path(sys.argv[1]); images=json.loads((release/'image-lock.json').read_text()); metadata=json.loads((release/'release.json').read_text())
 values={'POSTGRES_IMAGE':images['postgres']['reference'], 'CADDY_IMAGE':images['caddy']['reference'], 'HIFC_IMAGE':sys.argv[2], 'BUILD_REVISION':metadata['sourceCommit']}
 (release/'.env').write_text(''.join(name+'='+value+'\n' for name,value in values.items()))
-metadata.update({'appImage':sys.argv[2], 'authenticationConfigured':False, 'experienceAcceptancePassed':False})
+assert metadata.get('authenticationConfigured') is True, 'An approved accounts-enabled release is required'
+metadata.update({'appImage':sys.argv[2], 'experienceAcceptancePassed':False})
 (release/'release.json').write_text(json.dumps(metadata,indent=2))
 PY
 docker compose --project-directory "$release" --project-name hifc-web config --quiet
@@ -78,4 +79,4 @@ systemctl enable hifc-web-ingress.service hifc-web.service
 systemctl restart hifc-web-ingress.service
 systemctl restart hifc-web.service
 docker compose --project-directory "$release" --project-name hifc-web ps
-printf 'HIFC_WEB_SERVER_FOUNDATION_DEPLOYED\n'
+printf 'HIFC_WEB_EXPERIENCE_CANDIDATE_DEPLOYED\n'
