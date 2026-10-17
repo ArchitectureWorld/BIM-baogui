@@ -26,6 +26,10 @@ internal static class FullFlow
             Action<string> log = value => File.AppendAllText(Path.Combine(run, "full-progress.log"), DateTime.UtcNow.ToString("O") + " " + value + Environment.NewLine);
             try
             {
+                if (config["server"] == "https://192.168.6.45:8443/" && !RootTrusted()) {
+                    log("等待用户完成 Windows 根证书安全确认；客户端将使用系统证书验证。");
+                    while (!RootTrusted()) await Task.Delay(1000);
+                }
                 foreach (var path in models)
                 {
                     log("Opening " + Path.GetFileName(path));
@@ -72,6 +76,15 @@ internal static class FullFlow
             }
             catch (Exception ex) { log("FULL_FLOW_ERROR " + ex); File.WriteAllText(Path.Combine(run, "full-error.json"), JsonWire.Serialize(new { error = ex.ToString(), results })); }
         }));
+    }
+    private static bool RootTrusted()
+    {
+        foreach (var location in new[] { System.Security.Cryptography.X509Certificates.StoreLocation.CurrentUser, System.Security.Cryptography.X509Certificates.StoreLocation.LocalMachine })
+            using (var store = new System.Security.Cryptography.X509Certificates.X509Store(System.Security.Cryptography.X509Certificates.StoreName.Root, location)) {
+                store.Open(System.Security.Cryptography.X509Certificates.OpenFlags.ReadOnly);
+                if (store.Certificates.Find(System.Security.Cryptography.X509Certificates.X509FindType.FindByThumbprint, "90DEB5EDA2139C762DE841D4C76C4BE973DE081F", false).Count > 0) return true;
+            }
+        return false;
     }
     private static string RandomPhoneDigits() { var bytes = new byte[4]; using (var random = System.Security.Cryptography.RandomNumberGenerator.Create()) random.GetBytes(bytes); return (BitConverter.ToUInt32(bytes, 0) % 90000000 + 10000000).ToString(System.Globalization.CultureInfo.InvariantCulture); }
     private static void Snapshot(Window window, string path)

@@ -1,18 +1,18 @@
 {
-  "verifiedUtc": "2026-10-17T12:18:46.1721508Z",
+  "verifiedUtc": "2026-10-17T13:42:23.3306764Z",
   "stage": "deployed-web-experience-candidate",
   "experienceAcceptancePassed": false,
-  "release": "0.5.0-dev-20261017T120622Z",
-  "applicationSourceCommit": "08327bb1f24d892c6cd70679d7bddb6775c91669",
+  "release": "0.5.0-dev-20261017T132012Z",
+  "applicationSourceCommit": "20a4305732f191f574f88ecd336b971a55beffb0",
   "authenticationConfigured": true,
-  "clientPackageSha256": "11cd476b667ae87a9af6d092d41d2991327a1a384e41531114eeac2558e1496a",
+  "clientPackageSha256": "382d7d8efd54594ba7f5b5cf07b510c7bb022b42dd25c618e6cc746a1f39f1a2",
   "linux": {
     "containerRecreationPersistencePassed": true,
-    "webTests": 69,
+    "webTests": 72,
     "dedicatedDatabase": "hifc_web_test",
     "existingRuleRegression": 85,
     "postgresVersion": "17.11",
-    "validatedServerAssemblySha256": "7b7d87a777bf05329affc013075dfe0a7e7611b524172f4ea5c851a02d48474c",
+    "validatedServerAssemblySha256": "c2880d02dbe8518f2494512c8a1222c34151483422caa43a44336aa7cbbef9dc",
     "databaseAndHttpTests": 28
   },
   "windows": {
@@ -23,7 +23,11 @@
     "nativeHarnessBuildErrors": 0,
     "nativeHarnessBuildWarnings": 0,
     "databaseAndHttpTests": 28,
-    "webTests": 69
+    "webTests": 72,
+    "canonicalCases": 3,
+    "desktopTotal": 7,
+    "optionalFrameworkHttpTotal": 8,
+    "certificateCurrentlyInIntermediateStore": true
   },
   "https": {
     "downloadHashVerified": true,
@@ -32,10 +36,12 @@
     "rootAndSigningIdentityPreserved": true
   },
   "native": {
-    "fullFlowRun": "full-experience-20261017-195825",
+    "fullFlowRun": "full-experience-20261017-213445",
     "previousNativeCasesPassed": 6,
     "productionHttpsClientVerified": false,
-    "fullFlowStatus": "waiting for user publisher confirmation"
+    "fullFlowStatus": "waiting for native publisher and Windows root trust confirmations",
+    "harnessClientDllsMatchPublishedPackage": true,
+    "productionTarget": "https://192.168.6.45:8443/"
   },
   "protected": {
     "localSourceUnchanged": true,
@@ -50,5 +56,7 @@
     "User administrator initialization with a password entered directly in their console",
     "User experience acceptance"
   ],
-  "review": "author self-review; no subagents; no push or merge"
+  "review": "author self-review; no subagents; no push or merge",
+  "appImage": "sha256:c5580b32c970b02c70fa5d9b2659bdc0902cebc930b607803c9d9b57066d6dfa",
+  "crossRuntimeFix": "IEEE754 canonical geometry encoding with signed-zero normalization; golden vectors and adjacent doubles verified in net48 and net10, plus real net48 HTTP client against the isolated modern NET host"
 }
