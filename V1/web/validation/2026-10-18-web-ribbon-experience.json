@@ -1,0 +1,166 @@
+{
+  "verifiedUtc": "2026-10-18T15:21:47.3646246Z",
+  "stage": "ready-for-user-experience-acceptance",
+  "experienceAcceptancePassed": false,
+  "release": "0.5.0-dev-20261018T145609Z",
+  "applicationSourceCommit": "70ee4cac83d9d49c3f87cc62479cc279b1ae9fac",
+  "clientPackageSha256": "5686dadd00f961d1c157c2df03cb81b5cc90324c9f415e16520767c660372e2d",
+  "serverAssemblySha256": "875db608752ed85812a412143e9ff266349321cad5960e68d17928e5e074c8ae",
+  "appImage": "sha256:82ca51e5a35acb2376fd0378ca77fac49d9fce49a980a276f455ce4d61e6466e",
+  "webOnlyScope": true,
+  "accountDeletion": {
+    "auditFailureRollback": true,
+    "administratorProtected": true,
+    "verification": "actual HTTP and dedicated PostgreSQL; no real production account deleted for testing",
+    "separateDeletionAudit": true,
+    "confirmationPage": true,
+    "credentialRevocationAndWorkflowCleanup": true,
+    "staleAndConcurrentProtection": true,
+    "csrfAndAuthenticatedAdministrator": true
+  },
+  "linux": {
+    "webTests": 72,
+    "publicCaAndSigningIdentityPreserved": true,
+    "databaseAndHttpTests": 32,
+    "httpsChainAndHostnameVerified": true,
+    "existingRuleRegression": 85,
+    "containerRecreationPersistencePassed": true
+  },
+  "windows": {
+    "desktopTests": 7,
+    "databaseAndHttpTests": 32,
+    "nativeBuildErrors": 0,
+    "ownedTestHostExitedNormally": true,
+    "existingRuleRegression": 85,
+    "localInstalledFilesProtected": 3,
+    "installedClientFilesVerified": 4,
+    "webTests": 72,
+    "files": [
+      {
+        "sha256": "59edc731b0c6b0d4013fbd774b190628786d25c9a62ad4e226aee375a2f46e17",
+        "name": "Hifc.Web.Revit.dll"
+      },
+      {
+        "sha256": "365978b8160b8190396ae1e2ad44ef6357e77122f6809e62ec07b412d160730e",
+        "name": "Hifc.Web.Client.dll"
+      },
+      {
+        "sha256": "77885079e62be5b97b2c4bb381fbfb18b5941300b35e4e587463f0a39534ef88",
+        "name": "Hifc.Web.Contracts.dll"
+      },
+      {
+        "sha256": "f0c07af0e84d4dd4da4bd7823ba4535bc0481b3bf623ed40b659b68147a6bb75",
+        "name": "Newtonsoft.Json.dll"
+      }
+    ],
+    "ribbonTab": "HIFC-V1-Web",
+    "ownedSshTunnelAndDedicatedPostgresStopped": true,
+    "manifestType": "Application",
+    "existingLocalSourceUnchanged": true,
+    "entry": "Hifc.Web.Revit.WebApp",
+    "temporaryTestManifestRemoved": true,
+    "originalModelsProtected": 6,
+    "nativeBuildWarnings": 0
+  },
+  "native": {
+    "passed": 3,
+    "failed": 0,
+    "results": [
+      {
+        "model": "厂房_干净.rvt",
+        "changes": 84,
+        "classificationAssigned": false,
+        "TransactionCommitted": true,
+        "ReadbackPassed": true,
+        "RecheckCompleted": true,
+        "RvtSaved": true
+      },
+      {
+        "model": "职工后勤楼_干净.rvt",
+        "changes": 69,
+        "classificationAssigned": false,
+        "TransactionCommitted": true,
+        "ReadbackPassed": true,
+        "RecheckCompleted": true,
+        "RvtSaved": true
+      },
+      {
+        "model": "总图.0008_干净.rvt",
+        "changes": 19,
+        "classificationAssigned": true,
+        "TransactionCommitted": true,
+        "ReadbackPassed": true,
+        "RecheckCompleted": true,
+        "RvtSaved": true
+      }
+    ],
+    "reopened": 3,
+    "ribbonVerified": true,
+    "propertyControlEditingVerified": true,
+    "server": "https://192.168.6.45:8443/",
+    "scope": "real model copies against production Linux HTTPS",
+    "productionHttpsVerified": true
+  },
+  "visualReview": {
+    "actualWpfCapturesInspected": 12,
+    "images": [
+      {
+        "sha256": "8d0941a0864ae6bdc9ed8e797e9774173ddbd56c699d6538b904fe01d8446d97",
+        "file": "厂房_干净-connection.png"
+      },
+      {
+        "sha256": "49897ef1213fc98cac6b27cbdd814fdcfebcdfd8716bdae6bca35b0e6e3eafbc",
+        "file": "厂房_干净-fields.png"
+      },
+      {
+        "sha256": "1de0b436c500b7b342b782fd21a44a12e98be417d3b594f733093fbc9060fdb4",
+        "file": "厂房_干净-inventory.png"
+      },
+      {
+        "sha256": "8ef4ab6b0a331349792c3b6167ae131e2c64eac13fd8d49ab0eb676ccee5d5f5",
+        "file": "厂房_干净-preview.png"
+      },
+      {
+        "sha256": "bd0fef96ffe23a6d7ffb8ebe22b1ef6fe47e33292b2cf271004cf444d1ff4e53",
+        "file": "职工后勤楼_干净-connection.png"
+      },
+      {
+        "sha256": "1e6412a2655f97d5685e8271b416135b80e0790d4e6432735fbc7d46a160e0a8",
+        "file": "职工后勤楼_干净-fields.png"
+      },
+      {
+        "sha256": "3d93e997178a9f4d1e81d32544d4f14fbafd1924b6b2bce9ba832c39765cba83",
+        "file": "职工后勤楼_干净-inventory.png"
+      },
+      {
+        "sha256": "2b5b4f1d787f46a72a6a681ce43dbe622cf2e04c44127b65c08874fd663340e8",
+        "file": "职工后勤楼_干净-preview.png"
+      },
+      {
+        "sha256": "71682f75aa38ba1491df819762c49e1770e2401f3bd68c7bb0bddeb2f1083e0c",
+        "file": "总图.0008_干净-connection.png"
+      },
+      {
+        "sha256": "47c8382f907c170aefba301f398ed0d8cdba88cbca3760d7095072182e6b23a9",
+        "file": "总图.0008_干净-fields.png"
+      },
+      {
+        "sha256": "48e368336a4ae00d57d175a02ffd11b550b9192796e06ec958a74ff0c8595a8a",
+        "file": "总图.0008_干净-inventory.png"
+      },
+      {
+        "sha256": "8f584430b7cb48bcd6249c8426efef9bcc75895fce68bae242c4d487e3dfc49e",
+        "file": "总图.0008_干净-preview.png"
+      }
+    ],
+    "layout": "Local LiquidGlassTheme linked read-only; left categories, center objects and preview, right property editor"
+  },
+  "evidenceRun": "full-experience-20261018-225932",
+  "integration": {
+    "originalCheckout": "main@cb34b20",
+    "preexistingUntrackedDocsPreserved": true,
+    "pushed": false,
+    "branch": "hifc-web",
+    "merged": false
+  }
+}
