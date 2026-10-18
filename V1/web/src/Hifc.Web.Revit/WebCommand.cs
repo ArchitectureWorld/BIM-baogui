@@ -11,6 +11,7 @@ namespace Hifc.Web.Revit
     public sealed class WebCommand : IExternalCommand
     {
         private static WebModelWindow window;
+        internal static void CloseWindow() { window?.Close(); window = null; }
         public Result Execute(ExternalCommandData data, ref string message, ElementSet elements)
         {
             try {

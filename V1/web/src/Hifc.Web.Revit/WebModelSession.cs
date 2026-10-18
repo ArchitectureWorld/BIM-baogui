@@ -99,6 +99,7 @@ namespace Hifc.Web.Revit
         }
         public void Assign(string elementUniqueId, string slot) { Workspace.AssignedSlots[elementUniqueId] = slot; Plan = null; LiveCheck = false; Save(); }
         public void SelectModelKind(string kind) { Workspace.ModelKind = kind; LiveCheck = false; Plan = null; Save(); }
+        public void InvalidatePlan() { Plan = null; Save(); }
         public async Task ScanAsync()
         {
             await EnsureIdentity(); Say("正在全面盘点模型……"); Plan = null; LiveCheck = false;

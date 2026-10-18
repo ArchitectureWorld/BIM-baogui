@@ -42,9 +42,9 @@ New-Item -ItemType Directory -Path $installation -Force|Out-Null
 New-Item -ItemType Directory -Path (Split-Path -Parent $manifest) -Force|Out-Null
 foreach($name in $expected){Copy-Item -LiteralPath (Join-Path $PSScriptRoot ('client/'+$name)) -Destination (Join-Path $installation $name) -Force}
 $assembly=[Security.SecurityElement]::Escape((Join-Path $installation 'Hifc.Web.Revit.dll'))
-$xml="<?xml version=`"1.0`" encoding=`"utf-8`"?><RevitAddIns><AddIn Type=`"Command`"><Name>HIFC 0.5.0-Web</Name><Assembly>$assembly</Assembly><AddInId>$($package.addInId)</AddInId><FullClassName>Hifc.Web.Revit.WebCommand</FullClassName><Text>HIFC 0.5.0-Web</Text><VendorId>HIFC</VendorId><VendorDescription>HIFC Web</VendorDescription></AddIn></RevitAddIns>"
+$xml="<?xml version=`"1.0`" encoding=`"utf-8`"?><RevitAddIns><AddIn Type=`"Application`"><Name>HIFC-V1-Web</Name><Assembly>$assembly</Assembly><AddInId>$($package.addInId)</AddInId><FullClassName>Hifc.Web.Revit.WebApp</FullClassName><VendorId>HIFC</VendorId><VendorDescription>HIFC Web</VendorDescription></AddIn></RevitAddIns>"
 [IO.File]::WriteAllText($manifest,$xml,(New-Object Text.UTF8Encoding($false)))
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'package.json') -Destination (Join-Path $installation 'package.json') -Force
-Write-Host '安装完成。打开模型副本 → 附加模块 → 外部工具 → HIFC 0.5.0-Web。'
+Write-Host '安装完成。打开模型副本 → HIFC-V1-Web 独立页签 → 模型检查 / 属性管理。'
 Write-Host '首次出现 Revit 发布者提示时，请核对 Hifc.Web.Revit.dll 并选择“载入一次”。'
 Write-Host '首次登记填写手机号和真实姓名，后续在当前 Windows 用户下自动连接。'

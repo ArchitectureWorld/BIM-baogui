@@ -56,7 +56,7 @@ internal static class EndpointCases
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", session.AccessToken); request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
                 using var reply = await http.SendAsync(request); Require(reply.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden, "Ordinary bearer entered administrator operations.");
             });
-            await test("administrator cookie and signed CSRF token protect browser deadline changes", async () => {
+            await test("administrator confirmation and signed CSRF protect deadline changes and account deletion", async () => {
                 var identities = new IdentityStore(source); var administrator = await identities.CreateAdministratorAsync("139" + Random.Shared.NextInt64(10000000, 100000000), "后台页面验收", "Synthetic-Portal-Password-2026");
                 try {
                     var cookies = new Dictionary<string, string>();
@@ -77,6 +77,26 @@ internal static class EndpointCases
                     using var extended = await Send(HttpMethod.Post, path, new Dictionary<string, string> { ["days"] = "2", ["version"] = "1", ["csrf"] = token });
                     Require(extended.StatusCode is HttpStatusCode.Redirect or HttpStatusCode.SeeOther, "A valid administrator form was rejected.");
                     Require((await new AccountStore(source).GetAsync(Guid.Parse(member.Account.Id))).ExpiresAtUtc == member.Account.ExpiresAtUtc.AddDays(2), "Browser form did not persist the intended extension.");
+                    path = "admin/accounts/" + member.Account.Id + "/delete";
+                    using var confirmation = await Send(HttpMethod.Get, path);
+                    var html = WebUtility.HtmlDecode(await confirmation.Content.ReadAsStringAsync());
+                    Require(confirmation.StatusCode == HttpStatusCode.OK && html.Contains(member.Account.Phone) && html.Contains(member.Account.RealName) && html.Contains("确认删除"), "Account deletion lacks an identifiable confirmation page.");
+                    Require(await new AccountStore(source).GetAsync(Guid.Parse(member.Account.Id)) != null, "Opening confirmation deleted the account.");
+                    token = Csrf(html);
+                    using var noCsrf = await Send(HttpMethod.Post, path, new Dictionary<string, string> { ["version"] = "2", ["confirm"] = "delete" });
+                    Require(noCsrf.StatusCode == HttpStatusCode.BadRequest, "Deletion accepted a missing CSRF token.");
+                    using var noConfirmation = await Send(HttpMethod.Post, path, new Dictionary<string, string> { ["version"] = "2", ["csrf"] = token });
+                    Require(noConfirmation.StatusCode == HttpStatusCode.BadRequest, "Deletion accepted a missing confirmation.");
+                    using var stale = await Send(HttpMethod.Post, path, new Dictionary<string, string> { ["version"] = "1", ["csrf"] = token, ["confirm"] = "delete" });
+                    Require(stale.StatusCode == HttpStatusCode.Conflict, "Deletion accepted stale account details.");
+                    Require(await new AccountStore(source).GetAsync(Guid.Parse(member.Account.Id)) != null, "A rejected form deleted the account.");
+                    using var deleted = await Send(HttpMethod.Post, path, new Dictionary<string, string> { ["version"] = "2", ["csrf"] = token, ["confirm"] = "delete" });
+                    Require(deleted.StatusCode is HttpStatusCode.Redirect or HttpStatusCode.SeeOther, "Confirmed account deletion was rejected.");
+                    Require(await new AccountStore(source).GetAsync(Guid.Parse(member.Account.Id)) == null, "Deleted account remained in storage.");
+                    using var oldSession = new HttpRequestMessage(HttpMethod.Get, "api/v1/me"); oldSession.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", member.AccessToken);
+                    using var revoked = await http.SendAsync(oldSession); Require(revoked.StatusCode == HttpStatusCode.Unauthorized, "Deleted account retained its bearer session.");
+                    using var refreshed = await Send(HttpMethod.Get, "admin"); html = await refreshed.Content.ReadAsStringAsync();
+                    Require(!html.Contains(member.Account.Phone) && html.Contains("删除"), "Account list did not persist deletion or has no delete action.");
                 } finally { await using var cleanup = source.CreateCommand("DELETE FROM hifc_web.admin_passwords WHERE account_id=@id"); cleanup.Parameters.AddWithValue("id", Guid.Parse(administrator.Id)); await cleanup.ExecuteNonQueryAsync(); }
             });
         }

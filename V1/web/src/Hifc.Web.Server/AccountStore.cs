@@ -39,6 +39,17 @@ public sealed class AccountStore(NpgsqlDataSource dataSource)
                 requested_date text,
                 CHECK ((requested_days IS NULL) <> (requested_date IS NULL))
             );
+            CREATE TABLE IF NOT EXISTS hifc_web.account_deletion_audit (
+                id uuid PRIMARY KEY,
+                actor_id uuid NOT NULL REFERENCES hifc_web.accounts(id),
+                account_id uuid NOT NULL UNIQUE,
+                phone text NOT NULL,
+                real_name text NOT NULL,
+                registered_at timestamptz NOT NULL,
+                expires_at timestamptz NOT NULL,
+                row_version bigint NOT NULL,
+                occurred_at timestamptz NOT NULL DEFAULT clock_timestamp()
+            );
             """, connection, transaction);
         await command.ExecuteNonQueryAsync(cancellation);
         command.CommandText = "SELECT version FROM hifc_web.schema_version WHERE singleton";
@@ -137,6 +148,41 @@ public sealed class AccountStore(NpgsqlDataSource dataSource)
         await using var command = dataSource.CreateCommand("SELECT id,phone,real_name,registered_at,expires_at,is_admin,row_version,clock_timestamp() FROM hifc_web.accounts ORDER BY registered_at DESC LIMIT 1000");
         await using var reader = await command.ExecuteReaderAsync(ct); var accounts = new List<AccountInfo>();
         while (await reader.ReadAsync(ct)) accounts.Add(Read(reader)); return accounts.ToArray();
+    }
+
+    // The target lock also serializes login, rebinding and workflow writes with deletion.
+    public async Task DeleteAsync(Guid actorId, Guid accountId, long expectedVersion, CancellationToken ct = default)
+    {
+        await using var connection = await dataSource.OpenConnectionAsync(ct);
+        await using var transaction = await connection.BeginTransactionAsync(ct);
+        await using var command = new NpgsqlCommand("SELECT is_admin FROM hifc_web.accounts WHERE id=@actor FOR SHARE", connection, transaction);
+        command.Parameters.AddWithValue("actor", actorId);
+        if (!Equals(await command.ExecuteScalarAsync(ct), true)) throw new WebOperationException("ADMIN_REQUIRED", 403, "只有管理员可以删除普通账号。");
+        command.CommandText = "SELECT id,phone,real_name,registered_at,expires_at,is_admin,row_version,clock_timestamp() FROM hifc_web.accounts WHERE id=@id FOR UPDATE";
+        command.Parameters.AddWithValue("id", accountId);
+        AccountInfo account;
+        await using (var reader = await command.ExecuteReaderAsync(ct))
+        {
+            if (!await reader.ReadAsync(ct)) throw new WebOperationException("ACCOUNT_NOT_FOUND", 404, "账号已不存在，请返回账号管理。");
+            account = Read(reader);
+        }
+        if (account.IsAdmin || actorId == accountId) throw new WebOperationException("ADMIN_PROTECTED", 403, "管理员账号不能删除。");
+        if (account.RowVersion != expectedVersion) throw new WebOperationException("ACCOUNT_CHANGED", 409, "账号信息已更新，请刷新并重新确认删除。");
+        command.CommandText = """
+            INSERT INTO hifc_web.account_deletion_audit(id,actor_id,account_id,phone,real_name,registered_at,expires_at,row_version)
+            SELECT @audit,@actor,id,phone,real_name,registered_at,expires_at,row_version FROM hifc_web.accounts WHERE id=@id;
+            DELETE FROM hifc_web.workflows WHERE actor_id=@id;
+            DELETE FROM hifc_web.sessions WHERE account_id=@id;
+            DELETE FROM hifc_web.device_credentials WHERE account_id=@id;
+            DELETE FROM hifc_web.rebind_codes WHERE account_id=@id;
+            DELETE FROM hifc_web.admin_passwords WHERE account_id=@id;
+            DELETE FROM hifc_web.account_audit WHERE account_id=@id OR actor_id=@id;
+            DELETE FROM hifc_web.identity_audit WHERE account_id=@id OR actor_id=@id;
+            DELETE FROM hifc_web.accounts WHERE id=@id;
+            """;
+        command.Parameters.AddWithValue("audit", Guid.NewGuid());
+        await command.ExecuteNonQueryAsync(ct);
+        await transaction.CommitAsync(ct);
     }
     private static AccountInfo Read(NpgsqlDataReader reader)
     {
