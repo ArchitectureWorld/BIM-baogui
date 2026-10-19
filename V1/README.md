@@ -2,6 +2,8 @@
 
 `main` 为本版唯一开发主线。当前入口为 Revit 2020 中的 **H-IFC V1 → 模型属性管理 → 模型检查 / 属性管理**。
 
+当前发布版本 **0.4.4**，程序集版本 **0.4.4.0**，文档更新于 **2026-10-19**。
+
 ## 日常操作
 
 **1 人工确认阶段 → 2 模型类型 → 3 全面检查 → 4 写入 Revit**。
@@ -25,12 +27,13 @@
 
 三个指定客户 RVT 副本的历史写入、分类清理、故障回滚、保存和重开验证保留追溯。本轮尚未取得客户真实地下项目的正式平台验收回执。
 
-- [0.4.2 功能与验证](docs/0.4.2-属性管理优化与验证.md)
-- [0.4.3 选中构件赋属性](docs/0.4.3-选中构件赋属性.md)
 - [0.4.4 报规地下区域与指标](docs/0.4.4-报规地下区域与指标.md)
-- [机器可读汇总](validation/0.4.2-validation.json)
-- [三个模型的实机报告](validation/workflow-20261016-133217/host-results.json)
-- [总图实机界面：仅道路宽度对应类目标红](validation/workflow-20261016-133217/总图.0008_干净-automatic-values.png)
+- [当前版本机器可读汇总](validation/0.4.4-validation.json)
+- [开发记录](docs/development-ledger.md)
+- [历史：0.4.3 选中构件赋属性](docs/0.4.3-选中构件赋属性.md)
+- [历史：0.4.2 功能与验证](docs/0.4.2-属性管理优化与验证.md)
+- [历史：三个模型的实机报告](validation/workflow-20261016-133217/host-results.json)
+- [历史：总图实机界面，仅道路宽度对应类目标红](validation/workflow-20261016-133217/总图.0008_干净-automatic-values.png)
 
 真实鼠标自动化核验尚受截图/输入环境限制，已完成 WPF 输入事件回归。施工图专用规则待建立；链接模型须在源文档检查；窗口检查不代替原软件 A/B 和平台验收。
 
@@ -41,7 +44,7 @@ pwsh -File tools/Build.ps1
 pwsh -File tools/Install-Revit2020.ps1
 ```
 
-构建需本机 Revit 2020 API、.NET SDK 和 .NET Framework 4.8 开发环境。安装前正常关闭 Revit；安装器保留旧安装备份，并核对所复制 DLL 的哈希。
+以上命令在 `V1/` 目录执行。构建需本机 Revit 2020 API、.NET SDK 和 .NET Framework 4.8 开发环境。当前输出为 `dist/Hifc.V1.Revit2020-0.4.4/`；安装脚本从该包复制到 `%APPDATA%/Autodesk/Revit/Addins/2020/Hifc.V1/`。安装前正常关闭 Revit；安装器保留旧安装备份，并核对所复制 DLL 的哈希。
 
 Python 验证可安装 `requirements-validation.txt` 后运行：
 
