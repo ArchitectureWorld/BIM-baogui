@@ -37,7 +37,7 @@ try{
     if([Convert]::FromBase64String($public.modulus).Length -lt 256){throw 'The zetta update signing key is unavailable.'}
     $public|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $package 'update-public-key.json') -Encoding utf8
     [ordered]@{version='0.5.0-Web';addInId='53ef39d3-a187-4fb5-90f8-29e91d747602';releaseId=$ReleaseId;sourceCommit=((& git rev-parse HEAD)-join '');createdUtc=[DateTime]::UtcNow.ToString('O');files=$files}|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $package 'package.json') -Encoding utf8
-    & powershell.exe -NoProfile -File (Join-Path $package 'Install-Web.ps1') -ValidateOnly
+    & (Join-Path $PSScriptRoot 'Test-WebInstallerEntry.ps1') -Package $package
     if($LASTEXITCODE -ne 0){throw 'Web installer validation failed.'}
     $archive=Join-Path $output 'HIFC-0.5.0-Web.zip'
     Compress-Archive -LiteralPath $package -DestinationPath $archive

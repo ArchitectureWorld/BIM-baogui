@@ -39,3 +39,11 @@
 - 最终原生保护回归 `.local/native-20261019-110950`：7 项全部通过，包含旧快照拒绝、提交后干扰回滚、保存重开，以及多个共享参数在关闭旧模型后继续绑定。实际 Revit 日志确认加载正式版本目录，用户活跃 Web 安装的 6 个散列与发布包一致。
 - 结束检查：Local 三个安装文件、六个原模型和既有 Local 源码保持；原 checkout 仍为 `main@cb34b20`，既有 `V1/docs/superpowers/` 未跟踪文件保持。临时原生测试清单已移除，专用测试 PostgreSQL 和本轮 SSH 隧道已停止。正式 zetta HTTPS 与更新下载再次核验通过。
 - 原始聚合证据为 `.local/intranet-delivery-20261019.json`，可跟踪的简要证据为 `validation/2026-10-19-intranet-delivery.json`。技术验证完成，用户人工体验验收及同事实体电脑首次安装仍待体验；未宣称正式平台报验完成。本次只提交 Web 分支，不推送或合并。
+
+### 同事 Windows 11 初装反馈修正
+
+- 用户截图显示 `PSSecurityException / UnauthorizedAccess`，脚本尚未执行。已用真实 Windows PowerShell 5.1 的 `Restricted` 进程策略启动正式旧 CMD，在中文及空格目录复现同样的“running scripts is disabled”错误。旧发布检查直接调用 PS1，未覆盖实际双击入口，这是本次遗漏。
+- 修正只涉及 Web CMD 启动器、发布检查及集成验证工具：使用系统 Windows PowerShell，仅本次安装进程设置执行策略；转发校验参数，保留安装失败退出码。长期策略、管理员权限要求、Revit 业务代码和 Local 均不改变。
+- 新增 `tools/Test-WebInstallerEntry.ps1`，通过真实 CMD 执行受限策略下的校验与隔离用户目录安装；验证 6 个文件、独立 Web 清单、Local 哨兵、损坏包拒绝及失败退出码，前后长期策略一致。发布检查改为必须走正式 CMD 入口。
+- RED 为 `.local/build/installer-entry-red.log`；修正后 GREEN 为 `.local/build/installer-entry-green.log`。测试宿主是本机 Windows 10 22H2 / Windows PowerShell 5.1，复现的是同事截图对应的策略条件；未宣称已在同事实体 Windows 11 上完成重试。Local 三个安装文件和六个原模型仍通过基线核对。
+- 下一步：发布并部署 zetta 新发行包，核对实际下载 ZIP 后再次执行正式入口集成验证；同事再用新包完成 Windows 11 实体机体验。
