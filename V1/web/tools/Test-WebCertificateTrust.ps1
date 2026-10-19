@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][string]$Package,[switch]$WithInstallation)
 $ErrorActionPreference='Stop'
+if($WithInstallation -and (Get-Process -Name Revit -ErrorAction SilentlyContinue)){throw 'Actual installation verification requires Revit to be closed.'}
 $webRoot=Split-Path -Parent $PSScriptRoot
 $packagePath=(Resolve-Path -LiteralPath $Package).Path
 $run=Join-Path $webRoot ('.local/certificate-trust-'+[Guid]::NewGuid().ToString('N'))

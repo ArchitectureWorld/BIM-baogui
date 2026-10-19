@@ -1,0 +1,56 @@
+{
+  "schema": "hifc.web.certificate-installer-fix/1.0",
+  "verifiedUtc": "2026-10-19T07:31:42.0960909Z",
+  "releaseId": "0.5.0-dev-20261019T064903Z",
+  "installerSourceCommit": "6fc6056507812ca8f7621f631119d13647a78683",
+  "businessPayloadSourceCommit": "cc433ee5fae132d535a9f9888ca7232af3c26e5b",
+  "clientArchiveSha256": "b184d09cfe48a08becab9fd8e9b29728a9c5394394470c6653a191b5dec19ce8",
+  "clientArchiveBytes": 376828,
+  "rootCertificateSha256": "34f12f7297d570c3641db2df80ff6755d0ff09ac29cf13121121d55ae86fe15f",
+  "rootCertificateThumbprint": "90DEB5EDA2139C762DE841D4C76C4BE973DE081F",
+  "behavior": [
+    "pinned certificate checked before any import",
+    "existing CurrentUser or LocalMachine root reused",
+    "missing root automatically added to CurrentUser Root and freshly reread",
+    "no certificate wizard or store-selection step",
+    "different administrator identity rejected before installation",
+    "normal Windows HTTPS certificate and hostname validation retained"
+  ],
+  "verification": {
+    "candidateCertificateChecks": 8,
+    "candidateActualIsolatedInstallation": true,
+    "candidateRestrictedCmdInstallation": true,
+    "corruptPayloadRejected": true,
+    "actualDownloadedPackageCertificateChecks": 6,
+    "actualDownloadedCmdValidation": true,
+    "signedManifestAndDownloadedUpdateActivated": true,
+    "previousPayloadAndFixtureStatePreserved": true,
+    "testOsVersion": "10.0.19045.0",
+    "testWindowsPowerShell": "5.1",
+    "certificateImportIsolation": "Named Windows X509 stores with store-opening boundary redirected; real user Root unchanged; existing real Root used for actual HTTPS installation",
+    "physicalColleagueWindows11Verified": false,
+    "downloadedFullInstallationRepeatBlockedByUserRevitRunning": true
+  },
+  "deployment": {
+    "server": "https://192.168.6.45:8443/",
+    "clientAndUpdateArchiveIdentical": true,
+    "frozenClientPayloadFiles": 6,
+    "serverDllSha256": "a6f5e47856252698e24e44e3857ffdaaa561116f98044522d17606505438e9a8",
+    "serverDllUnchanged": true,
+    "postgresContainerNotRestarted": true,
+    "caddyContainerNotRestarted": true,
+    "postgresContainerId": "3459f61c4be0538ca594578dfa1af17bfb02d45e5a2f08e741d357d287523d34",
+    "caddyContainerId": "b440a839e68696b44d3f7a9bd276ced478c2211a5cac123ee15a5383db73a744",
+    "databaseBackupCreated": true,
+    "previousReleaseRetained": true
+  },
+  "evidence": [
+    ".local/build/certificate-install-red.log",
+    ".local/build/certificate-trust-green.log",
+    ".local/build/certificate-entry-green.log",
+    ".local/certificate-download-proof.json",
+    ".local/certificate-update-proof.json",
+    ".local/build/certificate-downloaded-trust.log",
+    ".local/build/certificate-downloaded-entry.log"
+  ]
+}
