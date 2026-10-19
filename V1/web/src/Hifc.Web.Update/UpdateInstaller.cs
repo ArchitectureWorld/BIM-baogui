@@ -34,12 +34,15 @@ namespace Hifc.Web.Update
         public static T Read<T>(string path) { try { return JsonWire.Deserialize<T>(File.ReadAllText(path)); } catch (Exception ex) when (ex is Newtonsoft.Json.JsonException || ex is ArgumentException) { throw new InvalidOperationException("更新资料格式无效。", ex); } }
         public static void AtomicText(string path, string value)
         {
-            var temp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            // Temporary names must stay shorter than the payload filenames, including
+            // when a valid installation is already close to Windows' path limit.
+            var temp = Path.Combine(Path.GetDirectoryName(path), TemporaryName(".t-"));
             try {
                 File.WriteAllText(temp, value, new UTF8Encoding(false));
                 if (File.Exists(path)) File.Replace(temp, path, null); else File.Move(temp, path);
             } finally { if (File.Exists(temp)) File.Delete(temp); }
         }
+        private static string TemporaryName(string prefix) => prefix + Convert.ToBase64String(Guid.NewGuid().ToByteArray()).TrimEnd('=').Replace('+', '-').Replace('/', '_');
         public static void WaitForRevitExit(int pid, long startedUtcTicks)
         {
             Process process;
@@ -91,7 +94,7 @@ namespace Hifc.Web.Update
             var archive = Within(root, Path.Combine(cache, "package.zip"));
             if (new FileInfo(archive).Length != offer.Length || HashFile(archive) != offer.Sha256) throw new InvalidOperationException("更新包散列或大小校验失败，保留当前版本。");
             var releases = Within(root, Path.Combine(root, "releases")); Directory.CreateDirectory(releases);
-            var staging = Within(root, Path.Combine(releases, offer.ReleaseId + ".staging-" + Guid.NewGuid().ToString("N"))); Directory.CreateDirectory(staging);
+            var staging = Within(root, Path.Combine(releases, TemporaryName(".s-"))); Directory.CreateDirectory(staging);
             var target = Within(root, Path.Combine(releases, offer.ReleaseId)); ClientPackageInfo package;
             try {
                 using (var zip = new ZipArchive(File.OpenRead(archive), ZipArchiveMode.Read)) {

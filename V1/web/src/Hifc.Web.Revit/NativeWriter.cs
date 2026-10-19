@@ -136,11 +136,17 @@ namespace Hifc.Web.Revit
                 var group = file.Groups.get_Item("HIFC Web") ?? file.Groups.Create("HIFC Web");
                 Definition definition = SharedParameterElement.Lookup(document, guid)?.GetDefinition();
                 if (definition != null && (definition.Name != first.Source || definition.ParameterType != ParameterType.Text)) throw new InvalidOperationException("共享参数 GUID 定义冲突。");
-                // Only a definition already owned by this document can have an existing binding.
-                // Querying the binding map with a new external definition can resolve a stale
-                // native parameter handle after another model using the same GUID was closed.
-                var existing = definition == null ? null : document.ParameterBindings.get_Item(definition) as ElementBinding;
-                definition = definition ?? group.Definitions.Create(new ExternalDefinitionCreationOptions(first.Source, ParameterType.Text) { GUID = guid, Visible = true, UserModifiable = true });
+                if (definition == null)
+                {
+                    var external = group.Definitions.Create(new ExternalDefinitionCreationOptions(first.Source, ParameterType.Text) { GUID = guid, Visible = true, UserModifiable = true }) as ExternalDefinition
+                        ?? throw new InvalidOperationException("无法创建共享参数定义。");
+                    // Import while the external file and group are alive. The binding map
+                    // must use a definition owned by this model, rather than a temporary
+                    // external handle that can become invalid during native binding.
+                    definition = SharedParameterElement.Create(document, external).GetDefinition();
+                    GC.KeepAlive(group); GC.KeepAlive(file);
+                }
+                var existing = document.ParameterBindings.get_Item(definition) as ElementBinding;
                 var set = document.Application.Create.NewCategorySet();
                 if (existing != null)
                 {

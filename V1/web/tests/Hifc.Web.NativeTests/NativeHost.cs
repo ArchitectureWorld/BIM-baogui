@@ -89,22 +89,45 @@ public sealed class HifcWebNativeHost : IExternalApplication
                 Require(doc.GetElement(levelUniqueId).LookupParameter(Source).AsString() == "changed-in-model", "Saved model did not preserve verified value");
             });
             doc.Close(false); doc = null;
+            Test("a shared source GUID can be rebound after its previous model has closed", () => {
+                using (var rsa = new RSACryptoServiceProvider(2048) { PersistKeyInCsp = false }) {
+                    var parts = rsa.ExportParameters(false);
+                    var key = new PublicSigningKey { Modulus = Convert.ToBase64String(parts.Modulus), Exponent = Convert.ToBase64String(parts.Exponent) };
+                    for (var iteration = 0; iteration < 3; iteration++) {
+                        var next = ui.Application.NewProjectDocument(UnitSystem.Metric);
+                        try {
+                            Level level;
+                            using (var tx = new Transaction(next, "Web cross-document binding fixture")) { tx.Start(); level = Level.Create(next, 900); tx.Commit(); }
+                            var target = new CaptureTarget { ElementUniqueId = level.UniqueId, OwnerUniqueId = level.UniqueId, OwnerId = level.Id.IntegerValue, Source = Source, Origin = "instance" };
+                            var second = new CaptureTarget { ElementUniqueId = level.UniqueId, OwnerUniqueId = level.UniqueId, OwnerId = level.Id.IntegerValue, Source = Source + "_second", Origin = "instance" };
+                            var value = "cross-document-" + iteration;
+                            var receipt = NativeWriter.Apply(next, Build(next, new[] { target, second }, value, rsa), key, DateTime.UtcNow);
+                            Require(receipt.TransactionCommitted && level.LookupParameter(Source).AsString() == value, "Cross-document binding or readback failed.");
+                        } finally { next.Close(false); }
+                    }
+                }
+            });
             File.WriteAllText(Path.Combine(run, "native-results.json"), JsonWire.Serialize(new { passed, failed, results, scope = "Real Revit 2020 model copy; native transport/security tests, not Linux end-to-end acceptance" }));
         }
         catch (Exception ex) { Log("HOST_ERROR " + ex); File.WriteAllText(Path.Combine(run, "host-error.json"), JsonWire.Serialize(new { error = ex.ToString() })); }
         finally { if (doc != null && doc.IsValidObject) doc.Close(false); if (ui.Application.Documents.Size == 0) ui.PostCommand(RevitCommandId.LookupPostableCommandId(PostableCommand.ExitRevit)); }
     }
     private static NativeWriteInput Build(Document doc, CaptureTarget target, string value, RSA rsa)
+        => Build(doc, new[] { target }, value, rsa);
+    private static NativeWriteInput Build(Document doc, CaptureTarget[] targets, string value, RSA rsa)
     {
-        var records = NativeInventory.Read(doc); var values = NativeInventory.ReadValues(doc, new[] { target });
+        var records = NativeInventory.Read(doc); var values = NativeInventory.ReadValues(doc, targets);
         var context = new RequestContext { RuleVersion = "native-fixture", RequestId = Guid.NewGuid().ToString("N"), DocumentSessionId = "native-doc", ScanId = Guid.NewGuid().ToString("N"), SnapshotHash = Canonical.InventoryHash(records) };
         var basis = new CheckResult { Context = context, Complete = true, CaptureHash = Canonical.ValuesHash(values) };
-        var plan = new EditPlan { Context = context, Id = Guid.NewGuid().ToString("N"), CaptureHash = basis.CaptureHash, ExpiresAtUtc = DateTime.UtcNow.AddSeconds(120), Changes = new[] { new WriteChange { OwnerId = target.OwnerId, OwnerUniqueId = target.OwnerUniqueId, Source = Source, SourceGuid = SourceGuid,
-            Origin = "instance", Action = values.FirstOrDefault()?.Exists == true ? "Set" : "Create", RawType = "Text", Value = value, ExpectedSignature = Canonical.ValuesHash(values), Manual = true } } };
+        var plan = new EditPlan { Context = context, Id = Guid.NewGuid().ToString("N"), CaptureHash = basis.CaptureHash, ExpiresAtUtc = DateTime.UtcNow.AddSeconds(120), Changes = targets.Select(target => {
+            var captured = values.Where(item => item.OwnerUniqueId == target.OwnerUniqueId && item.Source == target.Source && item.Origin == target.Origin).ToArray();
+            return new WriteChange { OwnerId = target.OwnerId, OwnerUniqueId = target.OwnerUniqueId, Source = target.Source, SourceGuid = target.Source == Source ? SourceGuid : "eed3b68b-49d5-448f-8622-1108143efbcc",
+                Origin = "instance", Action = captured.FirstOrDefault()?.Exists == true ? "Set" : "Create", RawType = "Text", Value = value, ExpectedSignature = Canonical.ValuesHash(captured), Manual = true };
+        }).ToArray() };
         plan.Hash = Canonical.PlanHash(plan); plan.Signature = Convert.ToBase64String(rsa.SignData(Encoding.UTF8.GetBytes(plan.Hash), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
         var permit = new WritePermit { Context = context, Id = Guid.NewGuid().ToString("N"), PlanId = plan.Id, PlanHash = plan.Hash, ExpiresAtUtc = DateTime.UtcNow.AddSeconds(25) };
         permit.Signature = Convert.ToBase64String(rsa.SignData(Encoding.UTF8.GetBytes(Canonical.PermitPayload(permit)), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
-        return new NativeWriteInput { DocumentSessionId = "native-doc", Basis = basis, Capture = new CapturePlan { Context = context, Targets = new[] { target }, InventoryComplete = true }, Plan = plan, Permit = permit };
+        return new NativeWriteInput { DocumentSessionId = "native-doc", Basis = basis, Capture = new CapturePlan { Context = context, Targets = targets, InventoryComplete = true }, Plan = plan, Permit = permit };
     }
     private sealed class InterferenceUpdater : IUpdater
     {

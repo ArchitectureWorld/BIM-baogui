@@ -58,6 +58,13 @@ internal static class UpdateInstallCases
         test("the update worker refuses to wait on an unrelated running process", () => {
             using (var current = System.Diagnostics.Process.GetCurrentProcess()) Reject(() => UpdateInstaller.WaitForRevitExit(current.Id, current.StartTime.ToUniversalTime().Ticks));
         });
+        test("the standalone update executable activates the signed package with its isolated user directories", () => {
+            using (var f = new Fixture()) using (var worker = UpdateClient.StartWorker(Path.GetDirectoryName(typeof(UpdateInstaller).Assembly.Location), f.Pending, int.MaxValue, 1, f.LocalAppData, f.AppData)) {
+                if (!worker.WaitForExit(20000)) throw new Exception("Standalone update worker did not finish.");
+                if (worker.ExitCode != 0) throw new Exception("Standalone update worker failed: " + File.ReadAllText(Path.Combine(f.Root, "update-status.json")));
+                if (!File.ReadAllText(f.Addin).Contains(f.Offer.ReleaseId)) throw new Exception("Standalone update worker did not activate the verified version.");
+            }
+        });
         test("actual update HTTP download stages the signed package without changing the active client", () => {
             using (var f = new Fixture()) using (var server = new HttpFixture(f, false, false)) {
                 var before = File.ReadAllText(f.Addin);
@@ -78,13 +85,16 @@ internal static class UpdateInstallCases
     private sealed class Fixture : IDisposable
     {
         internal readonly string Root, Addin, Pending, Archive, Draft, Person, Local;
+        internal readonly string LocalAppData, AppData;
         internal readonly ClientUpdateManifest Offer;
         internal readonly ClientPackageInfo Package;
         private readonly RSA rsa = new RSACryptoServiceProvider(2048) { PersistKeyInCsp = false };
         internal Fixture(string mode = "valid")
         {
-            Root = Path.Combine(Environment.CurrentDirectory, ".local", "updater-tests", Guid.NewGuid().ToString("N"), "Revit2020"); Directory.CreateDirectory(Root);
-            Addin = Path.Combine(Root, "appdata", "Hifc.Web.addin"); Directory.CreateDirectory(Path.GetDirectoryName(Addin));
+            var fixture = Path.Combine(Environment.CurrentDirectory, ".local", "updater-tests", Guid.NewGuid().ToString("N"));
+            LocalAppData = Path.Combine(fixture, "localappdata"); AppData = Path.Combine(fixture, "appdata");
+            Root = Path.Combine(LocalAppData, "HIFC", "0.5.0-Web", "Revit2020"); Directory.CreateDirectory(Root);
+            Addin = Path.Combine(AppData, "Autodesk", "Revit", "Addins", "2020", "Hifc.Web.addin"); Directory.CreateDirectory(Path.GetDirectoryName(Addin));
             File.WriteAllText(Addin, "<RevitAddIns><AddIn Type=\"Application\"><AddInId>" + UpdateTrust.AddInId + "</AddInId><Assembly>" + Path.Combine(Root, "Hifc.Web.Revit.dll") + "</Assembly></AddIn></RevitAddIns>");
             File.WriteAllText(Path.Combine(Root, "Hifc.Web.Revit.dll"), "old client");
             File.WriteAllText(Path.Combine(Root, "package.json"), JsonWire.Serialize(new ClientPackageInfo { ReleaseId = "0.5.0-dev-20261018T120000Z" }));

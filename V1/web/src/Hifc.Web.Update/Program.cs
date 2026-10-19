@@ -23,7 +23,7 @@ namespace Hifc.Web.Update
                 }
                 return 0;
             } catch (Exception ex) {
-                try { if (Directory.Exists(root)) UpdateInstaller.AtomicText(UpdateInstaller.Within(root, Path.Combine(root, "update-status.json")), JsonWire.Serialize(new { Status = "failed", Detail = "更新未完成，当前版本保留。", Error = ex.GetType().Name })); } catch { }
+                try { if (Directory.Exists(root)) UpdateInstaller.AtomicText(UpdateInstaller.Within(root, Path.Combine(root, "update-status.json")), JsonWire.Serialize(new { Status = "failed", Detail = "更新未完成，当前版本保留。", Error = ex.GetType().Name, Diagnostic = ex.ToString() })); } catch { }
                 return 1;
             }
         }
