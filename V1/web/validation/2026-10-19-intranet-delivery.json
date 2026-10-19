@@ -1,0 +1,179 @@
+{
+  "verifiedUtc": "2026-10-19T03:17:07.8299839Z",
+  "product": "HIFC 0.5.0-Web / Revit 2020",
+  "branch": "hifc-web",
+  "sourceCommit": "6f860c069f0a6140835b22a380fde6f45aac3c86",
+  "releaseId": "0.5.0-dev-20261019T030204Z",
+  "downloadUrl": "https://192.168.6.45:8443/downloads/HIFC-0.5.0-Web.zip",
+  "updateOrigin": "https://192.168.6.45:8443/",
+  "manifestUrl": "https://192.168.6.45:8443/updates/latest",
+  "packageUrl": "https://192.168.6.45:8443/updates/packages/0.5.0-dev-20261019T030204Z.zip",
+  "clientZipSha256": "f4da672db9bd5d442872ddc4044b2818c73271ed21cca2155102b1741d0aff2b",
+  "clientZipBytes": 375496,
+  "runningServerDllSha256": "eb17c2c8771899aaad7038c6e12af7f8e842f3673cb87049f132a37def8ef239",
+  "allowedOfficeNetworks": [
+    "192.168.6.0/23",
+    "192.168.218.0/24"
+  ],
+  "tls": {
+    "hostnameValidated": true,
+    "certificateChainRequired": true,
+    "caAndSigningIdentityPreserved": true
+  },
+  "localChecks": {
+    "web": 78,
+    "existingRules": 85,
+    "desktopAndUpdate": 16,
+    "postgresAndHttp": 33
+  },
+  "linuxChecks": {
+    "web": 78,
+    "existingRules": 85,
+    "containerRecreationPersistence": true,
+    "postgresAndHttp": 33
+  },
+  "models": [
+    {
+      "model": "厂房_干净.rvt",
+      "changes": 84,
+      "classificationAssigned": false,
+      "TransactionCommitted": true,
+      "ReadbackPassed": true,
+      "RecheckCompleted": true,
+      "RvtSaved": true
+    },
+    {
+      "model": "职工后勤楼_干净.rvt",
+      "changes": 69,
+      "classificationAssigned": false,
+      "TransactionCommitted": true,
+      "ReadbackPassed": true,
+      "RecheckCompleted": true,
+      "RvtSaved": true
+    },
+    {
+      "model": "总图.0008_干净.rvt",
+      "changes": 19,
+      "classificationAssigned": true,
+      "TransactionCommitted": true,
+      "ReadbackPassed": true,
+      "RecheckCompleted": true,
+      "RvtSaved": true
+    }
+  ],
+  "reopened": 3,
+  "independentRibbonVerified": true,
+  "actualPropertyEditingVerified": true,
+  "independentPhoneNameLoginVerified": true,
+  "autoUpdate": {
+    "verifiedUtc": "2026-10-19T03:09:23.3284941Z",
+    "server": "https://192.168.6.45:8443/updates/packages/0.5.0-dev-20261019T030204Z.zip",
+    "sourceCommit": "6f860c069f0a6140835b22a380fde6f45aac3c86",
+    "previousRelease": "0.5.0-dev-20261018T145612Z",
+    "activatedRelease": "0.5.0-dev-20261019T030204Z",
+    "downloadedFromZetta": true,
+    "signatureAndArchiveVerified": true,
+    "deferredUntilActualRevitExit": true,
+    "versionDirectoryActivated": true,
+    "payloadFilesVerified": 6,
+    "oldPayloadRetained": true,
+    "personAndDraftsRetained": true,
+    "localManifestPreserved": true,
+    "scope": "isolated installation fixture; actual production HTTPS; actual Revit process lifetime"
+  },
+  "nativeRegression": {
+    "passed": 7,
+    "failed": 0,
+    "results": [
+      {
+        "name": "complete inventory includes project and levels but excludes material resources",
+        "passed": true
+      },
+      {
+        "name": "missing parameter is captured explicitly",
+        "passed": true
+      },
+      {
+        "name": "signed native transaction creates source and reads back exact value",
+        "passed": true
+      },
+      {
+        "name": "stale native source is rejected before writing",
+        "passed": true
+      },
+      {
+        "name": "readback interference rolls back the entire native transaction",
+        "passed": true
+      },
+      {
+        "name": "saved model copy preserves verified source on reopen",
+        "passed": true
+      },
+      {
+        "name": "a shared source GUID can be rebound after its previous model has closed",
+        "passed": true
+      }
+    ],
+    "scope": "Real Revit 2020 model copy; native transport/security tests, not Linux end-to-end acceptance"
+  },
+  "installedPayload": [
+    {
+      "name": "Hifc.Web.Revit.dll",
+      "sha256": "7e08834703af244048fe3d261f0c79b44992b3767ca5441042842eca9f3d4565"
+    },
+    {
+      "name": "Hifc.Web.Client.dll",
+      "sha256": "a3d6924960f9e39142a66f4dd24a1edcbc50d49db0ae0cdf498adfe7ce273a71"
+    },
+    {
+      "name": "Hifc.Web.Contracts.dll",
+      "sha256": "1ed5cca3b86cede18287c7368ecbdc4176ffffc63c8872a1e0275ad030b1976f"
+    },
+    {
+      "name": "Newtonsoft.Json.dll",
+      "sha256": "f0c07af0e84d4dd4da4bd7823ba4535bc0481b3bf623ed40b659b68147a6bb75"
+    },
+    {
+      "name": "Hifc.Web.Update.exe",
+      "sha256": "1ca94095487b0dac31fee2f388fdec989a238a240132ae6f060039471a27ab0c"
+    },
+    {
+      "name": "Hifc.Web.Update.exe.config",
+      "sha256": "051099983b896673909e01a1f631b6652abb88da95c9f06f3efef4be033091fa"
+    }
+  ],
+  "revitJournalAssemblyVerified": true,
+  "uiReview": {
+    "capturesReviewed": 15,
+    "bindingCodeControlsAbsent": true,
+    "phoneAndRealNameOnly": true,
+    "views": [
+      "account",
+      "connection",
+      "inventory",
+      "fields",
+      "preview"
+    ]
+  },
+  "protectedLocal": {
+    "installedFiles": 3,
+    "existingLocalSourceUnchanged": true,
+    "sourceModels": 6,
+    "failures": []
+  },
+  "cleanup": {
+    "temporaryNativeManifestRemoved": true,
+    "ownedTestTunnelStopped": true,
+    "dedicatedTestPostgresStopped": true
+  },
+  "technicalVerification": "passed",
+  "userExperienceAcceptance": "pending",
+  "colleaguePhysicalComputerInstallationVerified": false,
+  "formalPlatformAcceptanceVerified": false,
+  "notes": [
+    "Automatic update used an isolated installation directory and the actual Revit process lifetime, with a signed package downloaded from production zetta HTTPS.",
+    "The first full run exposed native external-definition lifetime and update temporary-path failures; the corrected release passed the complete rerun.",
+    "No push or merge; the original Local checkout remains main at cb34b20.",
+    "This record is documentation of the verified code release; later documentation commits do not rebuild or replace that release."
+  ]
+}

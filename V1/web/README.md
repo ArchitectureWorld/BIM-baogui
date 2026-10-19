@@ -8,17 +8,19 @@
 - 开发、构建、临时数据和模型副本放在本目录忽略的 `.local` / `artifacts` 中。
 - 注册、期限、草稿、异步响应和写入要求沿用既有设计；完整操作与实际验证结果随交付补充。
 
-实施依据：[本轮计划](implementation-plan.md)、[既有设计](../docs/superpowers/specs/2026-10-16-hifc-local-web-design.md)。本轮 Web 优先约束高于旧计划中的 Local 前置拆分安排。
+实施依据：[本轮计划](implementation-plan.md)、[内网账号与自动更新记录](2026-10-19-intranet-update-plan.md)、[既有设计](../docs/superpowers/specs/2026-10-16-hifc-local-web-design.md)。当前账号方式以 2026-10-19 用户确认的内网简化方案为准；本轮 Web 优先约束高于旧计划中的 Local 前置拆分安排。
 
 ## 当前开发状态
 
 已实现普通协议、两轮分页完整性、草稿冲突、只读复用的服务端规则适配、账号期限策略、持久化签名密钥、短期方案与许可签名，以及具有 HTTPS、超时和旧响应守卫的 HTTP 客户端。客户端不引用规则引擎或冻结资源。
 
-`Hifc.Web.Server` 已包含真实登记登录、检查、预览、许可及回执接口。用户已确认“手机号、真实姓名登记，电脑保存凭证，换机由管理员发一次性绑定码”；默认 168 小时，重登与换机保持原期限。普通电脑凭证由 Windows DPAPI 加密；管理员使用独立密码、Cookie 和 CSRF 保护的网页后台，可自定义延期天数或截至日期。
+`Hifc.Web.Server` 已包含真实登记登录、检查、预览、许可及回执接口。普通用户填写手机号和真实姓名即可登记或登录，不再使用绑定码或电脑绑定限制；默认 168 小时，重登与换电脑保持同一账号和原期限。姓名冲突会拒绝登录，管理员账号不开放这种普通登录方式。本机通过 Windows DPAPI 加密记住人员信息；管理员继续使用独立密码、Cookie 和 CSRF 保护的网页后台，可延期或删除账号。删除会撤销各电脑上的会话及关联工作流。
 
-`Hifc.Web.Revit` 提供连接登记、全面检查、字段编辑和写入复检四步窗口。草稿留在本机；所有 Revit 取数与事务通过 ExternalEvent 执行，网络返回后重新核对文档与快照。分类会实际写入类目、清理旧实例值并保留类型值。原生副本测试的 6 项检查通过，包含真实参数写入、旧快照拒绝、提交回读干扰回滚和保存重开；三个模型的完整界面流程仍须单独验证。
+`Hifc.Web.Revit` 使用独立的 `HIFC-V1-Web` 页签，延续 Local 的界面主题，提供模型列表、属性编辑、写入预览和账号窗口。草稿留在本机；所有 Revit 取数与事务通过 ExternalEvent 执行，网络返回后重新核对文档与快照。分类会实际写入类目、清理旧实例值并保留类型值。2026-10-19 已通过 7 项原生保护检查，厂房、后勤楼、总图三个模型副本完成真实生产 HTTPS 检查、编辑、写入、回读、复检、保存及重开；15 张 WPF 画面已核对。用户人工体验验收和正式平台报验仍单独记录。
 
-`tools/Publish-WebClient.ps1` 生成独立 Web ZIP，仅交付四个客户端 DLL、安装器、公共 CA 和操作说明。安装器核对文件与固定证书指纹，证书导入与 Revit 发布者安全提示由用户本人确认。`tools/Publish-WebServer.ps1` 同时打包该 ZIP；首页提供下载和管理员入口。完整模型流程、生产 HTTPS 客户端联调及用户体验验收分别记录，不用构建通过替代。
+`tools/Publish-WebClient.ps1` 生成独立 Web ZIP，包含四个客户端 DLL、更新 EXE 及配置、安装器、公共 CA、更新签名公钥和操作说明。安装包预置 zetta 地址，同事无需输入 IP；安装器核对文件与固定证书指纹，证书导入与 Revit 发布者安全提示由用户本人确认。`tools/Publish-WebServer.ps1` 将 ZIP 与版本资料一起部署到 zetta，首页提供下载和管理员入口。
+
+更新清单位于 `https://192.168.6.45:8443/updates/latest`，更新包由同一 zetta 服务的 `/updates/packages/` 提供；私钥留在 zetta。插件在后台检查和下载，校验签名、来源、大小与散列，等待本轮 Revit 退出后切换独立版本目录，下次启动生效；失败保留旧版及人员资料、草稿。旧客户端须先手动安装一次带更新器的新版。实际 Revit 生命周期更新已在隔离安装目录中验证，未覆盖正在运行的插件文件。
 
 ## 构建和验证
 
@@ -44,11 +46,24 @@ Linux 环境脚本：[bootstrap-host.sh](deploy/bootstrap-host.sh)，默认只�
 ssh -N -o ExitOnForwardFailure=yes -L '127.0.0.1:55432:/home/zetta/hifc-web-dev-20261017/postgres-test/socket/.s.PGSQL.55432' zetta-pc
 ```
 
-在 Web 目录运行 `pwsh -File tools/Build-Web.ps1 -WithDatabase`，额外执行 12 项真实数据库测试。数据库测试程序另提供 `--write-persistence PATH` / `--verify-persistence PATH` 两阶段验证；中间通过远端脚本 `--restart` 重启。验证会检查 PostgreSQL 的实际启动时间已变化，再核对账号、到期时间、版本和审计记录。结束后以 `--stop` 停止本轮测试数据库，并关闭自己建立的隧道。
+在 Web 目录运行 `pwsh -File tools/Build-Web.ps1 -WithDatabase`，额外执行 33 项真实数据库 / HTTP 测试。数据库测试程序另提供 `--write-persistence PATH` / `--verify-persistence PATH` 两阶段验证；中间通过远端脚本 `--restart` 重启。验证会检查 PostgreSQL 的实际启动时间已变化，再核对账号、到期时间、版本和审计记录。结束后以 `--stop` 停止本轮测试数据库，并关闭自己建立的隧道。
 
 2026-10-17 已在真实 PostgreSQL 16.15 上通过上述 12 项用例及重启验证，详细边界见 [SSH 数据库检查点](validation/2026-10-17-ssh-database-checkpoint.json)。
 
-## 服务器基础环境检查点（完整体验部署前）
+## 当前交付（2026-10-19）
+
+- 发行版 `0.5.0-dev-20261019T030204Z`，代码来源 `6f860c069f0a6140835b22a380fde6f45aac3c86`；后续交付记录提交不改变该已验证运行包。
+- 正式入口及更新文件均在 zetta；[同事安装包](https://192.168.6.45:8443/downloads/HIFC-0.5.0-Web.zip) 面向 Revit 2020。解压后关闭 Revit，运行“安装 Web 版.cmd”。
+- 允许的办公网段为 `192.168.6.0/23` 和 `192.168.218.0/24`；入口只绑定 zetta 的 LAN IPv4 `192.168.6.45:8443`。
+- Linux Web 78、规则 85、真实数据库 / HTTP 33 项通过；三个容器重建后健康，账号、期限、审计、CA 和签名身份保持。Windows 桌面 / 更新 16 项及原生 7 项检查通过，三个模型副本分别写入 84、69、19 项并保存重开。
+- 本机 Web 安装的 6 个文件与正式 ZIP 一致；Local 三个安装文件、六个原模型和既有 Local 源码保持。测试插件清单、专用测试数据库及隧道已清理。
+- 自动更新验证使用实际 Revit 进程和生产 HTTPS 下载，安装目录为隔离夹具；同事实体电脑的首次安装仍待现场体验。用户人工验收状态为待确认。
+
+证据：[本轮交付记录](validation/2026-10-19-intranet-delivery.json)。详细日志、界面画面与原始结果保存在本机忽略的 `.local` 目录。
+
+## 服务器基础环境历史检查点（2026-10-17）
+
+以下保留当时的基础部署状态。
 
 - 入口：`https://192.168.6.45:8443/`；仅放行当前已核实 Windows `192.168.218.195/32`。
 - 目录：`/srv/hifc-web/current` 指向独立版本目录，PostgreSQL、服务端签名密钥和 Caddy CA 各自保存在持久化目录。
