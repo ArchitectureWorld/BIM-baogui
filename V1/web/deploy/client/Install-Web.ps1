@@ -1,8 +1,7 @@
 [CmdletBinding()]
 param([switch]$ValidateOnly)
 $ErrorActionPreference='Stop'
-$pinnedRoot='34F12F7297D570C3641DB2DF80FF6755D0FF09AC29CF13121121D55AE86FE15F'
-$thumbprint='90DEB5EDA2139C762DE841D4C76C4BE973DE081F'
+. (Join-Path $PSScriptRoot 'CertificateTrust.ps1')
 $package=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'package.json') -Raw|ConvertFrom-Json
 $expected=@('Hifc.Web.Revit.dll','Hifc.Web.Client.dll','Hifc.Web.Contracts.dll','Newtonsoft.Json.dll','Hifc.Web.Update.exe','Hifc.Web.Update.exe.config')
 if($package.version -ne '0.5.0-Web' -or $package.addInId -ne '53ef39d3-a187-4fb5-90f8-29e91d747602' -or $package.releaseId -notmatch '^0\.5\.0-dev-[0-9]{8}T[0-9]{6}Z$'){throw 'Web 安装包标识无效。'}
@@ -14,24 +13,21 @@ foreach($name in $expected){
 }
 $certificatePath=Join-Path $PSScriptRoot 'hifc-web-root-ca.crt'
 $certificate=New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePath)
-$sha=[System.Security.Cryptography.SHA256]::Create()
-try{$rootHash=[BitConverter]::ToString($sha.ComputeHash($certificate.RawData)).Replace('-','')}finally{$sha.Dispose()}
-if($rootHash -cne $pinnedRoot -or $certificate.Thumbprint -ne $thumbprint){throw '服务器根证书与已核实的指纹不匹配。'}
+Confirm-HifcServerCertificate -Certificate $certificate
 $publicKeyPath=Join-Path $PSScriptRoot 'update-public-key.json'
 $public=Get-Content -LiteralPath $publicKeyPath -Raw|ConvertFrom-Json
 if([Convert]::FromBase64String($public.modulus).Length -lt 256 -or -not $public.exponent){throw '更新签名公钥无效。'}
 if($ValidateOnly){Write-Output 'PASS Web package files, independent identity, update key and pinned public certificate';return}
 if(Get-Process -Name Revit -ErrorAction SilentlyContinue){throw '请先关闭 Revit，再安装 Web 版。'}
-$trusted=(Test-Path -LiteralPath ('Cert:\CurrentUser\Root\'+$thumbprint)) -or (Test-Path -LiteralPath ('Cert:\LocalMachine\Root\'+$thumbprint))
-if(-not $trusted){
-    Write-Host '需要由你本人信任局域网 HIFC 服务器证书。'
-    Write-Host ('SHA-256：'+$pinnedRoot)
-    Write-Host '在证书窗口点击“安装证书”，选择“当前用户”，将证书放入“受信任的根证书颁发机构”，核对后完成安全确认。'
-    Start-Process -FilePath $certificatePath
-    [void](Read-Host '完成证书导入后按回车继续；取消可关闭本窗口')
-    $trusted=(Test-Path -LiteralPath ('Cert:\CurrentUser\Root\'+$thumbprint)) -or (Test-Path -LiteralPath ('Cert:\LocalMachine\Root\'+$thumbprint))
-    if(-not $trusted){throw '尚未检测到已信任的服务器证书，安装已停止。'}
+if(([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){
+    $session=(Get-Process -Id $PID).SessionId
+    $shells=@(Get-CimInstance Win32_Process -Filter "Name='explorer.exe' AND SessionId=$session")
+    $desktopUsers=@($shells|ForEach-Object {(Invoke-CimMethod -InputObject $_ -MethodName GetOwnerSid).Sid}|Where-Object {$_})
+    if($desktopUsers.Count -gt 0 -and $desktopUsers -notcontains [Security.Principal.WindowsIdentity]::GetCurrent().User.Value){
+        throw '当前管理员身份与桌面账号不同。请关闭此窗口，用运行 Revit 的账号直接双击“安装 Web 版.cmd”，无需选择“以管理员身份运行”。'
+    }
 }
+try{Install-HifcServerCertificate -Certificate $certificate}finally{$certificate.Dispose()}
 [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12
 Add-Type -AssemblyName System.Net.Http
 $handler=New-Object Net.Http.HttpClientHandler; $handler.UseProxy=$false; $http=New-Object Net.Http.HttpClient($handler); $http.Timeout=[TimeSpan]::FromSeconds(15)

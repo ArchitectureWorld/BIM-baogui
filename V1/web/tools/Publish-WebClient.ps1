@@ -39,6 +39,7 @@ try{
     [ordered]@{version='0.5.0-Web';addInId='53ef39d3-a187-4fb5-90f8-29e91d747602';releaseId=$ReleaseId;sourceCommit=((& git rev-parse HEAD)-join '');createdUtc=[DateTime]::UtcNow.ToString('O');files=$files}|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $package 'package.json') -Encoding utf8
     & (Join-Path $PSScriptRoot 'Test-WebInstallerEntry.ps1') -Package $package
     if($LASTEXITCODE -ne 0){throw 'Web installer validation failed.'}
+    & (Join-Path $PSScriptRoot 'Test-WebCertificateTrust.ps1') -Package $package
     $archive=Join-Path $output 'HIFC-0.5.0-Web.zip'
     Compress-Archive -LiteralPath $package -DestinationPath $archive
     [ordered]@{archive=$archive;package=$package;sha256=(Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant();sourceCommit=((& git rev-parse HEAD)-join '')}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $webRoot '.local/latest-client-release.json') -Encoding utf8
