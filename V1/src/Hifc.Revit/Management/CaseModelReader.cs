@@ -14,13 +14,16 @@ namespace Hifc.Revit.Management
         private string kind;
         private ModelDetection detection;
         private CaseRule[] rules;
+        private readonly UndergroundResult underground;
         internal int Position { get; private set; }
         internal int Total => ids.Length * 2;
         internal bool Complete => Position == Total;
-        internal CaseScanJob(Document doc, string stage, string requestedKind)
+        internal CaseScanJob(Document doc,string stage,string requestedKind):this(doc,stage,requestedKind,null) { }
+        internal CaseScanJob(Document doc, string stage, string requestedKind, UndergroundSettings undergroundSettings)
         {
             if (stage != "报规" && stage != "施工图") throw new InvalidOperationException("请先人工选择报规或施工图阶段。");
             this.stage = stage; this.requestedKind = requestedKind;
+            underground=UndergroundPolicy.Evaluate(undergroundSettings,UndergroundContextReader.Levels(doc));
             // Re-enumerate every run. UI filters, old exclusions and previous completion
             // records never take part in the collector.
             ids = new FilteredElementCollector(doc).WhereElementIsNotElementType()
@@ -56,14 +59,14 @@ namespace Hifc.Revit.Management
                 var element = doc.GetElement(ids[index]);
                 if (element == null) throw new InvalidOperationException("构件在扫描中被删除，请重新检查。");
                 if (Position < ids.Length) rows.Add(CaseModelReader.Inventory(doc, element));
-                else CaseModelReader.ReadFields(doc, element, rows[index], rules, kind);
+                else CaseModelReader.ReadFieldsWithContext(doc, element, rows[index], rules, kind, underground);
             }
         }
         internal ModelSnapshot Snapshot(Document doc)
         {
             if (!Complete) throw new InvalidOperationException("扫描尚未完整完成。");
             return new ModelSnapshot { DocumentKey = ModelReader.Key(doc), Title = doc.Title, Stage = stage, RequestedKind = requestedKind,
-                ModelKind = kind ?? "待确认", DetectionEvidence = detection?.Evidence ?? new string[0], Complete = true,
+                ModelKind = kind ?? "待确认", DetectionEvidence = (detection?.Evidence ?? new string[0]).Concat(new[]{underground.Note}).ToArray(), Complete = true,
                 ScanId = Guid.NewGuid().ToString("N"), CompletedUtc = DateTime.UtcNow.ToString("O"), Elements = rows.ToArray() };
         }
     }
@@ -113,9 +116,13 @@ namespace Hifc.Revit.Management
             catch (Exception ex) { row.Issue = "来源冲突：" + ex.Message; }
             return row;
         }
-        internal static void ReadFields(Document doc, Element element, ModelElementCheck row, CaseRule[] rules, string kind)
+        internal static void ReadFields(Document doc,Element element,ModelElementCheck row,CaseRule[] rules,string kind)
+            =>ReadFieldsWithContext(doc,element,row,rules,kind,null);
+        internal static void ReadFieldsWithContext(Document doc, Element element, ModelElementCheck row, CaseRule[] rules, string kind, UndergroundResult underground)
         {
             if (rules.Length == 0 || row.Entity == "LINK") return;
+            if(CaseWorkflow.AreaSlots.Contains(row.Slot) && !(element is Area))
+            {row.CoverageNote="该报规区域类目需要面积（Area）载体，请核对模型；不将其他构件强制改为 IfcSpace。";return;}
             try
             {
                 var applicable = new List<CaseRule>();
@@ -160,7 +167,14 @@ namespace Hifc.Revit.Management
                     field.Editable = parameters != null && parameters.Count == 1 && !parameters[0].IsReadOnly && parameters[0].StorageType != StorageType.ElementId;
                     if (field.AllowedEmpty && field.State == "未填写") field.Detail = "案例中允许空值；参数已存在";
                     if (field.Origin == "type") field.Detail = (field.Valid ? "类型来源" : field.Detail) + "；修改将影响当前文档同类型实例，预览显示范围";
-                    AutoFillPolicy.Populate(field, rule.Slot, element.Name, projectedArea);
+                    AutoFillPolicy.PopulateWithSource(field, rule.Slot, element.Name, projectedArea,element is Area?"Revit 面积（Area）的实际面积，转换为 m²；名称和所属楼层取当前对象":null);
+                    if(element is ProjectInfo)
+                    {
+                        var parameter=parameters?.Count==1?parameters[0]:null;
+                        double? existingMetric=parameter?.StorageType==StorageType.Double && parameter.Definition.UnitType==UnitType.UT_Length
+                            ? UnitUtils.ConvertFromInternalUnits(parameter.AsDouble(),DisplayUnitType.DUT_METERS):(double?)null;
+                        UndergroundPolicy.Populate(field,underground,existingMetric);
+                    }
                     if ((field.State == "缺参数" || field.State == "未填写") && element is Level && property.Property == "楼层名称") { field.SuggestedValue = element.Name; field.SuggestionReason = "Revit 标高名称"; }
                     if ((field.State == "缺参数" || field.State == "未填写") && element is ProjectInfo && property.Property == "建筑名称" && !string.IsNullOrWhiteSpace(doc.ProjectInformation.BuildingName))
                     { field.SuggestedValue = doc.ProjectInformation.BuildingName; field.SuggestionReason = "Revit 项目信息 / 建筑名称"; }

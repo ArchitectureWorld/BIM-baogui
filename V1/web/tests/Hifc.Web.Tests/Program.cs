@@ -29,6 +29,7 @@ Test("concurrent model edit produces three-way conflict", () => { var result = D
 Test("deleted target retains its draft for review", () => { var result = DraftRebaser.Rebase(new[] { new EditDraft { FieldKey = "deleted", Value = "5" } }, Array.Empty<FieldResult>()); Require(result.InvalidTargets.Length == 1, "Deleted draft was silently lost"); });
 CanonicalCases.Run(Test);
 RuleCases.Run(Test);
+MainSyncCases.Run(Test);
 ClientCases.Run(Test);
 AccountCases.Run(Test);
 SignerCases.Run(Test);

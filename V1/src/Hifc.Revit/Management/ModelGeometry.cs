@@ -7,6 +7,8 @@ namespace Hifc.Revit.Management
     {
         internal static double? ProjectedAreaM2(Element element)
         {
+            if(element is Area areaElement)
+                return areaElement.Location!=null && areaElement.Area>0 ? UnitUtils.ConvertFromInternalUnits(areaElement.Area,DisplayUnitType.DUT_SQUARE_METERS) : (double?)null;
             // Top-face triangulation respects floor openings and sloped faces.
             // Bounding boxes and reference-case areas cannot establish model area.
             if (!(element is Floor) && !(element is RoofBase)) return null;

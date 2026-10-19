@@ -1,6 +1,7 @@
 [CmdletBinding()]
-param([switch]$SkipNative,[switch]$WithDatabase)
+param([switch]$SkipNative,[switch]$WithDatabase,[string]$ProtectedBaseline='')
 $ErrorActionPreference='Stop'
+if($ProtectedBaseline){$ProtectedBaseline=(Resolve-Path -LiteralPath $ProtectedBaseline).Path}
 $webRoot=Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot 'Get-WebDotNet.ps1')
 $sdk=Get-HifcWebDotNet
@@ -28,7 +29,8 @@ try {
         Invoke-WebCheck 'native-test-build' @('build','tests/Hifc.Web.NativeTests/Hifc.Web.NativeTests.csproj','-c','Release','--nologo','-v','minimal')
         $nativeBuilt=$true
     }
-    if(Test-Path -LiteralPath (Join-Path $webRoot '.local\baseline.json')){& (Join-Path $PSScriptRoot 'Test-ProtectedLocalState.ps1')}
+    $baselinePath=if($ProtectedBaseline){$ProtectedBaseline}else{Join-Path $webRoot '.local\baseline.json'}
+    if(Test-Path -LiteralPath $baselinePath){& (Join-Path $PSScriptRoot 'Test-ProtectedLocalState.ps1') -Baseline $baselinePath}
     & git diff --check
     if($LASTEXITCODE -ne 0){throw 'Whitespace validation failed.'}
     @{verifiedUtc=[DateTime]::UtcNow.ToString('O');sdk='10.0.402';webTests='passed';existingRuleRegression='passed';databaseTestsVerified=[bool]$WithDatabase;nativeHarnessBuilt=$nativeBuilt;nativeHostVerified=$false;linuxEndToEndVerified=$false;status='development; experience acceptance pending'}|

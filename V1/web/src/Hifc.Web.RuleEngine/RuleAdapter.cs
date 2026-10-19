@@ -5,7 +5,7 @@ namespace Hifc.Web.RuleEngine;
 
 public sealed partial class RuleAdapter
 {
-    public string RuleVersion => "reference-0.4.3-web1";
+    public string RuleVersion => "reference-0.4.4-web1";
     private static ModelElementCheck Row(ElementRecord e) => new()
     {
         Id = e.Id, UniqueId = e.UniqueId, TypeId = e.TypeId, Name = e.Name, TypeName = e.TypeName, Category = e.Category,
@@ -27,7 +27,8 @@ public sealed partial class RuleAdapter
         var targets = new List<CaptureTarget>();
         foreach (var element in elements)
         {
-            if (element.AssignedSlot != null && element.AssignedSlot != "" && !rules.Any(r => r.Slot == element.AssignedSlot && r.Binding == "实例" && r.Entities.Contains(element.Entity)))
+            if (element.AssignedSlot != null && element.AssignedSlot != "" && !rules.Any(r => r.Slot == element.AssignedSlot && r.Binding == "实例" && r.Entities.Contains(element.Entity)
+                && (!CaseWorkflow.AreaSlots.Contains(r.Slot) || element.AreaScheme != null)))
                 throw new InvalidOperationException(element.Id + "：所选分类不适用于当前模型或构件载体。");
             Add(element, element.UniqueId, element.Id, "类目", "instance");
             if (!string.IsNullOrEmpty(element.TypeUniqueId)) Add(element, element.TypeUniqueId, element.TypeId, "类目", "type");

@@ -29,9 +29,9 @@ internal static class CaseWorkflowTests
             Assert(((Array)Call("ForModel", "施工图", "总图")).Length == 0);
             Assert(!((ModelSummary)Call("Summarize", "施工图", "总图", new[] { Row("IfcSlab", "规划净用地") })).Ready);
         });
-        check("site_case_contains_seven_business_sets_and_one_type_set", () => {
+        check("site_retains_case_roles_while_adding_optional_reference_areas", () => {
             var rules = ((Array)Call("ForModel", "报规", "总图")).Cast<object>().ToArray();
-            Assert(rules.Length == 8);
+            Assert(rules.Count(r => !(bool)Value(r, "ReferenceSupplement")) == 8);
             var typeRule = rules.Single(r => (string)Value(r, "Slot") == "总平构件");
             Assert((string)Value(typeRule, "Binding") == "类型");
             Assert(((ReferenceProperty[])Value(typeRule, "Properties")).Length == 1);
@@ -89,11 +89,12 @@ internal static class CaseWorkflowTests
             Assert(new FieldCheck { AllowedEmpty = true, State = "未填写" }.Acceptable);
             Assert(!new FieldCheck { AllowedEmpty = true, State = "缺参数" }.Acceptable);
         });
-        check("case_technical_fields_do_not_import_unobserved_requirements", () => {
+        check("technical_fields_add_optional_underground_count_without_other_requirements", () => {
             var rules = ((Array)Call("ForModel", "报规", "单体建筑")).Cast<object>();
             var technical = rules.Single(r => (string)Value(r, "Slot") == "建筑技术");
             var names = ((ReferenceProperty[])Value(technical, "Properties")).Select(p => p.Property).ToArray();
-            Assert(names.Length == 28 && !names.Contains("地下建筑层数") && !names.Contains("建筑面积"));
+            Assert(names.Length == 29 && names.Contains("地下建筑层数") && !names.Contains("建筑面积"));
+            Assert(((string[])Value(technical,"EmptyAllowed")).Contains("地下建筑层数"));
         });
         check("site_inventory_uses_site_and_road_content_without_psets", () => {
             var rows = new[] { Row("IfcSlab", null, "道路"), Row("IfcSlab", null, "场地"), Row("IfcSlab", null, "绿化") };

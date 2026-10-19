@@ -6,12 +6,12 @@ internal static class RuleCases
 {
     private static void Require(bool condition, string message) { if (!condition) throw new Exception(message); }
     private static void Reject(Action run) { try { run(); } catch (InvalidOperationException) { return; } throw new Exception("Unsafe rule operation was accepted."); }
-    internal static (RuleAdapter Engine, InventoryPage[] Pages, CapturePlan Plan, ParameterValue[] Values) Model(string slot = "规划净用地", string entity = "IfcSlab", string name = "规划净用地")
+    internal static (RuleAdapter Engine, InventoryPage[] Pages, CapturePlan Plan, ParameterValue[] Values) Model(string slot = "规划净用地", string entity = "IfcSlab", string name = "规划净用地", string kind = "总图", string areaScheme = null, double? nativeAreaM2 = null)
     {
         var engine = new RuleAdapter();
-        var element = new ElementRecord { Id = 1, UniqueId = "element-1", TypeId = 2, TypeUniqueId = "type-1", Name = name, Entity = entity, DeclaredSlot = slot, ProjectedAreaM2 = 123.5 };
+        var element = new ElementRecord { Id = 1, UniqueId = "element-1", TypeId = 2, TypeUniqueId = "type-1", Name = name, Entity = entity, DeclaredSlot = slot, ProjectedAreaM2 = 123.5, AreaScheme = areaScheme, NativeAreaM2 = nativeAreaM2 };
         var context = new RequestContext { RuleVersion = engine.RuleVersion, RequestId = "r1", ScanId = "s1", DocumentSessionId = "d1", SnapshotHash = Canonical.InventoryHash(new[] { element }) };
-        var pages = new[] { new InventoryPage { Context = context, Stage = "报规", ModelKind = "总图", PageCount = 1, TotalElements = 1, PageHash = Canonical.InventoryHash(new[] { element }), Elements = new[] { element } } };
+        var pages = new[] { new InventoryPage { Context = context, Stage = "报规", ModelKind = kind, PageCount = 1, TotalElements = 1, PageHash = Canonical.InventoryHash(new[] { element }), Elements = new[] { element } } };
         var plan = engine.CreateCapturePlan(pages);
         var values = plan.Targets.GroupBy(t => t.OwnerUniqueId + "|" + t.Origin + "|" + t.Source).Select(g => g.First()).Select(t => new ParameterValue { OwnerUniqueId = t.OwnerUniqueId, OwnerId = t.OwnerId, Source = t.Source, Origin = t.Origin }).ToArray();
         return (engine, pages, plan, values);

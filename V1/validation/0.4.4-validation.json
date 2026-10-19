@@ -1,0 +1,59 @@
+{
+  "schema": "hifc.validation-summary/1.0",
+  "record_kind": "release_validation_summary",
+  "version": "0.4.4",
+  "assembly_version": "0.4.4.0",
+  "client_date": "2026-10-19",
+  "revit": "2020",
+  "implementation_commit": "58404fa084db99de11828f2296f7e74d40c0bf27",
+  "documentation": "docs/0.4.4-报规地下区域与指标.md",
+  "package": "dist/Hifc.V1.Revit2020-0.4.4",
+  "local_evidence": "validation/underground-native-20261019-123055-c6ddda53/final-verification.json",
+  "evidence_scope": "Local controlled underground model copy; runtime artifacts are excluded from Git.",
+  "core": { "passed": 97, "failures": 0 },
+  "wpf": {
+    "passed": 67,
+    "failures": 0,
+    "scope": "Actual standalone WPF windows with simulated Revit adapters; routed input and layout checks."
+  },
+  "python": { "passed": 24, "failures": 0 },
+  "native": {
+    "checks": 31,
+    "all_passed": true,
+    "scope": "Revit 2020 controlled underground model copy, not a customer underground project.",
+    "save_reopen_verified": true,
+    "export_rollback_verified": true
+  },
+  "ifc_cases": [
+    { "case": "underground", "ifc_space": 5, "ifc_slab": 1, "verified_properties": 59, "all_passed": true, "schema_errors": 0 },
+    { "case": "parking-only", "ifc_space": 1, "ifc_slab": 0, "verified_properties": 10, "all_passed": true, "schema_errors": 0 },
+    { "case": "carpark-only", "ifc_space": 1, "ifc_slab": 0, "verified_properties": 7, "all_passed": true, "schema_errors": 0 }
+  ],
+  "geometry": {
+    "all_passed": true,
+    "space_areas_m2": [100, 110, 120, 200, 40],
+    "storey_assignments_verified": true,
+    "ifc_unchanged_by_audit": true
+  },
+  "preservation": { "template_unchanged": true, "source_unchanged": true },
+  "installation": {
+    "version": "0.4.4.0",
+    "matches_build_and_package": true,
+    "temporary_acceptance_addin_removed": true,
+    "files": [
+      { "name": "Hifc.V1.Revit.dll", "sha256": "a24acde290dc7e0d5035e79c356f76b8394e1753d67cc24f2380294c403482b8" },
+      { "name": "Hifc.Reference.Core.dll", "sha256": "0368aa568ed3697f5814d5c58a04c0b7ef10669ac335f2a418df038a94fa140d" }
+    ]
+  },
+  "implementation_ci": {
+    "head_sha": "58404fa084db99de11828f2296f7e74d40c0bf27",
+    "conclusion": "success",
+    "url": "https://github.com/ArchitectureWorld/BIM-baogui/actions/runs/39201908512"
+  },
+  "manual_required_fields": ["道路宽度"],
+  "limitations": [
+    "Customer underground model and formal HIFC platform acceptance are pending.",
+    "Standalone WPF input tests do not prove physical mouse end-to-end behavior in Revit.",
+    "Construction-document rules, all HIFC classes and full official compliance are outside this release validation."
+  ]
+}

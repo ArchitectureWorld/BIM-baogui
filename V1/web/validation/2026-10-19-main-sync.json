@@ -1,0 +1,55 @@
+{
+  "schema": "hifc.web.main-sync/1.0",
+  "verifiedUtc": "2026-10-19T06:00:26.0241313Z",
+  "branch": "HIFC-Web",
+  "previousWebCommit": "0b72fed",
+  "synchronizedMain": "337bbcc4cbcefa197170b35a61f46f9d20c85a64",
+  "versions": {
+    "mainProduct": "0.4.4",
+    "mainAssembly": "0.4.4.0",
+    "webProduct": "0.5.0",
+    "webAssembly": "0.5.0.0",
+    "ruleVersion": "reference-0.4.4-web1",
+    "protocolMajor": 1
+  },
+  "consistency": {
+    "gitMergeConflicts": 0,
+    "sharedAndLocalSourceExactlyMatchesMain": true,
+    "accountSchemaUnchanged": true,
+    "protocolDtosUnchanged": true,
+    "sourceGuidAlgorithmUnchanged": true,
+    "independentAddInIdsPreserved": true,
+    "frozenContractSha256": "c1f3d74e17229aee4ed10bc4980532d2c7c61a5a783061c6e979562b808052c9"
+  },
+  "regressions": {
+    "webPassed": 85,
+    "corePassed": 97,
+    "desktopPassed": 16,
+    "failed": 0,
+    "nativeHarnessBuilt": true,
+    "nativeHostRerun": false,
+    "databaseTestsRerun": false
+  },
+  "protected": {
+    "installedLocalFiles": 3,
+    "originalModels": 6,
+    "hashesUnchanged": true,
+    "originalCheckoutStatusUnchanged": true,
+    "sharedSourceBaseline": "337bbcc4cbcefa197170b35a61f46f9d20c85a64"
+  },
+  "publicationTarget": {
+    "remote": "https://github.com/ArchitectureWorld/BIM-baogui.git",
+    "branch": "HIFC-Web",
+    "forcePush": false,
+    "mergeIntoMain": false
+  },
+  "productionDeploymentChanged": false,
+  "webUndergroundConfirmationUiAdded": false,
+  "evidence": [
+    ".local/build/main-sync-red.log",
+    ".local/build/main-sync-json-red.log",
+    ".local/build/main-sync-green.log",
+    ".local/main-sync-baseline-20261019.json",
+    ".local/protected-state.json"
+  ]
+}

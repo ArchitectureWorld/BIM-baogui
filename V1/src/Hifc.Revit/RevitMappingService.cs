@@ -80,7 +80,14 @@ namespace Hifc.Revit
 
         internal static ReferenceProperty[] Properties(Document doc, Element element)
         {
+            if(element is ProjectInfo || element is Level)
+            {
+                var names=element is ProjectInfo?new[]{"Pset_申报信息属性集","Pset_建筑技术信息属性集"}:new[]{"Pset_建筑楼层信息属性集"};
+                return CaseWorkflow.ForModel("报规","单体建筑").SelectMany(r=>r.Properties).Where(p=>!p.NativeGroup && p.Binding=="实例" && names.Contains(p.PropertySet))
+                    .GroupBy(p=>ReferencePolicy.BridgeGuid(p)).Select(g=>g.First()).ToArray();
+            }
             var slot = Slot(doc, element);
+            if(CaseWorkflow.AreaSlots.Contains(slot) && !(element is Area))throw new InvalidOperationException("构件 "+element.Id.IntegerValue+"：该报规区域类目需要面积（Area）载体。");
             var entity = Entity(doc, element);
             var properties = Catalog.ForSlot(slot).Where(p => p.Entity.Split(',').Contains(entity, StringComparer.Ordinal)).ToArray();
             if (properties.Length == 0)
@@ -209,7 +216,7 @@ namespace Hifc.Revit
                 foreach (var property in Properties(doc, element))
                 {
                     var read = ReferencePolicy.Resolve(Reads(doc, element, property.SourceParameter), property.SourceParameter);
-                    var value = ReferencePolicy.ToBridgeValue(read);
+                    var value = ExportValue(doc,element,property,read);
                     var parameter = element.get_Parameter(ReferencePolicy.BridgeGuid(property));
                     if (value != null)
                     {
@@ -217,11 +224,24 @@ namespace Hifc.Revit
                             throw new InvalidOperationException("临时导出值回读失败：" + property.SourceParameter);
                     }
                     writes.Add(new { element_id = element.Id.IntegerValue, unique_id = element.UniqueId, property_set = property.PropertySet,
-                        property = property.Property, raw_type = property.RawType, source_parameter = property.SourceParameter,
+                        property = property.Property, raw_type = property.RawType, export_type=property.ExportType, source_parameter = property.SourceParameter,
                         source_origin = read?.Origin, value, status = value == null ? "MISSING" : "MATERIALIZED" });
                 }
             }
             return writes;
+        }
+        private static string ExportValue(Document doc,Element element,ReferenceProperty property,ParameterRead read)
+        {
+            if(read?.StorageType=="Double" && read.HasValue)
+            {
+                var owner=read.Origin=="type"?doc.GetElement(element.GetTypeId()):element;
+                var parameter=owner.GetParameters(property.SourceParameter).Single();
+                if(property.Property=="投影面积" && parameter.Definition.UnitType==UnitType.UT_Area)
+                    return UnitUtils.ConvertFromInternalUnits(parameter.AsDouble(),DisplayUnitType.DUT_SQUARE_METERS).ToString("R",CultureInfo.InvariantCulture);
+                if((property.Property=="地下建筑高度" || property.Property=="地坪标高") && parameter.Definition.UnitType==UnitType.UT_Length)
+                    return UnitUtils.ConvertFromInternalUnits(parameter.AsDouble(),DisplayUnitType.DUT_METERS).ToString("R",CultureInfo.InvariantCulture);
+            }
+            return ReferencePolicy.ToBridgeValue(read);
         }
     }
 }

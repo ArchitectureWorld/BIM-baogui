@@ -35,7 +35,7 @@ internal static class HostCases
         }));
         test("deployed compatibility route is readable by the actual Web client", () => WithHost(uri => {
             using var client = new WebApiClient(uri); var result = client.CompatibilityAsync(CancellationToken.None).GetAwaiter().GetResult();
-            if (result.ProtocolMajor != 1 || result.RuleVersion != "reference-0.4.3-web1" || result.SigningKey == null || string.IsNullOrWhiteSpace(result.SigningKey.Modulus))
+            if (result.ProtocolMajor != 1 || result.ProductVersion != "0.5.0" || result.RuleVersion != "reference-0.4.4-web1" || result.SigningKey == null || string.IsNullOrWhiteSpace(result.SigningKey.Modulus))
                 throw new Exception("The host did not expose the actual protocol and public signing key.");
         }));
         test("deferred authentication keeps registration and model mutation routes closed", () => WithHost(uri => {

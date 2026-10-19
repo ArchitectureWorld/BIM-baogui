@@ -17,7 +17,7 @@ internal static class WorkflowCases
         InventoryPage Page()
         {
             var elements = new[] { new ElementRecord { Id = 1, UniqueId = "native-element", Name = "规划净用地", Entity = "IfcSlab", DeclaredSlot = "规划净用地", ProjectedAreaM2 = 123.5 } };
-            return new InventoryPage { Context = new RequestContext { RuleVersion = "reference-0.4.3-web1", RequestId = Guid.NewGuid().ToString("N"), DocumentSessionId = "native-doc", ScanId = Guid.NewGuid().ToString("N"), SnapshotHash = Canonical.InventoryHash(elements) }, Stage = "报规", ModelKind = "总图", PageCount = 1, TotalElements = 1, Elements = elements, PageHash = Canonical.InventoryHash(elements) };
+            return new InventoryPage { Context = new RequestContext { RuleVersion = new RuleAdapter().RuleVersion, RequestId = Guid.NewGuid().ToString("N"), DocumentSessionId = "native-doc", ScanId = Guid.NewGuid().ToString("N"), SnapshotHash = Canonical.InventoryHash(elements) }, Stage = "报规", ModelKind = "总图", PageCount = 1, TotalElements = 1, Elements = elements, PageHash = Canonical.InventoryHash(elements) };
         }
         async Task<CheckResult> Scan(Guid actor, InventoryPage page)
         {

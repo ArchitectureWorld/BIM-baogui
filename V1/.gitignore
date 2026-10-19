@@ -49,3 +49,6 @@ validation/success-case-01/inventory.json
 # Local selection acceptance output; publish only the generic docs screenshot.
 validation/selection-*/
 validation/ui-0.4.3/
+validation/ui-0.4.4/
+validation/ui-0.4.4-red/
+validation/underground-*/

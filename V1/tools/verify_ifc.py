@@ -72,10 +72,10 @@ def verify_export(ifc_path: Path, receipt_path: Path) -> dict:
         # A declared spatial identity must never fall back to a matching Tag.
         owners[element_id] = []
         try:
-            if element_id in spatial_ids or identity.get("ifc_entity") != "IfcSpace":
+            if element_id in spatial_ids or identity.get("ifc_entity") not in {"IfcSpace", "IfcBuilding", "IfcBuildingStorey"}:
                 raise ValueError("duplicate identity or unsupported spatial entity")
             spatial_ids.add(element_id)
-            override = identity.get("ifc_guid_override")
+            override = identity.get("native_global_id") or identity.get("ifc_guid_override")
             if override:
                 global_id = override
                 uuid.UUID(hex=ifcopenshell.guid.expand(global_id))
@@ -137,12 +137,14 @@ def verify_export(ifc_path: Path, receipt_path: Path) -> dict:
                     actual_type = nominal.is_a() if nominal else None
                     actual_value = nominal.wrappedValue if nominal else None
                     entry.update(actual_type=actual_type, actual_value=actual_value, expected_raw_type=row["raw_type"], expected_value=row.get("value"))
-                    expected_type = IFC_TYPES.get(row["raw_type"])
+                    effective_type = "Integer" if (row["property_set"], row["property"], row["raw_type"]) == ("Pset_建筑技术信息属性集", "地下建筑层数", "Integerl") else row["raw_type"]
+                    expected_type = IFC_TYPES.get(effective_type)
+                    entry["expected_export_type"] = effective_type
                     if expected_type is None:
                         problems.append("RAW_REFERENCE_TYPE_NOT_YET_VERIFIED")
                     elif actual_type != expected_type:
                         problems.append("IFC_TYPE_MISMATCH")
-                    if not same_value(row.get("value"), actual_value, row["raw_type"]):
+                    if not same_value(row.get("value"), actual_value, effective_type):
                         problems.append("VALUE_MISMATCH")
         entry["problems"] = problems
         entry["passed"] = not problems

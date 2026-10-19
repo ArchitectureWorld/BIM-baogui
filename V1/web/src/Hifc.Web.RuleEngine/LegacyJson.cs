@@ -19,6 +19,11 @@ namespace System.Web.Script.Serialization
             if (json.Length > MaxJsonLength) throw new InvalidOperationException("JSON 超出允许大小。");
             return JsonSerializer.Deserialize<T>(json.TrimStart('\uFEFF'), Options);
         }
+        public object Deserialize(string json, Type type)
+        {
+            if (json.Length > MaxJsonLength) throw new InvalidOperationException("JSON 超出允许大小。");
+            return JsonSerializer.Deserialize(json.TrimStart('\uFEFF'), type, Options);
+        }
         public string Serialize(object value) => JsonSerializer.Serialize(value, Options);
         private static object Read(JsonElement value) => value.ValueKind switch
         {
