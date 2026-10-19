@@ -20,7 +20,7 @@ namespace Hifc.Revit.Management
                 var row=CaseModelReader.Inventory(doc,e);
                 var slots=rules.Where(r=>r.Binding=="实例" && r.Entities.Contains(row.Entity)
                     && !(e is ElementType) && !(e is ProjectInfo) && !(e is Level) && !e.ViewSpecific
-                    && (r.Slot!="停车位" || e is Area)).Select(r=>r.Slot).Distinct().OrderBy(s=>s,StringComparer.Ordinal).ToArray();
+                    && (!CaseWorkflow.AreaSlots.Contains(r.Slot) || e is Area)).Select(r=>r.Slot).Distinct().OrderBy(s=>s,StringComparer.Ordinal).ToArray();
                 if(e is Area && !string.IsNullOrEmpty(row.CoverageNote))slots=new string[0];
                 if(slots.Length==0){excluded.Add(id+" / "+e.Name+"："+(row.CoverageNote ?? (e.Category?.Id.IntegerValue==(int)BuiltInCategory.OST_Parking?"停车属性请选择对应的面积（Area）":"当前阶段或模型类型没有适用的业务载体映射")));continue;}
                 CaseModelReader.ReadFields(doc,e,row,rules,kind);rows.Add(row);common=common==null?slots:common.Intersect(slots).ToArray();

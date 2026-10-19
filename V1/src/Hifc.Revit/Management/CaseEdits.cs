@@ -69,6 +69,8 @@ namespace Hifc.Revit.Management
                         var raw = field.SuggestedValue;
                         if (parameter?.StorageType == StorageType.Double && field.SuggestionUnit == "m²" && parameter.Definition.UnitType == UnitType.UT_Area)
                             raw = UnitUtils.ConvertToInternalUnits(double.Parse(raw, CultureInfo.InvariantCulture), DisplayUnitType.DUT_SQUARE_METERS).ToString("R", CultureInfo.InvariantCulture);
+                        else if(parameter?.StorageType==StorageType.Double && field.SuggestionUnit=="m" && parameter.Definition.UnitType==UnitType.UT_Length)
+                            raw=UnitUtils.ConvertToInternalUnits(double.Parse(raw,CultureInfo.InvariantCulture),DisplayUnitType.DUT_METERS).ToString("R",CultureInfo.InvariantCulture);
                         else raw = ModelEdits.Normalize(doc, parameter, new ReferenceProperty { RawType = field.RawType }, raw);
                         changes.Add(Change(doc, owner, field.Source, "赋值", raw, field.SuggestionReason));
                     }
@@ -107,6 +109,7 @@ namespace Hifc.Revit.Management
             var rule = CaseWorkflow.ForModel(snapshot.Stage, snapshot.ModelKind).SingleOrDefault(r => r.Slot == slot && r.Binding == "实例" && r.Entities.Contains(row.Entity));
             var element = doc.GetElement(new ElementId(row.Id));
             if (rule == null || element is Level || element is ProjectInfo) throw new InvalidOperationException("当前案例没有适用的实体业务分类。");
+            if(CaseWorkflow.AreaSlots.Contains(slot) && !(element is Area))throw new InvalidOperationException("该区域类目请选择 Revit 面积（Area）对象。");
             var proposed = CaseModelReader.Inventory(doc, element); proposed.Slot = slot; proposed.SuggestedSlots = new string[0];
             CaseModelReader.ReadFields(doc, element, proposed, CaseWorkflow.ForModel(snapshot.Stage, snapshot.ModelKind), snapshot.ModelKind);
             return proposed;

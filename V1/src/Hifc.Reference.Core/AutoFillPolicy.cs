@@ -6,7 +6,9 @@ namespace Hifc.Reference
 {
     public static class AutoFillPolicy
     {
-        public static void Populate(FieldCheck field, string slot, string nativeName, double? projectedAreaM2)
+        public static void Populate(FieldCheck field,string slot,string nativeName,double? projectedAreaM2)
+            => PopulateWithSource(field,slot,nativeName,projectedAreaM2,null);
+        public static void PopulateWithSource(FieldCheck field, string slot, string nativeName, double? projectedAreaM2, string areaReason)
         {
             // Existing values, including zero and false, always take precedence.
             // Ambiguous or invalid values require review rather than replacement.
@@ -17,7 +19,7 @@ namespace Hifc.Reference
                 {
                     field.SuggestedValue = projectedAreaM2.Value.ToString("0.######", CultureInfo.InvariantCulture);
                     field.SuggestionUnit = "m²";
-                    field.SuggestionReason = "当前模型顶面三角网的水平投影面积（m²），保留孔洞";
+                    field.SuggestionReason = areaReason ?? "当前模型顶面三角网的水平投影面积（m²），保留孔洞";
                 }
                 else field.Detail = "无法从当前构件取得可靠的水平投影面积，请补充模型或人工填写（m²）";
             }

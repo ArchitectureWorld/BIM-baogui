@@ -16,6 +16,7 @@ namespace Hifc.Reference
         public string[] EmptyAllowed { get; set; }
         public string[] Sources { get; set; }
         public bool Required { get; set; }
+        public bool ReferenceSupplement { get; set; }
     }
     public sealed class ModelDetection
     {
@@ -48,7 +49,7 @@ namespace Hifc.Reference
         {
             if (stage != "报规" || kind != "总图" && kind != "单体建筑") return new CaseRule[0];
             var models = Models.Where(m => (string)m["scope"] == kind).ToArray();
-            return models.SelectMany(m => ((object[])m["items"]).Cast<Dictionary<string, object>>().Select(i => new { Model = m, Item = i }))
+            var rules = models.SelectMany(m => ((object[])m["items"]).Cast<Dictionary<string, object>>().Select(i => new { Model = m, Item = i }))
                 .GroupBy(x => (string)x.Item["pset"]).Select(group => {
                     var first = group.First().Item;
                     var binding = group.Any(x => Convert.ToInt32(x.Item["type_definitions"]) > 0) ? "类型" : "实例";
@@ -60,8 +61,26 @@ namespace Hifc.Reference
                         Entities = group.SelectMany(x => Keys(x.Item, "direct_owner_entities").Concat(Keys(x.Item, "inherited_owner_entities"))).Distinct().ToArray(),
                         Properties = properties, EmptyAllowed = group.SelectMany(x => Strings(x.Item, "observed_empty_properties")).Distinct().ToArray(),
                         Sources = group.Select(x => (string)x.Model["file"]).Distinct().ToArray(), Required = group.Select(x => x.Model).Distinct().Count() == models.Length };
-                }).OrderBy(r => r.Slot, StringComparer.Ordinal).ToArray();
+                }).ToList();
+            // Reference configuration supplies optional capabilities, never proof that
+            // a project must contain a civil-defence or parking zone.
+            foreach (var slot in AreaSlots.Where(s => rules.All(r => r.Slot != s)))
+            {
+                var properties = Catalog.ForSlot(slot).Where(p => p.Entity == "IfcSpace" && p.Binding == "实例").ToArray();
+                rules.Add(new CaseRule { Slot=slot, Binding="实例", Entities=new[]{"IfcSpace"}, Properties=properties,
+                    EmptyAllowed=properties.Select(p=>p.Property).ToArray(), Required=false, ReferenceSupplement=true,
+                    Sources=new[]{"参考软件工规 config_backup1.tsv；载体约定：Revit 面积（Area），按实际适用"} });
+            }
+            var technical=rules.SingleOrDefault(r=>r.Slot=="建筑技术");
+            if(technical!=null)
+            {
+                var count=Catalog.ForSlot("建筑技术").Single(p=>p.Property=="地下建筑层数");
+                technical.Properties=technical.Properties.Concat(new[]{count}).GroupBy(p=>p.Property).Select(g=>g.First()).ToArray();
+                technical.EmptyAllowed=technical.EmptyAllowed.Concat(new[]{"地下建筑层数"}).Distinct().ToArray();
+            }
+            return rules.OrderBy(r=>r.Slot,StringComparer.Ordinal).ToArray();
         }
+        public static readonly string[] AreaSlots = { "人防区域", "消防分区", "停车场", "停车位" };
         private static string[] Roles(ModelElementCheck row) => row.Slots.Length > 0 ? row.Slots : string.IsNullOrWhiteSpace(row.Slot) ? new string[0] : new[] { ReferenceCatalog.LegacySlot(row.Slot) };
         public static string[] SuggestSlots(ModelElementCheck row, string kind)
         {
@@ -76,15 +95,24 @@ namespace Hifc.Reference
             var rules = BusinessRules(kind);
             if (!string.IsNullOrWhiteSpace(row.Slot) && row.Slot != "总平构件") return new ClassificationCandidate[0];
             var candidates = new List<ClassificationCandidate>();
-            if (row.AreaScheme != null && (row.AreaScheme.Contains("停车") || row.AreaScheme.Contains("车位") || (row.Name ?? "").Contains("停车") || (row.Name ?? "").Contains("车位")))
-                candidates.Add(new ClassificationCandidate { Slot = "停车位", CanPrepare = row.Entity == "IfcSpace" && string.IsNullOrEmpty(row.CoverageNote),
-                    RequiresReview = !string.IsNullOrEmpty(row.CoverageNote), Evidence = "Revit 面积对象；面积方案：“" + row.AreaScheme + "”；名称：“" + row.Name + "”" + (row.CoverageNote ?? "") });
+            var areaText=(row.AreaScheme??"")+" "+(row.Name??"");
+            foreach(var slot in AreaSlots.Where(s=>rules.Any(r=>r.Slot==s)))
+            {
+                var named=areaText.Contains(slot) || slot=="人防区域"&&areaText.Contains("人防") || slot=="消防分区"&&areaText.Contains("防火分区")
+                    || slot=="停车位"&&areaText.Contains("车位") || slot=="停车位"&&areaText.Contains("停车")&&!areaText.Contains("停车场");
+                if(row.AreaScheme==null || !named)continue;
+                candidates.Add(new ClassificationCandidate {Slot=slot,CanPrepare=row.Entity=="IfcSpace"&&string.IsNullOrEmpty(row.CoverageNote),
+                    RequiresReview=!string.IsNullOrEmpty(row.CoverageNote),Evidence="Revit 面积对象；面积方案：“"+row.AreaScheme+"”；名称：“"+row.Name+"”"+(row.CoverageNote??"")});
+            }
             foreach (var slot in row.SuggestedSlots.Where(s => rules.Any(r => r.Slot == s)))
-                candidates.Add(new ClassificationCandidate { Slot = slot, Evidence = "本轮读取到该业务的非空专用来源参数", CanPrepare = rules.Single(r => r.Slot == slot).Entities.Contains(row.Entity) });
+            {
+                var supported=rules.Single(r=>r.Slot==slot).Entities.Contains(row.Entity)&&(!AreaSlots.Contains(slot)||row.AreaScheme!=null);
+                candidates.Add(new ClassificationCandidate { Slot=slot, Evidence="本轮读取到该业务的非空专用来源参数"+(supported?"":"；该报规区域类目需核对面积（Area）载体"), CanPrepare=supported, RequiresReview=!supported });
+            }
             foreach (var source in RecognitionEvidence.Match(row, kind).Where(e => rules.Any(r => r.Slot == e.Slot)))
             {
                 var same = row.Name == source.Name && row.TypeName == source.TypeName && row.Category == source.Category && row.Entity == source.Entity;
-                var supported = rules.Single(r => r.Slot == source.Slot).Entities.Contains(row.Entity);
+                var supported = rules.Single(r => r.Slot == source.Slot).Entities.Contains(row.Entity) && (!AreaSlots.Contains(source.Slot)||row.AreaScheme!=null);
                 var blocked = !same || !supported || !string.IsNullOrEmpty(source.Caution);
                 candidates.Add(new ClassificationCandidate { Slot = source.Slot, CanPrepare = !blocked, RequiresReview = blocked,
                     Evidence = source.SourceIfc + " / #" + source.StepId + " / Revit Tag " + source.RevitTag + "；UniqueId 对应；"
@@ -94,13 +122,14 @@ namespace Hifc.Reference
             var text = (row.Name ?? "") + " " + (row.TypeName ?? "");
             foreach (var rule in rules)
             {
+                if(AreaSlots.Contains(rule.Slot) && row.AreaScheme!=null)continue;
                 var exact = text.Contains(rule.Slot);
                 var alias = rule.Slot == "规划净用地" && (text.Contains("净用地") || text.Contains("场地"))
                     || rule.Slot == "绿地" && text.Contains("绿化")
                     || rule.Slot == "消防回车场" && text.Contains("回车场")
                     || rule.Slot == "规划控制线" && text.Contains("规划红线");
                 if (!exact && !alias) continue;
-                var supported = rule.Entities.Contains(row.Entity);
+                var supported = rule.Entities.Contains(row.Entity) && (!AreaSlots.Contains(rule.Slot) || row.AreaScheme!=null);
                 candidates.Add(new ClassificationCandidate { Slot = rule.Slot, CanPrepare = exact && supported, RequiresReview = !supported,
                     Evidence = (exact ? "名称含业务名称" : "名称别名候选，需确认业务含义") + "：“" + row.Name + " / " + row.TypeName + "” → " + rule.Slot
                         + (supported ? "" : "；当前载体 " + row.Entity + "，成功案例载体 " + string.Join("、", rule.Entities) + "，需核对载体/导出关系") });
@@ -112,8 +141,8 @@ namespace Hifc.Reference
         public static ModelDetection Detect(ModelElementCheck[] rows)
         {
             var evidence = new List<string>();
-            var siteRoles = ForModel("报规", "总图").Where(r => r.Binding == "实例").Select(r => r.Slot).ToArray();
-            var site = rows.Where(r => Roles(r).Concat(r.SuggestedSlots).Any(siteRoles.Contains) || SuggestSlots(r, "总图").Length > 0 || r.Entity == "IfcSite").ToArray();
+            var siteRoles = ForModel("报规", "总图").Where(r => r.Binding == "实例" && !AreaSlots.Contains(r.Slot)).Select(r => r.Slot).ToArray();
+            var site = rows.Where(r => Roles(r).Concat(r.SuggestedSlots).Any(siteRoles.Contains) || SuggestSlots(r, "总图").Any(siteRoles.Contains) || r.Entity == "IfcSite").ToArray();
             var building = rows.Where(r => Roles(r).Concat(r.SuggestedSlots).Contains("建筑区域") || SuggestSlots(r, "单体建筑").Contains("建筑区域")).ToArray();
             var namedSite = rows.Where(r => new[] { "IfcSlab", "IfcSpace", "IfcBuildingElementProxy", "IfcSite" }.Contains(r.Entity)).ToArray();
             var siteTerms = new[] { "场地", "道路", "绿化", "回车场", "规划红线", "停车位" }
@@ -143,7 +172,7 @@ namespace Hifc.Reference
                 var manualMissing = elements.SelectMany(e => e.Fields.Where(f => f.PropertySet == rule.Properties.FirstOrDefault()?.PropertySet && f.ManualInputRequired && !f.Valid)
                     .Select(f => new { Row=e, Field=f })).GroupBy(x => (x.Field.OwnerUniqueId ?? x.Row.UniqueId) + "|" + x.Field.Source).Count();
                 var incomplete = rows.Count(e => !string.IsNullOrEmpty(e.CoverageNote) || !string.IsNullOrEmpty(e.Issue));
-                return new RoleCoverage { Slot = rule.Slot, Mode = rule.Required ? "必要" : "案例补充", Count = count, Candidates = candidates,
+                return new RoleCoverage { Slot = rule.Slot, Mode = rule.Required ? "必要" : rule.ReferenceSupplement ? "参考补充" : "案例补充", Count = count, Candidates = candidates,
                     MissingFields = missing, MissingManualFields = manualMissing, IncompleteObjects = incomplete,
                     State = manualMissing > 0 ? "道路宽度待手填 " + manualMissing + " 项" : count > 0 ? incomplete > 0 ? "模型待核对 " + incomplete + " 项" : missing > 0 ? "已识别 · 属性可查看" : "本轮属性已齐" : candidates > 0 ? "待确认分类" : rule.Required ? "参考项未找到" : "案例差异项 · 按实际适用" };
             }).ToArray();
@@ -155,7 +184,7 @@ namespace Hifc.Reference
                 CoverageGaps = elements.Count(e => !string.IsNullOrEmpty(e.CoverageNote)), MissingRequired = roles.Count(r => r.Mode == "必要" && r.Count == 0 && r.Candidates == 0),
                 PendingClassificationRoles = roles.Count(r => r.Mode == "必要" && r.Count == 0 && r.Candidates > 0),
                 PendingRequirements = rules.Length == 0 ? 1 : 0,
-                Basis = stage == "施工图" ? "施工图检查规则待建立" : rules.Length == 0 ? "请先人工确认阶段与模型类型" : "报规成功案例 01 · " + kind + " · 用户确认通过的案例参考",
+                Basis = stage == "施工图" ? "施工图检查规则待建立" : rules.Length == 0 ? "请先人工确认阶段与模型类型" : "报规成功案例 01 + 参考软件工规区域配置 · " + kind + " · 区域补充项按实际适用",
                 FieldPercent = fields.Length == 0 ? (double?)null : 100.0 * fields.Count(f => f.Valid) / fields.Length };
             result.Ready = rules.Length > 0 && elements.Length > 0 && result.MissingRequired == 0 && result.PendingClassificationRoles == 0 && result.ReviewCount == 0 && result.CoverageGaps == 0 && fields.Length > 0 && fields.All(f => f.Acceptable);
             return result;

@@ -96,7 +96,7 @@ namespace Hifc.Reference
         public static FieldCheck Evaluate(ReferenceProperty property, ParameterRead[] reads)
         {
             var result = new FieldCheck { PropertySet = property.PropertySet, Property = property.Property,
-                Source = property.SourceParameter, RawType = property.RawType, State = "缺参数", Detail = "需准备原映射参数" };
+                Source = property.SourceParameter, RawType = property.ExportType, State = "缺参数", Detail = "需准备原映射参数" };
             if (reads.Length == 0) return result;
             ParameterRead value;
             try { value = ReferencePolicy.Resolve(reads, property.SourceParameter); }
@@ -107,9 +107,9 @@ namespace Hifc.Reference
             result.Value = ReferencePolicy.ToBridgeValue(value);
             result.DisplayValue = value?.DisplayValue ?? result.Value;
             if (string.IsNullOrWhiteSpace(result.Value)) { result.State = "未填写"; result.Detail = "参数已存在，值未填写"; return result; }
-            if (!new[] { "Real", "Integer", "Boolean", "Label", "Text" }.Contains(property.RawType))
+            if (!new[] { "Real", "Integer", "Boolean", "Label", "Text" }.Contains(property.ExportType))
             { result.State = "类型待核验"; result.Detail = "保留参考原始类型：" + property.RawType; return result; }
-            result.State = ValueIsValid(property.RawType, result.Value) ? "有效" : "值非法";
+            result.State = ValueIsValid(property.ExportType, result.Value) ? "有效" : "值非法";
             result.Detail = result.State == "有效" ? target.Origin == "type" ? "类型来源；本版仅查看，避免影响范围外实例" : "实例来源" : "值不符合参考映射类型：" + property.RawType;
             return result;
         }

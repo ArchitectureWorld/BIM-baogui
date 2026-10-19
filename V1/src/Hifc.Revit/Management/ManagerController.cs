@@ -28,6 +28,7 @@ namespace Hifc.Revit.Management
             external = ExternalEvent.Create(this);
             Window = new ManagerWindow(this, Path.Combine(RuntimePaths.OutputDirectory(), "management-profiles"));
             Window.RestoreState(ModelReader.Key(document));
+            Window.UndergroundRequested+=ConfigureUnderground;
             new System.Windows.Interop.WindowInteropHelper(Window).Owner = ui.MainWindowHandle;
             ui.Application.DocumentChanged += Changed;
         }
@@ -76,9 +77,15 @@ namespace Hifc.Revit.Management
         }
         public string GetName() => "H-IFC 模型检查与属性管理";
         public void Scan() => Queue(StartScan);
+        private void ConfigureUnderground()=>Queue(ui=>{
+            if(Window.SelectedStage!="报规")throw new InvalidOperationException("地下楼层指标当前适用于报规阶段，请先确认阶段。");
+            var dialog=new UndergroundWindow(UndergroundContextReader.Levels(document),Window.UndergroundSettings){Owner=Window};
+            if(dialog.ShowDialog()!=true)return;
+            Window.SetUndergroundSettings(dialog.Result);StartScan(ui);
+        });
         private void StartScan(UIApplication ui)
         {
-            cancelled = false; snapshot = null; scan = new CaseScanJob(document, Window.SelectedStage, Window.RequestedKind); scanEpoch = epoch;
+            cancelled = false; snapshot = null; scan = new CaseScanJob(document, Window.SelectedStage, Window.RequestedKind, Window.UndergroundSettings); scanEpoch = epoch;
             Window.SetBusy(true, "开始扫描整个当前项目…", 0, scan.Total);
             ui.Idling += Tick;
         }

@@ -167,5 +167,45 @@ class VerifyNativeExport(unittest.TestCase):
         self.assertIn("INVALID_SPATIAL_EXPORT_IDENTITY", [x.get("code") for x in result["failures"]])
 
 
+class VerifyUndergroundExport(unittest.TestCase):
+    def fixture(self, *, text_count=False):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        path = Path(tmp.name) / "underground.ifc"
+        model = ifcopenshell.file(schema="IFC4")
+        global_id = ifcopenshell.guid.new()
+        building = model.create_entity("IfcBuilding", GlobalId=global_id, Name="地下建筑测试")
+        value = model.create_entity("IfcLabel", "2") if text_count else model.create_entity("IfcInteger", 2)
+        prop = model.create_entity("IfcPropertySingleValue", Name="地下建筑层数", NominalValue=value)
+        pset = model.create_entity("IfcPropertySet", GlobalId=ifcopenshell.guid.new(), Name="Pset_建筑技术信息属性集", HasProperties=[prop])
+        model.create_entity("IfcRelDefinesByProperties", GlobalId=ifcopenshell.guid.new(), RelatedObjects=[building], RelatingPropertyDefinition=pset)
+        model.write(str(path))
+        receipt = {"ifc_sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "doc_export_calls": 1, "ifc_postprocessed": False,
+                   "source_snapshot_before": "a" * 64, "source_snapshot_after": "a" * 64, "model_transaction": "RolledBack",
+                   "spatial_export_identities": [{"element_id": 99, "ifc_entity": "IfcBuilding", "export_id": ifcopenshell.guid.expand(global_id)}],
+                   "materialization": [{"element_id": 99, "property_set": "Pset_建筑技术信息属性集", "property": "地下建筑层数", "raw_type": "Integerl", "value": "2", "status": "MATERIALIZED"}]}
+        receipt_path = path.with_suffix(".receipt.json")
+        receipt_path.write_text(json.dumps(receipt, ensure_ascii=False), encoding="utf-8")
+        return path, receipt_path
+
+    def test_building_identity_and_corrected_integer_count_are_verified(self):
+        result = verify.verify_export(*self.fixture())
+        self.assertTrue(result["all_passed"], result)
+
+    def test_legacy_label_count_cannot_pass_as_integer(self):
+        result = verify.verify_export(*self.fixture(text_count=True))
+        self.assertFalse(result["all_passed"])
+        self.assertTrue(any("IFC_TYPE_MISMATCH" in row.get("problems", []) for row in result["checks"]))
+
+    def test_native_project_guid_takes_precedence_over_project_info_element_guid(self):
+        path, receipt_path = self.fixture()
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        identity = receipt["spatial_export_identities"][0]
+        identity["native_global_id"] = ifcopenshell.open(str(path)).by_type("IfcBuilding")[0].GlobalId
+        identity["export_id"] = "a" * 32
+        receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+        self.assertTrue(verify.verify_export(path, receipt_path)["all_passed"])
+
+
 if __name__ == "__main__":
     unittest.main()

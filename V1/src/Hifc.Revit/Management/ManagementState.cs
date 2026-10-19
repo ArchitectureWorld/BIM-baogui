@@ -3,6 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web.Script.Serialization;
+using Hifc.Reference;
 
 namespace Hifc.Revit.Management
 {
@@ -23,6 +24,7 @@ namespace Hifc.Revit.Management
         public ModelSnapshot Snapshot { get; set; }
         public EditRequest[] Drafts { get; set; } = new EditRequest[0];
         public ManualWrite[] ManualWrites { get; set; } = new ManualWrite[0];
+        public UndergroundSettings Underground { get; set; } = new UndergroundSettings();
     }
     internal sealed class ManagementStateStore
     {
@@ -39,6 +41,7 @@ namespace Hifc.Revit.Management
             var value = Serializer().Deserialize<ManagementState>(File.ReadAllText(path, Encoding.UTF8));
             if (value == null || value.Version != 1 || value.DocumentKey != key) throw new InvalidOperationException("暂存记录与当前模型不匹配。");
             value.Drafts = value.Drafts ?? new EditRequest[0]; value.ManualWrites = value.ManualWrites ?? new ManualWrite[0];
+            value.Underground=value.Underground??new UndergroundSettings();
             return value;
         }
         internal void Save(ManagementState value)

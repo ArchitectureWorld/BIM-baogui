@@ -61,6 +61,7 @@ internal static class Program
         RecognitionTests.Run(Check);
         AutoFillTests.Run(Check);
         ManagerImprovementsTests.Run(Check);
+        UndergroundTests.Run(Check);
         Console.WriteLine("RESULT failures=" + failures + "; tests=" + tests);
         return failures == 0 ? 0 : 1;
     }

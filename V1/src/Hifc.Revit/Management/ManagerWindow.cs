@@ -51,6 +51,13 @@ namespace Hifc.Revit.Management
         internal string DiagnosticText => diagnosticText.Text;
         internal EditRequest[] DraftRequests => state?.Drafts ?? new EditRequest[0];
         internal bool HasRememberedStage => SelectedStage == "报规" || SelectedStage == "施工图";
+        internal event Action UndergroundRequested;
+        internal UndergroundSettings UndergroundSettings => state?.Underground ?? new UndergroundSettings();
+        internal void SetUndergroundSettings(UndergroundSettings settings)
+        {
+            if(state==null)throw new InvalidOperationException("请先打开项目管理窗口。");
+            state.Underground=settings;PersistState();MarkStale("地下楼层和基准已确认，正在全面复检；原有业务值保留，差异可在属性来源中核对。");
+        }
         internal ManagerWindow(IManagerSession session, string profileDirectory)
         {
             this.session = session;
@@ -125,6 +132,7 @@ namespace Hifc.Revit.Management
             applyButton.IsEnabled = false; choices.Children.Add(applyButton);
             cancelButton = ActionButton("取消检查", () => session.Cancel());
             cancelButton.IsEnabled = false; choices.Children.Add(cancelButton);
+            choices.Children.Add(ActionButton("地下楼层 / 基准",()=>{if(!busy)UndergroundRequested?.Invoke();}));
             Put(root, choices, 1);
             StageSelector.SelectionChanged += (s, e) => SettingsChanged();
             KindSelector.SelectionChanged += (s, e) => SettingsChanged();
@@ -465,7 +473,7 @@ namespace Hifc.Revit.Management
         {
             var rows = Selected(); selectionCount.Text = rows.Length == 0 ? "未选择对象" : "已选择 " + rows.Length + " 个对象"; FieldGrid.ItemsSource = rows.FirstOrDefault() == null ? null : Effective(rows[0]).Fields.Select(f => new PropertyEditor(this, f, rows)).ToArray(); if (snapshot == null) return;
             if (rows.Length > 0) { detail.Text = rows[0].Name + " · " + (Effective(rows[0]).Slot != rows[0].Slot ? "分类拟改为“" + Effective(rows[0]).Slot + "”（待写入）\n写入时清空旧类目专属值，保留共用值。" : ProductStatus.Text(rows[0].StatusText)) + (rows.Length > 1 ? "\n已选 " + rows.Length + " 个对象，共同属性修改将应用到所选对象。" : "\n直接修改属性值，完成后点顶部“4 写入 Revit”。"); detail.ToolTip = detail.Text; diagnosticText.Text = Summary.Basis + "\n" + string.Join("；", snapshot.DetectionEvidence) + "\n" + rows[0].Recognition; }
-            SlotSelector.ItemsSource = CaseWorkflow.ForModel(snapshot.Stage, snapshot.ModelKind).Where(r => r.Binding == "实例" && rows.Length > 0 && rows.All(e => r.Entities.Contains(e.Entity) && e.Entity != "IfcBuilding" && e.Entity != "IfcBuildingStorey")).Select(r => r.Slot).ToArray();
+            SlotSelector.ItemsSource = CaseWorkflow.ForModel(snapshot.Stage, snapshot.ModelKind).Where(r => r.Binding == "实例" && rows.Length > 0 && rows.All(e => r.Entities.Contains(e.Entity) && e.Entity != "IfcBuilding" && e.Entity != "IfcBuildingStorey" && (!CaseWorkflow.AreaSlots.Contains(r.Slot) || e.AreaScheme!=null))).Select(r => r.Slot).ToArray();
             var preferred = rows.Length > 0 ? Effective(rows[0]).Slot ?? (rows[0].SuggestedSlots.Length == 1 ? rows[0].SuggestedSlots[0] : null) : null;
             SlotSelector.SelectedItem = rows.All(r => Effective(r).Slot == preferred || r.SuggestedSlots.Contains(preferred)) ? preferred : null;
         }

@@ -48,7 +48,7 @@ namespace Hifc.Revit.Management
                     throw new InvalidOperationException("数值或单位无法按项目单位解析：" + input);
                 input = raw.ToString("R", CultureInfo.InvariantCulture);
             }
-            if (!ModelChecks.ValueIsValid(property.RawType, input)) throw new InvalidOperationException("新值不符合参考类型 " + property.RawType + "：" + input);
+            if (!ModelChecks.ValueIsValid(property.ExportType, input)) throw new InvalidOperationException("新值不符合参考类型 " + property.ExportType + "：" + input);
             return input;
         }
         internal static EditPreview Preview(Document doc, EditRequest request)
