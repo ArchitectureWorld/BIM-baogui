@@ -34,6 +34,7 @@ public sealed class PlanSigner : IDisposable
         lock (gate) return Convert.ToBase64String(rsa.SignData(Encoding.UTF8.GetBytes(value), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
     }
     public void Sign(EditPlan plan) { plan.Hash = Canonical.PlanHash(plan); plan.Signature = Signature(plan.Hash); }
+    public void Sign(ClientUpdateManifest update) => update.Signature = Signature(UpdateTrust.Payload(update));
     public WritePermit IssuePermit(EditPlan plan, AccountInfo account, DateTime databaseNowUtc, string permitId)
     {
         if (account == null || !AccountPolicy.IsActive(account, databaseNowUtc)) throw new InvalidOperationException("账号已到期，请联系管理员延期；人工草稿会保留。");

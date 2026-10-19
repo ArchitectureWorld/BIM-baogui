@@ -10,35 +10,27 @@ using Hifc.Web.Contracts;
 
 namespace Hifc.Web.Revit
 {
-    public sealed class DeviceCredential
+    public sealed class PersonProfile
     {
         public string Phone { get; set; }
-        public string Credential { get; set; }
+        public string RealName { get; set; }
     }
-    public sealed class DeviceStore
+    public sealed class ProfileStore
     {
         private readonly string root;
-        public DeviceStore(string root) { this.root = Path.GetFullPath(root); Directory.CreateDirectory(this.root); }
-        public string ActivePhone => ProtectedFile.Read<string>(Path.Combine(root, "active.bin"));
+        public ProfileStore(string root) { this.root = Path.GetFullPath(root); Directory.CreateDirectory(this.root); }
+        public PersonProfile Current => ProtectedFile.Read<PersonProfile>(Path.Combine(root, "person.bin"));
+        public string LegacyPhone => ProtectedFile.Read<string>(Path.Combine(root, "active.bin"));
         public static string NormalizePhone(string phone)
         {
             phone = (phone ?? "").Trim().Replace(" ", ""); if (phone.StartsWith("+86", StringComparison.Ordinal)) phone = phone.Substring(3);
             if (!Regex.IsMatch(phone, "^1[3-9][0-9]{9}$")) throw new InvalidOperationException("请填写有效的大陆手机号码。"); return phone;
         }
-        private string FileFor(string phone, bool pending) => Path.Combine(root, Canonical.Hash(NormalizePhone(phone)) + (pending ? ".pending.bin" : ".bin"));
-        public DeviceCredential[] Candidates(string phone) => new[] { ProtectedFile.Read<DeviceCredential>(FileFor(phone, true)), ProtectedFile.Read<DeviceCredential>(FileFor(phone, false)) }.Where(c => c != null).ToArray();
-        public DeviceCredential Stage(string phone)
+        public void Save(string phone, string name)
         {
-            phone = NormalizePhone(phone); var existing = ProtectedFile.Read<DeviceCredential>(FileFor(phone, true)); if (existing != null) return existing;
-            var bytes = new byte[32]; using (var random = RandomNumberGenerator.Create()) random.GetBytes(bytes);
-            var credential = new DeviceCredential { Phone = phone, Credential = Convert.ToBase64String(bytes) };
-            ProtectedFile.Write(FileFor(phone, true), credential); return credential;
-        }
-        public void Accept(DeviceCredential credential)
-        {
-            if (credential == null || !Candidates(credential.Phone).Any(c => c.Credential == credential.Credential)) throw new InvalidOperationException("本机凭证与登录结果不匹配。");
-            ProtectedFile.Write(FileFor(credential.Phone, false), credential); ProtectedFile.Write(Path.Combine(root, "active.bin"), credential.Phone);
-            var pending = FileFor(credential.Phone, true); if (File.Exists(pending)) File.Delete(pending);
+            phone = NormalizePhone(phone); name = (name ?? "").Trim();
+            if (name.Length < 2 || name.Length > 40 || name.Any(char.IsControl)) throw new InvalidOperationException("请填写 2–40 个字符的真实姓名。");
+            ProtectedFile.Write(Path.Combine(root, "person.bin"), new PersonProfile { Phone = phone, RealName = name });
         }
     }
     public sealed class SavedWorkspace

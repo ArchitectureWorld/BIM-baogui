@@ -1,6 +1,7 @@
 using Hifc.Web.Contracts;
 using Hifc.Web.RuleEngine;
 using Npgsql;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace Hifc.Web.Server;
 
@@ -10,6 +11,8 @@ public sealed class WebRuntimeOptions
     public string SigningKeyPath { get; init; }
     public string BuildRevision { get; init; } = "development";
     public bool EnableAccounts { get; init; }
+    public string ClientUpdateDirectory { get; init; } = Path.Combine(AppContext.BaseDirectory, "downloads");
+    public string TrustedProxyNetwork { get; init; }
 
     public static WebRuntimeOptions FromEnvironment()
     {
@@ -26,7 +29,8 @@ public sealed class WebRuntimeOptions
             DatabaseConnectionString = connection.ConnectionString,
             SigningKeyPath = Environment.GetEnvironmentVariable("HIFC_SIGNING_KEY_PATH") ?? "/var/lib/hifc/signing.pem",
             BuildRevision = Environment.GetEnvironmentVariable("HIFC_BUILD_REVISION") ?? "development",
-            EnableAccounts = Environment.GetEnvironmentVariable("HIFC_AUTHENTICATION_ENABLED") == "1"
+            EnableAccounts = Environment.GetEnvironmentVariable("HIFC_AUTHENTICATION_ENABLED") == "1",
+            TrustedProxyNetwork = Environment.GetEnvironmentVariable("HIFC_TRUSTED_PROXY_NETWORK")
         };
     }
 }
@@ -44,7 +48,12 @@ public static class ServerApplication
         builder.Services.AddSingleton<WorkflowStore>();
         builder.Services.AddSingleton<IdentityStore>();
         if (options.EnableAccounts) AdminPortal.Configure(builder, options);
+        if (options.TrustedProxyNetwork != null) builder.Services.Configure<ForwardedHeadersOptions>(forwarded => {
+            forwarded.ForwardedHeaders = ForwardedHeaders.XForwardedFor; forwarded.ForwardLimit = 1;
+            forwarded.KnownProxies.Clear(); forwarded.KnownIPNetworks.Clear(); forwarded.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(options.TrustedProxyNetwork));
+        });
         var app = builder.Build();
+        if (options.TrustedProxyNetwork != null) app.UseForwardedHeaders();
         app.Use(async (context, next) => {
             context.Response.Headers.CacheControl = "no-store";
             context.Response.Headers.XContentTypeOptions = "nosniff";
@@ -53,6 +62,7 @@ public static class ServerApplication
             catch (InvalidOperationException ex) when (!context.Response.HasStarted) { context.Response.StatusCode = ex.Message.Contains("账号已到期", StringComparison.Ordinal) ? 403 : 400; await context.Response.WriteAsJsonAsync(new ApiError { Code = context.Response.StatusCode == 403 ? "ACCOUNT_EXPIRED" : "REQUEST_REJECTED", Message = ex.Message }); }
             catch (NpgsqlException) when (!context.Response.HasStarted) { context.Response.StatusCode = 503; await context.Response.WriteAsJsonAsync(new ApiError { Code = "DATABASE_UNAVAILABLE", Message = "服务暂时不可用，请保留草稿后重试。" }); }
         });
+        ClientUpdateEndpoints.Map(app, options.ClientUpdateDirectory);
         app.MapGet("/health/live", () => Results.Ok(new { State = "live", Version = "0.5.0-dev", options.BuildRevision, AuthenticationConfigured = options.EnableAccounts }));
         app.MapGet("/health/ready", async (NpgsqlDataSource source, HttpContext context) => {
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);

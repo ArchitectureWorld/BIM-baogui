@@ -58,14 +58,9 @@ public sealed class IdentityStore(NpgsqlDataSource source)
             """, connection, transaction);
         await command.ExecuteNonQueryAsync(ct); await transaction.CommitAsync(ct);
     }
-    private static byte[] CredentialHash(string value)
-    {
-        try { var bytes = Convert.FromBase64String(value ?? ""); if (bytes.Length != 32) throw new FormatException(); return SHA256.HashData(bytes); }
-        catch (FormatException) { throw new InvalidOperationException("电脑凭证无效，请从 Web 插件登记或重新绑定。"); }
-    }
     private static byte[] Hash(string value) => SHA256.HashData(Encoding.UTF8.GetBytes(value));
     private static string RandomToken() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
-    private static InvalidOperationException Refused() => new WebOperationException("IDENTITY_REJECTED", 401, "登录信息无效；已有账号请使用原电脑，或联系管理员重新绑定。");
+    private static InvalidOperationException Refused() => new WebOperationException("IDENTITY_REJECTED", 401, "手机号与已登记姓名不一致，或该账号不可用于成员登录。请核对后重试。");
     private static AccountInfo Read(NpgsqlDataReader reader)
     {
         var account = new AccountInfo { Id = reader.GetGuid(0).ToString("N"), Phone = reader.GetString(1), RealName = reader.GetString(2), RegisteredAtUtc = reader.GetDateTime(3), ExpiresAtUtc = reader.GetDateTime(4), IsAdmin = reader.GetBoolean(5), RowVersion = reader.GetInt64(6), ServerTimeUtc = reader.GetDateTime(7) };
@@ -83,18 +78,18 @@ public sealed class IdentityStore(NpgsqlDataSource source)
     }
     public async Task<AccountSession> RegisterAsync(Registration request, CancellationToken ct = default)
     {
-        var phone = AccountPolicy.Phone(request?.Phone); var name = AccountPolicy.RealName(request?.RealName); var digest = CredentialHash(request?.Credential);
+        var phone = AccountPolicy.Phone(request?.Phone); var name = AccountPolicy.RealName(request?.RealName);
         await using var connection = await source.OpenConnectionAsync(ct); await using var transaction = await connection.BeginTransactionAsync(ct);
         await using var command = new NpgsqlCommand("SELECT pg_advisory_xact_lock(hashtextextended(@phone, 57293))", connection, transaction);
         command.Parameters.AddWithValue("phone", phone); await command.ExecuteNonQueryAsync(ct);
-        command.CommandText = "SELECT a.id,c.digest FROM hifc_web.accounts a LEFT JOIN hifc_web.device_credentials c ON c.account_id=a.id WHERE a.phone=@phone FOR UPDATE OF a";
+        command.CommandText = "SELECT id,real_name,is_admin FROM hifc_web.accounts WHERE phone=@phone FOR UPDATE";
         Guid id;
         await using (var reader = await command.ExecuteReaderAsync(ct))
         {
             if (await reader.ReadAsync(ct))
             {
                 id = reader.GetGuid(0);
-                if (reader.IsDBNull(1) || !CryptographicOperations.FixedTimeEquals(reader.GetFieldValue<byte[]>(1), digest)) throw new WebOperationException("ALREADY_REGISTERED", 409, "手机号已登记，请在原电脑登录，或联系管理员领取一次性绑定码。");
+                if (reader.GetBoolean(2) || !string.Equals(reader.GetString(1), name, StringComparison.Ordinal)) throw Refused();
             }
             else id = Guid.Empty;
         }
@@ -103,22 +98,21 @@ public sealed class IdentityStore(NpgsqlDataSource source)
             id = Guid.NewGuid(); command.CommandText = """
                 WITH instant AS MATERIALIZED (SELECT clock_timestamp() AS utc)
                 INSERT INTO hifc_web.accounts(id,phone,real_name,registered_at,expires_at) SELECT @id,@phone,@name,utc,utc+interval '168 hours' FROM instant;
-                INSERT INTO hifc_web.device_credentials(account_id,digest) VALUES(@id,@digest);
                 INSERT INTO hifc_web.identity_audit(actor_id,account_id,action) VALUES(@id,@id,'REGISTER');
                 """;
-            command.Parameters.AddWithValue("id", id); command.Parameters.AddWithValue("name", name); command.Parameters.AddWithValue("digest", digest); await command.ExecuteNonQueryAsync(ct);
+            command.Parameters.AddWithValue("id", id); command.Parameters.AddWithValue("name", name); await command.ExecuteNonQueryAsync(ct);
         }
         var session = await Session(connection, transaction, id, ct); await transaction.CommitAsync(ct); return session;
     }
     public async Task<AccountSession> LoginAsync(LoginRequest request, CancellationToken ct = default)
     {
-        var phone = AccountPolicy.Phone(request?.Phone); var digest = CredentialHash(request?.Credential);
+        var phone = AccountPolicy.Phone(request?.Phone); var name = AccountPolicy.RealName(request?.RealName);
         await using var connection = await source.OpenConnectionAsync(ct); await using var transaction = await connection.BeginTransactionAsync(ct);
-        await using var command = new NpgsqlCommand("SELECT a.id,c.digest FROM hifc_web.accounts a JOIN hifc_web.device_credentials c ON c.account_id=a.id WHERE phone=@phone FOR SHARE OF a,c", connection, transaction);
+        await using var command = new NpgsqlCommand("SELECT id,real_name,is_admin FROM hifc_web.accounts WHERE phone=@phone FOR SHARE", connection, transaction);
         command.Parameters.AddWithValue("phone", phone); Guid id;
         await using (var reader = await command.ExecuteReaderAsync(ct))
         {
-            if (!await reader.ReadAsync(ct) || !CryptographicOperations.FixedTimeEquals(reader.GetFieldValue<byte[]>(1), digest)) throw Refused(); id = reader.GetGuid(0);
+            if (!await reader.ReadAsync(ct) || reader.GetBoolean(2) || !string.Equals(reader.GetString(1), name, StringComparison.Ordinal)) throw Refused(); id = reader.GetGuid(0);
         }
         var session = await Session(connection, transaction, id, ct); await transaction.CommitAsync(ct); return session;
     }
@@ -133,42 +127,7 @@ public sealed class IdentityStore(NpgsqlDataSource source)
         if (string.IsNullOrEmpty(token) || token.Length > 256) return;
         await using var command = source.CreateCommand("DELETE FROM hifc_web.sessions WHERE digest=@digest"); command.Parameters.AddWithValue("digest", Hash(token)); await command.ExecuteNonQueryAsync(ct);
     }
-    public async Task<string> IssueRebindAsync(Guid actor, Guid account, CancellationToken ct = default)
-    {
-        var code = RandomToken();
-        await using var connection = await source.OpenConnectionAsync(ct); await using var transaction = await connection.BeginTransactionAsync(ct);
-        await using var command = new NpgsqlCommand("SELECT is_admin FROM hifc_web.accounts WHERE id=@actor FOR SHARE", connection, transaction); command.Parameters.AddWithValue("actor", actor);
-        if (!Equals(await command.ExecuteScalarAsync(ct), true)) throw new WebOperationException("ADMIN_REQUIRED", 403, "只有管理员可以重新绑定。");
-        command.CommandText = "SELECT is_admin FROM hifc_web.accounts WHERE id=@account FOR UPDATE"; command.Parameters.AddWithValue("account", account);
-        if (!Equals(await command.ExecuteScalarAsync(ct), false)) throw new InvalidOperationException("普通账号不存在。");
-        command.CommandText = """
-            INSERT INTO hifc_web.rebind_codes(account_id,digest,expires_at) VALUES(@account,@digest,clock_timestamp()+interval '10 minutes')
-            ON CONFLICT(account_id) DO UPDATE SET digest=excluded.digest,expires_at=excluded.expires_at,used_at=NULL;
-            INSERT INTO hifc_web.identity_audit(actor_id,account_id,action) VALUES(@actor,@account,'ISSUE_REBIND');
-            """;
-        command.Parameters.AddWithValue("digest", Hash(code)); await command.ExecuteNonQueryAsync(ct); await transaction.CommitAsync(ct); return code;
-    }
-    public async Task<AccountSession> RebindAsync(RebindRequest request, CancellationToken ct = default)
-    {
-        var phone = AccountPolicy.Phone(request?.Phone); var digest = CredentialHash(request?.Credential);
-        if (string.IsNullOrEmpty(request.Code) || request.Code.Length > 128) throw Refused();
-        await using var connection = await source.OpenConnectionAsync(ct); await using var transaction = await connection.BeginTransactionAsync(ct);
-        await using var command = new NpgsqlCommand("SELECT a.id,r.digest,r.expires_at,r.used_at,clock_timestamp() FROM hifc_web.accounts a JOIN hifc_web.rebind_codes r ON r.account_id=a.id WHERE a.phone=@phone AND NOT a.is_admin FOR UPDATE OF a,r", connection, transaction);
-        command.Parameters.AddWithValue("phone", phone); Guid id;
-        await using (var reader = await command.ExecuteReaderAsync(ct))
-        {
-            if (!await reader.ReadAsync(ct) || !reader.IsDBNull(3) || reader.GetDateTime(2) <= reader.GetDateTime(4) || !CryptographicOperations.FixedTimeEquals(reader.GetFieldValue<byte[]>(1), Hash(request.Code))) throw Refused();
-            id = reader.GetGuid(0);
-        }
-        command.CommandText = """
-            UPDATE hifc_web.rebind_codes SET used_at=clock_timestamp() WHERE account_id=@id;
-            INSERT INTO hifc_web.device_credentials(account_id,digest) VALUES(@id,@digest) ON CONFLICT(account_id) DO UPDATE SET digest=excluded.digest;
-            DELETE FROM hifc_web.sessions WHERE account_id=@id;
-            INSERT INTO hifc_web.identity_audit(actor_id,account_id,action) VALUES(@id,@id,'USE_REBIND');
-            """;
-        command.Parameters.AddWithValue("id", id); command.Parameters.AddWithValue("digest", digest); await command.ExecuteNonQueryAsync(ct);
-        var session = await Session(connection, transaction, id, ct); await transaction.CommitAsync(ct); return session;
-    }
+
 }
 
 public sealed class WebOperationException(string code, int status, string message) : InvalidOperationException(message)

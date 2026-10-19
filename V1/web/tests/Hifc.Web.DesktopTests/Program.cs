@@ -12,16 +12,16 @@ internal static class Program
         Action<string, Action> test = (name, action) => { try { action(); passed++; Console.WriteLine("PASS " + name); } catch (Exception ex) { failed++; Console.WriteLine("FAIL " + name + ": " + ex.GetType().Name + " " + ex.Message); } };
         Action<bool, string> require = (condition, message) => { if (!condition) throw new Exception(message); };
         var root = Path.Combine(Environment.CurrentDirectory, ".local", "desktop-tests", Guid.NewGuid().ToString("N"));
-        test("staged registration credentials survive a restart without appearing in plaintext files", () => {
-            var store = new DeviceStore(Path.Combine(root, "devices")); var staged = store.Stage("13900000001"); var reopened = new DeviceStore(Path.Combine(root, "devices"));
-            require(reopened.Candidates(staged.Phone).Single().Credential == staged.Credential, "A lost registration reply would lose the device credential.");
-            require(Directory.GetFiles(Path.Combine(root, "devices")).All(p => !File.ReadAllText(p).Contains(staged.Credential)), "A credential was stored as plaintext.");
+        test("remembered phone and name survive restart encrypted without a computer binding", () => {
+            var folder = Path.Combine(root, "people"); var store = new ProfileStore(folder); store.Save("+86 13900000001", "内网人员验收");
+            var current = new ProfileStore(folder).Current;
+            require(current.Phone == "13900000001" && current.RealName == "内网人员验收", "Remembered person was lost or normalized incorrectly.");
+            require(Directory.GetFiles(folder).All(path => !File.ReadAllText(path).Contains(current.Phone) && !File.ReadAllText(path).Contains(current.RealName)), "Person details were written in plaintext.");
         });
-        test("pending rebinding preserves the old device until the new credential is accepted", () => {
-            var store = new DeviceStore(Path.Combine(root, "rebind")); var original = store.Stage("13900000002"); store.Accept(original); var pending = store.Stage("13900000002");
-            require(pending.Credential != original.Credential && store.Candidates(original.Phone).Length == 2, "Pending rebind destroyed the current credential.");
-            store.Accept(pending); var reopened = new DeviceStore(Path.Combine(root, "rebind"));
-            require(reopened.ActivePhone == original.Phone && reopened.Candidates(original.Phone).Single().Credential == pending.Credential, "Accepted rebind did not persist atomically.");
+        test("invalid person input preserves previously remembered details", () => {
+            var store = new ProfileStore(Path.Combine(root, "profile-validation")); store.Save("13900000002", "原人员验收");
+            bool rejected = false; try { store.Save("13900000002", "一"); } catch (InvalidOperationException) { rejected = true; }
+            require(rejected && store.Current.RealName == "原人员验收", "Invalid input destroyed remembered details.");
         });
         test("workspace persists empty zero and false drafts together with the last visible check", () => {
             var key = new string('a', 64); var store = new WorkspaceStore(Path.Combine(root, "drafts"));
@@ -34,6 +34,7 @@ internal static class Program
             require(refused, "A draft path escaped its root.");
         });
         CanonicalCases.Run(test);
+        UpdateInstallCases.Run(test);
         DesktopHttpCase.Run(test);
         Console.WriteLine("RESULT " + passed + " passed; " + failed + " failed"); return failed == 0 ? 0 : 1;
     }

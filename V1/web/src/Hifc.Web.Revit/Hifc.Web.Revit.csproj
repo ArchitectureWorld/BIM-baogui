@@ -3,6 +3,7 @@
   <ItemGroup>
     <Reference Include="System.Security" />
     <ProjectReference Include="../Hifc.Web.Client/Hifc.Web.Client.csproj" />
+    <ProjectReference Include="../Hifc.Web.Update/Hifc.Web.Update.csproj" />
     <Reference Include="RevitAPI"><HintPath>C:/Program Files/Autodesk/Revit 2020/RevitAPI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="RevitAPIUI"><HintPath>C:/Program Files/Autodesk/Revit 2020/RevitAPIUI.dll</HintPath><Private>false</Private></Reference>
     <Compile Include="../../../src/Hifc.Revit/Management/ModelGeometry.cs" Link="ExistingGeometry/ModelGeometry.cs" />

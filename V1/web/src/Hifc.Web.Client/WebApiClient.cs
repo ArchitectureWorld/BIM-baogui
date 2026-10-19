@@ -50,7 +50,6 @@ namespace Hifc.Web.Client
         }
         public Task<AccountSession> RegisterAsync(Registration request, CancellationToken ct) => SignInAsync("accounts/register", request, ct);
         public Task<AccountSession> LoginAsync(LoginRequest request, CancellationToken ct) => SignInAsync("sessions", request, ct);
-        public Task<AccountSession> RebindAsync(RebindRequest request, CancellationToken ct) => SignInAsync("accounts/rebind", request, ct);
         private async Task<T> Request<T>(HttpMethod method, string path, object body, CancellationToken ct, bool authenticated = true)
         {
             using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct))

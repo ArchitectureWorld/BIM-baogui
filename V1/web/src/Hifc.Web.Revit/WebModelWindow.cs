@@ -16,11 +16,12 @@ namespace Hifc.Web.Revit
     public sealed class WebModelWindow : Window
     {
         private readonly WebModelSession session;
-        private readonly TextBox phone = new TextBox(), name = new TextBox(), code = new TextBox();
+        private readonly TextBox phone = new TextBox(), name = new TextBox();
         private readonly TextBox search = new TextBox { Width = 210 }, fieldSearch = new TextBox(), newValue = new TextBox();
         private readonly ComboBox kind = new ComboBox { Width = 125 }, slots = new ComboBox(), filter = new ComboBox { Width = 105 };
         private readonly ListBox categories = new ListBox { HorizontalContentAlignment = HorizontalAlignment.Stretch };
         private readonly TextBlock status = Text(), account = Text(), context = Text(), selection = Text(), propertyDetail = Text(), connectionStatus = Text(), previewSummary = Text();
+        private readonly TextBlock updateStatus = Text();
         private readonly DataGrid elements = Table(), fields = Table(), preview = Table();
         private readonly ObservableCollection<Editor> editors = new ObservableCollection<Editor>();
         private readonly List<Button> buttons = new List<Button>();
@@ -31,6 +32,7 @@ namespace Hifc.Web.Revit
         private readonly Button scanButton, previewButton, writeButton, assignButton, locateButton;
         private CheckResult shownResult;
         private EditPlan shownPlan;
+        private string shownAccountId;
         private Window connectionWindow;
         private bool restoring, loadingValue, closing;
 
@@ -43,7 +45,7 @@ namespace Hifc.Web.Revit
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
             LiquidGlassTheme.Apply(this);
             foreach (var combo in new[] { kind, slots, filter }) LiquidGlassTheme.Combo(combo);
-            foreach (var input in new[] { search, fieldSearch, newValue, phone, name, code }) LiquidGlassTheme.SearchBox(input);
+            foreach (var input in new[] { search, fieldSearch, newValue, phone, name }) LiquidGlassTheme.SearchBox(input);
             var root = new Grid { Margin = new Thickness(21, 17, 21, 15), Background = Background };
             foreach (var height in new[] { GridLength.Auto, GridLength.Auto, GridLength.Auto, new GridLength(1, GridUnitType.Star), GridLength.Auto })
                 root.RowDefinitions.Add(new RowDefinition { Height = height });
@@ -113,7 +115,7 @@ namespace Hifc.Web.Revit
             editArea.Children.Add(suggestions); editArea.Children.Add(skipInvalid); Put(right, editArea, 4);
             var rightCard = LiquidGlassTheme.Card(right, new Thickness(0)); Grid.SetColumn(rightCard, 2); work.Children.Add(rightCard); Put(root, work, 3);
 
-            var footer = new StackPanel { Margin = new Thickness(5, 12, 5, 0) }; footer.Children.Add(progress); status.Margin = new Thickness(0, 6, 0, 0); footer.Children.Add(status); Put(root, footer, 4);
+            var footer = new StackPanel { Margin = new Thickness(5, 12, 5, 0) }; footer.Children.Add(progress); status.Margin = new Thickness(0, 6, 0, 0); footer.Children.Add(status); updateStatus.Margin = new Thickness(0, 4, 0, 0); updateStatus.FontSize = 11; footer.Children.Add(updateStatus); Put(root, footer, 4);
             kind.ItemsSource = new[] { "自动识别", "总图", "单体建筑" }; kind.SelectedItem = session.Workspace.ModelKind;
             kind.SelectionChanged += (s, e) => { if (!restoring && !session.Busy && kind.SelectedItem is string selected) session.SelectModelKind(selected); };
             categories.SelectionChanged += (s, e) => { if (!restoring) RefreshRows(); };
@@ -122,12 +124,12 @@ namespace Hifc.Web.Revit
             fields.SelectionChanged += (s, e) => LoadSelectedField();
             newValue.TextChanged += (s, e) => { if (!loadingValue && !session.Busy && fields.SelectedItem is Editor editor && editor.Editable) editor.Input = newValue.Text; };
             suggestions.Checked += InvalidateOptions; suggestions.Unchecked += InvalidateOptions; skipInvalid.Checked += InvalidateOptions; skipInvalid.Unchecked += InvalidateOptions;
-            phone.Text = session.ActivePhone ?? ""; session.Changed += Refresh; Refresh();
-            Loaded += async (s, e) => { if (!string.IsNullOrEmpty(phone.Text)) await session.RunAsync(() => session.ConnectAsync(phone.Text, "", false)); };
+            phone.Text = session.ActivePhone ?? ""; name.Text = session.ActiveName; session.Changed += Refresh; UpdateCoordinator.Changed += UpdateNotice; UpdateNotice(); Refresh();
+            Loaded += async (s, e) => { if (!string.IsNullOrEmpty(phone.Text) && !string.IsNullOrEmpty(name.Text)) await session.RunAsync(() => session.ConnectAsync(phone.Text, name.Text, false)); };
             Closing += (s, e) => {
                 if (session.Busy) { e.Cancel = true; return; }
                 try { session.Flush(); } catch (Exception ex) { e.Cancel = true; MessageBox.Show(this, "草稿暂未保存，请保留窗口并重试。\n" + ex.Message, "HIFC Web"); return; }
-                closing = true; connectionWindow?.Close(); session.Changed -= Refresh; session.Dispose();
+                closing = true; connectionWindow?.Close(); session.Changed -= Refresh; UpdateCoordinator.Changed -= UpdateNotice; session.Dispose();
             };
         }
 
@@ -156,11 +158,9 @@ namespace Hifc.Web.Revit
             if (connectionWindow == null) {
                 connectionWindow = new Window { Title = "HIFC-V1-Web · 账号与连接", Width = 500, SizeToContent = SizeToContent.Height, ResizeMode = ResizeMode.NoResize, Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner, MaxHeight = SystemParameters.WorkArea.Height };
                 LiquidGlassTheme.Apply(connectionWindow); var form = new StackPanel { Margin = new Thickness(24) };
-                form.Children.Add(LiquidGlassTheme.Title("登记与连接")); form.Children.Add(Text("首次登记填写手机号和真实姓名，后续在当前电脑自动登录。", new Thickness(0, 7, 0, 10)));
-                Input(form, "手机号", phone); Input(form, "真实姓名（首次登记）", name);
-                var connect = Action("登记 / 自动登录", async () => { await session.ConnectAsync(phone.Text, name.Text, true); if (session.Account != null) connectionWindow.Hide(); }, true); connect.Margin = new Thickness(0, 14, 0, 8); form.Children.Add(connect);
-                var rebind = new StackPanel(); Input(rebind, "管理员提供的一次性绑定码", code); var bind = Action("绑定当前电脑", async () => { await session.ConnectAsync(phone.Text, name.Text, false, code.Text); code.Clear(); if (session.Account != null) connectionWindow.Hide(); }); bind.Margin = new Thickness(0, 12, 0, 0); rebind.Children.Add(bind);
-                form.Children.Add(new Expander { Header = "已有账号 / 更换电脑", Content = rebind, Margin = new Thickness(0, 12, 0, 12) });
+                form.Children.Add(LiquidGlassTheme.Title("登记与连接")); form.Children.Add(Text("填写手机号和真实姓名即可登记或登录；换电脑继续使用原账号。", new Thickness(0, 7, 0, 10)));
+                Input(form, "手机号", phone); Input(form, "真实姓名", name);
+                var connect = Action("登记 / 登录", async () => { await session.ConnectAsync(phone.Text, name.Text, true); if (session.Account != null) connectionWindow.Hide(); }, true); connect.Margin = new Thickness(0, 14, 0, 8); form.Children.Add(connect);
                 form.Children.Add(Text("账号初始有效 168 小时；换机保留原期限。到期后仍可查看和编辑本机草稿，延期请联系管理员。", new Thickness(0, 4, 0, 14))); form.Children.Add(connectionStatus);
                 connectionWindow.Content = form; connectionWindow.Closing += (s, e) => { if (!closing) { e.Cancel = true; connectionWindow.Hide(); } };
             }
@@ -178,7 +178,7 @@ namespace Hifc.Web.Revit
             if (!Dispatcher.CheckAccess()) { Dispatcher.BeginInvoke(new Action(Refresh)); return; }
             status.Text = connectionStatus.Text = session.Status; progress.Visibility = session.Busy ? Visibility.Visible : Visibility.Collapsed;
             account.Text = session.Account == null ? "尚未连接 · 点击“账号与连接”开始" : session.Account.RealName + "  ·  " + (session.Account.IsActive ? "有效至 " + new DateTimeOffset(session.Account.ExpiresAtUtc).ToOffset(TimeSpan.FromHours(8)).ToString("yyyy-MM-dd HH:mm") : "已到期，请联系管理员延期");
-            if (session.Account != null) name.Text = session.Account.RealName;
+            if (session.Account != null && shownAccountId != session.Account.Id) { shownAccountId = session.Account.Id; phone.Text = session.Account.Phone; name.Text = session.Account.RealName; }
             context.Text = session.Result == null ? "等待全面检查" : session.Result.ModelKind + (session.LiveCheck ? " · 本轮检查" : " · 待重新检查");
             objectCount.Text = session.Result?.Elements.Length.ToString() ?? "—";
             issueCount.Text = session.Result?.Fields.Count(Problem).ToString() ?? "—"; draftCount.Text = session.Workspace.Drafts.Length.ToString(); changeCount.Text = session.Plan?.Changes.Length.ToString() ?? "—";
@@ -189,7 +189,7 @@ namespace Hifc.Web.Revit
             assignButton.IsEnabled = !session.Busy && active && elements.SelectedItems.Count > 0 && slots.Items.Count > 0;
             locateButton.IsEnabled = !session.Busy && elements.SelectedItems.Count > 0;
             fields.IsEnabled = elements.IsEnabled = categories.IsEnabled = kind.IsEnabled = slots.IsEnabled = suggestions.IsEnabled = skipInvalid.IsEnabled = !session.Busy;
-            phone.IsEnabled = name.IsEnabled = code.IsEnabled = !session.Busy;
+            phone.IsEnabled = name.IsEnabled = !session.Busy;
             if (!ReferenceEquals(shownResult, session.Result)) {
                 var selectedSlot = (categories.SelectedItem as Category)?.Role.Slot; shownResult = session.Result; restoring = true;
                 var rows = shownResult?.Elements ?? new ElementResult[0]; var choices = new List<Category> { new Category("全部对象", rows.Length, "当前文档") };
@@ -200,6 +200,11 @@ namespace Hifc.Web.Revit
             if (!ReferenceEquals(shownPlan, session.Plan)) { shownPlan = session.Plan; preview.ItemsSource = shownPlan?.Changes; }
             previewSummary.Text = shownPlan == null ? "尚未生成预览。修改草稿后，请点击“生成写入预览”。" : shownPlan.Changes.Length + " 项修改 · 核对原值、拟写值与影响范围后，点击“写入并全面复检”。";
             RefreshFieldDetail();
+        }
+        private void UpdateNotice()
+        {
+            if (!Dispatcher.CheckAccess()) { Dispatcher.BeginInvoke(new Action(UpdateNotice)); return; }
+            updateStatus.Text = UpdateCoordinator.Status;
         }
         private static bool Problem(FieldResult field) => field.State != "有效" && !(field.AllowedEmpty && field.State == "未填写");
         private static bool InSlot(ElementResult row, string slot) => row.Slots.Contains(slot) || row.Element.DeclaredSlot == slot;

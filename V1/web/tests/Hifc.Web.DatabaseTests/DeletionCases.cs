@@ -9,7 +9,6 @@ internal static class DeletionCases
     {
         var store = new AccountStore(source); var identity = new IdentityStore(source);
         string Phone() => "139" + Random.Shared.NextInt64(10000000, 100000000);
-        string Credential() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
         static void Require(bool value, string message) { if (!value) throw new Exception(message); }
         static async Task Refused(Func<Task> action, int status) {
             try { await action(); } catch (WebOperationException ex) when (ex.Status == status) { return; }
@@ -20,14 +19,14 @@ internal static class DeletionCases
         async Task<long> Count(string table, string column, Guid id) {
             await using var command = source.CreateCommand($"SELECT count(*) FROM hifc_web.{table} WHERE {column}=@id"); command.Parameters.AddWithValue("id", id); return (long)await command.ExecuteScalarAsync();
         }
-        await test("account deletion atomically revokes devices sessions rebind and workflows while retaining its own audit", async () => {
-            var registration = new Registration { Phone = Phone(), RealName = "完整删除验收", Credential = Credential() };
+        await test("account deletion atomically revokes all computer sessions and workflows while retaining its own audit", async () => {
+            var registration = new Registration { Phone = Phone(), RealName = "完整删除验收" };
             var session = await identity.RegisterAsync(registration); var id = Guid.Parse(session.Account.Id);
-            await identity.LoginAsync(new LoginRequest { Phone = registration.Phone, Credential = registration.Credential });
-            var code = await identity.IssueRebindAsync(actor, id); await store.ExtendAsync(actor, id, 1, 1, null);
+            var other = await identity.LoginAsync(new LoginRequest { Phone = registration.Phone, RealName = registration.RealName });
+            await store.ExtendAsync(actor, id, 1, 1, null);
             await using (var command = source.CreateCommand("INSERT INTO hifc_web.workflows(actor_id,scan_id,payload) VALUES(@id,'deletion-fixture','{}')")) { command.Parameters.AddWithValue("id", id); await command.ExecuteNonQueryAsync(); }
             await store.DeleteAsync(actor, id, 2);
-            Require(await store.GetAsync(id) == null && await identity.ResolveAsync(session.AccessToken) == null, "Deleted account retained access.");
+            Require(await store.GetAsync(id) == null && await identity.ResolveAsync(session.AccessToken) == null && await identity.ResolveAsync(other.AccessToken) == null, "Deleted account retained access.");
             foreach (var table in new[] { "sessions", "device_credentials", "rebind_codes", "admin_passwords", "account_audit", "identity_audit" })
                 Require(await Count(table, "account_id", id) == 0, "Deletion left related rows in " + table);
             Require(await Count("identity_audit", "actor_id", id) == 0 && await Count("workflows", "actor_id", id) == 0, "Deletion left actor data.");
@@ -37,7 +36,7 @@ internal static class DeletionCases
             }
             await Refused(() => store.DeleteAsync(actor, id, 2), 404);
             Require(await Count("account_deletion_audit", "account_id", id) == 1, "Repeated deletion duplicated its audit.");
-            try { await identity.RebindAsync(new RebindRequest { Phone = registration.Phone, Credential = Credential(), Code = code }); throw new Exception("Deleted binding code retained access."); } catch (WebOperationException) { }
+            try { await identity.LoginAsync(new LoginRequest { Phone = registration.Phone, RealName = registration.RealName }); throw new Exception("Deleted person could still log in."); } catch (WebOperationException) { }
         });
         await test("ordinary actors administrator targets and stale confirmations cannot delete accounts", async () => {
             var member = await store.TryCreateOrdinaryAsync(Phone(), "删除保护验收"); var id = Guid.Parse(member.Id);
@@ -49,7 +48,7 @@ internal static class DeletionCases
             Require((await store.GetAsync(id))?.RowVersion == 2 && await Count("account_deletion_audit", "account_id", id) == 0, "Rejected deletion changed account data.");
         });
         await test("deletion audit failure rolls back the account and its live credentials", async () => {
-            var session = await identity.RegisterAsync(new Registration { Phone = Phone(), RealName = "删除回滚验收", Credential = Credential() }); var id = Guid.Parse(session.Account.Id);
+            var session = await identity.RegisterAsync(new Registration { Phone = Phone(), RealName = "删除回滚验收" }); var id = Guid.Parse(session.Account.Id);
             var constraint = "hifc_delete_reject_" + id.ToString("N");
             await using var command = source.CreateCommand($"ALTER TABLE hifc_web.account_deletion_audit ADD CONSTRAINT {constraint} CHECK(account_id <> '{id:D}'::uuid) NOT VALID"); await command.ExecuteNonQueryAsync();
             try {

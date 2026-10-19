@@ -12,21 +12,21 @@ namespace Hifc.Web.Revit
     public sealed class WebModelSession : IDisposable
     {
         private readonly NativeModelAccess model;
-        private readonly DeviceStore devices;
+        private readonly ProfileStore profiles;
         private readonly WorkspaceStore workspaces;
         private readonly CancellationTokenSource cancellation = new CancellationTokenSource();
         private readonly WebApiClient api;
         private Compatibility compatibility;
         private CapturePlan capture;
         private AccountSession identity;
-        private DeviceCredential credential;
         private readonly HashSet<string> conflicts = new HashSet<string>(StringComparer.Ordinal);
         public SavedWorkspace Workspace { get; }
         public CheckResult Result { get; private set; }
         public EditPlan Plan { get; private set; }
         public AccountInfo Account => identity?.Account;
         public string Title => model.Title;
-        public string ActivePhone => devices.ActivePhone;
+        public string ActivePhone => profiles.Current?.Phone ?? profiles.LegacyPhone;
+        public string ActiveName => profiles.Current?.RealName ?? "";
         public string Status { get; private set; } = "连接服务器后开始全面检查；已有草稿可离线编辑。";
         public bool LiveCheck { get; private set; }
         public bool Busy { get; private set; }
@@ -38,7 +38,7 @@ namespace Hifc.Web.Revit
         public WebModelSession(NativeModelAccess model, Uri server, string stateRoot)
         {
             this.model = model; api = new WebApiClient(server);
-            devices = new DeviceStore(Path.Combine(stateRoot, "accounts")); workspaces = new WorkspaceStore(Path.Combine(stateRoot, "drafts"));
+            profiles = new ProfileStore(Path.Combine(stateRoot, "accounts")); workspaces = new WorkspaceStore(Path.Combine(stateRoot, "drafts"));
             Workspace = workspaces.Load(model.DocumentKey); Result = Workspace.LastCheck;
             if (Result != null) Status = "已恢复上次检查与人工草稿；写入前会重新全面检查。";
         }
@@ -52,35 +52,22 @@ namespace Hifc.Web.Revit
             catch (Exception ex) { Say(ex is WebApiException ? ex.Message : "操作未完成：" + ex.Message); }
             finally { Busy = false; Save(); }
         }
-        public async Task ConnectAsync(string phone, string name, bool register, string rebindCode = null)
+        public async Task ConnectAsync(string phone, string name, bool register)
         {
-            compatibility = await api.CompatibilityAsync(cancellation.Token); phone = DeviceStore.NormalizePhone(phone);
-            if (!string.IsNullOrWhiteSpace(rebindCode))
-            {
-                credential = devices.Stage(phone);
-                try { identity = await api.RebindAsync(new RebindRequest { Phone = phone, Code = rebindCode.Trim(), Credential = credential.Credential }, cancellation.Token); }
-                catch (WebApiException ex) when (ex.Code == "NETWORK_UNAVAILABLE" || ex.Code == "NETWORK_TIMEOUT") { identity = await api.LoginAsync(new LoginRequest { Phone = phone, Credential = credential.Credential }, cancellation.Token); }
-            }
-            else
-            {
-                identity = null;
-                foreach (var candidate in devices.Candidates(phone))
-                {
-                    try { identity = await api.LoginAsync(new LoginRequest { Phone = phone, Credential = candidate.Credential }, cancellation.Token); credential = candidate; break; }
-                    catch (WebApiException ex) when (ex.Code == "IDENTITY_REJECTED") { }
-                }
-                if (identity == null)
-                {
-                    if (!register) throw new InvalidOperationException("本机没有可用凭证，请先登记；已有账号换机请向管理员领取一次性绑定码。");
-                    credential = devices.Stage(phone); identity = await api.RegisterAsync(new Registration { Phone = phone, RealName = name, Credential = credential.Credential }, cancellation.Token);
-                }
-            }
-            devices.Accept(credential); Say(identity.Account.IsActive ? "已连接，可以开始全面检查。" : "账号已到期；已有草稿仍可编辑，请联系管理员延期。");
+            compatibility = await api.CompatibilityAsync(cancellation.Token); phone = ProfileStore.NormalizePhone(phone);
+            name = (name ?? "").Trim();
+            identity = register ? await api.RegisterAsync(new Registration { Phone = phone, RealName = name }, cancellation.Token)
+                : await api.LoginAsync(new LoginRequest { Phone = phone, RealName = name }, cancellation.Token);
+            profiles.Save(identity.Account.Phone, identity.Account.RealName);
+            Say(identity.Account.IsActive ? "已连接，可以开始全面检查。" : "账号已到期；已有草稿仍可编辑，请联系管理员延期。");
         }
         private async Task EnsureIdentity()
         {
-            if (compatibility == null || identity == null || credential == null) throw new InvalidOperationException("请先连接并登记登录。");
-            if (api.ServerNowUtc >= identity.SessionExpiresAtUtc.AddMinutes(-1)) identity = await api.LoginAsync(new LoginRequest { Phone = credential.Phone, Credential = credential.Credential }, cancellation.Token);
+            if (compatibility == null || identity == null) throw new InvalidOperationException("请先填写手机号和姓名并连接。");
+            if (api.ServerNowUtc >= identity.SessionExpiresAtUtc.AddMinutes(-1)) {
+                var person = profiles.Current; if (person == null) throw new InvalidOperationException("请先填写手机号和姓名并连接。");
+                identity = await api.LoginAsync(new LoginRequest { Phone = person.Phone, RealName = person.RealName }, cancellation.Token);
+            }
             identity.Account = await api.MeAsync(cancellation.Token);
             if (!identity.Account.IsActive) throw new InvalidOperationException("账号已到期，请联系管理员延期；已有草稿已保留。");
         }

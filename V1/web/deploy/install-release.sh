@@ -5,11 +5,12 @@ umask 077
 release_id=${1:?release id}
 archive=${2:?archive}
 expected_hash=${3:?archive sha256}
-allowed_client=${4:?approved IPv4 client}
+allowed_networks=${4:?approved IPv4 office networks}
 [[ "$release_id" =~ ^0\.5\.0-dev-[a-zA-Z0-9._-]+$ && "$expected_hash" =~ ^[a-fA-F0-9]{64}$ ]] || exit 3
-python3 - "$allowed_client" <<'PY'
+python3 - "$allowed_networks" <<'PY'
 import ipaddress, sys
-ipaddress.IPv4Address(sys.argv[1])
+networks=[ipaddress.IPv4Network(value, strict=True) for value in sys.argv[1].split(',')]
+if not networks or any(not value.is_private or value.prefixlen < 16 for value in networks): raise RuntimeError('Approved private office networks are required')
 PY
 base=/srv/hifc-web
 release="$base/releases/$release_id"
@@ -44,12 +45,13 @@ done
 install -d -m 0700 -o 1654 -g 1654 "$base/data/server"
 install -d -m 0700 -o 1000 -g 1000 "$base/data/caddy"
 if [[ ! -d "$base/data/postgres" ]]; then install -d -m 0700 "$base/data/postgres"; fi
-printf '%s/32\n' "$allowed_client" > "$base/config/allowed-clients.txt"
-python3 - "$release" "$allowed_client" <<'PY'
-import json, pathlib, sys
+python3 - "$release" "$allowed_networks" "$base/config/allowed-clients.txt" <<'PY'
+import ipaddress, pathlib, sys
 release=pathlib.Path(sys.argv[1])
+networks=[str(ipaddress.IPv4Network(value, strict=True)) for value in sys.argv[2].split(',')]
+pathlib.Path(sys.argv[3]).write_text('\n'.join(networks)+'\n')
 template=(release/'Caddyfile.template').read_text()
-(release/'Caddyfile').write_text(template.replace('__ALLOWED_CLIENT__',sys.argv[2]+'/32'))
+(release/'Caddyfile').write_text(template.replace('__ALLOWED_CLIENT__',' '.join(networks)))
 PY
 chmod 0444 "$release/Caddyfile" "$release/postgres-init.sql"
 runtime=$(python3 -c 'import json,sys; item=json.load(open(sys.argv[1]))["runtime"]; print(item.get("buildReference",item["reference"]))' "$release/image-lock.json")

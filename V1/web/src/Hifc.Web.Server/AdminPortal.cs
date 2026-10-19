@@ -88,12 +88,12 @@ public static class AdminPortal
             return Results.Redirect("/admin");
         }).RequireRateLimiting("identity");
         app.MapGet("/admin", async (HttpContext context, AccountStore accounts) => {
-            var token = Token(context); var rows = await accounts.ListForAdministratorAsync(Guid.Parse(Actor(context)), context.RequestAborted); var html = new StringBuilder("<h1>账号管理</h1><p>期限按北京时间显示；普通账号只有“有效 / 已到期”。</p><form method=\"post\" action=\"/admin/logout\">" + Hidden(token) + "<button>退出管理后台</button></form><div class=\"scroll\"><table><tr><th>成员</th><th>登记 / 到期时间</th><th>状态</th><th>自定义延期</th><th>更换电脑</th><th>删除</th></tr>");
+            var token = Token(context); var rows = await accounts.ListForAdministratorAsync(Guid.Parse(Actor(context)), context.RequestAborted); var html = new StringBuilder("<h1>账号管理</h1><p>期限按北京时间显示；普通账号只有“有效 / 已到期”。</p><form method=\"post\" action=\"/admin/logout\">" + Hidden(token) + "<button>退出管理后台</button></form><div class=\"scroll\"><table><tr><th>成员</th><th>登记 / 到期时间</th><th>状态</th><th>自定义延期</th><th>删除</th></tr>");
             foreach (var row in rows.Where(a => !a.IsAdmin))
             {
                 var path = "/admin/accounts/" + row.Id; var hidden = Hidden(token) + "<input type=\"hidden\" name=\"version\" value=\"" + row.RowVersion + "\">";
                 string Date(DateTime utc) => new DateTimeOffset(utc).ToOffset(TimeSpan.FromHours(8)).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
-                html.Append("<tr><td>").Append(E(row.RealName)).Append("<br>").Append(E(row.Phone)).Append("</td><td>").Append(Date(row.RegisteredAtUtc)).Append("<br>").Append(Date(row.ExpiresAtUtc)).Append("</td><td class=\"").Append(row.IsActive ? "active\">有效" : "expired\">已到期").Append("</td><td><form method=\"post\" action=\"").Append(path).Append("/extend\">").Append(hidden).Append("<input name=\"days\" type=\"number\" min=\"1\" max=\"36500\" placeholder=\"增加天数\" required><button>按天延期</button></form><form method=\"post\" action=\"").Append(path).Append("/extend\">").Append(hidden).Append("<input name=\"untilDate\" type=\"date\" required><button>有效至该日结束</button></form></td><td><form method=\"post\" action=\"").Append(path).Append("/rebind\">").Append(Hidden(token)).Append("<button>生成一次性绑定码</button></form></td><td><a class=\"delete-link\" href=\"").Append(path).Append("/delete\">删除</a></td></tr>");
+                html.Append("<tr><td>").Append(E(row.RealName)).Append("<br>").Append(E(row.Phone)).Append("</td><td>").Append(Date(row.RegisteredAtUtc)).Append("<br>").Append(Date(row.ExpiresAtUtc)).Append("</td><td class=\"").Append(row.IsActive ? "active\">有效" : "expired\">已到期").Append("</td><td><a class=\"delete-link\" href=\"").Append(path).Append("/delete\">删除</a></td></tr>");
             }
             html.Append("</table></div>"); if (context.Request.Query["deleted"] == "1") html.Insert(0, "<p class=\"notice\" role=\"status\">账号已删除，登录凭证和服务器检查数据已清除。</p>"); return Html(context, "账号管理", html.ToString());
         }).RequireAuthorization();
@@ -101,7 +101,7 @@ public static class AdminPortal
             var account = await accounts.GetAsync(id, context.RequestAborted);
             if (account == null) return Html(context, "账号已不存在", "<h1>账号已不存在</h1><p><a href=\"/admin\">返回账号管理</a></p>");
             if (account.IsAdmin) throw new WebOperationException("ADMIN_PROTECTED", 403, "管理员账号不能删除。");
-            return Html(context, "确认删除账号", "<h1>确认删除账号</h1><p>即将删除成员 <b>" + E(account.RealName) + "</b>（" + E(account.Phone) + "）。</p><p>该账号将立即退出登录，电脑凭证和绑定码失效，服务器上的检查与写入记录一并清除。删除操作会留存审计；本机模型和草稿保留。</p><p class=\"expired\">删除后无法撤销。请核对成员信息后确认。</p><form method=\"post\" action=\"/admin/accounts/" + account.Id + "/delete\">" + Hidden(Token(context)) + "<input type=\"hidden\" name=\"version\" value=\"" + account.RowVersion + "\"><button class=\"danger\" name=\"confirm\" value=\"delete\">确认删除</button> <a href=\"/admin\">取消，返回账号管理</a></form>");
+            return Html(context, "确认删除账号", "<h1>确认删除账号</h1><p>即将删除成员 <b>" + E(account.RealName) + "</b>（" + E(account.Phone) + "）。</p><p>该账号在所有电脑上的登录将立即失效，服务器上的检查与写入记录一并清除。删除操作会留存审计；本机模型和草稿保留。</p><p class=\"expired\">删除后无法撤销。请核对成员信息后确认。</p><form method=\"post\" action=\"/admin/accounts/" + account.Id + "/delete\">" + Hidden(Token(context)) + "<input type=\"hidden\" name=\"version\" value=\"" + account.RowVersion + "\"><button class=\"danger\" name=\"confirm\" value=\"delete\">确认删除</button> <a href=\"/admin\">取消，返回账号管理</a></form>");
         }).RequireAuthorization();
         app.MapPost("/admin/accounts/{id:guid}/delete", async (Guid id, HttpContext context, AccountStore accounts) => {
             var form = await Form(context);
@@ -113,10 +113,6 @@ public static class AdminPortal
             var form = await Form(context); if (!long.TryParse(form["version"], out var version)) throw new InvalidOperationException("页面版本已失效，请刷新。");
             int? days = string.IsNullOrEmpty(form["days"]) ? null : int.TryParse(form["days"], out var number) ? number : throw new InvalidOperationException("延期天数无效。");
             await accounts.ExtendAsync(Guid.Parse(Actor(context)), id, version, days, string.IsNullOrEmpty(form["untilDate"]) ? null : form["untilDate"].ToString(), context.RequestAborted); return Results.Redirect("/admin");
-        }).RequireAuthorization();
-        app.MapPost("/admin/accounts/{id:guid}/rebind", async (Guid id, HttpContext context, IdentityStore identities) => {
-            await Form(context); var code = await identities.IssueRebindAsync(Guid.Parse(Actor(context)), id, context.RequestAborted);
-            return Html(context, "一次性绑定码", "<h1>一次性绑定码</h1><p>请通过既有联系渠道交给该成员。10 分钟内有效，使用一次即失效；原到期日保持不变。</p><textarea readonly rows=\"2\">" + E(code) + "</textarea><p><a href=\"/admin\">返回账号管理</a></p>");
         }).RequireAuthorization();
         app.MapPost("/admin/logout", async (HttpContext context) => { await Form(context); await context.SignOutAsync(Scheme); context.Response.Cookies.Delete(CsrfCookie, new CookieOptions { Path = "/", Secure = true, SameSite = SameSiteMode.Strict }); return Results.Redirect("/admin/login"); }).RequireAuthorization();
     }

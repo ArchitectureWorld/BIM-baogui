@@ -18,6 +18,7 @@ namespace Hifc.Web.Revit
                 LongDescription = "HIFC-V1-Web 使用独立账号、服务器和草稿目录。打开项目后点击此按钮，首次登记手机号及真实姓名，后续自动连接。"
             };
             panel.AddItem(command);
+            UpdateCoordinator.Start();
             return Result.Succeeded;
         }
         public Result OnShutdown(UIControlledApplication application) { WebCommand.CloseWindow(); return Result.Succeeded; }

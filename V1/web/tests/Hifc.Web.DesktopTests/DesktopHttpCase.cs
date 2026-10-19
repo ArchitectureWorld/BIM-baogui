@@ -18,7 +18,7 @@ internal static class DesktopHttpCase
             using (var client = new WebApiClient(server)) {
                 var ct = CancellationToken.None; var compatibility = client.CompatibilityAsync(ct).GetAwaiter().GetResult();
                 var phone = "139" + (BitConverter.ToUInt32(bytes, 0) % 90000000 + 10000000);
-                client.RegisterAsync(new Registration { Phone = phone, RealName = "跨运行时传输验收", Credential = Convert.ToBase64String(bytes) }, ct).GetAwaiter().GetResult();
+                client.RegisterAsync(new Registration { Phone = phone, RealName = "跨运行时传输验收" }, ct).GetAwaiter().GetResult();
                 var rows = new[] { new ElementRecord { Id = 1, UniqueId = "desktop-wire-element", Entity = "IfcSlab", Name = "规划净用地", DeclaredSlot = "规划净用地", NativeAreaM2 = 0.1, ProjectedAreaM2 = 1.2345678901234567 } };
                 var context = new RequestContext { RuleVersion = compatibility.RuleVersion, RequestId = Guid.NewGuid().ToString("N"), DocumentSessionId = Guid.NewGuid().ToString("N"), ScanId = Guid.NewGuid().ToString("N"), SnapshotHash = Canonical.InventoryHash(rows) };
                 var capture = client.StartCheckAsync(new InventoryPage { Context = context, Stage = "报规", ModelKind = "总图", PageCount = 1, TotalElements = 1, Elements = rows, PageHash = context.SnapshotHash }, ct).GetAwaiter().GetResult();

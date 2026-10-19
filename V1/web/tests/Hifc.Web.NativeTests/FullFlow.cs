@@ -34,6 +34,7 @@ internal static class FullFlow
                 var ribbonVerified = await bridge.Run(application => application.GetRibbonPanels("HIFC-V1-Web").Any(panel => panel.GetItems().Any(item => item.Name == "HifcV1WebManager")));
                 if (!ribbonVerified) throw new Exception("The installed independent HIFC-V1-Web Ribbon entry is missing.");
                 log("PASS installed independent HIFC-V1-Web Ribbon entry");
+                var update = await UpdateLifecycle.StartAsync(run, log);
                 foreach (var path in models)
                 {
                     log("Opening " + Path.GetFileName(path));
@@ -44,6 +45,11 @@ internal static class FullFlow
                     try
                     {
                         await session.ConnectAsync("139" + RandomPhoneDigits(), "模型体验验收", true);
+                        using (var peer = new WebApiClient(new Uri(config["server"]))) {
+                            var login = await peer.LoginAsync(new LoginRequest { Phone = session.Account.Phone, RealName = session.Account.RealName }, System.Threading.CancellationToken.None);
+                            if (login.Account.Id != session.Account.Id || login.Account.ExpiresAtUtc != session.Account.ExpiresAtUtc) throw new Exception("Independent phone/name login changed the person or original deadline.");
+                        }
+                        window.ShowAccountWindow(); var accountWindow = window.OwnedWindows.Cast<Window>().Single(); accountWindow.UpdateLayout(); Snapshot(accountWindow, Path.Combine(run, Path.GetFileNameWithoutExtension(path) + "-account.png")); accountWindow.Close();
                         window.UpdateLayout(); Snapshot(window, Path.Combine(run, Path.GetFileNameWithoutExtension(path) + "-connection.png"));
                         await session.ScanAsync();
                         if (session.Result?.Complete != true) throw new Exception("The actual model check did not complete.");
@@ -78,7 +84,8 @@ internal static class FullFlow
                         var actual = NativeInventory.ReadValues(application.ActiveUIDocument.Document, new[] { sample.Item2 }).Single(); if (actual.RawValue != sample.Item3) throw new Exception("Saved business value did not survive reopening."); return true; });
                     log("PASS reopen actual business value " + Path.GetFileName(sample.Item1));
                 }
-                File.WriteAllText(Path.Combine(run, "full-results.json"), JsonWire.Serialize(new { passed = results.Count, failed = 0, results, reopened = saved.Count, ribbonVerified, propertyControlEditingVerified = true, server = config["server"], scope = config["scope"], productionHttpsVerified = config["server"] == "https://192.168.6.45:8443/" }));
+                update?.AssertDeferred();
+                File.WriteAllText(Path.Combine(run, "full-results.json"), JsonWire.Serialize(new { passed = results.Count, failed = 0, results, reopened = saved.Count, ribbonVerified, propertyControlEditingVerified = true, independentPhoneNameLoginVerified = true, autoUpdateDownloadedFromZetta = update != null, activationDeferredUntilRevitExit = update != null, server = config["server"], scope = config["scope"], productionHttpsVerified = config["server"] == "https://192.168.6.45:8443/" }));
                 await bridge.Run(application => { application.PostCommand(RevitCommandId.LookupPostableCommandId(PostableCommand.ExitRevit)); return true; });
             }
             catch (Exception ex) { log("FULL_FLOW_ERROR " + ex); File.WriteAllText(Path.Combine(run, "full-error.json"), JsonWire.Serialize(new { error = ex.ToString(), results })); }

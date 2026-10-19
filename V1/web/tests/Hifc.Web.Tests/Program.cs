@@ -32,6 +32,8 @@ RuleCases.Run(Test);
 ClientCases.Run(Test);
 AccountCases.Run(Test);
 SignerCases.Run(Test);
+UpdateCases.Run(Test);
+ForwardedHeadersCases.Run(Test);
 TransportCases.Run(Test);
 PackageCases.Run(Test);
 HostCases.Run(Test);

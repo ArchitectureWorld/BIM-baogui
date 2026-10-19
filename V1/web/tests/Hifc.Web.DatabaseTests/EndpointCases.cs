@@ -13,19 +13,44 @@ internal static class EndpointCases
 {
     internal static async Task Run(NpgsqlDataSource source, string databaseConnectionString, Func<string, Func<Task>, Task> test)
     {
-        var app = ServerApplication.Create(new[] { "--urls", "http://127.0.0.1:0", "--Logging:LogLevel:Default", "None" }, new WebRuntimeOptions { DatabaseConnectionString = databaseConnectionString, SigningKeyPath = Path.Combine(Path.GetTempPath(), "HifcEndpointTests", Guid.NewGuid().ToString("N"), "signing.pem"), EnableAccounts = true });
+        var fixture = Path.Combine(Path.GetTempPath(), "HifcEndpointTests", Guid.NewGuid().ToString("N")); var downloads = Path.Combine(fixture, "downloads"); Directory.CreateDirectory(downloads);
+        var archive = Encoding.UTF8.GetBytes("Synthetic endpoint download fixture"); File.WriteAllBytes(Path.Combine(downloads, "HIFC-0.5.0-Web.zip"), archive);
+        File.WriteAllText(Path.Combine(downloads, "package.json"), JsonWire.Serialize(new ClientPackageInfo { Version = "0.5.0-Web", AddInId = UpdateTrust.AddInId, ReleaseId = "0.5.0-dev-20261019T120000Z", SourceCommit = new string('a', 40) }));
+        var app = ServerApplication.Create(new[] { "--urls", "http://127.0.0.1:0", "--Logging:LogLevel:Default", "None" }, new WebRuntimeOptions { DatabaseConnectionString = databaseConnectionString, SigningKeyPath = Path.Combine(fixture, "signing.pem"), ClientUpdateDirectory = downloads, EnableAccounts = true });
         await app.StartAsync(); var address = new Uri(app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>().Addresses.Single());
         using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { BaseAddress = address };
         static void Require(bool condition, string message) { if (!condition) throw new Exception(message); }
         async Task<AccountSession> Register()
         {
-            var registration = new Registration { Phone = "139" + Random.Shared.NextInt64(10000000, 100000000), RealName = "HTTP流程验收", Credential = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)) };
+            var registration = new Registration { Phone = "139" + Random.Shared.NextInt64(10000000, 100000000), RealName = "HTTP流程验收" };
             var reply = await http.PostAsync("api/v1/accounts/register", new StringContent(JsonWire.Serialize(registration), Encoding.UTF8, "application/json"));
             Require(reply.IsSuccessStatusCode, "Registration endpoint is unavailable: " + (int)reply.StatusCode);
             return JsonWire.Deserialize<AccountSession>(await reply.Content.ReadAsStringAsync());
         }
         try
         {
+            await test("zetta publishes a signed update manifest and its exact package through the actual HTTP server", async () => {
+                using var reply = await http.GetAsync("updates/latest"); Require(reply.IsSuccessStatusCode, "Update manifest endpoint is unavailable.");
+                var update = JsonWire.Deserialize<ClientUpdateManifest>(await reply.Content.ReadAsStringAsync());
+                using var compatibility = await http.GetAsync("api/v1/compatibility"); var key = JsonWire.Deserialize<Compatibility>(await compatibility.Content.ReadAsStringAsync()).SigningKey;
+                UpdateTrust.Validate(update, key); Require(update.PackageUrl.StartsWith(UpdateTrust.Server, StringComparison.Ordinal), "Update source points away from zetta.");
+                using var package = await http.GetAsync(new Uri(update.PackageUrl).AbsolutePath);
+                Require(package.IsSuccessStatusCode && (await package.Content.ReadAsByteArrayAsync()).SequenceEqual(archive), "Update download differs from the signed manifest.");
+            });
+            await test("phone and real name register once and log in from another computer without a binding credential", async () => {
+                var pair = new { Phone = "139" + Random.Shared.NextInt64(10000000, 100000000), RealName = "内网人员登录验收" };
+                async Task<HttpResponseMessage> SignIn(string path, object value) => await http.PostAsync(path, new StringContent(JsonWire.Serialize(value), Encoding.UTF8, "application/json"));
+                using var first = await SignIn("api/v1/accounts/register", pair);
+                Require(first.IsSuccessStatusCode, "Phone/name registration still requires a computer binding credential.");
+                var original = JsonWire.Deserialize<AccountSession>(await first.Content.ReadAsStringAsync());
+                using var next = await SignIn("api/v1/sessions", pair); Require(next.IsSuccessStatusCode, "Another computer cannot log in with the same person.");
+                var other = JsonWire.Deserialize<AccountSession>(await next.Content.ReadAsStringAsync());
+                Require(other.Account.Id == original.Account.Id && other.Account.ExpiresAtUtc == original.Account.ExpiresAtUtc && other.AccessToken != original.AccessToken, "Cross-computer login reset the person, deadline or session.");
+                using var wrong = await SignIn("api/v1/accounts/register", new { pair.Phone, RealName = "姓名不一致验收" });
+                Require(!wrong.IsSuccessStatusCode, "Repeated registration overwrote another person's name.");
+                using var retired = await SignIn("api/v1/accounts/rebind", new { pair.Phone, Code = "retired" });
+                Require(retired.StatusCode == HttpStatusCode.NotFound, "The removed rebinding endpoint remains available.");
+            });
             await test("enabled deployment health reports the active authentication mode", async () => {
                 foreach (var path in new[] { "health/live", "health/ready" }) {
                     using var reply = await http.GetAsync(path);

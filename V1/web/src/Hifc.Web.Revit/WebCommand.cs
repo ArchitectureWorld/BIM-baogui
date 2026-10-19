@@ -15,6 +15,7 @@ namespace Hifc.Web.Revit
         public Result Execute(ExternalCommandData data, ref string message, ElementSet elements)
         {
             try {
+                UpdateCoordinator.Start();
                 if (window?.IsVisible == true) { window.Activate(); return Result.Succeeded; }
                 var root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "HIFC", "0.5.0-Web");
                 var session = new WebModelSession(new NativeModelAccess(data.Application), new Uri("https://192.168.6.45:8443/"), root);

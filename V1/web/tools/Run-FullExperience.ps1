@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$Server='http://127.0.0.1:55443/',[switch]$WaitForRootTrust)
+param([string]$Server='http://127.0.0.1:55443/',[switch]$WaitForRootTrust,[switch]$VerifyAutoUpdate,[string]$PreviousClientPackage)
 $ErrorActionPreference='Stop'
 $webRoot=Split-Path -Parent $PSScriptRoot
 if($Server -notin @('http://127.0.0.1:55443/','https://192.168.6.45:8443/')){throw 'Only the isolated test host or the approved production HTTPS server is permitted.'}
@@ -18,6 +18,23 @@ $run=Join-Path $webRoot ('.local/full-experience-'+(Get-Date -Format yyyyMMdd-HH
 $copies=@();foreach($source in $sources){if((Get-FileHash -LiteralPath $source.path -Algorithm SHA256).Hash -ne $source.sha256){throw 'Original model changed.'};$copy=Join-Path $run ('models/'+[IO.Path]::GetFileName($source.path));Copy-Item -LiteralPath $source.path -Destination $copy;if((Get-FileHash -LiteralPath $copy -Algorithm SHA256).Hash -ne $source.sha256){throw 'Model copy mismatch.'};$copies+=$copy}
 $copies|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $run 'models.json') -Encoding utf8
 @{server=$Server;scope=$scope}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $run 'full-flow.json') -Encoding utf8
+if($VerifyAutoUpdate){
+    if($Server -ne 'https://192.168.6.45:8443/' -or -not $PreviousClientPackage){throw 'Automatic update validation requires the real zetta HTTPS server and a known previous client package.'}
+    $old=Get-Content -LiteralPath (Join-Path $PreviousClientPackage 'package.json') -Raw|ConvertFrom-Json
+    $latest=Get-Content -LiteralPath (Join-Path $webRoot '.local/latest-client-release.json') -Raw|ConvertFrom-Json
+    $localAppData=Join-Path $run 'update-lifecycle/localappdata';$appData=Join-Path $run 'update-lifecycle/appdata'
+    $root=Join-Path $localAppData 'HIFC/0.5.0-Web/Revit2020';$addins=Join-Path $appData 'Autodesk/Revit/Addins/2020'
+    New-Item -ItemType Directory -Path $root,$addins -Force|Out-Null
+    foreach($file in $old.files){$source=Join-Path $PreviousClientPackage ('client/'+$file.name);if((Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash -ne $file.sha256){throw 'Previous released client payload changed.'};Copy-Item -LiteralPath $source -Destination (Join-Path $root $file.name)}
+    if(-not $old.releaseId){$old|Add-Member -NotePropertyName releaseId -NotePropertyValue ('0.5.0-dev-'+([DateTime]$old.createdUtc).ToUniversalTime().ToString('yyyyMMddTHHmmssZ'))}
+    $old|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $root 'package.json') -Encoding utf8
+    Copy-Item -LiteralPath (Join-Path $latest.package 'update-public-key.json') -Destination (Join-Path $root 'update-public-key.json')
+    $owned=Join-Path $addins 'Hifc.Web.addin';$local=Join-Path $addins 'Hifc.V1.addin'
+    $target=[Security.SecurityElement]::Escape((Join-Path $root 'Hifc.Web.Revit.dll'))
+    [IO.File]::WriteAllText($owned,('<RevitAddIns><AddIn Type="Application"><AddInId>53ef39d3-a187-4fb5-90f8-29e91d747602</AddInId><Assembly>'+ $target +'</Assembly><FullClassName>Hifc.Web.Revit.WebApp</FullClassName></AddIn></RevitAddIns>'),[Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText($local,'Protected Local sentinel; not loaded in Revit',[Text.UTF8Encoding]::new($false))
+    @{root=$root;manifest=$owned;localManifest=$local;localAppData=$localAppData;appData=$appData}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $run 'update-lifecycle.json') -Encoding utf8
+}
 $manifest=Join-Path $env:APPDATA 'Autodesk/Revit/Addins/2020/Hifc.Web.NativeTests.addin'
 $assembly=Join-Path $webRoot 'tests/Hifc.Web.NativeTests/bin/Release/net48/Hifc.Web.NativeTests.dll'
 [xml]$existing=Get-Content -LiteralPath $manifest

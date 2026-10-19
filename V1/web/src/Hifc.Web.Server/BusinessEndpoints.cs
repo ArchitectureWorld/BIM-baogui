@@ -19,7 +19,6 @@ public static class BusinessEndpoints
     {
         app.MapPost("/api/v1/accounts/register", async (Registration request, IdentityStore identities, HttpContext context) => Results.Ok(await identities.RegisterAsync(request, context.RequestAborted))).RequireRateLimiting("identity");
         app.MapPost("/api/v1/sessions", async (LoginRequest request, IdentityStore identities, HttpContext context) => Results.Ok(await identities.LoginAsync(request, context.RequestAborted))).RequireRateLimiting("identity");
-        app.MapPost("/api/v1/accounts/rebind", async (RebindRequest request, IdentityStore identities, HttpContext context) => Results.Ok(await identities.RebindAsync(request, context.RequestAborted))).RequireRateLimiting("identity");
         var group = app.MapGroup("/api/v1").AddEndpointFilter<SessionFilter>();
         group.MapGet("/me", (HttpContext context) => Results.Ok((AccountInfo)context.Items["HifcAccount"]));
         group.MapPost("/sessions/logout", async (HttpContext context, IdentityStore identities) => {

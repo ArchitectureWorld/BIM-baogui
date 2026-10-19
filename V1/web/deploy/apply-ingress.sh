@@ -14,7 +14,7 @@ for text in open(sys.argv[1]):
     value=text.strip()
     if not value: continue
     network=ipaddress.IPv4Network(value, strict=True)
-    if network.prefixlen != 32: raise RuntimeError('Only individually approved clients are allowed')
+    if not network.is_private or network.prefixlen < 16: raise RuntimeError('Only approved private office networks are allowed')
     addresses.append(str(network))
 if not addresses: raise RuntimeError('Empty source allowlist')
 print('\n'.join(addresses))

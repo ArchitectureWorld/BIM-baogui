@@ -6,18 +6,11 @@ namespace Hifc.Web.Contracts
     {
         public string Phone { get; set; }
         public string RealName { get; set; }
-        public string Credential { get; set; }
     }
     public sealed class LoginRequest
     {
         public string Phone { get; set; }
-        public string Credential { get; set; }
-    }
-    public sealed class RebindRequest
-    {
-        public string Phone { get; set; }
-        public string Code { get; set; }
-        public string Credential { get; set; }
+        public string RealName { get; set; }
     }
     public sealed class AccountInfo
     {
