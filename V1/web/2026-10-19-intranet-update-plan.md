@@ -46,4 +46,6 @@
 - 修正只涉及 Web CMD 启动器、发布检查及集成验证工具：使用系统 Windows PowerShell，仅本次安装进程设置执行策略；转发校验参数，保留安装失败退出码。长期策略、管理员权限要求、Revit 业务代码和 Local 均不改变。
 - 新增 `tools/Test-WebInstallerEntry.ps1`，通过真实 CMD 执行受限策略下的校验与隔离用户目录安装；验证 6 个文件、独立 Web 清单、Local 哨兵、损坏包拒绝及失败退出码，前后长期策略一致。发布检查改为必须走正式 CMD 入口。
 - RED 为 `.local/build/installer-entry-red.log`；修正后 GREEN 为 `.local/build/installer-entry-green.log`。测试宿主是本机 Windows 10 22H2 / Windows PowerShell 5.1，复现的是同事截图对应的策略条件；未宣称已在同事实体 Windows 11 上完成重试。Local 三个安装文件和六个原模型仍通过基线核对。
-- 下一步：发布并部署 zetta 新发行包，核对实际下载 ZIP 后再次执行正式入口集成验证；同事再用新包完成 Windows 11 实体机体验。
+- 已发布并部署 `0.5.0-dev-20261019T040011Z`，源 `cc433ee5fae132d535a9f9888ca7232af3c26e5b`。zetta 运行 DLL 与发行包一致，Linux 78 / 85 / 33 项及容器重建持久化检查通过，CA、签名身份和办公网段保持。
+- 从带版本查询参数的正式 zetta 下载链接重新取得 ZIP，散列为 `7e94b1cda5c90054ea246e43eb8c1dad7056fb55c1a46dcd614e9c52427452ab`，与 zetta 本地文件和发布包一致。使用这个下载文件完成实际 CMD 的受限策略校验、隔离安装与损坏包拒绝；原始结果在 `.local/installer-entry-e763ed2add634b27bf21f7250f9dabf4/result.json`，可跟踪摘要为 `validation/2026-10-19-installer-entry-fix.json`。
+- 六个安装文件和独立 Web 清单正确，损坏包返回失败且不改旧安装 / Local 哨兵，长期执行策略不变。Local 三个实际安装文件、六个原模型及既有 Local 源码保持。未改 Revit / 服务端业务源码，未重新运行三模型，不复用旧模型回执声称新包已做模型重测。技术修正已交付，同事 Windows 11 实体机重试仍待确认。

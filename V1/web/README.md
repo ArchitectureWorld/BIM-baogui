@@ -50,7 +50,17 @@ ssh -N -o ExitOnForwardFailure=yes -L '127.0.0.1:55432:/home/zetta/hifc-web-dev-
 
 2026-10-17 已在真实 PostgreSQL 16.15 上通过上述 12 项用例及重启验证，详细边界见 [SSH 数据库检查点](validation/2026-10-17-ssh-database-checkpoint.json)。
 
-## 当前交付（2026-10-19）
+## Windows 安装入口修复（2026-10-19）
+
+同事 Windows 11 的截图为 PowerShell 禁止执行脚本，原因是旧 CMD 未指定安装进程的执行策略。发行版 `0.5.0-dev-20261019T040011Z`（源 `cc433ee5fae132d535a9f9888ca7232af3c26e5b`）已修正启动参数，只对本次安装生效，不改长期策略；同时保留失败退出码，发布时必须验证实际 CMD 入口。
+
+[下载修正安装包](https://192.168.6.45:8443/downloads/HIFC-0.5.0-Web.zip?v=0.5.0-dev-20261019T040011Z)。重新下载，解压到新文件夹，用将使用 Revit 的 Windows 账号直接双击“安装 Web 版.cmd”，无需更改系统执行策略。
+
+已从正式 zetta 链接重新下载并核对 ZIP，在真实 Windows PowerShell 5.1 的 `Restricted` 父进程、中文与空格路径下完成校验、隔离用户目录安装及损坏包拒绝；6 个文件和独立 Web 清单正确，旧安装及 Local 哨兵保留，前后长期策略一致。测试宿主为 Windows 10 22H2，针对截图中的策略条件完成复现；同事 Windows 11 实体机重试仍待确认。本轮未修改 Revit / 服务端业务代码，三模型流程沿用下面的完整体验基线，不将其写成对新包重新执行过的模型验收。
+
+证据：[安装入口修复记录](validation/2026-10-19-installer-entry-fix.json)。
+
+## 完整体验交付基线（2026-10-19）
 
 - 发行版 `0.5.0-dev-20261019T030204Z`，代码来源 `6f860c069f0a6140835b22a380fde6f45aac3c86`；后续交付记录提交不改变该已验证运行包。
 - 正式入口及更新文件均在 zetta；[同事安装包](https://192.168.6.45:8443/downloads/HIFC-0.5.0-Web.zip) 面向 Revit 2020。解压后关闭 Revit，运行“安装 Web 版.cmd”。

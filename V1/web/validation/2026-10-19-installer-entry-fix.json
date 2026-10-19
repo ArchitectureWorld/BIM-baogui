@@ -1,0 +1,48 @@
+{
+  "verifiedUtc": "2026-10-19T04:07:39.7348698Z",
+  "releaseId": "0.5.0-dev-20261019T040011Z",
+  "sourceCommit": "cc433ee5fae132d535a9f9888ca7232af3c26e5b",
+  "downloadUrl": "https://192.168.6.45:8443/downloads/HIFC-0.5.0-Web.zip?v=0.5.0-dev-20261019T040011Z",
+  "zipSha256": "7e94b1cda5c90054ea246e43eb8c1dad7056fb55c1a46dcd614e9c52427452ab",
+  "zipBytes": 375628,
+  "launcherSha256": "b81460558bae76703a12d193e1a17ddfb1f706f246b6fafd89d4c57291da9843",
+  "runningServerDllSha256": "a6f5e47856252698e24e44e3857ffdaaa561116f98044522d17606505438e9a8",
+  "tlsVerified": true,
+  "redirectsDisabled": true,
+  "observedFailure": "PSSecurityException / UnauthorizedAccess; running scripts is disabled",
+  "reproducedWithPreviousRelease": "0.5.0-dev-20261019T030204Z",
+  "installationChecks": {
+    "verifiedUtc": "2026-10-19T04:07:39.7348698Z",
+    "parentExecutionPolicy": "Restricted",
+    "actualCmdEntryVerified": true,
+    "spaceAndChinesePathVerified": true,
+    "persistentPoliciesUnchanged": true,
+    "isolatedInstallationVerified": true,
+    "failureExitAndOldInstallationVerified": true,
+    "scope": "real Windows PowerShell 5.1 and CMD; isolated user directories; not a colleague physical Windows 11 machine"
+  },
+  "installedReleaseId": "0.5.0-dev-20261019T040011Z",
+  "installedPayloadFiles": 6,
+  "verificationHost": {
+    "os": "Windows 10 Pro 22H2 / 10.0.19045",
+    "windowsPowerShell": "5.1.19041.4412"
+  },
+  "linuxChecks": {
+    "postgresAndHttp": 33,
+    "containerRecreationPersistence": true,
+    "existingRules": 85,
+    "web": 78
+  },
+  "protectedLocal": {
+    "checkedUtc": "2026-10-19T04:07:40.1956979Z",
+    "installedFiles": 3,
+    "sourceModels": 6,
+    "existingLocalSourceUnchanged": true,
+    "failures": []
+  },
+  "businessRuntimeSourceUnchangedSince": "6f860c069f0a6140835b22a380fde6f45aac3c86",
+  "modelAcceptanceBaseline": "2026-10-19-intranet-delivery.json",
+  "modelsRerunForThisInstallerFix": false,
+  "colleaguePhysicalWindows11Retry": "pending",
+  "pushedOrMerged": false
+}
