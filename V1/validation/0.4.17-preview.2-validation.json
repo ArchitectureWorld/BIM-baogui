@@ -1,14 +1,14 @@
 {
   "version": "0.4.17-preview.2",
   "updated": "2026-10-23",
-  "status": "candidate_verified_not_installed",
-  "source_branch": "codex/revit-property-data",
+  "status": "merged_preview_verified_stable_installation_retained",
+  "source_branch": "main",
   "base_commit": "550d736b2238a3dfdaef550bc7ea8bcab1085904",
   "installed_version": "0.4.16.0",
   "candidate_installed": false,
   "installed_plugin_sha256": "f3b16b8f8c001a5382475a9f581e14c5342bada240f4ef995fd058ae2490d603",
-  "candidate_plugin_sha256": "0b79f7d8cc74c6c6a45835e7b2f72f1c2a7b8d44ca696354b1b6bde0325029f6",
-  "candidate_core_sha256": "77b814e88b44e8e788bdd425a91f045eb91917d3e901cf13038aa5de05f8d79a",
+  "candidate_plugin_sha256": "ac7df6deee20d3e897b1fe5d05c57c851259de8964cbe78fe4698f26e33d63b6",
+  "candidate_core_sha256": "964269cb9db225011d396711cc991e2fdeb11e21fae69dbc975595885d102a74",
   "tests": {
     "platform_sync": {
       "failed": 0,
@@ -54,7 +54,10 @@
     "continuation_host_sha256": "fd596ab0307e42ba3fe839c8200a28bfc4c60071f1e7e37a053191f0703b96f8",
     "state": "passed_generated_fixture",
     "run": "validation/property-data-native-20261023-210719",
-    "checks": 36
+    "checks": 36,
+    "evidence_checkout": "Codex managed worktree hbbim-sync-preview",
+    "plugin_sha256": "0b79f7d8cc74c6c6a45835e7b2f72f1c2a7b8d44ca696354b1b6bde0325029f6",
+    "core_sha256": "77b814e88b44e8e788bdd425a91f045eb91917d3e901cf13038aa5de05f8d79a"
   },
   "boolean_policy": {
     "explicit_manual_false_preserved": true,
@@ -65,7 +68,7 @@
   },
   "scope": {
     "remote_pushed": false,
-    "merged_to_main": false,
+    "merged_to_main": true,
     "real_platform_acceptance": false,
     "customer_originals_modified": false,
     "platform_writes_enabled": false
@@ -92,5 +95,19 @@
     "formal_manifest_restored": true,
     "temporary_manifest_removed": true
   },
-  "final_build_log": "build-property-data-verified.log"
+  "final_build_log": "build-property-data-verified.log",
+  "main_build": {
+    "source_commit": "52aa56bebab1bbc812e0dd3a0185fc27222906fb",
+    "native_package_byte_identical": false,
+    "native_host_run_on_main_rebuild": false,
+    "log": "validation/property-data-main-build-20261023-green.log",
+    "all_passed": true,
+    "wpf_evidence": "validation/ui-11da7674"
+  },
+  "integration": {
+    "fixtures_commit": "52aa56bebab1bbc812e0dd3a0185fc27222906fb",
+    "mode": "authorized_local_fast_forward",
+    "implementation_commit": "6fac347e5a0f6d6d69e49b95bb16e361e773607a",
+    "remote_pushed": false
+  }
 }

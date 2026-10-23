@@ -41,7 +41,7 @@
   Verify identical/offset/different outline with equal area, sequence/closure, unknown units/frame, first-floor not involved, native shared-coordinate control points and exact solid collision in host.
 - [x] 4. Parent integration: manager toolbar events and staged workbook writes; shared metadata storage; ribbon entry, build/version/docs/CI. Full existing + new suites and real WPF interactions.
 - [x] 5. Controlled Revit copy acceptance: legacy/typed bool and empty default + first-floor preservation, manual write silent scan, workbook staged→write→save/reopen, redline shared-coordinate and no geometry change; export IFC and independently audit values/types/manual areas.
-- [ ] 6. Fresh independent review, fixes, merge authorized changes to main; installation only after candidate tests and DLL availability, original model migration remains explicit user operation. No remote push inferred.
+- [x] 6. Fresh independent review, fixes, merge authorized changes to main; installation only after candidate tests and DLL availability, original model migration remains explicit user operation. No remote push inferred.
 
 ## Ledger
 
@@ -60,3 +60,4 @@
 - Final native acceptance: 36/36 checks; initial host 26 checks followed by a hash-verified same-process continuation after a harness-only file-sharing fix. Product plugin/core stayed unchanged. Actual IFC 40/40 checks, 16/16 materialized mappings and 3 typed booleans; full missing-input report retains 38 blank fixture properties.
 - Latest complete build: core 256/256, WPF 131/131, workbook 21/21, redline 33/33; Python 34/34 and Node 33/33. Formal 0.4.16 installation and original XLSX hashes remain unchanged; temporary manifests restored and test host exited normally.
 - Final scope ruling: keep generated-model business completeness separate from mapping correctness. Preserve the complete failed-completeness audit and strictly verify every materialized field with the existing verifier; no failure codes are suppressed. Real customer migration and real platform acceptance remain pending.
+- Local main integration: `6fac347` + `52aa56b`, fast-forward only. The first main build exposed two omitted synthetic XML fixtures; committed both and reran the complete main build: core 256, WPF 131, workbook 21, redline 33, zero failures. No production source fix or repeat native run was needed for those resources. Keep the managed worktree because it holds the frozen native evidence. No remote push or candidate installation.
