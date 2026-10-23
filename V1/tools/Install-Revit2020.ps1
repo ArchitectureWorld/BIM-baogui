@@ -5,7 +5,7 @@ if (Get-Process -Name Revit -ErrorAction SilentlyContinue) { throw 'Close Revit 
 $workspace = Split-Path -Parent $PSScriptRoot
 # Default to the user-authorized, verified trial package. Building another
 # preview does not automatically install it; an explicit package may be used.
-if (-not $PackageDirectory) { $PackageDirectory = Join-Path $workspace 'dist\Hifc.V1.Revit2020-0.4.17-preview.2' }
+if (-not $PackageDirectory) { $PackageDirectory = Join-Path $workspace 'dist\Hifc.V1.Revit2020-0.4.18-preview.2' }
 $package = (Resolve-Path -LiteralPath $PackageDirectory).Path
 $addinRoot = Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'Autodesk\Revit\Addins\2020'
 $target = Join-Path $addinRoot 'Hifc.V1'

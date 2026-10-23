@@ -2,14 +2,15 @@
   "version": "0.4.18-preview.2",
   "assembly_version": "0.4.18.0",
   "updated": "2026-10-23",
-  "status": "native_verified_pending_installation",
-  "source_branch": "codex/classification-inputs",
+  "status": "installed_verified_trial_package",
+  "source_branch": "main",
   "base_commit": "f1322d1",
-  "candidate_installed": false,
-  "installed_version": "0.4.17.0",
+  "candidate_installed": true,
+  "installed_version": "0.4.18.0",
+  "installed_plugin_sha256": "2ae8803b85d36ad30d1d78c7ad74f51576fbc94b1e92b45d96f791fa82f09918",
   "tests": {
     "core": {"passed": 261, "failed": 0},
-    "wpf": {"passed": 136, "failed": 0, "evidence": "classification-reviewed-build.log"},
+    "wpf": {"passed": 136, "failed": 0, "evidence": "validation/ui-fcb4b335"},
     "workbook": {"passed": 21, "failed": 0},
     "redline": {"passed": 33, "failed": 0},
     "python": {"passed": 34, "failed": 0}
@@ -58,7 +59,7 @@
     "other_typed_and_fixed_rules_preserved": true
   },
   "scope": {
-    "merged_to_main": false,
+    "merged_to_main": true,
     "remote_pushed": false,
     "customer_originals_modified": false,
     "real_platform_acceptance": false,
@@ -78,6 +79,29 @@
     "regression_red": "validation/ui-954d1f1f",
     "regression_green": "classification-reviewed-build.log",
     "remaining_blockers": 0
+  },
+  "integration": {
+    "mode": "authorized_local_fast_forward",
+    "implementation_commit": "4bc649449ffaa8cfd004bdebda8e8e76cad02f53",
+    "remote_pushed": false
+  },
+  "main_build": {
+    "source_commit": "4bc649449ffaa8cfd004bdebda8e8e76cad02f53",
+    "all_passed": true,
+    "log": "validation/classification-main-build-20261023.log",
+    "native_host_run_on_main_rebuild": false,
+    "promoted_to_exact_native_verified_binaries": true
+  },
+  "installation": {
+    "version": "0.4.18-preview.2",
+    "receipt": "outputs/install-20261023-224045-4d802e09/install-receipt.json",
+    "independent_audit": "outputs/install-20261023-224045-4d802e09/installed-files-audit.json",
+    "verified_files": 5,
+    "matches_native_verified_binaries": true,
+    "workspace_root": "main V1",
+    "previous_version": "0.4.17-preview.2",
+    "customer_models_modified": false,
+    "post_install_host_loading_verified": false
   },
   "documentation": "docs/0.4.18-分类下拉与自定义输入.md"
 }
