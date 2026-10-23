@@ -17,6 +17,8 @@ namespace Hifc.Revit
             Add(panel, "HifcV1Capture", "导出取数\nJSON", typeof(CaptureCommand), "保存所选构件的实例/类型参数、值、类型及来源证据。");
             Add(panel, "HifcV1Export", "导出项目\nIFC", typeof(ExportCommand), "默认导出当前项目全部可导出模型，包含面积（Area），无需预选；已分类载体输出对应 HIFC 属性，临时导出改动整体回滚，附导出回执。");
             Add(panel, "HifcV1About", "版本与\n验证范围", typeof(AboutCommand), "Revit 2020 验证版。原软件真实模型 A/B 尚待验证。");
+            var syncPanel = application.CreateRibbonPanel(tab, "平台同步预开发");
+            Add(syncPanel, "HifcV1PlatformSyncPreview", "平台设置\n同步状态", typeof(PlatformSync.PlatformSyncCommand), "独立平台同步窗口：设置平台、绑定模型、预览本次成功导出的 IFC 计划及查看状态。本版真实平台只读，不上传或替换模型。");
             Smoke.Register(application);
             application.ControlledApplication.DocumentSavedAs+=Management.ManagerController.SavedAs;
             return Result.Succeeded;
@@ -27,7 +29,7 @@ namespace Hifc.Revit
             if (type != typeof(AboutCommand)) data.AvailabilityClassName = typeof(ProjectAvailable).FullName;
             panel.AddItem(data);
         }
-        public Result OnShutdown(UIControlledApplication application) { application.ControlledApplication.DocumentSavedAs-=Management.ManagerController.SavedAs;Management.SelectionController.Shutdown(); Management.ManagerController.Shutdown(); return Result.Succeeded; }
+        public Result OnShutdown(UIControlledApplication application) { application.ControlledApplication.DocumentSavedAs-=Management.ManagerController.SavedAs;Management.SelectionController.Shutdown(); Management.ManagerController.Shutdown(); PlatformSync.PlatformSyncController.Shutdown(); return Result.Succeeded; }
     }
 
     public sealed class ProjectAvailable : IExternalCommandAvailability

@@ -1,0 +1,69 @@
+{
+  "schema": "hifc.platform-sync-preview-validation/1",
+  "date": "2026-10-23",
+  "source_version": "0.4.17-preview.1",
+  "worker_version": "0.1.0",
+  "stable_installation": {
+    "matches_accepted_package": true,
+    "sha256": "f3b16b8f8c001a5382475a9f581e14c5342bada240f4ef995fd058ae2490d603",
+    "unchanged_by_preview": true,
+    "version": "0.4.16.0",
+    "loaded_this_turn": false
+  },
+  "dotnet": {
+    "errors": 0,
+    "warnings": 0,
+    "failed": 0,
+    "wpf_passed": 121,
+    "core_passed": 235,
+    "preview_installed": false,
+    "revit_plugin_compiled": true
+  },
+  "node": {
+    "failed": 0,
+    "true_browser_groups": 8,
+    "runtime": "24.19.0",
+    "passed": 33
+  },
+  "python": {
+    "failed": 0,
+    "passed": 34
+  },
+  "standalone": {
+    "launcher_smoke_passed": true,
+    "cross_language_handoff_verified": true,
+    "actual_wpf_to_node_plan": true,
+    "fixture_writes": 0,
+    "sample": "artificial"
+  },
+  "real_platform": {
+    "identity_proven": false,
+    "inspection_exit": 4,
+    "apply_enabled": false,
+    "missing_proofs": [
+      "project_id",
+      "scene_project_id",
+      "model_id",
+      "model_generation"
+    ],
+    "models_modified": false,
+    "connected": true,
+    "page_title": "智慧规划云平台"
+  },
+  "review": {
+    "independent": true,
+    "deferred_findings": 0,
+    "regression_cases": [
+      "backup_tampering_after_delete_or_upload",
+      "transient_predelete_failure",
+      "crash_backup_remnant"
+    ],
+    "findings_fixed": 2
+  },
+  "preview_package_sha256": "68cb26e9602952e60411c97ec7fc639f4d377b6421703461316eed0b6d9cc719",
+  "local_evidence": "artifacts/platform-sync-preview-20261023",
+  "screenshot": "docs/images/platform-sync-preview.png",
+  "real_write_acceptance": false,
+  "native_revit_preview_host_tested": false,
+  "remote_git_push_performed": false
+}

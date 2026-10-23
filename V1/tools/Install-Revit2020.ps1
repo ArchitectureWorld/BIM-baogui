@@ -3,6 +3,8 @@ param()
 $ErrorActionPreference = 'Stop'
 if (Get-Process -Name Revit -ErrorAction SilentlyContinue) { throw 'Close Revit normally before installing. No process will be stopped.' }
 $workspace = Split-Path -Parent $PSScriptRoot
+# Production installation remains pinned to the accepted stable release.
+# Platform sync preview builds are separate packages and are not installed here.
 $package = Join-Path $workspace 'dist\Hifc.V1.Revit2020-0.4.16'
 $addinRoot = Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'Autodesk\Revit\Addins\2020'
 $target = Join-Path $addinRoot 'Hifc.V1'

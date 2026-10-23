@@ -29,6 +29,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: V1/platform-sync/package-lock.json
       - name: Check committed whitespace
         shell: pwsh
         run: |
@@ -59,6 +64,14 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check -r V1/requirements-validation.txt
           if ($LASTEXITCODE -ne 0) { throw 'IFC dependency installation failed' }
+      - name: Run independent platform-sync and local browser regressions
+        shell: pwsh
+        working-directory: V1/platform-sync
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          if ($LASTEXITCODE -ne 0) { throw 'Sync dependency installation failed' }
+          npm test
+          if ($LASTEXITCODE -ne 0) { throw 'Platform-sync regressions failed' }
       - name: Run IFC tool regressions
         shell: pwsh
         run: |

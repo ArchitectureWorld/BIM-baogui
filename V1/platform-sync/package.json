@@ -1,0 +1,14 @@
+{
+  "name": "hifc-platform-sync-preview",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24.0.0" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test --test-concurrency=1 dist/tests/*.test.js",
+    "start": "node dist/src/cli.js"
+  },
+  "dependencies": { "playwright": "1.56.1" },
+  "devDependencies": { "@types/node": "24.10.0", "typescript": "5.9.3" }
+}

@@ -57,6 +57,7 @@ namespace Hifc.Revit
         }
         internal static ProjectExportScope ExportProject(Document doc, string ifcPath)
         {
+            PlatformSync.PlatformSyncRegistry.BeginExport(doc);
             Management.CaseEdits.ValidateNetLand(doc);
             var scope = ProjectExportScope.Read(doc);
             ExportCore(doc, scope.Elements, scope.MappedElements, ifcPath, scope);
@@ -74,6 +75,7 @@ namespace Hifc.Revit
 
         private static object ExportCore(Document doc, Element[] elements, Element[] mappedElements, string ifcPath, ProjectExportScope project)
         {
+            var exportId = Guid.NewGuid().ToString("D");
             // Type properties are inherited by every exported instance of that type.
             // Never silently widen a user's per-instance window classification.
             foreach (var group in mappedElements.Where(e => RevitMappingService.Entity(doc,e) == "IfcWindow"
@@ -169,7 +171,7 @@ namespace Hifc.Revit
                 throw new InvalidOperationException("Revit 未产生有效 IFC 文件。");
             var receipt = new
             {
-                schema_version = "hifc.native-export-receipt/1.5", ifc_path = path, ifc_sha256 = Evidence.FileHash(path),
+                schema_version = "hifc.native-export-receipt/1.5", export_id = exportId, ifc_path = path, ifc_sha256 = Evidence.FileHash(path),
                 configuration_path = configPath, configuration_sha256 = Evidence.FileHash(configPath),
                 doc_export_calls = 1, ifc_postprocessed = false, source_snapshot_before = before, source_snapshot_after = after,
                 ifc_version="IFC4",model_view="DesignTransferView",tessellation_level_of_detail=1.0,
@@ -196,6 +198,9 @@ namespace Hifc.Revit
                 materialization, reference_software_ab_verified = false
             };
             Evidence.Write(Path.ChangeExtension(path, ".receipt.json"), receipt);
+            // File existence alone is not success. This optional registration follows
+            // all rollback, model consistency, exporter restoration and receipt checks.
+            if (project != null) PlatformSync.PlatformSyncRegistry.RegisterCompleted(doc, path, Path.ChangeExtension(path, ".receipt.json"), exportId);
             return receipt;
         }
         private static string SnapshotHash(Document doc, Element[] elements)

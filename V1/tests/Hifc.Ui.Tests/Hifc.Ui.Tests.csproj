@@ -12,6 +12,8 @@
     <Compile Include="../../src/Hifc.Revit/Management/UndergroundWindow.cs" Link="UndergroundWindow.cs" />
     <Compile Include="../../src/Hifc.Revit/Management/PlanningWindow.cs" Link="PlanningWindow.cs" />
     <Compile Include="../../src/Hifc.Revit/Management/ExportReviewWindow.cs" Link="ExportReviewWindow.cs" />
+    <Compile Include="../../src/Hifc.Revit/PlatformSync/PlatformSyncClient.cs" Link="PlatformSyncClient.cs" />
+    <Compile Include="../../src/Hifc.Revit/PlatformSync/PlatformSyncWindow.cs" Link="PlatformSyncWindow.cs" />
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
 </Project>

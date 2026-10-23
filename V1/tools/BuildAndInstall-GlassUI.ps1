@@ -1,6 +1,10 @@
 [CmdletBinding()]
 param([switch]$BuildOnly)
 $ErrorActionPreference = 'Stop'
+$sourceProperties = [xml](Get-Content -LiteralPath (Join-Path (Split-Path -Parent $PSScriptRoot) 'Directory.Build.props') -Raw)
+if (-not $BuildOnly -and [string]$sourceProperties.Project.PropertyGroup.Version -match '-') {
+    throw 'This source is a platform-sync preview. Automatic build-and-install is disabled. Use BuildOnly for preview builds; Install-Revit2020.ps1 installs the retained stable 0.4.16 package separately.'
+}
 $revitRoot = 'C:\Program Files\Autodesk\Revit 2020'
 foreach ($dll in @('RevitAPI.dll', 'RevitAPIUI.dll', 'RevitAPIIFC.dll')) {
     if (-not (Test-Path -LiteralPath (Join-Path $revitRoot $dll))) {

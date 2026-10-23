@@ -62,6 +62,7 @@ internal static class Program
         AutoFillTests.Run(Check);
         ControlLineTests.Run(Check);
         ExportNamingTests.Run(Check);
+        PlatformSyncHandoffTests.Run(Check);
         ManagerImprovementsTests.Run(Check);
         UndergroundTests.Run(Check);
         SiteClassificationTests.Run(Check);
