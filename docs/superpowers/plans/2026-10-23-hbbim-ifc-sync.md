@@ -42,7 +42,7 @@
 - [x] 3. Playwright 独立浏览器与本地平台闭环；真实平台只读适配器硬性禁止写入。
   Files: `V1/platform-sync/src/{browser,fixture}.ts`; `tests/browser.test.ts`.
   Verify: full local browser replacement, conversion/calculation distinction, network/response loss, duplicate submit prevention; read-only real connection attempt with sanitized evidence.
-- [ ] 4. 文档、版本标识、启动脚本、审查修复与 main 合并。
+- [x] 4. 文档、版本标识、启动脚本、审查修复与 main 合并。
   Files: `V1/platform-sync/README.md`, `V1/docs/platform-sync-preview.md`, `V1/README.md`, verification summary.
   Verify: complete existing .NET/Python suite and new Node/browser suite; installed DLL hash unchanged; main merged, no runtime/private files staged.
 
@@ -60,4 +60,4 @@
 - User separately authorized stable 0.4.16 installation mid-task. Installed DLL `f3b16b8f8c001a5382475a9f581e14c5342bada240f4ef995fd058ae2490d603` verified; unchanged throughout preview development. No Revit process started for this install.
 - Final review: independent fresh reviewer, two findings. P1 backup was not checked after delete/upload; P2 pre-delete recovery could fail forever on an existing backup. Both reproduced RED, fixed in one pass, final Node suite 33/33 GREEN. No deferred review findings.
 - Launcher: `Start-LocalDemo.ps1 -Smoke` passed; actual WPF display visually inspected. Fixture counters delete/upload/submit all zero, state PLANNED. Public screenshot and validation index committed; detailed logs retained under local artifacts.
-- Task 4: implementation/docs/validation ready; main merge pending. Stable installer remains pinned 0.4.16, preview automatic build-and-install guarded, CI adds Node 24/local browser regression.
+- Task 4: complete. Feature commit dcef783 merged to main via fast-forward; main Build.ps1 rerun 235/235 core, 121/121 WPF and zero-warning Revit compile. Main-directory Start-LocalDemo.ps1 -Smoke passed, no fixture writes. Stable installer remains pinned 0.4.16, preview automatic build-and-install guarded, CI adds Node 24/local browser regression.

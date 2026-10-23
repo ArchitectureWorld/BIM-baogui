@@ -60,10 +60,17 @@
     ],
     "findings_fixed": 2
   },
-  "preview_package_sha256": "68cb26e9602952e60411c97ec7fc639f4d377b6421703461316eed0b6d9cc719",
+  "preview_package_sha256": "018b0703cb94e86fd8a0ba542e7ab87d6bea8c9bd077e42765a690c6492ce016",
   "local_evidence": "artifacts/platform-sync-preview-20261023",
   "screenshot": "docs/images/platform-sync-preview.png",
   "real_write_acceptance": false,
   "native_revit_preview_host_tested": false,
-  "remote_git_push_performed": false
+  "remote_git_push_performed": false,
+  "merge": {
+    "main_launcher_smoke_passed": true,
+    "target_branch_build_passed": true,
+    "method": "fast-forward",
+    "branch": "main",
+    "feature_commit": "dcef783723a7769668aa391be429ab485967c7c0"
+  }
 }
