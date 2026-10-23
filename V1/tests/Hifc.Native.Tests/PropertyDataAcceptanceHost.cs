@@ -281,8 +281,8 @@ public sealed class PropertyDataAcceptanceHost:IExternalApplication,IExternalEve
             if(classificationTargets.Count>0)Check("custom_classification_values_survive_reopen",classificationTargets.All(t=>reopened.GetElement((string)Get(t,"owner_unique_id")).GetParameters((string)Get(t,"source")).Single().AsString()==(string)Get(t,"value")));
         }finally{reopened.Close(false);}
         Static("Management.PlatformContext","Set",document,settings);Static("Management.PlatformContext","SetStage",document,"报规");
-        var ifc=Path.Combine(run,"OUT_验收单体.ifc");Static("NativeExportService","ExportProject",document,ifc);Check("full_project_ifc_export_completed",File.Exists(ifc)&&File.Exists(Path.ChangeExtension(ifc,"receipt.json")));
-        Write("export-targets.json",new{ifc,first_level_id=first.Id.IntegerValue,first_level_unique_id=first.UniqueId,region_id=region.Id.IntegerValue,region_unique_id=region.UniqueId,expected_floor_area=123.45,expected_region_area=123.45,expected_building_height=3,alias_carrier_id=aliasCarrierId,classification_targets=classificationTargets});
+        var ifc=Path.Combine(run,"OUT_验收单体.ifc");var exportedScope=Static("NativeExportService","ExportProject",document,ifc);var receipt=(string)Get(exportedScope,"ReceiptPath");Check("full_project_ifc_export_completed",File.Exists(ifc)&&File.Exists(receipt));
+        Write("export-targets.json",new{ifc,receipt,first_level_id=first.Id.IntegerValue,first_level_unique_id=first.UniqueId,region_id=region.Id.IntegerValue,region_unique_id=region.UniqueId,expected_floor_area=123.45,expected_region_area=123.45,expected_building_height=3,alias_carrier_id=aliasCarrierId,classification_targets=classificationTargets});
         // Exercise the actual manual-controller write, not only its UI abstraction.
         ui.ActiveUIDocument.Selection.SetElementIds(new[]{region.Id});Static("Management.SelectionController","Open",ui);
         var windows=(IDictionary)T("Management.SelectionController").GetField("Windows",Flags).GetValue(null);var controller=windows[document];selection=Get(controller,"Window");

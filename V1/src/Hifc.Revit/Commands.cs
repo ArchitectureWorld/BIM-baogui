@@ -75,7 +75,7 @@ namespace Hifc.Revit
                 if(path==null)return Result.Cancelled;
                 if (!Management.ExportReviewController.Confirm(data.Application,path)) return Result.Cancelled;
                 var scope = NativeExportService.ExportProject(document, path);
-                TaskDialog.Show("H-IFC V1", scope.Summary + "\nIFC：" + path + "\n回执：" + Path.ChangeExtension(path, ".receipt.json"));
+                TaskDialog.Show("H-IFC V1", scope.Summary + "\nIFC：" + path + "\n校验记录已由插件内部保存。");
                 return Result.Succeeded;
             }
             catch (Exception ex) { return CommandScope.Failure(ex, ref message); }

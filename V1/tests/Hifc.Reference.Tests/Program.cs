@@ -65,6 +65,7 @@ internal static class Program
         ClassificationInputTests.Run(Check);
         ControlLineTests.Run(Check);
         ExportNamingTests.Run(Check);
+        ExportArtifactsTests.Run(Check);
         PlatformSyncHandoffTests.Run(Check);
         ManagerImprovementsTests.Run(Check);
         UndergroundTests.Run(Check);

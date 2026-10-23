@@ -18,6 +18,7 @@ namespace Hifc.Revit
 
     internal sealed class ProjectExportScope
     {
+        internal string ReceiptPath { get; set; }
         internal Element[] Elements { get; private set; }
         internal Element[] MappedElements { get; private set; }
         internal ProjectExportIssue[] Issues { get; private set; }
@@ -27,7 +28,7 @@ namespace Hifc.Revit
         internal int LinkCount => Elements.OfType<RevitLinkInstance>().Count();
         internal string Summary => "当前项目已全量导出，不受预选和当前视图过滤影响。\n"
             + "已盘点 Area：" + ValidAreaCount + " 个有效 / " + AreaCount + " 个总计；HIFC 属性载体：" + MappedElements.Length + " 个。\n"
-            + (Issues.Length == 0 ? "" : "需核对：" + Issues.Length + " 项，详情见导出回执。\n")
+            + (Issues.Length == 0 ? "" : "需核对：" + Issues.Length + " 项，详情保存在插件内部导出记录。\n")
             + (LinkCount == 0 ? "" : "链接源模型不在本次当前项目导出范围内。\n")
             + "临时导出改动已回滚。";
 

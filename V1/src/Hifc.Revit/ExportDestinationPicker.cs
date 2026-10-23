@@ -5,7 +5,6 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Hifc.Reference;
 using Hifc.Revit.Management;
-using Microsoft.Win32;
 
 namespace Hifc.Revit
 {
@@ -40,14 +39,18 @@ namespace Hifc.Revit
                 else if(answer==TaskDialogResult.CommandLink2)kind="总图";
                 else return null;
             }
-            var suggestion=DefaultPath(doc,kind,DateTime.Now);
-            var dialog=new SaveFileDialog {Title="导出项目 IFC · 选择位置和名称",Filter="IFC (*.ifc)|*.ifc",
-                InitialDirectory=Path.GetDirectoryName(suggestion),FileName=Path.GetFileName(suggestion),
-                DefaultExt=".ifc",AddExtension=true,CheckPathExists=true,ValidateNames=true,OverwritePrompt=false};
-            if(dialog.ShowDialog()!=true)return null;
-            // Recompute against the folder the user actually chose. The following
-            // review displays this final path before any export files are written.
-            return ExportFileNaming.ResolveSelection(dialog.FileName);
+            var directory=ExportFileNaming.InitialDirectory(doc.PathName,Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+            var window=new ExportNamingWindow(doc.PathName,doc.Title,stage,kind,DateTime.Now,directory);
+            new System.Windows.Interop.WindowInteropHelper(window).Owner=ui.MainWindowHandle;
+            window.BrowseDirectory=current=> {
+                using(var dialog=new System.Windows.Forms.FolderBrowserDialog {Description="选择 IFC 保存文件夹",SelectedPath=current,ShowNewFolderButton=true})
+                    return dialog.ShowDialog(new DialogOwner(new System.Windows.Interop.WindowInteropHelper(window).Handle))==System.Windows.Forms.DialogResult.OK?dialog.SelectedPath:null;
+            };
+            // Confirmation recomputes the version in the selected directory. The
+            // existing export review still displays this path before writing.
+            return window.ShowDialog()==true?window.ConfirmedPath:null;
         }
+        sealed class DialogOwner:System.Windows.Forms.IWin32Window
+        {public IntPtr Handle {get;}internal DialogOwner(IntPtr handle){Handle=handle;}}
     }
 }

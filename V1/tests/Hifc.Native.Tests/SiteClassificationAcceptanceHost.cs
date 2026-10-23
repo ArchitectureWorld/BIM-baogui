@@ -104,10 +104,10 @@ public sealed class SiteClassificationAcceptanceHost : IExternalApplication, IEx
         var protectedElements = new Element[] { green, control, ordinary, parking, unclassified };
         var before = new JavaScriptSerializer().Serialize(Static("Hifc.Revit.RevitMappingService", "Capture", doc, protectedElements));
         var modelIds = new FilteredElementCollector(doc).WhereElementIsNotElementType().ToElementIds().Select(id => id.IntegerValue).OrderBy(id => id).ToArray();
-        Static("Hifc.Revit.NativeExportService", "ExportProject", doc, Path.Combine(run, "project.ifc"));
+        var exportedScope=Static("Hifc.Revit.NativeExportService", "ExportProject", doc, Path.Combine(run, "project.ifc"));
         Check("whole_project_export_restores_mapped_and_unmapped_values", before == new JavaScriptSerializer().Serialize(Static("Hifc.Revit.RevitMappingService", "Capture", doc, protectedElements)));
         Check("whole_project_export_creates_no_persistent_view_or_binding", modelIds.SequenceEqual(new FilteredElementCollector(doc).WhereElementIsNotElementType().ToElementIds().Select(id => id.IntegerValue).OrderBy(id => id)));
-        var receipt = new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(File.ReadAllText(Path.Combine(run, "project.receipt.json")));
+        var receipt = new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(File.ReadAllText((string)Get(exportedScope,"ReceiptPath")));
         Check("whole_project_receipt_confirms_no_selection_or_view_filter", (string)receipt["export_scope"] == "CURRENT_PROJECT" && receipt["selected_elements"] == null
             && !(bool)receipt["current_view_filter_applied"] && !(bool)receipt["linked_source_documents_exported"]);
         Write("project-export-expectations.json", new { ordinary_id = ordinary.Id.IntegerValue, ordinary_area_m2 = 6.0,

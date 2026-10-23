@@ -110,6 +110,7 @@ internal static class Program
         PlatformInputTests.Run(Check,output);
         ClassificationUiTests.Run(Check,output);
         ExportReviewTests.Run(Check,output);
+        ExportNamingWindowTests.Run(Check,output);
         ManagementStateRetryTests.Run(Check);
         PlatformSyncWindowTests.Run(Check,output);
         Console.WriteLine("RESULT failures=" + failures + "; tests=" + tests);

@@ -316,8 +316,8 @@ public sealed class PlatformAcceptanceHost : IExternalApplication, IExternalEven
         Check(basename + "_auxiliary_level_in_native_scope", Items(Get(scope, "Elements")).Cast<Element>().Any(e => e.Id.IntegerValue == ids["auxiliary_level"]));
         Check(basename + "_auxiliary_level_has_no_business_mapping", !mapped.Contains(ids["auxiliary_level"]) && mapped.Contains(ids["first_level"]) && mapped.Contains(ids["second_level"]));
         Check(basename + "_unclassified_shared_window_is_not_mapped", !mapped.Contains(ids["unclassified_window"]));
-        Static("Hifc.Revit.NativeExportService", "ExportProject", doc, Path.Combine(run, basename + ".ifc"));
-        var receipt = new JavaScriptSerializer { MaxJsonLength = 128 * 1024 * 1024 }.Deserialize<Dictionary<string, object>>(File.ReadAllText(Path.Combine(run, basename + ".receipt.json")));
+        var exportedScope=Static("Hifc.Revit.NativeExportService", "ExportProject", doc, Path.Combine(run, basename + ".ifc"));
+        var receipt = new JavaScriptSerializer { MaxJsonLength = 128 * 1024 * 1024 }.Deserialize<Dictionary<string, object>>(File.ReadAllText((string)Get(exportedScope,"ReceiptPath")));
         Check(basename + "_native_transaction_rolled_back", (string)receipt["model_transaction"] == "RolledBack" && (bool)receipt["temporary_type_schedules_rolled_back"]);
         Check(basename + "_scoped_profile_recorded", (string)receipt["platform_profile_id"] == Profile);
         Check(basename + "_native_owner_routing_restored", (bool)receipt["type_routing_callback_restored"] && (bool)receipt["original_export_server_restored"]);

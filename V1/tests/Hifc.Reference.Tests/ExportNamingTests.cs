@@ -22,7 +22,7 @@ internal static class ExportNamingTests
     internal static void Run(Action<string,Action> check)
     {
         check("export_name_accepts_optional_3d_prefix_and_preserves_building",()=>{
-            Assert(Stem("3D_学校_综合楼")=="OUT_学校_综合楼_报规_单体_20261023","Unexpected normalized building filename");
+            Assert(Stem("3D_学校_综合楼")=="OUT_学校_报规_综合楼_20261023","Unexpected normalized building filename");
             Assert(Stem("学校_综合楼")==Stem("3D_学校_综合楼"),"Optional 3D prefix changes output identity");
             Assert(Stem("学校_大门")!=Stem("学校_综合楼"),"Different buildings share a version family");
         });
@@ -31,7 +31,7 @@ internal static class ExportNamingTests
             Assert(Stem("3d_学校_总图","总图","施工图")=="OUT_学校_施工图_总图_20261023","Stage/date not reflected");
         });
         check("saved_rvt_filename_overrides_document_title",()=>{
-            Assert((string)Call("Stem",@"D:\模型\学校_综合楼.rvt","错误标题","报规","单体建筑",new DateTime(2026,10,23))=="OUT_学校_综合楼_报规_单体_20261023","RVT filename not used");
+            Assert((string)Call("Stem",@"D:\模型\学校_综合楼.rvt","错误标题","报规","单体建筑",new DateTime(2026,10,23))=="OUT_学校_报规_综合楼_20261023","RVT filename not used");
         });
         check("export_defaults_to_model_sibling_directory_and_unsaved_fallback",()=>WithDirectory(dir=>{
             Assert((string)Call("InitialDirectory",Path.Combine(dir,"学校_总图.rvt"),Path.GetTempPath())==dir,"Default folder is not beside RVT");
@@ -59,8 +59,21 @@ internal static class ExportNamingTests
             foreach(var args in new[]{new[]{"","总图"},new[]{"报规","待确认"},new[]{"报规","混合模型"}}){bool rejected=false;try{Stem("学校",args[1],args[0]);}catch(InvalidOperationException){rejected=true;}Assert(rejected,"Unknown context became an export label");}
         });
         check("filename_cleanup_is_scoped_and_keeps_chinese",()=>{
-            Assert(Stem("学校_3D实验楼").Contains("学校_3D实验楼"),"Interior 3D name lost");
-            Assert(Stem("学校_楼/栋?").Contains("学校_楼_栋_"),"Invalid filename characters remain");
+            Assert(Stem("学校_3D实验楼")=="OUT_学校_报规_3D实验楼_20261023","Interior 3D name lost");
+            Assert(Stem("学校_楼/栋?")=="OUT_学校_报规_楼_栋__20261023","Invalid filename characters remain");
+        });
+        check("legacy_name_suggests_project_and_specific_building",()=>{
+            Assert(Stem("3D_歇马镇中心学校-综合楼")=="OUT_歇马镇中心学校_报规_综合楼_20261023","Legacy building suggestion not split");
+            Assert(Stem("3D_学校-总图","总图")=="OUT_学校_报规_总图_20261023","Legacy site repeated in project name");
+        });
+        check("project_underscores_preserve_identity_and_missing_building_requires_input",()=>{
+            Assert(Stem("3D_学校_一期_综合楼")=="OUT_学校_一期_报规_综合楼_20261023","Project identity lost");
+            bool rejected=false;try{Stem("学校");}catch(InvalidOperationException){rejected=true;}
+            Assert(rejected,"Missing building silently became generic single-building name");
+        });
+        check("confirmed_names_override_suggestion_without_model_changes",()=>{
+            Assert((string)Call("StemForNames","学校","大门","报规","单体建筑",new DateTime(2026,10,23))=="OUT_学校_报规_大门_20261023","Confirmed names not applied");
+            Assert((string)Call("StemForNames","学校","误填单体","报规","总图",new DateTime(2026,10,23))=="OUT_学校_报规_总图_20261023","Site identity not fixed");
         });
     }
 }

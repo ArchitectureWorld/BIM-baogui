@@ -94,8 +94,8 @@ namespace Hifc.Revit
             if (File.Exists(path)) throw new InvalidOperationException("目标 IFC 已存在，请选择新的文件名。");
             var directory = Path.GetDirectoryName(path);
             Directory.CreateDirectory(directory);
-            var configPath = Path.Combine(directory, Path.GetFileNameWithoutExtension(path) + ".psets.tsv");
-            if (File.Exists(configPath)) throw new InvalidOperationException("导出配置目标已存在。");
+            var artifacts=ExportArtifacts.Create(path,ExportArtifacts.DefaultRoot,exportId);
+            var configPath=artifacts.ConfigurationPath;
             // Native 2020 ignores the T/I distinction when matching an entity
             // pair. Type Psets use an exact owner filter in NativeTypePropertyScope.
             var profileId = Management.PlatformContext.ProfileId(doc);
@@ -126,8 +126,8 @@ namespace Hifc.Revit
                 if (transaction.Start() != TransactionStatus.Started) throw new InvalidOperationException("导出事务未启动。");
                 try
                 {
-                    carrierOverrides = OverrideControlSlabs(doc, mappedElements, directory);
-                    if (mappedElements.Length > 0) RevitMappingService.EnsureBridges(doc, mappedElements, directory);
+                    carrierOverrides = OverrideControlSlabs(doc, mappedElements, artifacts.DirectoryPath);
+                    if (mappedElements.Length > 0) RevitMappingService.EnsureBridges(doc, mappedElements, artifacts.DirectoryPath);
                     materialization = RevitMappingService.MaterializeWithFloorAreas(doc, mappedElements,floorAreas);
                     suppressedFallbackBindings=SuppressNumericFallback(doc,elements,selectedProperties);
                     var viewId = ElementId.InvalidElementId;
@@ -155,7 +155,7 @@ namespace Hifc.Revit
                             project == null ? elements.Select(e => e.Id.IntegerValue).ToArray() : null))
                             options.AddOption(option.Key, option.Value);
                         using(typeScope=new NativeTypePropertyScope(doc,mappedElements,service,elements))
-                            exported = doc.Export(directory, Path.GetFileNameWithoutExtension(path), options);
+                            exported = doc.Export(artifacts.DirectoryPath, Path.GetFileNameWithoutExtension(path), options);
                         if(!typeScope.Applied || !typeScope.Restored)throw new InvalidOperationException("原生类型属性隔离回调未执行或未恢复。");
                         if(!typeScope.FloorGeometryPassed)throw new InvalidOperationException("楼板原生导出存在失败，不能将缺少业务载体的 IFC 标为成功。");
                     }
@@ -167,11 +167,13 @@ namespace Hifc.Revit
                 throw new InvalidOperationException("导出后模型回滚或取值一致性核验失败，不能标为成功。");
             if(typeScope.ScheduleIds.Any(id=>doc.GetElement(id)!=null))throw new InvalidOperationException("临时类型路由视图未回滚。");
             if (service?.GetActiveServerId() != server) throw new InvalidOperationException("导出服务身份发生变化。");
-            if (!exported || !File.Exists(path) || new FileInfo(path).Length == 0)
+            if (!exported || !File.Exists(artifacts.StagedIfcPath) || new FileInfo(artifacts.StagedIfcPath).Length == 0)
                 throw new InvalidOperationException("Revit 未产生有效 IFC 文件。");
+            var ifcHash=Evidence.FileHash(artifacts.StagedIfcPath);
             var receipt = new
             {
-                schema_version = "hifc.native-export-receipt/1.5", export_id = exportId, ifc_path = path, ifc_sha256 = Evidence.FileHash(path),
+                schema_version = "hifc.native-export-receipt/1.5", export_id = exportId, ifc_path = path, ifc_sha256 = ifcHash,
+                receipt_path=artifacts.ReceiptPath, internal_artifact_directory=artifacts.DirectoryPath,
                 configuration_path = configPath, configuration_sha256 = Evidence.FileHash(configPath),
                 doc_export_calls = 1, ifc_postprocessed = false, source_snapshot_before = before, source_snapshot_after = after,
                 ifc_version="IFC4",model_view="DesignTransferView",tessellation_level_of_detail=1.0,
@@ -197,10 +199,14 @@ namespace Hifc.Revit
                 temporary_type_schedules_rolled_back=true,
                 materialization, reference_software_ab_verified = false
             };
-            Evidence.Write(Path.ChangeExtension(path, ".receipt.json"), receipt);
+            Evidence.Write(artifacts.ReceiptPath, receipt);
+            artifacts.Publish(ifcHash);
             // File existence alone is not success. This optional registration follows
             // all rollback, model consistency, exporter restoration and receipt checks.
-            if (project != null) PlatformSync.PlatformSyncRegistry.RegisterCompleted(doc, path, Path.ChangeExtension(path, ".receipt.json"), exportId);
+            if (project != null) {
+                project.ReceiptPath=artifacts.ReceiptPath;
+                PlatformSync.PlatformSyncRegistry.RegisterCompleted(doc, path, artifacts.ReceiptPath, exportId);
+            }
             return receipt;
         }
         private static string SnapshotHash(Document doc, Element[] elements)
