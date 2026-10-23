@@ -36,7 +36,15 @@ foreach(var d in new[]{target}) {
 }
 var jobType=asm.GetType("Hifc.Revit.Management.CaseScanJob",true);
 var job=Activator.CreateInstance(jobType,flags,null,new object[]{target,(string)parameters[2],(string)parameters[3]},null);
-jobType.GetMethod("ReadNext",flags).Invoke(job,new object[]{target,100000});
+var completeProperty=jobType.GetProperty("Complete",flags);
+var positionProperty=jobType.GetProperty("Position",flags);
+var readNextMethod=jobType.GetMethod("ReadNext",flags);
+if(completeProperty==null || completeProperty.PropertyType!=typeof(bool) || positionProperty==null || positionProperty.PropertyType!=typeof(int) || readNextMethod==null)throw new Exception("Loaded scan contract lacks boolean Complete, integer Position, or ReadNext; inspect the actual plugin before capture.");
+while(!(bool)completeProperty.GetValue(job,null)) {
+ var previous=(int)positionProperty.GetValue(job,null);
+ readNextMethod.Invoke(job,new object[]{target,2000});
+ if((int)positionProperty.GetValue(job,null)<=previous && !(bool)completeProperty.GetValue(job,null))throw new Exception("Full scan made no progress.");
+}
 var snapshot=jobType.GetMethod("Snapshot",flags).Invoke(job,new object[]{target});
 System.IO.File.WriteAllText(System.IO.Path.Combine(outputDirectory,"snapshot.json"),(string)json.Invoke(null,new object[]{snapshot}),new System.Text.UTF8Encoding(false));
 return new{captured=true,path=target.PathName,count=((Array)snapshot.GetType().GetProperty("Elements").GetValue(snapshot,null)).Length};

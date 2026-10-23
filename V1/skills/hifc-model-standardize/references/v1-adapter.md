@@ -1,37 +1,61 @@
-# H-IFC V1 报规—总图适配说明
+# H-IFC V1 报规适配与执行接口
 
-本文仅记录报规总图的适配与实验，不构成报规单栋地上建筑、报规地下建筑或施工图模型的验证；这些方向需分别建立规则并用对应模型验证。
+当前技能覆盖报规总图、单体及已有证据的地下区域。共用流程见技能入口，业务规则见 [总图规则](site-rules.md)、[单体规则](building-rules.md) 和 [数据与验收](data-and-validation.md)。施工图专项规则尚未建立。本文末尾的 0.4.2 实验是历史记录，不代表当前能力或所有模型均已验收。
 
-此总图适配在 Revit 2020 / Hifc.V1.Revit 0.4.2.0 上验证。读取宿主实际程序集版本与哈希；源码变更不表示已加载插件同步更新。签名变化时重新审查，禁止用旧反射调用盲写。
+每次读取宿主实际 `Hifc.V1.Revit` 程序集版本、路径与哈希，并核对对应接口；源码、安装目录和加载中 DLL 可能不同。以下接口来自 2026-10-23 的源码核对，不保证后续构建签名不变。签名变化时重新审查，禁止用旧反射调用盲写。0.4.19 正式版本已由相同业务源码重新构建、安装；生成模型原生验证对应 0.4.19-preview.1 的实际哈希，正式新哈希未重复宿主验证。旧轮次及分类增强的验证范围见数据与验收，不替代客户模型迁移或本轮平台结果。
+
+## 命名与最新模型另存
+
+成果 RVT：`3D_项目名称_报规_具体单体名称或总图_YYYYMMDD_Vn.rvt`。例如 `3D_歇马镇中心学校_报规_综合楼_20261023_V1.rvt`；不再附加“单体”。旧“标准化_”前缀只用于读入兼容，新成果使用 `3D_`。
+
+在技能目录运行命名工具，显式身份来自已确认资料，例如：
+
+```powershell
+python scripts/standardized_name.py --source "D:\项目\3D_歇马镇中心学校_综合楼.rvt" --project "歇马镇中心学校" --subject "综合楼" --date 20261023
+```
+
+工具只读取文件名与目录，返回 `source/target/action/project/subject/stage/filename_kind_hint/ifc_stem`，不修改模型。`save_as` 表示先另存；`reuse` 表示继续用户指定的已有规范成果。新交付加 `--new-version`，可指定已有 `--directory`。版本取同组最大值加一；SaveAs 前再次检查目标不存在。文件名不能可靠拆分时明确项目与模型名，不能把日期或 V1 当成楼栋。
+
+记录源文档对象、不可变来源路径、磁盘哈希及未保存状态。以该文档最新内容在干净 Revit API 上下文中执行 `Document.SaveAs` 到规划出的不同路径，成功并核对目标路径后才做业务写入。文件系统复制只含上次保存的内容，不能代替含当前编辑的 SaveAs。SaveAs 会改变同一 Document 的 PathName，因此保存前后的身份和来源路径分别记录。后续 Save、关闭重开、导出只针对成果；源磁盘哈希应保持。已明确继续既有成果时不重复另存。工作共享模型另核对脱离/另存设置，不能让成果继续向原中心模型同步。
+
+IFC 沿用已确认的导出命名政策，与 RVT 名独立：总图为 `OUT_项目名称_报规_总图_YYYYMMDD_Vn.ifc`；单体为 `OUT_项目名称_报规_具体单体名称_YYYYMMDD_Vn.ifc`。命名工具只给出尚未加版本的 `ifc_stem`；用实际插件 `ExportFileNaming.NextPath(directory, stem)` 取得含 IFC/回执等关联文件碰撞检查的下一个版本。模型类型仍以完整扫描与确认值为准；工具的 `filename_kind_hint` 不是业务判定。
+
+0.4.19 的 `ExportFileNaming.SuggestNames` 处理可选 `3D_`、最后下划线分段和旧横杠建议，但不会完整剥离标准化 RVT 的阶段/日期/版本后缀。直接使用默认建议可能将 V1 当楼名。本技能从命名工具取得 project/subject，在导出确认窗口明确填写；自动执行时用 `StemForNames(project, subject, stage, kind, date)` 与 `NextPath(directory, stem)` 或经核对的 `ifc_stem` 生成路径，并沿用完整模型已确认类型。`filename_kind_hint` 不替代模型类型检测。本次仅修正技能辅助命名，不宣称插件普通解析器已自动支持标准化后缀。
 
 ## 契约和接口
 
 - `V1/reference/gonggui/contract.json`：Pset、属性名、数据类型、原始来源参数、实例/类型绑定及允许的 IFC 实体。
-- `V1/reference/success-case-01/`：当前案例范围，不能解释为所有官方必填内容。
+- `V1/reference/success-case-01/` 及后续案例/验证目录：分别限定证据范围，不能解释为所有官方必填内容。
 - 业务分类参数为实例 `类目`。通用类型参数 `构件类型=250` 不足以确认用地、道路等业务。
-- `CaseScanJob(Document, stage, kind)`、`ReadNext`、`Snapshot`：每次全量取数；内部类可通过已加载程序集反射调用。
-- `CaseEdits.Preview(doc,snapshot,request)`：生成分类或赋值变更，检查 `Conflicts`、`Changes`、`ProposedElements`。
-- `CaseEdits.Apply(doc,preview)`：对同一目标文档校验预览指纹、写入、回读与事务回滚。多个请求外包目标文档的事务组。
+- `CaseScanJob(Document, stage, kind)`、`ReadNext(Document,int)`、`Snapshot(Document)`：每次全量取数。ReadNext 返回 void，须读 `Position/Total/Complete`，循环直到 Complete；不能固定一次 100000 后就声称完整。遇到未完成且无进展时失败，不提交局部快照。内部类可通过已加载程序集反射调用。
+- `CaseEdits.Preview(doc,snapshot,request = null)`：全面自动预览或单项请求；`PreviewBatch(doc,snapshot,EditRequest[])`：与自动补齐、楼层面积同步一起合并批量请求。检查 `Conflicts`、`Changes`、`ProposedElements`，新请求、来源或模型变化后重新预览。
+- `CaseEdits.Apply(doc,preview)`：对同一目标文档校验预览指纹、写入、回读与事务回滚。存在 Excel 资料时使用 `ApplyWithWorkbook(doc,preview,ReportingWorkbookDecision[])`，与选用业务值同次提交。管理窗口 `ManagerController.Write` 已使用 PreviewBatch/ApplyWithWorkbook 并重新全扫；优先复用此链。保存 RVT 是写入后的独立步骤，事务成功不等于已保存。
+- `PreviewSelection` 要求所选构件快照，`SelectionService.Write` 仅允许所选实例。项目与楼层属性必须使用全面管理/批量路径，不能向手动选择工具塞入 ProjectInformation 或 Level 来规避范围校验。
 - `EditRequest` 是 `Hifc.V1.Revit` 程序集的内部类 `Hifc.Revit.Management.EditRequest`，分类 Kind=分类、Ids、Slot；赋值 Kind=赋值、Ids、PropertySet、Source、Binding、Value。从实际快照选择字段，不猜名字。
 - `CaseWorkflow.ForModel` 与 `Summarize` 获取实际案例规则和复检结果。
-- `RevitMappingService.Slot/Entity/Properties` 校验分类与载体；`NativeExportService.Export` 执行当前插件实际导出链，并生成 receipt。
+- `RevitMappingService.Slot/Entity/Properties` 校验分类与载体；`NativeExportService.ReviewProject` 检查来源/阻塞/面积出口。正常交付调用 `ExportProject(Document,string)`，包括当前项目有效 Area 及未分类几何；`Export(Document,Element[],string)` 仅供开发选择范围验收，不能拿它替代全项目交付。
 - `ReferencePolicy.SourceGuid(name)` 定义来源共享参数 GUID；不重建另一套 GUID。
-- `V1/tools/verify_ifc.py` 独立校验实际 IFC 与 receipt。该脚本对缺值也会报错，报告需保留缺值事实，不能为测试通过造值。
+- `V1/tools/verify_ifc.py` 独立校验实际 IFC 与 receipt。从 `ExportProject` 返回的 `ProjectExportScope.ReceiptPath` 取得真实内部回执；0.4.19 不再使用 IFC 同级路径推断。该脚本对缺值也会报错，报告需保留缺值事实，不能为测试通过造值。
 
 常见总图映射：
 
 | 业务 | 实际来源字段示例 | 载体注意 |
 |---|---|---|
 | 规划净用地 | 规划净用地投影面积、规划净用地名称、版本、规划净用地类型 | 需先确认净用地含义 |
-| 道路边界线 | 区内道路类型、道路边界线道路宽度 | 道路宽度手填 |
+| 规划控制线 | 名称、红线类型（按实际来源定义取得） | 确认净用地控制线后，两值均为“净用地控制红线” |
+| 道路边界线 | 区内道路类型、道路边界线道路宽度 | 仅消防道路的宽度要求手填并缺失标红 |
 | 绿地 | 绿地投影面积、绿地类型、折算系数 | 面积不等于可自行决定折算系数 |
 | 停车位 | 停车位位置信息、车位数、是否为室外停车场等 | 对应 Area/IfcSpace；输出链须单独验证 |
 
+人工面积必须先经批量预览，将楼层值和对应区域分配实际写入并保存；`FloorAreaSynchronization.ForExport` 的导出临时联动不能替代此持久化步骤。项目投影面积独立保留人工值。布尔空值/基底例外及旧参数迁移统一遵循数据与验收，不用字符串 LookupParameter 写入替代插件的定义、冲突与迁移检查。
+
+导出前解决属性/资料草稿、当前来源冲突和实际阻塞；直接 API 调用不能跳过管理链的检查。原生服务执行后还有回滚和来源一致性检查，必须等待调用完整返回、检查成功回执与 IFC，并核对导出前后持久参数。出现文件但随后抛错不是导出成功。0.4.19 先在 `%LOCALAPPDATA%\Hifc.V1\export-records\<export-id>\` 完成原生导出及校验，再发布最终 IFC；内部保留配置、日志和 `export.receipt.json`，用户交付目录只生成 IFC。不要将内部附件重新复制到交付目录。需要平台同步时只交接完整成功的冻结 IFC、SHA-256 和回执；当前真实适配器只读，上传/计算的实际操作须按本轮授权与可用工具另行执行。
+
 ## 宿主细节
 
-Revit MCP 的代码模板可能自动开启当前活动文档的事务。此时即使后台副本 IsModifiable=false，启动 TransactionGroup 也会被全局活动事务阻止。用一次性 UIApplication.Idling 回调或 ExternalEvent 在 MCP 包装事务结束后执行目标副本的写入、事务组、保存和关闭；回调先解除注册，再校验目标文档并写入成功/失败回执。不要仅凭“已排队”声称执行成功。实验复制磁盘文件后用 Application.OpenDocumentFile 打开后台副本，始终保持原活动文档路径不变。
+Revit MCP 的代码模板可能自动开启当前活动文档的事务。此时即使后台副本 IsModifiable=false，启动 TransactionGroup 也会被全局活动事务阻止。使用 ExternalEvent，在包装事务结束后的合法 API 上下文执行 SaveAs、目标写入、事务组、保存及关闭重开。一次性 Idling 可用于允许的读写，但不能承担要求 ExternalEvent 的文档切换。先解除一次性回调、核对目标文档，并写独立成功/失败回执；“已排队”不是已执行。
 
-主线程可能使用同一宿主。不要重启 Revit、安装 DLL、切换活动项目或改插件全局设置。后台复制文档打开失败时报告限制，不通过关闭原项目绕过。
+主会话可能使用同一宿主。只操作当前任务明确授权的模型和成果；所需 SaveAs/成果重开以当前任务范围为限。不要为技能验证重启 Revit、安装 DLL、改全局设置或关闭其他正在编辑的项目。不能在合法上下文打开目标时报告具体限制，不通过关闭无关原项目绕过。
 
 ImageExportOptions.SetOfViews 的导图过程可能将后台副本激活。导图前记录原活动文档和视图；在 ExternalEvent 中恢复原文档，再核验 ActiveUIDocument。Idling 事件中禁止 OpenAndActivateDocument，恢复操作必须用 ExternalEvent。写入回执中的原文件路径使用最初记录的不可变值，不使用可能已变成副本的模板 document.PathName。
 
@@ -49,7 +73,7 @@ Revit 2020 中不能用 OfClass(typeof(Area))；应使用 OfCategory(OST_Areas) 
 
 在 MCP 的合法 API 上下文中 Assembly.LoadFrom 该 DLL，创建 `HifcSkillExperiment.ApiWork`，设置 `Work` 为 `Converter<UIApplication,object>` 回调、`ReceiptPath` 为本轮唯一 JSON 路径。回调的工作正文先校验目标路径与对象身份，再执行事务并返回结果。用 ExternalEvent.Create 创建事件，赋给 `Event` 字段，Raise；保留 handler 引用到完成。桥执行结束后写回执并释放事件。
 
-发起后读取回执中的真实 success/error；操作失败时先核查回滚和活动文档再继续。回调中可恢复原活动文档，但不能保存、关闭或替换用户的原文档。
+发起后读取回执中的真实 success/error；操作失败时先核查回滚和活动文档再继续。首次授权另存可从源文档 SaveAs 到不同目标；其余写入、Save、关闭和重开均核对成果路径，不保存覆盖来源文件或关闭其他用户文档。只有名称/路径计划完成时，不能声称 RVT 已另存或标准化完成。
 
 ## 不相交绿地与道路的拆分
 
@@ -63,7 +87,9 @@ Revit 2020 使用 `doc.Create.NewFloor(CurveArray, FloorType, Level, bool)` 等�
 
 后台事务应有明确的失败处理，避免 Revit 警告弹窗阻塞当前用户。重建可能重新触发既有道路/绿地边界接触警告；先验证原几何与新几何的相交情况一致，再按具体 FailureDefinitionId 和已核对的对象对记录处理。未知警告、错误或新增重叠应回滚，不批量忽略所有警告。`scripts/capture_model.cs` 的楼板盘点包含 `connectedComponents` 与 `connectivityError`；读取失败不算通过。
 
-## 已验证的报规总图范围
+## 历史验证：2026-10-16 报规总图
+
+以下保留当时模型、构建与限制，便于追溯；当前任务重新核对已加载版本和本轮输出，不把旧缺陷直接当作当前状态，也不把后续单项修复合并成整套交付已通过。
 
 2026-10-16 在一个实际报规总图副本中验证：用地、道路、绿地、停车 Area 的明确分类和属性写入，保存重开回读一致，重复分类无新增变更。停车缺失分支可从已判定的连续车位组创建闭合 Area，插件识别为停车位；此分支通过回滚测试，未给已有 Area 的交付副本增加重复对象。
 

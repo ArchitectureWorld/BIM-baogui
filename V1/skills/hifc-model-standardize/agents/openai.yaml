@@ -1,4 +1,4 @@
 interface:
-  display_name: "HIFC 报规—总图模型标准化"
-  short_description: "理解 Revit 报规总图模型，在副本中验证分类、属性和几何载体标准化"
-  default_prompt: "使用 $hifc-model-standardize 分析当前 Revit 报规总图模型，在独立副本中完成有依据的分类、属性与几何载体标准化和全面复检；混合模型仅处理总图范围。"
+  display_name: "HIFC 自动标准化报规"
+  short_description: "规范另存 Revit 总图或单体，持久写入报规属性并复用已确认成果"
+  default_prompt: "使用 $hifc-model-standardize 将本轮最新 Revit 模型另存为规范命名的标准化 RVT，通过插件实际写入已确认的分类、属性和人工面积，保存重开核验；后续复用有效数据并全面复检，按请求导出 IFC。"
