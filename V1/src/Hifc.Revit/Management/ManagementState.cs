@@ -24,6 +24,7 @@ namespace Hifc.Revit.Management
         public ModelSnapshot Snapshot { get; set; }
         public EditRequest[] Drafts { get; set; } = new EditRequest[0];
         public ManualWrite[] ManualWrites { get; set; } = new ManualWrite[0];
+        public ReportingWorkbookDecision[] PendingWorkbooks { get; set; } = new ReportingWorkbookDecision[0];
         public UndergroundSettings Underground { get; set; } = new UndergroundSettings();
         public PlanningSettings Planning { get; set; } = new PlanningSettings();
         internal void RebindDocumentKey(string key)
@@ -33,8 +34,8 @@ namespace Hifc.Revit.Management
         }
         internal void EnsureExportReady()
         {
-            if (Drafts != null && Drafts.Length > 0)
-                throw new InvalidOperationException("管理窗口还有 " + Drafts.Length + " 项手工修改未写入。请打开模型属性管理，点“4 写入 Revit”并复检后再导出；若不需要这些修改，可在底部清除暂存。IFC 尚未生成。");
+            if (Drafts?.Length > 0 || PendingWorkbooks?.Length > 0)
+                throw new InvalidOperationException("管理窗口还有 " + (Drafts?.Length??0) + " 项属性修改及 "+(PendingWorkbooks?.Length??0)+" 张报规资料未写入。请打开模型属性管理，点“4 写入 Revit”并复检后再导出；若不需要这些修改，可在底部清除暂存。IFC 尚未生成。");
         }
     }
     internal sealed class ManagementStateStore
@@ -55,6 +56,7 @@ namespace Hifc.Revit.Management
             value.Drafts = value.Drafts ?? new EditRequest[0]; value.ManualWrites = value.ManualWrites ?? new ManualWrite[0];
             value.Underground=value.Underground??new UndergroundSettings();
             value.Planning=value.Planning??new PlanningSettings();
+            value.PendingWorkbooks=value.PendingWorkbooks??new ReportingWorkbookDecision[0];
             return value;
         }
         internal void Save(ManagementState value)

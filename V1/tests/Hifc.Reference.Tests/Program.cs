@@ -60,6 +60,8 @@ internal static class Program
         CaseWorkflowTests.Run(Check);
         RecognitionTests.Run(Check);
         AutoFillTests.Run(Check);
+        BooleanPolicyTests.Run(Check);
+        PropertyUnitsTests.Run(Check);
         ControlLineTests.Run(Check);
         ExportNamingTests.Run(Check);
         PlatformSyncHandoffTests.Run(Check);

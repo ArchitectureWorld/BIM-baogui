@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup><TargetFramework>net48</TargetFramework><OutputType>Exe</OutputType><UseWPF>true</UseWPF></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../../src/Hifc.Reference.Core/Hifc.Reference.Core.csproj" /></ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../src/Hifc.Revit/Management/ReportingWorkbookWindow.cs" Link="ReportingWorkbookWindow.cs" />
+    <Compile Include="../../src/Hifc.Revit/Management/LiquidGlassTheme.cs" Link="LiquidGlassTheme.cs" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Web.Extensions" />
+    <None Include="fixtures/*.xml" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -149,6 +149,8 @@ namespace Hifc.Reference
             result.Origin = target.Origin;
             result.Editable = target.Origin == "instance" && !target.ReadOnly && target.StorageType != "ElementId";
             result.Value = ReferencePolicy.ToBridgeValue(value);
+            if (property.ExportType == "Boolean" && !string.IsNullOrWhiteSpace(result.Value))
+                try { result.Value = BooleanPolicy.Normalize(result.Value); } catch (InvalidOperationException) { /* reported as invalid below */ }
             result.DisplayValue = value?.DisplayValue ?? result.Value;
             if (string.IsNullOrWhiteSpace(result.Value)) { result.State = "未填写"; result.Detail = "参数已存在，值未填写"; return result; }
             if (!new[] { "Real", "Integer", "Boolean", "Label", "Text" }.Contains(property.ExportType))

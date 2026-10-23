@@ -65,6 +65,8 @@ namespace Hifc.Revit.Management
         public string Slot { get; set; }
         public string Source { get; set; }
         public string Value { get; set; }
+        public string ValueUnit { get; set; }
+        public string[] WorkbookImportKeys { get; set; }
         public string PropertySet { get; set; }
         public string Binding { get; set; }
         public EditBaseline[] Baselines { get; set; } = new EditBaseline[0];

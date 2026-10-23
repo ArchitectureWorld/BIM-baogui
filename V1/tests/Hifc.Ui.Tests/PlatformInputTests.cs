@@ -353,9 +353,13 @@ internal static class PlatformInputTests
                 Assert(child.Text == "办公室" && child.Items.Cast<string>().Contains("住宅") && !child.Items.Cast<string>().Contains("办公室"), "Child enum did not follow the pending parent value");
                 Assert(!string.IsNullOrEmpty((string)Get(window.FieldGrid.Items.Cast<ManagerWindow.PropertyEditor>().Single(r => r.Property == "子功能类别"), "ValueHint")), "Pending incompatible child has no local hint");
                 Commit(window); Assert(window.DraftRequests.All(r => r.Source != "子功能类别"), "Parent change silently wrote the child value");
-                var boolean = Edit(window, fake.Snapshot.Elements[2], "建筑基底");
-                Assert((string)boolean.SelectedItem == "否" && boolean.Items.Cast<string>().SequenceEqual(new[] { "未填写", "是", "否" }), "Boolean zero was lost by platform enum routing");
-                boolean.SelectedItem = "是"; Commit(window);
+                window.ElementGrid.SelectedItem = fake.Snapshot.Elements[2]; Pump(window);
+                var boolRow = window.FieldGrid.Items.Cast<ManagerWindow.PropertyEditor>().Single(r => r.Property == "建筑基底");
+                window.FieldGrid.CurrentCell = new DataGridCellInfo(boolRow,window.FieldGrid.Columns[1]);
+                window.FieldGrid.BeginEdit(); Pump(window);
+                var boolean = ManagerImprovementsTests.Visual<CheckBox>(window.FieldGrid.Columns[1].GetCellContent(boolRow));
+                Assert(boolean != null && boolean.IsChecked == false, "Boolean zero was lost by platform enum routing");
+                boolean.IsChecked = true; Commit(window);
                 Assert(window.DraftRequests.Any(r => r.Source == "建筑基底" && r.Value == "1"), "Boolean selection no longer uses raw 0/1");
             } finally { window.Close(); }
         });

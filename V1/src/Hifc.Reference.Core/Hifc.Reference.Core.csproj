@@ -2,6 +2,9 @@
   <PropertyGroup><TargetFramework>net48</TargetFramework></PropertyGroup>
   <ItemGroup>
     <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Xml.Linq" />
     <EmbeddedResource Include="../../reference/gonggui/contract.json" LogicalName="Hifc.Reference.Contract.json" />
     <EmbeddedResource Include="../../reference/success-case-01/case-profiles.json" LogicalName="Hifc.Reference.SuccessCase.json" />
     <EmbeddedResource Include="../../reference/success-case-01/recognition-evidence.json" LogicalName="Hifc.Reference.RecognitionEvidence.json" />

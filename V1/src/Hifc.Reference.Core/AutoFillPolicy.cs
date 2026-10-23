@@ -54,6 +54,11 @@ namespace Hifc.Reference
                 field.SuggestedValue = first ? "1" : "0";
                 field.SuggestionReason = "按 Revit 标高名称“" + nativeName + "”预置建筑基底：" + (first ? "首层为是" : "其余标高为否") + "，可人工调整";
             }
+            else if (field.RawType == "Boolean")
+            {
+                field.SuggestedValue = "0";
+                field.SuggestionReason = "未填写的是否属性按否处理，可人工勾选修改";
+            }
         }
     }
 }

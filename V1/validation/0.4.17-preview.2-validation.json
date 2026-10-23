@@ -1,0 +1,96 @@
+{
+  "version": "0.4.17-preview.2",
+  "updated": "2026-10-23",
+  "status": "candidate_verified_not_installed",
+  "source_branch": "codex/revit-property-data",
+  "base_commit": "550d736b2238a3dfdaef550bc7ea8bcab1085904",
+  "installed_version": "0.4.16.0",
+  "candidate_installed": false,
+  "installed_plugin_sha256": "f3b16b8f8c001a5382475a9f581e14c5342bada240f4ef995fd058ae2490d603",
+  "candidate_plugin_sha256": "0b79f7d8cc74c6c6a45835e7b2f72f1c2a7b8d44ca696354b1b6bde0325029f6",
+  "candidate_core_sha256": "77b814e88b44e8e788bdd425a91f045eb91917d3e901cf13038aa5de05f8d79a",
+  "tests": {
+    "platform_sync": {
+      "failed": 0,
+      "passed": 33
+    },
+    "workbook": {
+      "failed": 0,
+      "passed": 21
+    },
+    "core": {
+      "failed": 0,
+      "passed": 256
+    },
+    "wpf": {
+      "evidence": "validation/ui-9ee91d91",
+      "passed": 131,
+      "failed": 0
+    },
+    "redline": {
+      "failed": 0,
+      "passed": 33
+    },
+    "python": {
+      "failed": 0,
+      "passed": 34
+    }
+  },
+  "optional_readonly_samples": {
+    "original_coordinates_sha256": "a7322596258f6e7cd947ccd66244ff55cfb4f5f7fda289d7c8725d248c52fa62",
+    "original_files_unchanged": true,
+    "redline_tests": 34,
+    "complete_original_coordinate_points": 0,
+    "workbook_tests": 22,
+    "original_workbook_sha256": "de4120238cccbce2db7fba7f393810f1178d8aefdcf369f61d4586d648f07871"
+  },
+  "native": {
+    "publisher_operations": "Performed by user",
+    "earlier_harness_failures_retained": true,
+    "candidate_unchanged_during_run": true,
+    "initial_host_checks": 26,
+    "same_process_continuation": true,
+    "passed": true,
+    "continuation_host_sha256": "fd596ab0307e42ba3fe839c8200a28bfc4c60071f1e7e37a053191f0703b96f8",
+    "state": "passed_generated_fixture",
+    "run": "validation/property-data-native-20261023-210719",
+    "checks": 36
+  },
+  "boolean_policy": {
+    "explicit_manual_false_preserved": true,
+    "blank_first_base_floor": "true",
+    "revit_source_type": "YesNo",
+    "blank": "false",
+    "temporary_ifc_bridge_type": "Text"
+  },
+  "scope": {
+    "remote_pushed": false,
+    "merged_to_main": false,
+    "real_platform_acceptance": false,
+    "customer_originals_modified": false,
+    "platform_writes_enabled": false
+  },
+  "documentation": "docs/revit-property-data.md",
+  "ifc": {
+    "materialized_strict_mapping_passed": true,
+    "materialized_properties": 16,
+    "passed": true,
+    "schema_error_count": 0,
+    "planning_height_m": 3,
+    "full_business_completeness_passed": false,
+    "unfilled_fixture_properties": 38,
+    "boolean_properties": 3,
+    "ifc_sha256": "16b3944a49898416fa31b1c7a72808b1f6bcf952cfc25b66f29cb93131fc4d5e",
+    "manual_region_area_m2": 123.45,
+    "evidence": "validation/property-data-native-20261023-210719/property-data-ifc-result.json",
+    "manual_floor_area_m2": 123.45,
+    "checks": 40
+  },
+  "cleanup": {
+    "installed_stable_plugin_unchanged": true,
+    "test_host_exited_normally": true,
+    "formal_manifest_restored": true,
+    "temporary_manifest_removed": true
+  },
+  "final_build_log": "build-property-data-verified.log"
+}

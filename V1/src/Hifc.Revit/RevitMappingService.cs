@@ -13,6 +13,7 @@ namespace Hifc.Revit
         internal string Name;
         internal Guid Guid;
         internal bool Temporary;
+        internal BuiltInParameterGroup Group = BuiltInParameterGroup.PG_DATA;
     }
 
     internal static class RevitMappingService
@@ -158,6 +159,12 @@ namespace Hifc.Revit
             if (IsAreaSlot(slot, profileId) && elements.Any(e => !(e is Area)))
                 throw new InvalidOperationException("该报规区域类目需要面积（Area）载体。");
             var properties = CaseExportPolicy.PropertiesForSlot(slot, profileId);
+            foreach (var source in properties.Where(p=>p.ExportType=="Boolean").Select(p=>p.SourceParameter).Distinct())
+            {
+                foreach(var element in elements)BooleanParameterService.InspectOwner(doc,element,source);
+                BooleanParameterService.Migrate(doc,source,outputDirectory);
+                BooleanAliasService.Apply(doc,BooleanAliasService.Inspect(doc,source,elements),outputDirectory);
+            }
             var definitions = properties.Select(p => p.SourceParameter).Append(SlotName).Distinct(StringComparer.Ordinal)
                 .Where(name => name != "IfcExportAs" && name != "IfcExportType" && name != "IfcObjectType")
                 .Where(name => elements.Any(e => Reads(doc, e, name).Length == 0 || name == SlotName && e.GetParameters(name).Count == 0))
@@ -189,8 +196,10 @@ namespace Hifc.Revit
         }
 
         internal static void EnsureDefinitions(Document doc, Element[] elements, ParameterDefinition[] definitions, string outputDirectory, bool typeSource = false)
+            =>EnsureDefinitionsWithCategories(doc,elements,definitions,outputDirectory,typeSource,null);
+        internal static void EnsureDefinitionsWithCategories(Document doc, Element[] elements, ParameterDefinition[] definitions, string outputDirectory, bool typeSource, Category[] bindingCategories)
         {
-            var categories = elements.Select(e => e.Category).Where(c => c != null).GroupBy(c => c.Id.IntegerValue).Select(g => g.First()).ToArray();
+            var categories = (bindingCategories ?? elements.Select(e => e.Category).ToArray()).Where(c => c != null).GroupBy(c => c.Id.IntegerValue).Select(g => g.First()).ToArray();
             if (categories.Length == 0 || categories.Any(c => !c.AllowsBoundParameters))
                 throw new InvalidOperationException("所选类别不支持共享参数绑定。");
             Directory.CreateDirectory(outputDirectory);
@@ -205,15 +214,20 @@ namespace Hifc.Revit
                 var group = file.Groups.get_Item("HIFC V1") ?? file.Groups.Create("HIFC V1");
                 foreach (var item in definitions)
                 {
+                    var boolean = !item.Temporary && BooleanParameterService.IsSource(doc,item.Name);
+                    var parameterType = boolean ? ParameterType.YesNo : ParameterType.Text;
+                    var guid = boolean ? BooleanPolicy.SourceGuid(item.Name) : item.Guid;
                     foreach (var element in elements)
                         if (item.Temporary && element.GetParameters(item.Name).Any(p => !p.IsShared || p.GUID != item.Guid))
                             throw new InvalidOperationException("临时导出参数同名冲突：" + item.Name);
-                    var existing = SharedParameterElement.Lookup(doc, item.Guid);
+                    var existing = SharedParameterElement.Lookup(doc, guid);
                     Definition definition = existing?.GetDefinition();
-                    if (definition != null && (definition.Name != item.Name || definition.ParameterType != ParameterType.Text))
+                    if (definition != null && (definition.Name != item.Name || definition.ParameterType != parameterType))
                         throw new InvalidOperationException("共享参数 GUID 定义冲突：" + item.Name);
                     if (definition == null)
                     {
+                        if(boolean&&new FilteredElementCollector(doc).OfClass(typeof(ParameterElement)).Any(e=>e.Name==item.Name))
+                            throw new InvalidOperationException("存在其他 GUID 的同名是否定义，不能新增重复复选框："+item.Name+"。请先统一来源。");
                         if (!item.Temporary)
                         {
                             // New project bindings affect the whole category, including unselected families.
@@ -227,8 +241,8 @@ namespace Hifc.Revit
                         }
                         // Revit 2020's native IFC parameter cache excludes invisible definitions.
                         // Bridges exist only inside the export transaction, which is rolled back.
-                        var options = new ExternalDefinitionCreationOptions(item.Name, ParameterType.Text)
-                        { GUID = item.Guid, Visible = true, UserModifiable = !item.Temporary, Description = item.Temporary ? "Temporary IFC routing value" : "Reference mapping source; keep original parameter name" };
+                        var options = new ExternalDefinitionCreationOptions(item.Name, parameterType)
+                        { GUID = guid, Visible = true, UserModifiable = !item.Temporary, Description = item.Temporary ? "Temporary IFC routing value" : boolean ? "是否属性；未填写按否，建筑基底按确认楼层；可人工勾选" : "Reference mapping source; keep original parameter name" };
                         definition = group.Definitions.Create(options) as ExternalDefinition;
                     }
                     var set = doc.Application.Create.NewCategorySet();
@@ -236,11 +250,20 @@ namespace Hifc.Revit
                     if (binding != null && (binding is TypeBinding) != typeSource) throw new InvalidOperationException("共享参数实例/类型绑定冲突：" + item.Name);
                     if (binding is ElementBinding old) foreach (Category category in old.Categories) set.Insert(category);
                     foreach (var category in categories) set.Insert(category);
+                    var newOwners = boolean ? BooleanParameterService.Owners(doc,set.Cast<Category>(),typeSource).Where(e=>e.GetParameters(item.Name).Count==0).Select(e=>e.UniqueId).ToArray() : new string[0];
                     Autodesk.Revit.DB.Binding instanceBinding = typeSource ? (Autodesk.Revit.DB.Binding)doc.Application.Create.NewTypeBinding(set) : doc.Application.Create.NewInstanceBinding(set);
                     bool ok = binding == null
-                        ? doc.ParameterBindings.Insert(definition, instanceBinding, BuiltInParameterGroup.PG_DATA)
-                        : doc.ParameterBindings.ReInsert(definition, instanceBinding, BuiltInParameterGroup.PG_DATA);
+                        ? doc.ParameterBindings.Insert(definition, instanceBinding, item.Group)
+                        : doc.ParameterBindings.ReInsert(definition, instanceBinding, item.Group);
                     if (!ok) throw new InvalidOperationException("参数绑定失败：" + item.Name);
+                    if(boolean) {
+                        doc.Regenerate();
+                        foreach(var id in newOwners) {
+                            var owner=doc.GetElement(id);var parameter=owner.GetParameters(item.Name).Single();
+                            var value=BooleanParameterService.DefaultValue(doc,owner,item.Name)=="1"?1:0;
+                            if(!parameter.Set(value)||parameter.AsInteger()!=value)throw new InvalidOperationException("是否属性默认值回读失败："+item.Name);
+                        }
+                    }
                 }
             }
             finally { doc.Application.SharedParametersFilename = previous; }
@@ -309,6 +332,12 @@ namespace Hifc.Revit
         }
         internal static string ExportValue(Document doc,Element element,ReferenceProperty property,ParameterRead read,string profileId)
         {
+            if(property.ExportType=="Boolean") {
+                var raw=ReferencePolicy.ToBridgeValue(read);
+                var owner=property.Binding=="类型"?doc.GetElement(element.GetTypeId()):element;
+                BooleanAliasService.RequireWrittenForExport(doc,owner,property.SourceParameter);
+                return string.IsNullOrWhiteSpace(raw)?BooleanParameterService.DefaultValue(doc,owner,property.SourceParameter):BooleanPolicy.Normalize(raw);
+            }
             var windowLength = PlatformRules.IsActive(profileId) && property.PropertySet == "Pset_窗信息属性集"
                 && new[] { "标高", "底高度", "高度", "宽度" }.Contains(property.Property);
             if (windowLength)
@@ -320,10 +349,7 @@ namespace Hifc.Revit
             {
                 var owner=read.Origin=="type"?doc.GetElement(element.GetTypeId()):element;
                 var parameter=owner.GetParameters(property.SourceParameter).Single();
-                if((property.Property=="投影面积"||property.Property=="楼层面积") && parameter.Definition.UnitType==UnitType.UT_Area)
-                    return UnitUtils.ConvertFromInternalUnits(parameter.AsDouble(),DisplayUnitType.DUT_SQUARE_METERS).ToString("R",CultureInfo.InvariantCulture);
-                if((property.Property=="地下建筑高度" || property.Property=="地坪标高" || windowLength) && parameter.Definition.UnitType==UnitType.UT_Length)
-                    return UnitUtils.ConvertFromInternalUnits(parameter.AsDouble(),DisplayUnitType.DUT_METERS).ToString("R",CultureInfo.InvariantCulture);
+                return PropertyUnits.ExportValue(property,read,parameter.Definition.UnitType.ToString());
             }
             return ReferencePolicy.ToBridgeValue(read);
         }

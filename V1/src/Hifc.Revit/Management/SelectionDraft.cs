@@ -77,7 +77,8 @@ namespace Hifc.Revit.Management
         public string State => Pending ? "待写入" : Targets.Any(f => f.RequiresRuleWrite) ? "规则待写入" : Written ? "已手工写入" : Targets.Any(f => !string.IsNullOrEmpty(f.SuggestedValue)) ? "自动填写" : Targets.Any(f => !f.Valid) ? "待补充" : "已有值";
         public string Background => Pending ? "#FFFFE9E7" : Written ? "#FFFFE7C2" : "#FFFFFFFF";
         public string[] Choices => new[] { "多个值", "未填写", "是", "否" };
-        static string BooleanLabel(string v) => string.IsNullOrWhiteSpace(v) ? "未填写" : v == "1" ? "是" : v == "0" ? "否" : v;
+        static string BooleanLabel(string v) { try { return BooleanPolicy.Normalize(v)=="1"?"是":"否"; } catch (InvalidOperationException) { return v; } }
+        public bool? Checked { get { if(Value=="多个值")return null; try{return BooleanPolicy.Normalize(Value)=="1";}catch(InvalidOperationException){return null;} } set {if(value.HasValue)Value=value.Value?"是":"否";} }
         public string Value
         {
             get
@@ -96,6 +97,6 @@ namespace Hifc.Revit.Management
         }
         internal SelectionField(SelectionDraft draft, FieldCheck[] targets) { this.draft=draft; Targets=targets; }
         public event PropertyChangedEventHandler PropertyChanged;
-        internal void Notify() { foreach (var p in new[]{"Value","State","Background"}) PropertyChanged?.Invoke(this,new PropertyChangedEventArgs(p)); }
+        internal void Notify() { foreach (var p in new[]{"Value","Checked","State","Background"}) PropertyChanged?.Invoke(this,new PropertyChangedEventArgs(p)); }
     }
 }

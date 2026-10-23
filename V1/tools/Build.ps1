@@ -23,6 +23,16 @@ New-Item -ItemType Directory -Path $uiOutput -Force | Out-Null
 $uiTest = Start-Process -FilePath (Join-Path $workspace 'tests\Hifc.Ui.Tests\bin\Release\net48\Hifc.Ui.Tests.exe') -ArgumentList ('"' + $uiOutput + '"') -WindowStyle Hidden -Wait -PassThru -RedirectStandardOutput (Join-Path $uiOutput 'test-output.log') -RedirectStandardError (Join-Path $uiOutput 'test-error.log')
 Get-Content -LiteralPath (Join-Path $uiOutput 'test-output.log')
 if ($uiTest.ExitCode -ne 0) { throw 'UI interaction tests failed.' }
+foreach($suite in @('Hifc.Workbook.Tests','Hifc.Redline.Tests')) {
+    & dotnet build (Join-Path $workspace ('tests\'+$suite+'\'+$suite+'.csproj')) -c Release --nologo -v minimal
+    if($LASTEXITCODE -ne 0){throw "$suite build failed."}
+    $suiteOutput=Join-Path $uiOutput $suite
+    New-Item -ItemType Directory -Path $suiteOutput -Force | Out-Null
+    $suiteExe=Join-Path $workspace ('tests\'+$suite+'\bin\Release\net48\'+$suite+'.exe')
+    $suiteRun=Start-Process -FilePath $suiteExe -ArgumentList ('"'+$suiteOutput+'"') -WindowStyle Hidden -Wait -PassThru -RedirectStandardOutput (Join-Path $suiteOutput 'stdout.log') -RedirectStandardError (Join-Path $suiteOutput 'stderr.log')
+    Get-Content -LiteralPath (Join-Path $suiteOutput 'stdout.log')
+    if($suiteRun.ExitCode -ne 0){throw "$suite failed."}
+}
 & dotnet build $pluginProject -c Release --nologo -v minimal
 if ($LASTEXITCODE -ne 0) { throw 'Revit plugin build failed.' }
 $package = Join-Path $workspace ('dist\Hifc.V1.Revit2020-' + $packageVersion)

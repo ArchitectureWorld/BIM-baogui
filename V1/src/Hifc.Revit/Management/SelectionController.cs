@@ -90,7 +90,13 @@ namespace Hifc.Revit.Management
             records.ManualWrites=writes.ToArray();records.Stage=stage;records.Kind=kind;history=records.ManualWrites;
             try{store.Save(records);}catch(Exception ex){warning+="；暂存保存失败："+ex.Message;}
             ReadCore(ui,selected);Window.SetStatus((applied.Changes.Length>0?"所选构件已写入并回读验证，正在进行全项目检查。":"所选构件没有新变更，正在进行全项目检查。")+warning,warning.Length>0);
-            ManagerController.CheckAfterSelection(ui,stage,kind,history);
+            Window.SetFullCheckReport(null);Window.SetBusy(true);
+            ManagerController.CheckAfterSelectionWithResult(ui,stage,kind,history,(result,reportPath,error)=>{
+                if(closed)return;Window.SetBusy(false);Window.SetFullCheckReport(reportPath);
+                if(result==null){Window.SetStatus("属性已写入；全项目复检未完成："+error,true);return;}
+                var pendingCount=result.Elements.Count(r=>!string.IsNullOrEmpty(r.Issue)||r.Fields.Any(f=>!f.Acceptable));
+                Window.SetStatus("属性已写入；全项目复检完成，共 "+result.Elements.Length+" 个对象，"+pendingCount+" 个对象需核对。"+(error==null?warning:"报告保存失败："+error),error!=null||warning.Length>0);
+            });
         });
         public void Close(){if(closed)return;closed=true;pending=null;Windows.Remove(document);external.Raise();}
         void Dispose(UIApplication ui){if(disposed)return;disposed=true;ui.Application.DocumentChanged-=Changed;external.Dispose();}

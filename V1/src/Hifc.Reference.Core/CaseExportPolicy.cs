@@ -8,6 +8,7 @@ namespace Hifc.Reference
     {
         static readonly ReferenceCatalog Catalog = ReferenceCatalog.FromEmbeddedBaseline();
         const string GeneralSite = "Pset_总平构件信息属性集";
+        const string StairFlight = "Pset_楼梯段信息属性集";
         const string IndoorCarPark = "Pset_室内停车场信息属性集";
         public static ReferenceProperty WithBinding(ReferenceProperty p, string binding, string entity)
             => new ReferenceProperty { PropertySet=p.PropertySet, Property=p.Property, Binding=binding,
@@ -85,6 +86,12 @@ namespace Hifc.Reference
             var result = WithBinding(property, property.Binding, property.Entity);
             result.PropertySet = PlatformRules.CanonicalPropertySet(property.PropertySet);
             if (result.PropertySet == GeneralSite && result.Property == "建筑密度") result.RawType = "Boolean";
+            // A YesNo source must not share a physical definition with the site's Real density.
+            // Keep the platform IFC Pset/property spelling and the frozen source evidence intact.
+            if (result.PropertySet == GeneralSite && result.Property == "建筑密度" && result.ExportType == "Boolean")
+                result.SourceParameter = "总平构件建筑密度";
+            if (result.PropertySet == StairFlight && result.ExportType == "Boolean" && (result.Property == "间距审查" || result.Property == "退让审查"))
+                result.SourceParameter = "楼梯段" + result.Property;
             return result;
         }
 

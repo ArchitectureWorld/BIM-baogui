@@ -13,6 +13,8 @@ namespace Hifc.Revit.Management
         readonly ISelectionSession session;
         readonly TextBlock summary = new TextBlock(), status = new TextBlock(), details = new TextBlock();
         readonly Button read = new Button { Content = "读取当前选择" }, write = new Button { Content = "写入所选构件" };
+        readonly Button fullReport=new Button {Content="完整检查报告",IsEnabled=false,Margin=new Thickness(12,0,0,0)};
+        string fullReportPath;
         bool restoring, busy, stale = true;
         internal SelectionDraft Draft { get; private set; }
         internal ComboBox StageSelector { get; } = new ComboBox { Width=110, ItemsSource=new[]{"报规","施工图"} };
@@ -62,6 +64,7 @@ namespace Hifc.Revit.Management
             Grid.SetRow(FieldGrid,4);root.Children.Add(FieldGrid);
             details.TextWrapping=TextWrapping.Wrap;details.Margin=new Thickness(0,10,0,8);details.Foreground=LiquidGlassTheme.Color("#645B48");Grid.SetRow(details,5);root.Children.Add(details);
             var footer=new DockPanel();Grid.SetRow(footer,6);root.Children.Add(footer);write.Margin=new Thickness(12,0,0,0);LiquidGlassTheme.Primary(write);DockPanel.SetDock(write,Dock.Right);footer.Children.Add(write);
+            DockPanel.SetDock(fullReport,Dock.Right);footer.Children.Add(fullReport);fullReport.Click+=(s,e)=>{if(System.IO.File.Exists(fullReportPath))System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(fullReportPath){UseShellExecute=true});};
             status.Text="先在 Revit 中选择构件，再读取当前选择。";status.TextWrapping=TextWrapping.Wrap;status.VerticalAlignment=VerticalAlignment.Center;footer.Children.Add(status);
             write.Click+=(s,e)=>{try{CommitEditors();if(!CanWrite)throw new InvalidOperationException("请重新读取选择并指定业务类目。");session.Write(Draft.BuildRequests());}catch(Exception ex){SetStatus(ex.Message,true);}};
             Closed+=(s,e)=>session.Close();UpdateButtons();
@@ -85,17 +88,27 @@ namespace Hifc.Revit.Management
             Draft.SetClassification(slot,preview.ProposedElements);Draft.UpdateHistory(history);FieldGrid.ItemsSource=Draft.Fields;
             restoring=true;SlotSelector.SelectedItem=slot;restoring=false;stale=false;SetBusy(false);
             details.Text="将处理 "+Draft.Snapshot.Elements.Length+" 个实例；清理旧类目专属值 "+preview.Changes.Count(c=>c.Action=="清空")+" 项，补充参数 "+preview.Changes.Count(c=>c.Action=="新增参数")+" 项。";
+            var migrations=preview.Changes.Where(c=>c.Action=="迁移布尔").ToArray();
+            if(migrations.Length>0)details.Text+="\n是否参数将统一为原生复选框："+string.Join("；",migrations.Select(c=>c.Source+" / "+c.Detail));
             SetStatus(preview.Conflicts.Length>0?string.Join("；",preview.Conflicts):"自动值按每个构件分别计算；“多个值”仅为显示提示。",preview.Conflicts.Length>0);UpdateButtons();
         }
         internal void SetBusy(bool value){busy=value;StageSelector.IsEnabled=KindSelector.IsEnabled=SlotSelector.IsEnabled=!value;FieldGrid.IsEnabled=!value;UpdateButtons();}
-        internal void MarkStale(string text){stale=true;SetStatus(text,true);UpdateButtons();}
+        internal void MarkStale(string text){stale=true;fullReport.IsEnabled=false;SetStatus(text,true);UpdateButtons();}
         internal void SetStatus(string text,bool error=false){status.Text=text;status.Foreground=LiquidGlassTheme.Color(error?"#B83138":"#26465B");}
+        internal void SetFullCheckReport(string path){fullReportPath=path;fullReport.IsEnabled=System.IO.File.Exists(path);}
         void UpdateButtons(){write.IsEnabled=CanWrite;read.IsEnabled=!busy;}
         internal void CommitEditors(){if(!FieldGrid.CommitEdit(DataGridEditingUnit.Cell,true)||!FieldGrid.CommitEdit(DataGridEditingUnit.Row,true))throw new InvalidOperationException("请修正当前属性值后再写入。");}
         sealed class ValueColumn:DataGridTextColumn
         {
+            static CheckBox BooleanBox(bool editing)
+            {
+                var box=new CheckBox {IsThreeState=false,IsHitTestVisible=editing,Focusable=editing,VerticalAlignment=VerticalAlignment.Center,Margin=new Thickness(5,3,5,3)};
+                box.SetBinding(CheckBox.IsCheckedProperty,new Binding("Checked"){Mode=editing?BindingMode.TwoWay:BindingMode.OneWay,UpdateSourceTrigger=UpdateSourceTrigger.LostFocus,ValidatesOnExceptions=true});
+                box.SetBinding(ContentControl.ContentProperty,new Binding("Value"));return box;
+            }
             protected override FrameworkElement GenerateElement(DataGridCell cell,object item)
             {
+                if((item as SelectionField)?.RawType=="Boolean")return BooleanBox(false);
                 if(string.IsNullOrEmpty((item as SelectionField)?.AreaHint))return base.GenerateElement(cell,item);
                 var panel=new StackPanel {Margin=new Thickness(3,2,3,2)};
                 var value=new TextBlock {TextWrapping=TextWrapping.Wrap};value.SetBinding(TextBlock.TextProperty,new Binding("Value"));panel.Children.Add(value);
@@ -106,10 +119,11 @@ namespace Hifc.Revit.Management
             protected override FrameworkElement GenerateEditingElement(DataGridCell cell,object item)
             {
                 if(!((SelectionField)item).RawType.Equals("Boolean",StringComparison.Ordinal))return base.GenerateEditingElement(cell,item);
-                var combo=new ComboBox {ItemsSource=((SelectionField)item).Choices,VerticalContentAlignment=VerticalAlignment.Center};
-                combo.SetBinding(ComboBox.SelectedItemProperty,new Binding("Value") {Mode=BindingMode.TwoWay,UpdateSourceTrigger=UpdateSourceTrigger.LostFocus,ValidatesOnExceptions=true});return combo;
+                return BooleanBox(true);
             }
-            protected override bool CommitCellEdit(FrameworkElement element){if(element is ComboBox combo){combo.GetBindingExpression(ComboBox.SelectedItemProperty)?.UpdateSource();return !Validation.GetHasError(combo);}return base.CommitCellEdit(element);}
+            protected override object PrepareCellForEdit(FrameworkElement element,RoutedEventArgs args){if(element is CheckBox box){var prior=box.IsChecked;box.Focus();if(args is MouseButtonEventArgs)box.IsChecked=!(prior??false);return prior;}return base.PrepareCellForEdit(element,args);}
+            protected override bool CommitCellEdit(FrameworkElement element){if(element is CheckBox box){box.GetBindingExpression(CheckBox.IsCheckedProperty)?.UpdateSource();return !Validation.GetHasError(box);}return base.CommitCellEdit(element);}
+            protected override void CancelCellEdit(FrameworkElement element,object value){if(element is CheckBox box)box.GetBindingExpression(CheckBox.IsCheckedProperty)?.UpdateTarget();else base.CancelCellEdit(element,value);}
         }
     }
 }

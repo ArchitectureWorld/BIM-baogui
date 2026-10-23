@@ -20,7 +20,8 @@ namespace Hifc.Revit.Management
             var owner = Owner(doc, c);
             return new { owner.UniqueId, owner.Name, type = owner.GetTypeId().IntegerValue, c.Source,
                 reads = RevitMappingService.ReadOwner(owner, c.Source, owner is ElementType ? "type" : "instance").ToArray() };
-        }).ToArray()));
+        }).ToArray()) + "|" + Evidence.Json(changes.Where(c=>BooleanParameterService.IsSource(doc,c.Source)).GroupBy(c=>c.Source)
+            .Select(g=>new {Migration=BooleanParameterService.Inspect(doc,g.Key),Alias=BooleanAliasService.Inspect(doc,g.Key,g.Select(c=>Owner(doc,c)).GroupBy(e=>e.Id.IntegerValue).Select(x=>x.First()).ToArray())}).ToArray()));
         private static EditChange Change(Document doc, Element owner, string source, string action, string value, string reason)
         {
             var reads = RevitMappingService.ReadOwner(owner, source, owner is ElementType ? "type" : "instance").ToArray();
@@ -28,16 +29,18 @@ namespace Hifc.Revit.Management
             var affected = owner is ElementType ? new FilteredElementCollector(doc).WhereElementIsNotElementType().Count(e => e.GetTypeId() == owner.Id) : 1;
             return new EditChange { Id = owner.Id.IntegerValue, OwnerUniqueId = owner.UniqueId, Name = owner.Name, Source = source, Action = action,
                 Binding = owner is ElementType ? "类型" : "实例", OldValue = reads.Length == 0 ? "缺参数" : old?.DisplayValue ?? ReferencePolicy.ToBridgeValue(old) ?? "未填写",
-                NewValue = action == "新增参数" ? "创建参数；不虚构业务值" : value, ExpectedRaw = value,
+                NewValue = action == "新增参数" ? "创建参数；是否项按默认规则" : action=="迁移布尔"?"转换为复选框，保留旧值":value, ExpectedRaw = value,
                 Detail = reason + "；影响当前文档 " + affected + " 个实例" + (action == "新增参数" ? "；共享参数绑定覆盖该类别" : "") };
         }
         private static void ValidateCreate(Document doc, Element owner, string source)
         {
             if (owner.Category == null || !owner.Category.AllowsBoundParameters) throw new InvalidOperationException("类别不支持参数绑定");
-            var existing = SharedParameterElement.Lookup(doc, ReferencePolicy.SourceGuid(source));
+            var sourceGuid=BooleanParameterService.SourceGuid(doc,source);
+            var sourceType=BooleanParameterService.IsSource(doc,source)?ParameterType.YesNo:ParameterType.Text;
+            var existing = SharedParameterElement.Lookup(doc, sourceGuid);
             if (existing != null)
             {
-                if (existing.Name != source || existing.GetDefinition().ParameterType != ParameterType.Text) throw new InvalidOperationException("来源 GUID 定义冲突");
+                if (existing.Name != source || existing.GetDefinition().ParameterType != sourceType) throw new InvalidOperationException("来源 GUID 定义冲突");
                 var binding = doc.ParameterBindings.get_Item(existing.GetDefinition());
                 if (binding != null && (binding is TypeBinding) != (owner is ElementType)) throw new InvalidOperationException("来源已有另一种实例/类型绑定");
             }
@@ -45,8 +48,20 @@ namespace Hifc.Revit.Management
             var collector = new FilteredElementCollector(doc).OfCategoryId(owner.Category.Id);
             if (owner is ElementType) collector.WhereElementIsElementType(); else collector.WhereElementIsNotElementType();
             foreach (var other in collector)
-                if (other.GetParameters(source).Any(p => !p.IsShared || p.GUID != ReferencePolicy.SourceGuid(source)))
+                if (other.GetParameters(source).Any(p => !p.IsShared || p.GUID != sourceGuid))
                     throw new InvalidOperationException("同类别存在其他同名参数定义，需先统一来源（" + other.Id.IntegerValue + "）");
+        }
+        private static void AddBooleanMigration(Document doc,Element owner,FieldCheck field,List<EditChange> changes)
+        {
+            if(field.RawType!="Boolean")return;
+            if(BooleanAliasService.NeedsCopy(doc,owner,field.Source)&&!changes.Any(c=>c.Source==field.Source&&c.Action=="迁移布尔"))
+                changes.Add(Change(doc,owner,field.Source,"迁移布尔",null,"复制旧来源“"+BooleanPolicy.LegacySource(field.Source)+"”为独立原生复选框；保留原数值/文字定义，合并本轮显式目标后核验整个绑定类别"));
+            if(field.State=="缺参数")return;
+            if(!BooleanParameterService.OwnerNeedsMigration(doc,owner,field.Source))return;
+            if(changes.Any(c=>c.Source==field.Source&&c.Action=="迁移布尔"))return;
+            var migration=BooleanParameterService.InspectOwner(doc,owner,field.Source);
+            if(migration.Required)
+                changes.Add(Change(doc,owner,field.Source,"迁移布尔",null,"迁移为原生复选框，保留整个绑定类别 "+migration.Values.Length+" 个载体的已有是否值；空值按本轮规则补齐"));
         }
         private static void AddPreparation(Document doc, Element owner, FieldCheck field, List<EditChange> changes, List<string> conflicts, string parentFunction = null)
         {
@@ -56,6 +71,7 @@ namespace Hifc.Revit.Management
             var ruleCorrection = field.RequiresRuleWrite && field.SuggestedValue == field.RequiredValue;
             try
             {
+                AddBooleanMigration(doc,owner,field,changes);
                 if (ruleCorrection && owner is ElementType) throw new InvalidOperationException("净用地控制红线规则需要实例参数；当前来源在共享类型上，请先统一来源，避免影响其他构件");
                 if (field.State == "缺参数")
                 {
@@ -104,6 +120,7 @@ namespace Hifc.Revit.Management
         private static void ValidateClear(Document doc, Parameter parameter)
         {
             if (parameter.IsReadOnly || parameter.StorageType == StorageType.ElementId) throw new InvalidOperationException("旧属性只读或不支持清空");
+            if (parameter.Definition.ParameterType==ParameterType.YesNo)return;
             if (parameter.StorageType == StorageType.String) return;
             if (parameter.IsShared && SharedParameterElement.Lookup(doc, parameter.GUID)?.ShouldHideWhenNoValue() == true) return;
             throw new InvalidOperationException("该数值参数不支持恢复未填写，请先在 Revit 中调整参数定义；不会用 0 或 否 代替空值");
@@ -141,14 +158,14 @@ namespace Hifc.Revit.Management
                     var value = ReferencePolicy.ToBridgeValue(ReferencePolicy.Resolve(reads, source));
                     if (value == null) continue;
                     var parameter = element.GetParameters(source).Single(); ValidateClear(doc, parameter);
-                    changes.Add(Change(doc, element, source, "清空", null, "从“" + original.Slot + "”改为“" + proposed.Slot + "”：清空原类目专属实例值，保留参数定义及共用值"));
+                    changes.Add(Change(doc, element, source, "清空", BooleanParameterService.IsSource(doc,source)?"0":null, "从“" + original.Slot + "”改为“" + proposed.Slot + "”：清空原类目专属实例值，保留参数定义及共用值；是否项恢复否"));
                 }
                 catch (Exception ex) { conflicts.Add(element.Id.IntegerValue + " / 清理 " + source + "：" + ex.Message); }
             }
         }
         internal static EditPreview Preview(Document doc, ModelSnapshot snapshot, EditRequest request = null)
             => PreviewCore(doc, snapshot, request, null);
-        private static EditPreview PreviewCore(Document doc, ModelSnapshot snapshot, EditRequest request, ModelElementCheck[] mergedRows)
+        private static EditPreview PreviewCore(Document doc, ModelSnapshot snapshot, EditRequest request, ModelElementCheck[] mergedRows,bool fingerprint=true)
         {
             var profileId = snapshot?.Planning?.RuleProfileId ?? "";
             if (snapshot == null || !snapshot.Complete || snapshot.Stage != "报规" || CaseWorkflow.ForModel(snapshot.Stage, snapshot.ModelKind,profileId).Length == 0)
@@ -168,14 +185,19 @@ namespace Hifc.Revit.Management
                     if (field == null || !field.Editable && field.State != "缺参数") throw new InvalidOperationException("所选构件不共享可写的该属性，请缩小面板选择范围。");
                     var owner = doc.GetElement(new ElementId(field.OwnerId));
                     if (owner == null) throw new InvalidOperationException("属性载体已不存在，请全面检查。");
+                    AddBooleanMigration(doc,owner,field,changes);
                     var parameter = field.State == "缺参数" ? null : owner.GetParameters(field.Source).Single();
                     if (parameter == null) { ValidateCreate(doc, owner, field.Source); changes.Add(Change(doc, owner, field.Source, "新增参数", null, "手工填写缺失属性")); }
                     var property = new ReferenceProperty { RawType = field.RawType };
-                    var clear = string.IsNullOrWhiteSpace(request.Value);
+                    var clear = field.RawType!="Boolean" && string.IsNullOrWhiteSpace(request.Value);
                     if (clear && parameter != null) ValidateClear(doc, parameter);
-                    var raw = clear ? null : ModelEdits.Normalize(doc, parameter, property, request.Value);
+                    var raw = clear ? null : ModelEdits.NormalizeInput(doc, parameter, property, request.Value,request.ValueUnit);
                     ValidateAssignment(mergedRows?.Single(r => r.Id == row.Id) ?? row, field, raw, profileId);
-                    if (!changes.Any(c => c.Id == field.OwnerId && c.Source == field.Source && c.Action == (clear ? "清空" : "赋值"))) changes.Add(Change(doc, owner, field.Source, clear ? "清空" : "赋值", raw, "人工属性修改"));
+                    if (!changes.Any(c => c.Id == field.OwnerId && c.Source == field.Source && c.Action == (clear ? "清空" : "赋值"))) {
+                        var change=Change(doc, owner, field.Source, clear ? "清空" : "赋值", raw, "人工属性修改");
+                        if(!clear&&!string.IsNullOrEmpty(request.ValueUnit))change.NewValue=request.Value+" "+request.ValueUnit;
+                        changes.Add(change);
+                    }
                     continue;
                 }
                 if (request?.Kind == "分类")
@@ -199,7 +221,7 @@ namespace Hifc.Revit.Management
                     PlanningInputs.ParentValue(row.Fields, field.PropertySet, true));
             }
             var array = changes.ToArray();
-            return new EditPreview { DocumentKey = snapshot.DocumentKey, ScanId = snapshot.ScanId, SnapshotHash = Fingerprint(doc, array), Changes = array,
+            return new EditPreview { DocumentKey = snapshot.DocumentKey, ScanId = snapshot.ScanId, SnapshotHash = fingerprint?Fingerprint(doc, array):null, Changes = array,
                 AreaSyncFingerprint=request==null&&array.Length>0&&rows.Any(r=>r.Fields.Any(f=>f.FloorAreaOverride))?FloorAreaSynchronization.Fingerprint(doc):null,
                 ProposedElements = proposedRows.ToArray(), Conflicts = conflicts.Distinct().ToArray(), Request = request ?? new EditRequest { Kind = "案例补齐", Ids = rows.Select(r => r.Id).ToArray() } };
         }
@@ -263,7 +285,7 @@ namespace Hifc.Revit.Management
                         .Single(f=>f.PropertySet==r.PropertySet&&f.Source==r.Source&&f.Binding==r.Binding);
                     var owner=doc.GetElement(new ElementId(field.OwnerId));
                     var parameter=field.State=="缺参数"?null:owner.GetParameters(field.Source).Single();
-                    var raw=string.IsNullOrWhiteSpace(r.Value)?null:ModelEdits.Normalize(doc,parameter,new ReferenceProperty{RawType=field.RawType},r.Value);
+                    var raw=field.RawType!="Boolean"&&string.IsNullOrWhiteSpace(r.Value)?null:ModelEdits.NormalizeInput(doc,parameter,new ReferenceProperty{RawType=field.RawType},r.Value,r.ValueUnit);
                     double? metric=null;
                     if(raw!=null&&parameter?.StorageType==StorageType.Double) {
                         var number=double.Parse(raw,CultureInfo.InvariantCulture);
@@ -279,12 +301,12 @@ namespace Hifc.Revit.Management
                     if(request.Ids.Any(id=>calculationSnapshot.Elements.Single(r=>r.Id==id).Fields.Any(f=>f.Source==request.Source&&f.FloorAreaOverride)))
                         throw new InvalidOperationException("建筑区域面积修改与已填写的楼层面积不一致，请先统一整层总值或各区域分配后再写入。");
             }
-            var automatic = includeAutomatic ? Preview(doc, calculationSnapshot) : new EditPreview { Changes = new EditChange[0] };
+            var automatic = includeAutomatic ? PreviewCore(doc, calculationSnapshot,null,null,false) : new EditPreview { Changes = new EditChange[0] };
             var changes = automatic.Changes.ToList(); var conflicts = automatic.Conflicts.ToList();
             var manualValues = new Dictionary<string, string>();
             foreach (var request in requests.OrderBy(r => r.Kind == "分类" ? 0 : 1))
             {
-                var proposed = PreviewCore(doc, request.Kind == "分类" ? snapshot : valueSnapshot, request, calculationSnapshot.Elements);
+                var proposed = PreviewCore(doc, request.Kind == "分类" ? snapshot : valueSnapshot, request, calculationSnapshot.Elements,false);
                 if (proposed.Conflicts.Length > 0) throw new InvalidOperationException(string.Join("\n", proposed.Conflicts));
                 if (request.Kind == "分类") changes.RemoveAll(c => request.Ids.Contains(c.Id));
                 foreach (var change in proposed.Changes)
@@ -295,7 +317,7 @@ namespace Hifc.Revit.Management
                         if (manualValues.TryGetValue(key, out var previous) && previous != change.ExpectedRaw) throw new InvalidOperationException("同一来源参数在不同属性组中输入了不同的值，请统一后写入：" + change.Source);
                         manualValues[key] = change.ExpectedRaw;
                     }
-                    changes.RemoveAll(c => c.OwnerUniqueId == change.OwnerUniqueId && c.Source == change.Source && (c.Action == change.Action || change.Action != "新增参数" && c.Action != "新增参数"));
+                    changes.RemoveAll(c => c.OwnerUniqueId == change.OwnerUniqueId && c.Source == change.Source && (c.Action == change.Action || change.Action != "新增参数" && c.Action != "新增参数" && change.Action!="迁移布尔" && c.Action!="迁移布尔"));
                     changes.Add(change);
                 }
             }
@@ -319,12 +341,16 @@ namespace Hifc.Revit.Management
             if(issues.Length>0)throw new InvalidOperationException(string.Join("\n",issues));
         }
         internal static void Apply(Document doc, EditPreview preview)
+            =>ApplyWithWorkbook(doc,preview,new ReportingWorkbookDecision[0]);
+        internal static void ApplyWithWorkbook(Document doc,EditPreview preview,ReportingWorkbookDecision[] imports)
         {
+            imports=imports??new ReportingWorkbookDecision[0];
+            ReportingWorkbookProjectStorage.VerifySources(imports);
             EditGuard.Check(preview.DocumentKey, ModelReader.Key(doc), preview.SnapshotHash, Fingerprint(doc, preview.Changes));
             if(preview.AreaSyncFingerprint!=null&&preview.AreaSyncFingerprint!=FloorAreaSynchronization.Fingerprint(doc))
                 throw new InvalidOperationException("楼层面积或区域范围已变化，请全面复检后重新预览；未写入旧分摊结果。");
             ValidateNetLand(doc,preview.Changes.Where(c=>c.Action=="分类").Select(c=>new ModelElementCheck{Id=c.Id,Slot=c.ExpectedRaw}).ToArray());
-            if (preview.Changes.Length == 0) throw new InvalidOperationException("没有可写入的补齐项。");
+            if (preview.Changes.Length == 0 && imports.Length==0) throw new InvalidOperationException("没有可写入的补齐项。");
             var directory = RuntimePaths.NewRunDirectory();
             using (var group = new TransactionGroup(doc, "H-IFC 全面检查属性补齐"))
             {
@@ -334,9 +360,14 @@ namespace Hifc.Revit.Management
                     using (var tx = new Transaction(doc, "按本轮完整预览补齐属性"))
                     {
                         tx.Start();
+                        foreach(var sourceGroup in preview.Changes.Where(c=>BooleanParameterService.IsSource(doc,c.Source)).GroupBy(c=>c.Source)) {
+                            BooleanParameterService.Migrate(doc,sourceGroup.Key,directory);
+                            BooleanAliasService.Apply(doc,BooleanAliasService.Inspect(doc,sourceGroup.Key,sourceGroup.Select(c=>Owner(doc,c)).GroupBy(e=>e.Id.IntegerValue).Select(g=>g.First()).ToArray()),directory);
+                        }
                         foreach (var change in preview.Changes)
                         {
                             var owner = Owner(doc, change);
+                            if(change.Action=="迁移布尔")continue;
                             if (change.Action == "新增参数")
                             {
                                 if (owner.GetParameters(change.Source).Count == 0)
@@ -349,7 +380,7 @@ namespace Hifc.Revit.Management
                                 if (parameters.Count != 1 || parameters[0].IsReadOnly) throw new InvalidOperationException("写入来源有歧义或只读：" + change.Source);
                                 var parameter = parameters[0]; var raw = change.ExpectedRaw;
                                 if (change.Action == "清空") ValidateClear(doc, parameter);
-                                bool ok = change.Action == "清空" ? parameter.StorageType == StorageType.String ? parameter.Set("") : parameter.ClearValue()
+                                bool ok = change.Action == "清空" ? BooleanParameterService.IsSource(doc,change.Source) ? parameter.StorageType==StorageType.String?parameter.Set("0"):parameter.Set(0) : parameter.StorageType == StorageType.String ? parameter.Set("") : parameter.ClearValue()
                                     : parameter.StorageType == StorageType.String ? parameter.Set(raw) : parameter.StorageType == StorageType.Integer
                                     ? parameter.Set(int.Parse(raw, CultureInfo.InvariantCulture)) : parameter.StorageType == StorageType.Double && parameter.Set(double.Parse(raw, CultureInfo.InvariantCulture));
                                 if (!ok) throw new InvalidOperationException("参数写入失败：" + change.Source);
@@ -360,12 +391,14 @@ namespace Hifc.Revit.Management
                         {
                             var owner = Owner(doc, change); var reads = RevitMappingService.ReadOwner(owner, change.Source, owner is ElementType ? "type" : "instance").ToArray();
                             if (reads.Length != 1) throw new InvalidOperationException("参数回读有歧义或缺失：" + change.Source);
-                            if (change.Action != "新增参数" && ReferencePolicy.ToBridgeValue(ReferencePolicy.Resolve(reads, change.Source)) != change.ExpectedRaw)
+                            if(change.Action=="迁移布尔" && owner.GetParameters(change.Source).Single().Definition.ParameterType!=ParameterType.YesNo)throw new InvalidOperationException("是否属性未转换为原生复选框："+change.Source);
+                            if (change.Action != "新增参数" && change.Action!="迁移布尔" && ReferencePolicy.ToBridgeValue(ReferencePolicy.Resolve(reads, change.Source)) != change.ExpectedRaw)
                                 throw new InvalidOperationException("参数回读不一致：" + change.Source);
                         }
+                        ReportingWorkbookProjectStorage.SaveInTransaction(doc,imports,preview.Changes);
                         if (tx.Commit() != TransactionStatus.Committed) throw new InvalidOperationException("写入事务未完成。");
                     }
-                    Evidence.Write(Path.Combine(directory, "case-management-write.json"), new { state = "VERIFIED_IN_TRANSACTION_GROUP", preview, after = Fingerprint(doc, preview.Changes) });
+                    Evidence.Write(Path.Combine(directory, "case-management-write.json"), new { state = "VERIFIED_IN_TRANSACTION_GROUP", preview, workbook_imports=imports, after = Fingerprint(doc, preview.Changes) });
                     if (group.Assimilate() != TransactionStatus.Committed) throw new InvalidOperationException("事务组未提交。");
                 }
                 catch { if (group.GetStatus() == TransactionStatus.Started) group.RollBack(); throw; }

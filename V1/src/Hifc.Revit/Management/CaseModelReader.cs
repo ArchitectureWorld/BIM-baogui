@@ -213,7 +213,8 @@ namespace Hifc.Revit.Management
                     var field = ModelChecks.Evaluate(property, reads, profileId);
                     if (property.Binding == "实例" && field.Origin == "type") owner = doc.GetElement(element.GetTypeId());
                     field.OwnerId = owner?.Id.IntegerValue ?? -1; field.OwnerUniqueId = owner?.UniqueId;
-                    field.SourceSignature = Evidence.Hash(Evidence.Json(reads));
+                    field.SourceSignature = Evidence.Hash(BooleanPolicy.LegacySource(property.SourceParameter)==null?Evidence.Json(reads)
+                        :Evidence.Json(new {reads,legacy=BooleanAliasService.LegacyReads(doc,owner,property.SourceParameter)}));
                     field.Binding = property.Binding; field.RuleProfileId = profileId; field.AllowedEmpty = rule.EmptyAllowed.Contains(property.Property);
                     var parameters = owner?.GetParameters(property.SourceParameter);
                     field.Editable = parameters != null && parameters.Count == 1 && !parameters[0].IsReadOnly && parameters[0].StorageType != StorageType.ElementId;
@@ -242,6 +243,7 @@ namespace Hifc.Revit.Management
                         catch (InvalidOperationException ex) { field.State = "类型待核验"; field.Detail = ex.Message; field.Editable = false; }
                     }
                     AutoFillPolicy.PopulateWithSource(field, rule.Slot, element.Name, projectedArea,row.AreaReason);
+                    BooleanAliasService.PopulateSuggestion(doc,owner,field);
                     if(element is ProjectInfo)
                     {
                         var parameter=parameters?.Count==1?parameters[0]:null;

@@ -102,6 +102,7 @@ internal static class Program
         ManagerImprovementsTests.Run(Check, output);
         SelectionDraftTests.Run(Check);
         SelectionWindowTests.Run(Check,output);
+        WorkbookStagingTests.Run(Check,output);
         UndergroundWindowTests.Run(Check,output);
         SiteClassificationTests.Run(Check,output);
         ControlLineTests.Run(Check,output);

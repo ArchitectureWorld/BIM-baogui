@@ -39,8 +39,7 @@ namespace Hifc.Revit.Management
         {
             if (property.RawType == "Boolean")
             {
-                if (string.Equals(input, "false", StringComparison.OrdinalIgnoreCase) || input == "否") input = "0";
-                if (string.Equals(input, "true", StringComparison.OrdinalIgnoreCase) || input == "是") input = "1";
+                input = BooleanPolicy.Normalize(input);
             }
             if (parameter?.StorageType == StorageType.Double)
             {
@@ -50,6 +49,19 @@ namespace Hifc.Revit.Management
             }
             if (!ModelChecks.ValueIsValid(property.ExportType, input)) throw new InvalidOperationException("新值不符合参考类型 " + property.ExportType + "：" + input);
             return input;
+        }
+        internal static string NormalizeInput(Document doc,Parameter parameter,ReferenceProperty property,string input,string valueUnit)
+        {
+            if(string.IsNullOrEmpty(valueUnit)||parameter?.StorageType!=StorageType.Double)return Normalize(doc,parameter,property,input);
+            var area=valueUnit=="m²";var length=valueUnit=="m";
+            if(!area&&!length)throw new InvalidOperationException("导入单位无法核验："+valueUnit);
+            var expected=area?UnitType.UT_Area:UnitType.UT_Length;
+            if(parameter.Definition.UnitType==UnitType.UT_Number)return Normalize(doc,parameter,property,input);
+            if(parameter.Definition.UnitType!=expected)throw new InvalidOperationException("Revit 参数量纲与 Excel 单位不一致："+valueUnit);
+            if(!double.TryParse(input,NumberStyles.Float,CultureInfo.InvariantCulture,out var value))return Normalize(doc,parameter,property,input);
+            var raw=UnitUtils.ConvertToInternalUnits(value,area?DisplayUnitType.DUT_SQUARE_METERS:DisplayUnitType.DUT_METERS).ToString("R",CultureInfo.InvariantCulture);
+            if(!ModelChecks.ValueIsValid(property.ExportType,raw))throw new InvalidOperationException("导入数值无效："+input);
+            return raw;
         }
         internal static EditPreview Preview(Document doc, EditRequest request)
         {
