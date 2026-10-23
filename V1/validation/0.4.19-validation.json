@@ -1,0 +1,169 @@
+{
+  "version": "0.4.19",
+  "assembly_version": "0.4.19.0",
+  "updated": "2026-10-23",
+  "status": "formal_release_built_and_installed",
+  "source_branch": "main",
+  "release_tag": "v0.4.19",
+  "business_implementation_commit": "95a3c9ef9e001b0afc694cd5a765ab106a7392ef",
+  "business_source_changes_since_candidate": [],
+  "release_changes": [
+    "Version metadata: 0.4.19-preview.1 -> 0.4.19",
+    "Default installer package",
+    "Current documentation and developer handoff"
+  ],
+  "tests": {
+    "core": {
+      "passed": 267,
+      "failed": 0,
+      "run_on_formal_release": true
+    },
+    "wpf": {
+      "passed": 140,
+      "failed": 0,
+      "run_on_formal_release": true
+    },
+    "workbook": {
+      "passed": 21,
+      "failed": 0,
+      "run_on_formal_release": true
+    },
+    "redline": {
+      "passed": 33,
+      "failed": 0,
+      "run_on_formal_release": true
+    },
+    "python": {
+      "passed": 34,
+      "failed": 0,
+      "run_on_formal_release": true
+    },
+    "platform_sync": {
+      "passed": 33,
+      "failed": 0,
+      "run_on_formal_release": true
+    }
+  },
+  "build": {
+    "warnings": 0,
+    "errors": 0,
+    "package": "dist/Hifc.V1.Revit2020-0.4.19",
+    "logs": {
+      "build": {
+        "path": "validation/release-0.4.19-build.log",
+        "sha256": "c03b8af72f695539da2cc1a9187eb364159122622d0bfffe5d8740d9768241ca",
+        "storage": "local_only"
+      },
+      "python": {
+        "path": "validation/release-0.4.19-python.log",
+        "sha256": "6a0d7ae5adcefc5a0234002d5213df9c81bff2e96b97d540616a41310cda8851",
+        "storage": "local_only"
+      },
+      "platform-sync": {
+        "path": "validation/release-0.4.19-platform-sync.log",
+        "sha256": "4b43e6f6b6aba6c924c4d6e0b2dd7478bf1aaeba7404fbd3903c2778c9925e1c",
+        "storage": "local_only"
+      }
+    },
+    "node_version": "25.4.0"
+  },
+  "candidate_evidence": {
+    "version": "0.4.19-preview.1",
+    "index": "validation/0.4.19-preview.1-validation.json",
+    "native": {
+      "fixture": "previously generated acceptance model copy",
+      "run": "validation/export-delivery-native-20261023-232500",
+      "source_files_unchanged": true,
+      "all_checks_passed": true,
+      "actual_exports": 3,
+      "cross_volume_publication": true,
+      "detected_type": "mixed; explicit building test context",
+      "source_kind_detection_changed": false,
+      "failed": 0,
+      "passed": 26
+    },
+    "ifc_audit": {
+      "full_mapping_audit_all_passed": false,
+      "nonempty_verified_fields_per_file": 19,
+      "full_mapping_diagnostics_unchanged": true,
+      "all_passed": true,
+      "known_empty_sources": 35,
+      "business_values_and_geometry_match_0418_baseline": true,
+      "known_empty_pset_diagnostics": 1,
+      "total": 27,
+      "passed": 27,
+      "schema_errors_per_file": 0
+    },
+    "plugin_sha256": "35e703400909c7450801d8b34cd4e7394902394da48b5d8a53d7ea9017505863",
+    "core_sha256": "3a888f36078d12886f69de5054f52bf95438e13348032ca933bbb0380e49d04c",
+    "applies_to": "candidate binary hashes; same business source; not a fresh native run of formal binaries"
+  },
+  "installation": {
+    "version": "0.4.19",
+    "previous_version": "0.4.19-preview.1",
+    "receipt": "outputs/install-20261023-233450-21db38e1/install-receipt.json",
+    "independent_audit": "outputs/install-20261023-233450-21db38e1/installed-files-audit.json",
+    "verified_files": [
+      {
+        "file": "Hifc.Reference.Core.dll",
+        "sha256": "2ae5ed4f3bd808df4e370242f9c2940e9e50a4ee0c76ebba6cb06235dbff5ad5",
+        "matches": true
+      },
+      {
+        "file": "Hifc.Reference.Core.pdb",
+        "sha256": "a7894e24d55a7e2ad817dc0d53ad4299a2a4facd6d435155c6e30c29b53668f6",
+        "matches": true
+      },
+      {
+        "file": "Hifc.V1.Revit.dll",
+        "sha256": "b386e3fe3155a72fdd47b2677df5a7a36da74893c80e2f66d0fe548b9953b54c",
+        "matches": true
+      },
+      {
+        "file": "Hifc.V1.Revit.pdb",
+        "sha256": "a09ef65b3f8ebd7ce9b72f3edf1edc4c8c299b9ace48f192f3e4e59f8985a7b8",
+        "matches": true
+      },
+      {
+        "file": "settings.json",
+        "sha256": "ae3543f7ca4d65044909c1e562e8de72bfcb544f32dcf2db0da05c19a72a4ef6",
+        "matches": true
+      }
+    ],
+    "assembly_versions": [
+      {
+        "file": "Hifc.V1.Revit.dll",
+        "assembly": "0.4.19.0",
+        "file_version": "0.4.19.0",
+        "product_version": "0.4.19"
+      },
+      {
+        "file": "Hifc.Reference.Core.dll",
+        "assembly": "0.4.19.0",
+        "file_version": "0.4.19.0",
+        "product_version": "0.4.19"
+      }
+    ],
+    "post_install_host_loading_verified": false,
+    "native_retested_with_formal_hashes": false
+  },
+  "behavior": {
+    "only_ifc_delivered": true,
+    "versions_reset_with_date": true,
+    "historical_files_removed": false,
+    "naming": "OUT_项目名称_阶段_具体单体名称或总图_YYYYMMDD_V1.ifc",
+    "custom_folder": true,
+    "internal_artifacts": "%LOCALAPPDATA%\\Hifc.V1\\export-records\\<export-id>",
+    "confirmation_changes_rvt_filename": false,
+    "default_folder": "beside RVT"
+  },
+  "scope": {
+    "customer_originals_modified": false,
+    "real_platform_acceptance": false,
+    "platform_writes_enabled": false,
+    "official_all_fields_completeness_claimed": false,
+    "historical_evidence_preserved": true
+  },
+  "documentation": "docs/HANDOFF-0.4.19.md",
+  "remote_verification": "Compare main and v0.4.19 with git ls-remote; inspect GitHub Actions for the release commit SHA. Local build evidence is separate from CI."
+}
