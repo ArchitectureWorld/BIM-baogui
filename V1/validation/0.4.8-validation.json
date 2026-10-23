@@ -1,0 +1,188 @@
+{
+  "version": "0.4.8",
+  "date": "2026-10-21",
+  "status": "implemented_installed_native_workflows_verified_business_and_historical_area_gaps_remain",
+  "profile": "hubei-420626-planning-20261020",
+  "source_rule_sha256": "f1868fa3a8f42890bba28192bd418b6a97da1cd194d6bddcba70863be39c5b64",
+  "core": {
+    "passed": 183,
+    "failed": 0,
+    "log": "platform-0.4.8/build-window-calculator.log"
+  },
+  "wpf": {
+    "passed": 90,
+    "failed": 0,
+    "log": "platform-0.4.8/build-window-calculator.log"
+  },
+  "python": {
+    "passed": 30,
+    "failed": 0,
+    "log": "platform-0.4.8/python.log"
+  },
+  "build": {
+    "warnings": 0,
+    "errors": 0,
+    "package": "../dist/Hifc.V1.Revit2020-0.4.8/"
+  },
+  "state_persistence": {
+    "report": "platform-0.4.8/state-io-review.md",
+    "original_failure_retained": true,
+    "deterministic_fault_tests_passed": 5,
+    "synchronized_save_readback": {
+      "passed": 100,
+      "failed": 0
+    },
+    "local_save_readback": {
+      "passed": 100,
+      "failed": 0
+    },
+    "retry_scope": "Win32 1175 only, both files must exist, same atomic replacement, at most 3 retries, total delay 700ms"
+  },
+  "installed": {
+    "status": "verified_package_hashes",
+    "version": "0.4.8",
+    "prior_version": "0.4.7",
+    "receipt": "../outputs/install-20261021-130322-483eeb23/install-receipt.json",
+    "revit_sha256": "10b524a8298320d74707e2591c0176eb85ac6eebff7a87f7d245ec031e315f48",
+    "core_sha256": "bd19f6094733555aaf94e9738258af292034d1e2ef4c2ebbe8ded3d67268865e"
+  },
+  "revit_host": {
+    "status": "controlled_and_customer_workflows_completed",
+    "pid": null,
+    "journal": "journal.0734.txt",
+    "controlled_run": "platform-0.4.8/native-20261021-130323-630d1a18/",
+    "customer_models": "two_new_copies_write_readback_reopen_and_native_export_verified",
+    "native_ifc_semantic_audit": "passed_75_of_75",
+    "controlled_first_result": "platform-0.4.8/native-20261021-112159-a081a136/platform-host-result.json",
+    "customer_run": "customer-projects-20261021-130738/",
+    "customer_pid": null,
+    "customer_first_result": "customer-projects-20261021-120140/host-result.json",
+    "controlled_second_result": "platform-0.4.8/native-20261021-121405-7d4b23d4/platform-host-result.json",
+    "controlled_collector_failure_result": "platform-0.4.8/native-20261021-123923-4299faed/platform-host-result.json",
+    "controlled_checks_passed": 68,
+    "inherited_type_failure_result": "platform-0.4.8/native-20261021-124315-7ddc0519/platform-ifc-result.json",
+    "controlled_ifc_checks_passed": 75,
+    "controlled_ifc_result": "platform-0.4.8/native-20261021-130323-630d1a18/platform-ifc-result.json",
+    "window_preservation_result": "platform-0.4.8/native-20261021-130323-630d1a18/window-geometry-and-common-properties.json",
+    "customer_journal": "journal.0735.txt",
+    "controlled_host_result": "platform-0.4.8/native-20261021-130323-630d1a18/platform-host-result.json",
+    "customer_result": "customer-projects-20261021-130738/host-result.json",
+    "temporary_test_manifests_retired": true
+  },
+  "platform": {
+    "started_server_calculation": false,
+    "uploaded_new_ifc": false,
+    "acceptance": "not_verified"
+  },
+  "original_models_modified": false,
+  "preservation_evidence": "platform-0.4.8/preservation-after-final-runs.json",
+  "git_commit_created": false,
+  "git_push_performed": false,
+  "summary_performance": {
+    "after_ms": 4204.801,
+    "before_ms": 82057.1778,
+    "report": "platform-0.4.8/performance/report.md",
+    "scope": "same-process cache-only comparison; full scan retained; no cross-scan cache",
+    "rows": 5205,
+    "full_summary_equal": true
+  },
+  "customer_audit": {
+    "integrity_verified": true,
+    "opening_guids_changed": 126,
+    "business_input_gaps": {
+      "site": 38,
+      "building": 64
+    },
+    "business_input_gaps_scope": "missing_materialized_properties_including_optional_fields_not_manual_entry_count",
+    "required_input_receipt_gaps": {
+      "building": 51,
+      "site": 58
+    },
+    "review_summary": "platform-0.4.8/customer-audit/customer-projects-20261021-130738/review-summary.md",
+    "review_details": "platform-0.4.8/customer-audit/customer-projects-20261021-130738/review-summary.json",
+    "source_250_carriers_without_false_total_plan_pset": 32,
+    "strict_area_tolerance": {
+      "absolute_m2": 0.001,
+      "relative": 1e-08
+    },
+    "evidence_complete": true,
+    "site_preview_conflicts": [
+      717724,
+      718462,
+      719216,
+      720177
+    ],
+    "strict_area_passed": 28,
+    "geometry_scope": "Floor/Area source top surface, IFC projection and bbox; full opening world triangle multiset; other bodies inventory and meshability only",
+    "report": "platform-0.4.8/customer-audit/customer-projects-20261021-130738/report.md",
+    "strict_area_total": 34,
+    "strict_area_failed_ids": [
+      718462,
+      719249,
+      719314,
+      719606,
+      719618,
+      719755
+    ],
+    "details": "platform-0.4.8/customer-audit/customer-projects-20261021-130738/audit.json",
+    "business_geometry_preserved": 34,
+    "opening_host_and_full_mesh_preserved": 126,
+    "ordinary_walls_without_business_expansion": 692,
+    "strict_area_max_abs_difference_m2": 0.09442740097460955,
+    "body_meshable": 4675,
+    "written_targets_verified": 194,
+    "business_confirmation_scope": "CONTROLLED_COPY_INPUTS_NOT_PLATFORM_APPROVAL"
+  },
+  "school_workbook_completion": {
+    "date": "2026-10-21",
+    "production_version": "0.4.8.0",
+    "production_dlls_changed": false,
+    "run": "customer-projects-20261021-154459/",
+    "status": "written_reopened_native_ifc_values_verified",
+    "models": 3,
+    "explicit_formal_values": 44,
+    "reference_parameters": 48,
+    "workbook_nonempty_rows": 24,
+    "workbook_blank_rows_not_defaulted": true,
+    "building_numbers": [
+      "1#",
+      "2#"
+    ],
+    "declared_building_areas_m2": [
+      6455.6,
+      37.6
+    ],
+    "geometry_preserved": 37,
+    "geometry_checked": 37,
+    "bodies_meshable": 4877,
+    "strict_historical_area_failures_retained": 6,
+    "schema_errors": 0,
+    "report": "../../artifacts/school-excel-fill-20261021/属性补齐与核验报告.html",
+    "audit": "../../artifacts/school-excel-fill-20261021/verification-three-models-154459.json",
+    "source_files_unchanged": true,
+    "temporary_addin_retired": true,
+    "uploaded_to_platform": false,
+    "platform_acceptance_verified": false,
+    "scope": "Project data and test tooling only; formal plugin unchanged; source data gaps and area discrepancies retained"
+  },
+  "school_original_write": {
+    "date": "2026-10-21",
+    "status": "three_original_rvts_written_saved_and_reopened",
+    "production_version": "0.4.8.0",
+    "production_plugin_changed": false,
+    "models": 3,
+    "formal_values": 44,
+    "reference_parameters": 48,
+    "both_building_type_and_category": "中小学等",
+    "building_numbers": [
+      "1#",
+      "2#"
+    ],
+    "platform_category_snapshot_mismatch": true,
+    "source_originals_modified_by_explicit_user_request": true,
+    "report": "../../artifacts/school-original-write-20261021-162752/原文件写入记录.md",
+    "audit": "../../artifacts/school-original-write-20261021-162752/final-verification.json",
+    "previous_read_only_source_hash_assertions_are_historical": true,
+    "new_ifc_exported": false
+  }
+}

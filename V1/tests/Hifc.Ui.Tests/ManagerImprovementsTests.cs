@@ -92,7 +92,8 @@ internal static class ManagerImprovementsTests
         });
         check("role_remains_red_after_draft_and_clears_only_after_fresh_readback", () => {
             var road = new ModelElementCheck { Id = 4, UniqueId = "road", Name = "道路", Entity = "IfcSlab", Slot = "道路边界线", Classified = true,
-                Fields = new[] { new FieldCheck { PropertySet = "Pset_道路边界线信息属性集", Property = "道路宽度", Source = "道路边界线道路宽度", RawType = "Real", State = "未填写", Editable = true, OwnerId = 4, OwnerUniqueId = "road", Binding = "实例" } } };
+                Fields = new[] { new FieldCheck { PropertySet = "Pset_道路边界线信息属性集", Property = "道路宽度", Source = "道路边界线道路宽度", RawType = "Real", State = "未填写", Editable = true, OwnerId = 4, OwnerUniqueId = "road", Binding = "实例" },
+                    new FieldCheck { PropertySet = "Pset_道路边界线信息属性集", Property = "区内道路类型", Source = "区内道路类型", State = "有效", Value = "消防道路" } } };
             fake.Snapshot.Elements = new[] { road }; window.Accept(fake.Snapshot); window.ElementGrid.SelectedItem = road;
             var list = (ListBox)typeof(ManagerWindow).GetField("roleList",Flags).GetValue(window);
             Func<Color> color = () => ((SolidColorBrush)list.Items.Cast<object>().Single(i => ((RoleCoverage)i.GetType().GetProperty("Role").GetValue(i)).Slot == "道路边界线").GetType().GetProperty("Foreground").GetValue(list.Items.Cast<object>().Single(i => ((RoleCoverage)i.GetType().GetProperty("Role").GetValue(i)).Slot == "道路边界线"))).Color;

@@ -11,5 +11,7 @@
     <Reference Include="RevitAPI"><HintPath>C:/Program Files/Autodesk/Revit 2020/RevitAPI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="RevitAPIUI"><HintPath>C:/Program Files/Autodesk/Revit 2020/RevitAPIUI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="RevitAPIIFC"><HintPath>C:/Program Files/Autodesk/Revit 2020/RevitAPIIFC.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Revit.IFC.Export"><HintPath>C:/Program Files/Autodesk/Revit 2020/Revit.IFC.Export.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Revit.IFC.Common"><HintPath>C:/Program Files/Autodesk/Revit 2020/Revit.IFC.Common.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 </Project>

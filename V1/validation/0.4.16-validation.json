@@ -1,0 +1,36 @@
+{
+  "version": "0.4.16",
+  "updated": "2026-10-23",
+  "status": "packaged_installation_paused_by_user",
+  "installed_file_version": "0.4.15.0",
+  "installed_plugin_sha256": "cc0df1dc40f420754270c3fa245b37e72ac2a4c26cfe0c15ee608bf37b6ba94d",
+  "package": "dist/Hifc.V1.Revit2020-0.4.16",
+  "package_manifest_verified": true,
+  "package_plugin_sha256": "f3b16b8f8c001a5382475a9f581e14c5342bada240f4ef995fd058ae2490d603",
+  "build_log": "validation/build-0.4.16-area-hint.log",
+  "core": {
+    "failed": 0,
+    "passed": 227
+  },
+  "standalone_wpf": {
+    "passed": 106,
+    "failed": 0,
+    "evidence": "validation/ui-0.4.16-20261023-130910/ui-tests.json"
+  },
+  "area_hint": {
+    "selection_screenshot": "validation/ui-0.4.16-20261023-130910/selection-window.png",
+    "includes_floor_area": true,
+    "area_write_and_export_rules_changed": false,
+    "rendering_evidence": "validation/area-hint-ui-0.4.16-20261023/result.json",
+    "text": "该数值可手动修改并被平台读取",
+    "manager_and_selection_windows": true
+  },
+  "native_host": {
+    "tested_this_version": false,
+    "reason": "Installation remains paused by user"
+  },
+  "platform": {
+    "previous_0415_delivery_feedback": "User reports successful platform recognition; separate note under artifacts/buildings-projection-export-20261023-123714/platform-feedback-20261023.md",
+    "tested_this_version": false
+  }
+}

@@ -10,7 +10,7 @@ internal static class ManagerImprovementsTests
         check("identified_road_stays_incomplete_until_required_width_is_read_back", () => {
             var row = new ModelElementCheck { Id = 1, UniqueId = "road", Entity = "IfcSlab", Slot = "道路边界线", Fields = new[] {
                 new FieldCheck { PropertySet = "Pset_道路边界线信息属性集", Property = "道路宽度", Binding = "实例", OwnerUniqueId = "road", State = "未填写" },
-                new FieldCheck { PropertySet = "Pset_道路边界线信息属性集", Property = "区内道路类型", Binding = "实例", OwnerUniqueId = "road", State = "未填写", AllowedEmpty = true } } };
+                new FieldCheck { PropertySet = "Pset_道路边界线信息属性集", Property = "区内道路类型", Binding = "实例", OwnerUniqueId = "road", State = "有效", Value = "消防道路", AllowedEmpty = true } } };
             Func<RoleCoverage> role = () => CaseWorkflow.Summarize("报规", "总图", new[] { row }).Roles.Single(r => r.Slot == "道路边界线");
             var prop = typeof(RoleCoverage).GetProperty("MissingFields");
             Assert(prop != null, "Role completeness is absent");
@@ -25,7 +25,7 @@ internal static class ManagerImprovementsTests
                 new ModelElementCheck { UniqueId = "green", Entity = "IfcSlab", Slot = "绿地", Fields = new[] { new FieldCheck { PropertySet = "Pset_绿地信息属性集", Property = "投影面积", State = "未填写" } } },
                 new ModelElementCheck { UniqueId = "road", Entity = "IfcSlab", Slot = "道路边界线", Fields = new[] {
                     new FieldCheck { PropertySet = "Pset_道路边界线信息属性集", Property = "道路宽度", State = "有效", Value = "4" },
-                    new FieldCheck { PropertySet = "Pset_道路边界线信息属性集", Property = "区内道路类型", State = "缺参数" } } } };
+                    new FieldCheck { PropertySet = "Pset_道路边界线信息属性集", Property = "区内道路类型", State = "有效", Value = "消防道路" } } } };
             var summary = CaseWorkflow.Summarize("报规", "总图", rows);
             Assert(summary.Roles.All(r => !r.NeedsAttention), "Other blanks or absent reference models became mandatory manual entry");
             rows[1].Fields[0].State = "未填写"; rows[1].Fields[0].Value = null;

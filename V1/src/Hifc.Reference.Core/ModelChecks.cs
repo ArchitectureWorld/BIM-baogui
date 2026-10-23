@@ -6,6 +6,7 @@ namespace Hifc.Reference
 {
     public sealed class FieldCheck
     {
+        public string RuleProfileId { get; set; } = "";
         public string PropertySet { get; set; }
         public string Property { get; set; }
         public string Source { get; set; }
@@ -13,6 +14,7 @@ namespace Hifc.Reference
         public string State { get; set; }
         public string Value { get; set; }
         public string DisplayValue { get; set; }
+        public double? MetricValue { get; set; }
         public string Origin { get; set; }
         public string OriginLabel => Origin == "instance" ? "实例" : Origin == "type" ? "类型" : "";
         public string Detail { get; set; }
@@ -23,11 +25,16 @@ namespace Hifc.Reference
         public string Binding { get; set; }
         public bool AllowedEmpty { get; set; }
         public string SuggestedValue { get; set; }
+        public string RequiredValue { get; set; }
+        public bool RequiresRuleWrite => !string.IsNullOrEmpty(RequiredValue) && Value != RequiredValue;
         public string SuggestionUnit { get; set; }
         public string SuggestionReason { get; set; }
-        public bool Acceptable => Valid || AllowedEmpty && State == "未填写";
-        public bool Valid => State == "有效";
-        public bool ManualInputRequired => PropertySet == "Pset_道路边界线信息属性集" && Property == "道路宽度";
+        public bool FloorAreaOverride { get; set; }
+        public bool Acceptable => !RequiresRuleWrite && (Valid || AllowedEmpty && (State == "未填写" || PlatformRules.IsActive(RuleProfileId) && State == "缺参数"));
+        public bool Valid => State == "有效" && !RequiresRuleWrite;
+        public bool FireRoadWidth { get; set; }
+        public bool BuildingUsage => PropertySet == "Pset_建筑技术信息属性集" && Property == "建筑用途名称";
+        public bool ManualInputRequired => BuildingUsage || FireRoadWidth && PropertySet == "Pset_道路边界线信息属性集" && Property == "道路宽度";
     }
     public sealed class ModelElementCheck
     {
@@ -36,14 +43,22 @@ namespace Hifc.Reference
         public string Name { get; set; }
         public string Category { get; set; }
         public string Entity { get; set; }
+        public string SourceEntity { get; set; }
         public string Slot { get; set; }
         public string Building { get; set; }
         public string Level { get; set; }
         public string Issue { get; set; }
+        public string AreaSynchronizationIssue { get; set; }
         public bool Classified { get; set; }
         public int TypeId { get; set; }
         public string TypeName { get; set; }
         public string AreaScheme { get; set; }
+        public string LevelUniqueId { get; set; }
+        public double? LevelElevationM { get; set; }
+        public double? ProjectedAreaM2 { get; set; }
+        public string ProjectionKey { get; set; }
+        public string AreaAggregationIssue { get; set; }
+        public string AreaReason { get; set; }
         public string[] Slots { get; set; } = new string[0];
         public string[] SuggestedSlots { get; set; } = new string[0];
         public ClassificationCandidate[] Candidates { get; set; } = new ClassificationCandidate[0];
@@ -93,6 +108,35 @@ namespace Hifc.Reference
     }
     public static class ModelChecks
     {
+        public static FieldCheck Evaluate(ReferenceProperty property, ParameterRead[] reads, string ruleProfileId)
+        {
+            var result = Evaluate(property, reads);
+            result.RuleProfileId = ruleProfileId ?? "";
+            if (PlatformRules.IsActive(ruleProfileId) && !string.IsNullOrWhiteSpace(result.Value) &&
+                (result.State == "有效" || result.State == "值非法"))
+            {
+                var error = InputError(result, result.Value);
+                result.State = error == null ? "有效" : "值非法";
+                if (error != null) result.Detail = error;
+            }
+            return result;
+        }
+        // Validation may normalize a temporary export value, never the model value
+        // or its baseline. Parent/child choices are checked after merging a draft.
+        public static string InputError(FieldCheck field, string value, string parentFunction = null, string ruleProfileId = null)
+        {
+            if (!string.IsNullOrEmpty(field.RequiredValue) && value != field.RequiredValue)
+                return "净用地控制红线的“" + field.Property + "”必须填写“" + field.RequiredValue + "”；请按规则写入。";
+            if (string.IsNullOrWhiteSpace(value)) return null;
+            var profileId = ruleProfileId ?? field.RuleProfileId;
+            if (!PlatformRules.IsActive(profileId))
+                return ValueIsValid(field.RawType, value) ? null : "值不符合映射类型：" + field.RawType;
+            try {
+                CaseExportPolicy.ValueForExport(new ReferenceProperty { PropertySet=field.PropertySet,
+                    Property=field.Property, RawType=field.RawType }, value, profileId, parentFunction);
+                return null;
+            } catch (InvalidOperationException ex) { return ex.Message; }
+        }
         public static FieldCheck Evaluate(ReferenceProperty property, ParameterRead[] reads)
         {
             var result = new FieldCheck { PropertySet = property.PropertySet, Property = property.Property,

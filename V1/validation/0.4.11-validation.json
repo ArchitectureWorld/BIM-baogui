@@ -1,0 +1,221 @@
+{
+  "version": "0.4.11",
+  "assembly_version": "0.4.11.0",
+  "recorded_at": "2026-10-22T04:01:28.932687+00:00",
+  "status": "installed_and_gate_native_export_verified",
+  "tests": {
+    "core": {
+      "passed": 202,
+      "failed": 0
+    },
+    "wpf": {
+      "passed": 98,
+      "failed": 0
+    },
+    "python": {
+      "passed": 30,
+      "failed": 0
+    },
+    "build_warnings": 0,
+    "build_errors": 0,
+    "native_and_ifc_independent": {
+      "passed": 26,
+      "failed": 0
+    }
+  },
+  "logs": {
+    "build": "validation/build-0.4.11.log",
+    "python": "validation/python-0.4.11.log",
+    "red": "validation/gate-area-0.4.11-red.log",
+    "green": "validation/gate-area-0.4.11-green.log"
+  },
+  "package": {
+    "path": "dist/Hifc.V1.Revit2020-0.4.11",
+    "manifest": {
+      "revit": "2020",
+      "version": "0.4.11",
+      "reference_contract_sha256": "c1f3d74e17229aee4ed10bc4980532d2c7c61a5a783061c6e979562b808052c9",
+      "target_framework": "net48",
+      "files": [
+        {
+          "bytes": 552960,
+          "name": "Hifc.Reference.Core.dll",
+          "sha256": "92fd5d8637e14bcbcd0c6f8b76943bcd352286b9ed90dbe527c364d15aa9e8df"
+        },
+        {
+          "bytes": 34540,
+          "name": "Hifc.Reference.Core.pdb",
+          "sha256": "7f6a13d2847887bdaf97a3f01db6eb5806aee9cb4578b661b012f2e2453732ee"
+        },
+        {
+          "bytes": 311296,
+          "name": "Hifc.V1.Revit.dll",
+          "sha256": "63c69be37c34a6ae7a11287c155c3ee880d3b7bbd3cea8340017c28bd51ff397"
+        },
+        {
+          "bytes": 69476,
+          "name": "Hifc.V1.Revit.pdb",
+          "sha256": "43b540213dcf7ef0f70ae72aa9674d82ccafecf847d69a8acb4c82210262d471"
+        },
+        {
+          "bytes": 73,
+          "name": "settings.json",
+          "sha256": "ae3543f7ca4d65044909c1e562e8de72bfcb544f32dcf2db0da05c19a72a4ef6"
+        }
+      ]
+    }
+  },
+  "installed": {
+    "version": "0.4.11",
+    "assembly_version": "0.4.11.0",
+    "actual_host_load_verified": true,
+    "receipt": "outputs/install-20261022-084808-f316741a/install-receipt.json",
+    "independent_verification": "outputs/install-20261022-084808-f316741a/independent-install-verification.json",
+    "loaded": {
+      "plugin_path": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1\\Hifc.V1.Revit.dll",
+      "plugin_sha256": "63c69be37c34a6ae7a11287c155c3ee880d3b7bbd3cea8340017c28bd51ff397",
+      "plugin_version": "0.4.11.0",
+      "core_path": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1\\Hifc.Reference.Core.dll",
+      "core_sha256": "92fd5d8637e14bcbcd0c6f8b76943bcd352286b9ed90dbe527c364d15aa9e8df",
+      "core_version": "0.4.11.0"
+    }
+  },
+  "gate_function_export": {
+    "status": "verified",
+    "run": "validation/gate-functions-step03-0.4.11-20261022-084809",
+    "baseline": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\gate-step02-20261021-213140",
+    "region_id": 395099,
+    "main_function": "其它设施",
+    "sub_function": "大门",
+    "property_writes": 2,
+    "business_properties_before": 18,
+    "business_properties_after": 20,
+    "verification": "validation/gate-functions-step03-0.4.11-20261022-084809/final-verification.json",
+    "delivery": "validation/gate-functions-step03-0.4.11-20261022-084809/IFC交付/03_大门2号_补齐区域功能.ifc",
+    "sha256": "533101ddf84c41b715e0227f89fa33c85a82a9e09c023ef74b71fb1f3a37cd73",
+    "model_copy": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\gate-functions-step03-0.4.11-20261022-084809\\models\\3D_歇马镇中心学校-大门.rvt",
+    "source_originals_unchanged": true,
+    "geometry_unchanged": true,
+    "temporary_addin_retirement": "validation/gate-functions-step03-0.4.11-20261022-084809/temporary-addin-retirement.json"
+  },
+  "initial_failure": {
+    "version": "0.4.10",
+    "run": "validation/gate-functions-step03-20261022-081550",
+    "error": "System.InvalidOperationException: F1：楼层面积同步未完成，建筑区域尚未确认齐全或存在投影重叠。\r\n   在 Hifc.Revit.Management.FloorAreaSynchronization.ForExport(Document doc, Element[] mappedElements)\r\n   在 Hifc.Revit.NativeExportService.ExportCore(Document doc, Element[] elements, Element[] mappedElements, String ifcPath, ProjectExportScope project)\r\n   在 Hifc.Revit.NativeExportService.ExportProject(Document doc, String ifcPath)",
+    "fixed": true
+  },
+  "prior_version_model_evidence": "validation/input-review-0.4.10-native-20261021-234622/final-verification.json",
+  "regression_focus": [
+    "matching saved areas allow native export without redistribution",
+    "actual redistribution still requires confirmed region scope",
+    "confirmed projection overlap still blocks"
+  ],
+  "source_hashes": {
+    "src/Hifc.Reference.Core/FloorAreaPolicy.cs": "f19f9ca9008d93942cd31227c9beb1a8352fed029d27dd8e207e110bb730c7f1",
+    "tests/Hifc.Reference.Tests/FloorAreaTests.cs": "d2b4a57f5256509867b81afbfe661bfe08086c93ba5f3f99032de3288fdfff47",
+    "Directory.Build.props": "cae81c1125b5468a423336cc2e0f8825e370705701a5fc537cdb73b5d4a018fa"
+  },
+  "new_platform_submission": false,
+  "git_commit_or_push_performed": false,
+  "prior_delivered_ifcs_unchanged": true,
+  "limits": [
+    "New gate IFC has not been uploaded to the platform",
+    "0.4.11 now has main-building, gate and site native export evidence; platform acceptance still requires user submission results."
+  ],
+  "site_green_export": {
+    "status": "verified",
+    "run": "validation/site-green-step04-20261022-094200",
+    "green_count": 18,
+    "value": "附属绿地",
+    "verification": "validation/site-green-step04-20261022-094200/final-verification.json",
+    "independent_checks": 28,
+    "business_properties_before": 31,
+    "business_properties_after": 49,
+    "delivery": "validation/site-green-step04-20261022-094200/IFC交付/01_总图_绿地类型附属绿地.ifc",
+    "sha256": "e6f11f7c7f2cea7e5d31a56979560b34ef4da9edc21440f6c607452f8387b5bd",
+    "model_copy": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\site-green-step04-20261022-094200\\models\\3D_歇马镇中心学校-总图.rvt",
+    "source_originals_unchanged": true,
+    "geometry_unchanged": true,
+    "production_package_changed": false,
+    "temporary_addin_retirement": "validation/site-green-step04-20261022-094200/temporary-addin-retirement.json"
+  },
+  "gate_school_export": {
+    "status": "verified",
+    "run": "validation/gate-school-step05-20261022-105414",
+    "verification": "validation/gate-school-step05-20261022-105414/final-verification.json",
+    "independent_checks": 45,
+    "changed_fields": 3,
+    "values": {
+      "建筑类型名称": "中小学等",
+      "建筑类别": "中小学",
+      "主功能类别": "学校",
+      "子功能类别": "中学"
+    },
+    "delivery": "validation/gate-school-step05-20261022-105414/IFC交付/03_大门2号_学校中学.ifc",
+    "sha256": "aa8d06f6a80c3a7fdc9c08998c86444bd86d0014b98b525a4c4805d5e1a4e047",
+    "model_copy": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\gate-school-step05-20261022-105414\\models\\3D_歇马镇中心学校-大门.rvt",
+    "source_originals_unchanged": true,
+    "geometry_unchanged": true,
+    "production_package_changed": false,
+    "rule_bypass": false,
+    "temporary_addin_retirement": "validation/gate-school-step05-20261022-105414/temporary-addin-retirement.json"
+  },
+  "civil_no_export": {
+    "status": "verified",
+    "run": "validation/buildings-civil-no-step06-20261022-111337",
+    "verification": "validation/buildings-civil-no-step06-20261022-111337/final-verification.json",
+    "independent_checks": 105,
+    "models": [
+      {
+        "number": "1#",
+        "delivery": "validation/buildings-civil-no-step06-20261022-111337/IFC交付/02_综合楼1号_民用建筑否.ifc",
+        "sha256": "cb9fc2ae188921b5b3bdc8b0e1e0434b34d2cbe9854a210f8935c387a3fa2d05",
+        "model_copy": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\buildings-civil-no-step06-20261022-111337\\01_综合楼\\models\\3D_歇马镇中心学校 (2).rvt"
+      },
+      {
+        "number": "2#",
+        "delivery": "validation/buildings-civil-no-step06-20261022-111337/IFC交付/03_大门2号_民用建筑否.ifc",
+        "sha256": "2c48f28b431aa548c751ba43bc599c5eb595434d1cf63bbb3737669e242a15be",
+        "model_copy": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\buildings-civil-no-step06-20261022-111337\\02_大门\\models\\3D_歇马镇中心学校-大门.rvt"
+      }
+    ],
+    "property": "Pset_建筑技术信息属性集 / 民用建筑",
+    "ifc_type": "IfcBoolean",
+    "ifc_value": false,
+    "confirmed_main_building_category": "中小学",
+    "category_already_present": true,
+    "source_originals_unchanged": true,
+    "geometry_unchanged": true,
+    "production_package_changed": false,
+    "temporary_addin_retirement": "validation/buildings-civil-no-step06-20261022-111337/temporary-addin-retirement.json"
+  },
+  "civil_yes_export": {
+    "status": "verified",
+    "run": "validation/buildings-civil-yes-step07-20261022-115343",
+    "verification": "validation/buildings-civil-yes-step07-20261022-115343/final-verification.json",
+    "independent_checks": 113,
+    "models": [
+      {
+        "number": "1#",
+        "delivery": "validation/buildings-civil-yes-step07-20261022-115343/IFC交付/02_综合楼1号_民用建筑是.ifc",
+        "sha256": "12d1c5ce98a877d3b0c56b8e7435c00f0d9955fddc068472cfc58c6e5960c722",
+        "model_copy": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\buildings-civil-yes-step07-20261022-115343\\01_综合楼\\models\\3D_歇马镇中心学校 (2).rvt"
+      },
+      {
+        "number": "2#",
+        "delivery": "validation/buildings-civil-yes-step07-20261022-115343/IFC交付/03_大门2号_民用建筑是.ifc",
+        "sha256": "8039045263e87f7f5d99bc251e8054b0561228159fc73fa9a1f5dccc25457719",
+        "model_copy": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\buildings-civil-yes-step07-20261022-115343\\02_大门\\models\\3D_歇马镇中心学校-大门.rvt"
+      }
+    ],
+    "property": "Pset_建筑技术信息属性集 / 民用建筑",
+    "ifc_type": "IfcBoolean",
+    "ifc_value": true,
+    "confirmed_main_building_category": "中小学",
+    "category_already_present": true,
+    "source_originals_unchanged": true,
+    "geometry_unchanged": true,
+    "production_package_changed": false,
+    "temporary_addin_retirement": "validation/buildings-civil-yes-step07-20261022-115343/temporary-addin-retirement.json"
+  }
+}

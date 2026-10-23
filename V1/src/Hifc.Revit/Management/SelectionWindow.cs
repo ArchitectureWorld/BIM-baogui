@@ -48,10 +48,10 @@ namespace Hifc.Revit.Management
                 if(!ConfirmDiscard()){restoring=true;SlotSelector.SelectedItem=Draft?.Slot;restoring=false;return;}
                 session.Classify((string)SlotSelector.SelectedItem);
             };
-            Configure(FieldGrid,false);FieldGrid.SelectionUnit=DataGridSelectionUnit.CellOrRowHeader;
+            Configure(FieldGrid,false);FieldGrid.RowHeight=double.NaN;FieldGrid.MinRowHeight=34;FieldGrid.SelectionUnit=DataGridSelectionUnit.CellOrRowHeader;
             FieldGrid.Columns.Add(Column("属性","Property",200,false));
             var value=new ValueColumn {Header="值（单击修改）",MinWidth=180,Binding=new Binding("Value") {Mode=BindingMode.TwoWay,UpdateSourceTrigger=UpdateSourceTrigger.LostFocus,ValidatesOnExceptions=true},Width=new DataGridLength(1,DataGridLengthUnitType.Star)};
-            var cellStyle=new Style(typeof(DataGridCell));cellStyle.Setters.Add(new Setter(Control.BackgroundProperty,new Binding("Background")));value.CellStyle=cellStyle;FieldGrid.Columns.Add(value);
+            var cellStyle=new Style(typeof(DataGridCell));cellStyle.Setters.Add(new Setter(Control.BackgroundProperty,new Binding("Background")));cellStyle.Setters.Add(new Setter(ToolTipProperty,new Binding("AreaHint")));value.CellStyle=cellStyle;FieldGrid.Columns.Add(value);
             FieldGrid.Columns.Add(Column("状态","State",110,false));FieldGrid.Columns.Add(Column("来源 / 说明","Detail",230,false));
             FieldGrid.BeginningEdit+=(s,e)=>{if(!CanWrite || !(e.Row.Item is SelectionField f) || !f.Editable)e.Cancel=true;};
             FieldGrid.PreviewMouseLeftButtonDown+=(s,e)=>{
@@ -94,6 +94,15 @@ namespace Hifc.Revit.Management
         internal void CommitEditors(){if(!FieldGrid.CommitEdit(DataGridEditingUnit.Cell,true)||!FieldGrid.CommitEdit(DataGridEditingUnit.Row,true))throw new InvalidOperationException("请修正当前属性值后再写入。");}
         sealed class ValueColumn:DataGridTextColumn
         {
+            protected override FrameworkElement GenerateElement(DataGridCell cell,object item)
+            {
+                if(string.IsNullOrEmpty((item as SelectionField)?.AreaHint))return base.GenerateElement(cell,item);
+                var panel=new StackPanel {Margin=new Thickness(3,2,3,2)};
+                var value=new TextBlock {TextWrapping=TextWrapping.Wrap};value.SetBinding(TextBlock.TextProperty,new Binding("Value"));panel.Children.Add(value);
+                var hint=new TextBlock {TextWrapping=TextWrapping.Wrap,FontSize=11,Foreground=LiquidGlassTheme.Color("#4376AD")};
+                hint.SetBinding(TextBlock.TextProperty,new Binding("AreaHint"));panel.Children.Add(hint);
+                return panel;
+            }
             protected override FrameworkElement GenerateEditingElement(DataGridCell cell,object item)
             {
                 if(!((SelectionField)item).RawType.Equals("Boolean",StringComparison.Ordinal))return base.GenerateEditingElement(cell,item);

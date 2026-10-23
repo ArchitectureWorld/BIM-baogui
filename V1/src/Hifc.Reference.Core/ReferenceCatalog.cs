@@ -106,7 +106,9 @@ namespace Hifc.Reference
             foreach (var group in selected.Where(p => !p.NativeGroup).GroupBy(p=>p.PropertySet+"|"+p.Binding+"|"+p.Entity+"|"+p.Property).Select(g=>g.First()).GroupBy(p => new { p.PropertySet, p.Binding, p.Entity }))
             {
                 output.Append("PropertySet:\t").Append(group.Key.PropertySet).Append('\t')
-                    .Append(group.Key.Binding == "类型" ? "T" : "I").Append('\t').Append(group.Key.Entity).Append('\n');
+                    .Append(group.Key.Binding == "类型" ? "T" : "I").Append('\t')
+                    .Append(string.Join(",", group.Key.Entity.Split(',').Select(e => group.Key.Binding == "类型"
+                        && (e == "IfcSlab" || e == "IfcWindow") ? e + "Type" : e))).Append('\n');
                 foreach (var property in group)
                     output.Append(property.Property).Append('\t').Append(property.ExportType).Append('\t')
                         .Append(ReferencePolicy.BridgeName(property)).Append('\n');

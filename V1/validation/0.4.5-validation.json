@@ -1,0 +1,153 @@
+{
+  "schema": "hifc.validation-summary/1.0",
+  "record_kind": "release_validation_summary",
+  "version": "0.4.5",
+  "assembly_version": "0.4.5.0",
+  "client_date": "2026-10-20",
+  "revit": "2020",
+  "documentation": "docs/0.4.5-绿化默认分类与规划控制线.md",
+  "package": "dist/Hifc.V1.Revit2020-0.4.5",
+  "local_evidence": "validation/site-classification-native-20261020-143522-25b3b774/final-verification.json",
+  "evidence_scope": "Customer school-site model copy plus controlled floor and Area fixtures; not platform acceptance.",
+  "core": {
+    "passed": 109,
+    "failures": 0
+  },
+  "wpf": {
+    "passed": 71,
+    "failures": 0
+  },
+  "python": {
+    "passed": 24,
+    "failures": 0
+  },
+  "project_export": {
+    "default_scope": "CURRENT_PROJECT",
+    "selected_ids_required": false,
+    "current_view_filter_applied": false,
+    "linked_source_documents_exported": false,
+    "includes_area": true,
+    "includes_unclassified_native_geometry": true,
+    "receipt_schema": "hifc.native-export-receipt/1.4",
+    "runtime_scope_and_carriers_verified": true,
+    "model_records": 52,
+    "mapped_elements": 25,
+    "area_objects": 3,
+    "valid_area_objects": 2,
+    "invalid_area_explicitly_reported": true,
+    "counts": {
+      "IfcSpace": 2,
+      "IfcSlab": 24,
+      "IfcBuildingElementProxy": 1,
+      "IfcBuilding": 1,
+      "IfcBuildingStorey": 1
+    },
+    "verified_emitted_properties": 41,
+    "source_missing_fields": 40,
+    "missing_sources_not_fabricated": true,
+    "strict_mapping_all_passed": false,
+    "other_mapping_failures": 0,
+    "schema_errors": 0,
+    "missing_by_property": {
+      "道路类型": 1,
+      "红线宽度": 1,
+      "区内道路类型": 1,
+      "绿地类型": 18,
+      "折算系数": 18,
+      "公建车位": 1
+    }
+  },
+  "native": {
+    "checks": 35,
+    "all_passed": true,
+    "save_reopen_verified": true,
+    "export_rollback_verified": true,
+    "revised_package_runtime_verified": true,
+    "first_run": {
+      "host_checks": 26,
+      "host_all_passed": true,
+      "schema_errors": {
+        "mixed": 1,
+        "control_only": 1,
+        "changed_to_green": 0
+      },
+      "issue": "Proxy inherited invalid FLOOR enum",
+      "fix": "Temporary instance IfcExportType=NOTDEFINED",
+      "fixed_ifc_verified": true
+    }
+  },
+  "ifc_cases": [
+    {
+      "case": "mixed",
+      "strict_mapping_all_passed": true,
+      "verified_properties": 6,
+      "schema_errors": 0,
+      "source_missing_fields": 0
+    },
+    {
+      "case": "control-only",
+      "strict_mapping_all_passed": true,
+      "verified_properties": 3,
+      "schema_errors": 0,
+      "source_missing_fields": 0
+    },
+    {
+      "case": "changed-to-green",
+      "strict_mapping_all_passed": true,
+      "verified_properties": 3,
+      "schema_errors": 0,
+      "source_missing_fields": 0
+    },
+    {
+      "case": "project",
+      "strict_mapping_all_passed": false,
+      "verified_properties": 41,
+      "schema_errors": 0,
+      "source_missing_fields": 40
+    }
+  ],
+  "geometry": {
+    "all_expected_areas_match": true,
+    "areas_m2": {
+      "unclassified_slab": 6,
+      "green_slab": 50,
+      "parking_area": 12.5,
+      "unclassified_area": 6
+    },
+    "parking_pset_on_ifc_space": true,
+    "ifc_unchanged_by_audit": true
+  },
+  "installation": {
+    "version": "0.4.5.0",
+    "actual_loaded_assembly_matches_package": true,
+    "temporary_acceptance_addin_removed": true,
+    "host_exited_normally": true,
+    "local_receipt": "outputs/install-20261020-143522-af89f376/install-receipt.json"
+  },
+  "files": [
+    {
+      "name": "Hifc.V1.Revit.dll",
+      "sha256": "0e70702bb78e43f26c6b566b4ddf3aeb192a148d11d653e469fde913c0567e34",
+      "build_matches_package": true,
+      "installed_matches_package": true
+    },
+    {
+      "name": "Hifc.Reference.Core.dll",
+      "sha256": "b43cc7613d5c03582033de512b5876107e5894b1dc1c0f9cb87e34dff8f49583",
+      "build_matches_package": true,
+      "installed_matches_package": true
+    }
+  ],
+  "preservation": {
+    "source_unchanged": true
+  },
+  "manual_required_fields": [
+    "道路宽度"
+  ],
+  "platform_acceptance_verified": false,
+  "limitations": [
+    "Full-project export correctness and populated values were verified; 40 missing source values remain and strict attribute completeness did not pass.",
+    "Construction-document rules, all official HIFC classes and formal platform acceptance are not covered.",
+    "Standalone WPF input tests and native services do not prove physical mouse interaction end-to-end."
+  ]
+}

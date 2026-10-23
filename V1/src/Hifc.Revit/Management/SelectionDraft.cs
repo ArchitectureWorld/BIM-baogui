@@ -72,8 +72,9 @@ namespace Hifc.Revit.Management
         public string Detail => Field.Source + " · " + Field.Binding + (Editable ? "" : " · 只读，避免影响未选中的同类型构件")
             + (string.IsNullOrEmpty(Field.SuggestionReason) ? "" : " · " + Field.SuggestionReason);
         public string RawType => Field.RawType;
+        public string AreaHint => AreaValueHint.For(Property, RawType, Editable);
         public bool Editable => Targets.All(f => f.Binding == "实例" && f.Origin != "type" && (f.Editable || f.State == "缺参数"));
-        public string State => Pending ? "待写入" : Written ? "已手工写入" : Targets.Any(f => !string.IsNullOrEmpty(f.SuggestedValue)) ? "自动填写" : Targets.Any(f => !f.Valid) ? "待补充" : "已有值";
+        public string State => Pending ? "待写入" : Targets.Any(f => f.RequiresRuleWrite) ? "规则待写入" : Written ? "已手工写入" : Targets.Any(f => !string.IsNullOrEmpty(f.SuggestedValue)) ? "自动填写" : Targets.Any(f => !f.Valid) ? "待补充" : "已有值";
         public string Background => Pending ? "#FFFFE9E7" : Written ? "#FFFFE7C2" : "#FFFFFFFF";
         public string[] Choices => new[] { "多个值", "未填写", "是", "否" };
         static string BooleanLabel(string v) => string.IsNullOrWhiteSpace(v) ? "未填写" : v == "1" ? "是" : v == "0" ? "否" : v;
@@ -82,7 +83,7 @@ namespace Hifc.Revit.Management
             get
             {
                 if (Pending) return RawType == "Boolean" ? BooleanLabel(RawValue) : RawValue;
-                var values = Targets.Select(f => !string.IsNullOrEmpty(f.Value) ? f.Value : f.SuggestedValue ?? "").Distinct().ToArray();
+                var values = Targets.Select(f => f.RequiresRuleWrite && f.SuggestedValue != null ? f.SuggestedValue : !string.IsNullOrEmpty(f.Value) ? f.Value : f.SuggestedValue ?? "").Distinct().ToArray();
                 return values.Length != 1 ? "多个值" : RawType == "Boolean" ? BooleanLabel(values[0]) : values[0];
             }
             set

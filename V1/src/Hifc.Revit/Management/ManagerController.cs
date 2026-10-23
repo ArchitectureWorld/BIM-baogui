@@ -12,6 +12,8 @@ namespace Hifc.Revit.Management
     internal sealed class ManagerController : IExternalEventHandler, IManagerSession
     {
         private static readonly Dictionary<Document, ManagerController> Windows = new Dictionary<Document, ManagerController>();
+        private static readonly Dictionary<Document, string> StateKeys = new Dictionary<Document, string>();
+        private static readonly Dictionary<Document, Action> PendingStateTransfers = new Dictionary<Document, Action>();
         private readonly Document document;
         private readonly UIApplication owner;
         private readonly ExternalEvent external;
@@ -25,19 +27,38 @@ namespace Hifc.Revit.Management
         private ManagerController(UIApplication ui)
         {
             owner = ui; document = ui.ActiveUIDocument.Document;
+            FinishStateTransfer(document);
             external = ExternalEvent.Create(this);
             Window = new ManagerWindow(this, Path.Combine(RuntimePaths.OutputDirectory(), "management-profiles"));
             Window.RestoreState(ModelReader.Key(document));
+            StateKeys[document]=ModelReader.Key(document);
+            PlatformContext.Set(document, Window.PlanningSettings);
+            PlatformContext.SetStage(document, Window.SelectedStage);
             Window.UndergroundRequested+=ConfigureUnderground;
+            Window.PlanningRequested+=ConfigurePlanning;
             new System.Windows.Interop.WindowInteropHelper(Window).Owner = ui.MainWindowHandle;
             ui.Application.DocumentChanged += Changed;
         }
         internal static void Open(UIApplication ui)
         {
             var doc = ui.ActiveUIDocument.Document;
+            FinishStateTransfer(doc);
             if (Windows.TryGetValue(doc, out var current) && !current.closed) { current.Window.Activate(); return; }
             var controller = new ManagerController(ui); Windows[doc] = controller; controller.Window.Show();
             if (controller.Window.HasRememberedStage) controller.Scan();
+        }
+        internal static void EnsureExportReady(Document doc)
+        {
+            FinishStateTransfer(doc);
+            if (Windows.TryGetValue(doc, out var current) && !current.closed)
+            {
+                if (current.scan != null) throw new InvalidOperationException("全面检查仍在进行，请检查完成后再导出。");
+                current.Window.EnsureExportReady();
+                PlatformContext.Set(doc,current.Window.PlanningSettings);
+                PlatformContext.SetStage(doc,current.Window.SelectedStage);
+            }
+            else
+                new ManagementStateStore(Path.Combine(RuntimePaths.OutputDirectory(), "management-profiles"), ModelReader.Key(doc)).Load().EnsureExportReady();
         }
         internal static void CheckAfterSelection(UIApplication ui,string stage,string kind,ManualWrite[] history)
         {
@@ -52,6 +73,33 @@ namespace Hifc.Revit.Management
         {
             if (closed || !document.Equals(args.GetDocument())) return;
             epoch++; Window.MarkStale("模型已变化，请重新扫描。旧预览不能执行。");
+        }
+        internal static void SavedAs(object sender, DocumentSavedAsEventArgs args)
+        {
+            if(args.Status!=RevitAPIEventStatus.Succeeded)return;
+            var doc=args.Document;
+            if(doc.IsFamilyDocument)return;
+            var oldKey=StateKeys.TryGetValue(doc,out var known)?known:ModelReader.KeyAtPath(doc,args.OriginalPath);
+            var key=ModelReader.Key(doc);StateKeys[doc]=key;
+            if(key==oldKey)return;
+            if(Windows.TryGetValue(doc,out var current)&&!current.closed) { current.Window.RebindDocumentKey(key);return; }
+            PendingStateTransfers.TryGetValue(doc,out var preceding);
+            PendingStateTransfers[doc]=()=>{
+                preceding?.Invoke();
+                var root=Path.Combine(RuntimePaths.OutputDirectory(),"management-profiles");
+                var source=new ManagementStateStore(root,oldKey);
+                if(!source.Exists)return;
+                var state=source.Load();state.RebindDocumentKey(key);
+                new ManagementStateStore(root,key).Save(state);
+            };
+            try { FinishStateTransfer(doc); }
+            catch(Exception error) { TaskDialog.Show("H-IFC V1 · 暂存未迁移",error.Message); }
+        }
+        private static void FinishStateTransfer(Document doc)
+        {
+            if(!PendingStateTransfers.TryGetValue(doc,out var transfer))return;
+            try { transfer();PendingStateTransfers.Remove(doc); }
+            catch(Exception error) { throw new InvalidOperationException("模型已另存为，但暂存记录未能转移。旧记录仍保留，当前不能导出；请恢复暂存目录访问后重试。"+error.Message,error); }
         }
         private void Guard(UIApplication ui)
         {
@@ -85,10 +133,21 @@ namespace Hifc.Revit.Management
         });
         private void StartScan(UIApplication ui)
         {
-            cancelled = false; snapshot = null; scan = new CaseScanJob(document, Window.SelectedStage, Window.RequestedKind, Window.UndergroundSettings); scanEpoch = epoch;
+            PlatformContext.Set(document, Window.PlanningSettings);
+            PlatformContext.SetStage(document, Window.SelectedStage);
+            cancelled = false; snapshot = null; scan = new CaseScanJob(document, Window.SelectedStage, Window.RequestedKind, Window.UndergroundSettings,Window.PlanningSettings); scanEpoch = epoch;
             Window.SetBusy(true, "开始扫描整个当前项目…", 0, scan.Total);
             ui.Idling += Tick;
         }
+        private void ConfigurePlanning()=>Queue(ui=>{
+            RequireCurrent();
+            if(snapshot.Stage!="报规" || snapshot.ModelKind!="总图" && snapshot.ModelKind!="单体建筑")
+                throw new InvalidOperationException("请先确认报规阶段及模型类型。");
+            var dialog=new PlanningWindow(snapshot,Window.PlanningSettings){Owner=Window};
+            dialog.LocateRequested+=ids=>{var elements=ids.Select(id=>new ElementId(id)).ToArray();ui.ActiveUIDocument.Selection.SetElementIds(elements);ui.ActiveUIDocument.ShowElements(elements);};
+            if(dialog.ShowDialog()!=true)return;
+            Window.SetPlanningSettings(dialog.Result);StartScan(ui);
+        });
         private void Tick(object sender, IdlingEventArgs args)
         {
             var ui = sender as UIApplication ?? owner;
@@ -103,7 +162,7 @@ namespace Hifc.Revit.Management
                 {
                     var result = scan.Snapshot(document); StopScan(ui); snapshot = result; Window.Accept(result);
                     EditPreview batchPreview = null;
-                    if (result.Stage == "报规" && Hifc.Reference.CaseWorkflow.ForModel(result.Stage, result.ModelKind).Length > 0)
+                    if (result.Stage == "报规" && Hifc.Reference.CaseWorkflow.ForModel(result.Stage, result.ModelKind,result.Planning?.RuleProfileId).Length > 0)
                     {
                         try { batchPreview = CaseEdits.PreviewBatch(document, snapshot, Window.DraftRequests); }
                         catch (Exception ex) { batchPreview = CaseEdits.Preview(document, snapshot); Window.SetStatus("暂存修改需重新确认：" + ex.Message, true); }
@@ -155,12 +214,12 @@ namespace Hifc.Revit.Management
             CaseEdits.Apply(document, combined); Window.RecordCommitted(combined, requests);
             Window.InvalidatePreview("已写入 Revit；正在全面复检。请按需要保存 RVT 文件。"); StartScan(ui);
         });
-        public void Export(int[] ids, string path) => Queue(ui => {
-            var elements = ids.Select(id => document.GetElement(new ElementId(id)) ?? throw new InvalidOperationException("导出目标已删除，请复检。")).ToArray();
-            if (elements.Any(e => { var row = ModelReader.Read(document, e); return !row.Classified || row.Fields.Any(f => !f.Valid); }))
-                throw new InvalidOperationException("导出范围存在缺失或非法字段，请重新扫描并处理。");
-            NativeExportService.Export(document, elements, path);
-            Window.MarkStale("IFC 已生成，临时模型改动已回滚。请执行实际 IFC 核验与原软件同模型 A/B 对照；可重新扫描当前项目。");
+        public void ExportProject(string path) => Queue(ui => {
+            PlatformContext.Set(document, Window.PlanningSettings);
+            PlatformContext.SetStage(document, Window.SelectedStage);
+            if (!ExportReviewController.Confirm(ui,path)) { Window.SetStatus("已返回修改，IFC 尚未生成。"); return; }
+            var scope = NativeExportService.ExportProject(document, path);
+            Window.MarkStale(scope.Summary + "\n可重新扫描当前项目。导出报告不等于平台验收。");
         });
         public void Close()
         {

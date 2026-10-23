@@ -1,0 +1,58 @@
+{
+  "version": "0.4.13",
+  "assembly_version": "0.4.13.0",
+  "date": "2026-10-22",
+  "scope": "Allow the user-confirmed net-land planning redline label without changing the frozen platform snapshot or other enumerations",
+  "tests": {
+    "core": 210,
+    "wpf": 102,
+    "python": 34,
+    "failures": 0
+  },
+  "red_phase": {
+    "core_failed": 2,
+    "wpf_failed": 1
+  },
+  "build": {
+    "warnings": 0,
+    "errors": 0,
+    "log": "build-0.4.13.log"
+  },
+  "package": "../dist/Hifc.V1.Revit2020-0.4.13",
+  "installed_version": "0.4.13",
+  "installation_status": "installed and actual loaded assemblies verified against package",
+  "original_rvt_write_verified": true,
+  "save_reopen_verified": true,
+  "native_ifc_verified": true,
+  "platform_submitted": false,
+  "install_receipt": "../outputs/install-20261022-193825-977ea034/install-receipt.json",
+  "native_run": "../../artifacts/site02-net-land-redline-20261022-193051",
+  "native_checks": 154,
+  "native_check_failures": 0,
+  "original_changed_fields": 2,
+  "saved_parameter_count": 1513,
+  "mapped_properties": 55,
+  "geometry_bodies": 26,
+  "parking_areas": 2,
+  "schema_errors": 0,
+  "maximum_mesh_area_difference_m2": 0.09442740097460955,
+  "strict_geometry_area_verified": false,
+  "ifc_sha256": "639333c37660318c0e76b627b5814b2278a200d09190cc7656be83993791a48c",
+  "native_report": "../../artifacts/site02-net-land-redline-20261022-193051/final-verification.json",
+  "temporary_addin_removed": true,
+  "latest_name_correction": {
+    "name": "净用地控制红线",
+    "redline_type": "净用地规划控制红线",
+    "original_changed_fields": 1,
+    "original_saved_and_reopened": true,
+    "production_binaries_unchanged": true,
+    "native_ifc_verified": true,
+    "native_checks": 154,
+    "schema_errors": 0,
+    "business_properties": 55,
+    "changes_vs_previous_ifc": 1,
+    "run": "../../artifacts/site02-redline-name-20261022-204052",
+    "ifc_sha256": "4f7bb826788b222fbee2456703f3e1df4dd737a9b632c47aca1dcd2205f9dd9d",
+    "platform_submitted": false
+  }
+}

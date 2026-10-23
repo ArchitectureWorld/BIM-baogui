@@ -10,6 +10,8 @@
     <Compile Include="../../src/Hifc.Revit/Management/SelectionDraft.cs" Link="SelectionDraft.cs" />
     <Compile Include="../../src/Hifc.Revit/Management/SelectionWindow.cs" Link="SelectionWindow.cs" />
     <Compile Include="../../src/Hifc.Revit/Management/UndergroundWindow.cs" Link="UndergroundWindow.cs" />
+    <Compile Include="../../src/Hifc.Revit/Management/PlanningWindow.cs" Link="PlanningWindow.cs" />
+    <Compile Include="../../src/Hifc.Revit/Management/ExportReviewWindow.cs" Link="ExportReviewWindow.cs" />
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
 </Project>

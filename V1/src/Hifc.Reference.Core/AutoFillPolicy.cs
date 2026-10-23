@@ -12,14 +12,25 @@ namespace Hifc.Reference
         {
             // Existing values, including zero and false, always take precedence.
             // Ambiguous or invalid values require review rather than replacement.
-            if ((field.State != "缺参数" && field.State != "未填写") || !string.IsNullOrWhiteSpace(field.Value)) return;
+            if ((field.State != "缺参数" && field.State != "未填写") || !string.IsNullOrWhiteSpace(field.Value))
+            {
+                if(field.Property=="投影面积" && projectedAreaM2.HasValue &&
+                    !double.IsNaN(projectedAreaM2.Value)&&!double.IsInfinity(projectedAreaM2.Value)) {
+                    var current=field.MetricValue;
+                    if(!current.HasValue&&double.TryParse(field.Value,NumberStyles.Float,CultureInfo.InvariantCulture,out var value))current=value;
+                    if(current.HasValue&&Math.Abs(current.Value-projectedAreaM2.Value)>.001)
+                        field.SuggestionReason="已有面积保留；与本轮模型投影 "+projectedAreaM2.Value.ToString("0.######",CultureInfo.InvariantCulture)+" m² 不同，请核对模型变化及统计口径。";
+                }
+                return;
+            }
             if (field.Property == "投影面积")
             {
                 if (projectedAreaM2.HasValue && projectedAreaM2.Value > 0 && !double.IsInfinity(projectedAreaM2.Value) && !double.IsNaN(projectedAreaM2.Value))
                 {
                     field.SuggestedValue = projectedAreaM2.Value.ToString("0.######", CultureInfo.InvariantCulture);
                     field.SuggestionUnit = "m²";
-                    field.SuggestionReason = areaReason ?? "当前模型顶面三角网的水平投影面积（m²），保留孔洞";
+                    field.SuggestionReason = (areaReason ?? "当前模型几何的水平投影面积（m²），保留孔洞")
+                        + "；几何测量建议，申报统计口径请人工核对";
                 }
                 else field.Detail = "无法从当前构件取得可靠的水平投影面积，请补充模型或人工填写（m²）";
             }

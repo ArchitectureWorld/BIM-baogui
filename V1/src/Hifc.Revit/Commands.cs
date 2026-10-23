@@ -70,11 +70,12 @@ namespace Hifc.Revit
         {
             try
             {
-                var elements = CommandScope.Selection(data.Application);
-                var dialog = new SaveFileDialog { Title = "工规参考映射导出验证", Filter = "IFC (*.ifc)|*.ifc", InitialDirectory = RuntimePaths.OutputDirectory(), FileName = "reference-reproduction-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".ifc" };
-                if (dialog.ShowDialog() != true) return Result.Cancelled;
-                NativeExportService.Export(data.Application.ActiveUIDocument.Document, elements, dialog.FileName);
-                TaskDialog.Show("H-IFC V1", "Revit 已导出 IFC，临时模型改动已回滚。\n请用原软件同模型导出文件执行 A/B 对照。\nIFC：" + dialog.FileName + "\n回执：" + Path.ChangeExtension(dialog.FileName, ".receipt.json"));
+                var document = data.Application.ActiveUIDocument?.Document ?? throw new InvalidOperationException("请先打开需要导出的项目。");
+                var path=ExportDestinationPicker.Pick(data.Application);
+                if(path==null)return Result.Cancelled;
+                if (!Management.ExportReviewController.Confirm(data.Application,path)) return Result.Cancelled;
+                var scope = NativeExportService.ExportProject(document, path);
+                TaskDialog.Show("H-IFC V1", scope.Summary + "\nIFC：" + path + "\n回执：" + Path.ChangeExtension(path, ".receipt.json"));
                 return Result.Succeeded;
             }
             catch (Exception ex) { return CommandScope.Failure(ex, ref message); }

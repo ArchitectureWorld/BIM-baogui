@@ -31,6 +31,21 @@ def same_value(expected, actual, raw_type: str) -> bool:
             return False
     return str(actual) == str(expected)
 
+def attached_property_sets(model):
+    """Return explicit binding paths; never infer a type set from its name."""
+    result = {}
+    for relation in model.by_type("IfcRelDefinesByProperties"):
+        definition = relation.RelatingPropertyDefinition
+        if definition.is_a("IfcPropertySet"):
+            for owner in relation.RelatedObjects:
+                result.setdefault(owner.id(), []).append(("实例", definition))
+    for relation in model.by_type("IfcRelDefinesByType"):
+        for definition in relation.RelatingType.HasPropertySets or ():
+            if definition.is_a("IfcPropertySet"):
+                for owner in relation.RelatedObjects:
+                    result.setdefault(owner.id(), []).append(("类型", definition))
+    return result
+
 
 def verify_export(ifc_path: Path, receipt_path: Path) -> dict:
     before = hash_file(ifc_path)
@@ -60,9 +75,38 @@ def verify_export(ifc_path: Path, receipt_path: Path) -> dict:
     owners = {}
     owners_by_guid = {}
     spatial_owner_checks = []
-    attached = {}
+    attached = attached_property_sets(model)
+    quantity_checks = []
+    if receipt.get("export_base_quantities"):
+        quantity_owners = {}
+        for relation in model.by_type("IfcRelDefinesByProperties"):
+            definition = relation.RelatingPropertyDefinition
+            if definition.is_a("IfcElementQuantity") and definition.Name == "Qto_SlabBaseQuantities":
+                for owner in relation.RelatedObjects:
+                    quantity_owners.setdefault(owner.id(), []).append(definition)
+        for element_id in receipt.get("quantity_floor_ids", []):
+            slabs = [s for s in model.by_type("IfcSlab") if s.Tag == str(element_id)]
+            sets = quantity_owners.get(slabs[0].id(), []) if len(slabs) == 1 else []
+            values = {}
+            if len(sets) == 1:
+                values = {q.Name: q[3] for q in sets[0].Quantities if q.is_a("IfcPhysicalSimpleQuantity")}
+            # Standard quantities describe geometry, independently from HIFC manual areas.
+            passed = len(sets) == 1 and bool(values) and all(
+                isinstance(v, (float, int)) and math.isfinite(v) and v >= 0 for v in values.values())
+            quantity_checks.append({"element_id": element_id, "sets": len(sets), "values": values, "passed": passed})
+            if not passed:
+                failures.append({"code": "SLAB_BASE_QUANTITIES_MISSING" if len(sets) != 1 or not values else "INVALID_BASE_QUANTITY",
+                                 "element_id": element_id, "values": values})
     for item in model.by_type("IfcProduct"):
         owners_by_guid.setdefault(item.GlobalId, []).append(item)
+        # Native DTV openings may inherit their host's Tag. They are voids,
+        # not additional business carriers. Real duplicated slabs remain errors.
+        if item.is_a("IfcFeatureElement"):
+            mapped = sorted({p.Name for _, p in attached.get(item.id(), []) if p.Name in reference_psets})
+            if mapped:
+                failures.append({"code": "MAPPED_PROPERTY_SET_ON_FEATURE", "step_id": item.id(),
+                                 "entity": item.is_a(), "property_sets": mapped})
+            continue
         tag = getattr(item, "Tag", None)
         if tag is not None:
             owners.setdefault(str(tag), []).append(item)
@@ -94,24 +138,18 @@ def verify_export(ifc_path: Path, receipt_path: Path) -> dict:
                              "expected": expected_entity, "actual": candidates[0].is_a()})
         elif valid_entity:
             owners[element_id] = candidates
-    for relation in model.by_type("IfcRelDefinesByProperties"):
-        definition = relation.RelatingPropertyDefinition
-        if not definition.is_a("IfcPropertySet"):
-            continue
-        for owner in relation.RelatedObjects:
-            attached.setdefault(owner.id(), []).append(definition)
     rows = receipt.get("materialization", [])
     if not rows:
         failures.append({"code": "NO_MAPPING_OBSERVATIONS"})
     expected_psets = {}
     for row in rows:
-        expected_psets.setdefault(str(row["element_id"]), set()).add(row["property_set"])
+        expected_psets.setdefault(str(row["element_id"]), set()).add((row.get("binding", "实例"), row["property_set"]))
     for tag, names in expected_psets.items():
         candidates = owners.get(tag, [])
         if len(candidates) != 1:
             failures.append({"code": "OWNER_NOT_UNIQUE", "element_id": tag, "matches": len(candidates)})
             continue
-        actual = {p.Name for p in attached.get(candidates[0].id(), []) if p.Name in reference_psets}
+        actual = {(binding, p.Name) for binding, p in attached.get(candidates[0].id(), []) if p.Name in reference_psets}
         if actual != names:
             failures.append({"code": "PROPERTY_SET_ROUTING_MISMATCH", "element_id": tag, "expected": sorted(names), "actual": sorted(actual)})
     verified = 0
@@ -125,7 +163,7 @@ def verify_export(ifc_path: Path, receipt_path: Path) -> dict:
         if len(candidates) != 1:
             problems.append("OWNER_NOT_UNIQUE")
         else:
-            sets = [p for p in attached.get(candidates[0].id(), []) if p.Name == row["property_set"]]
+            sets = [p for binding, p in attached.get(candidates[0].id(), []) if p.Name == row["property_set"] and binding == row.get("binding", "实例")]
             if len(sets) != 1:
                 problems.append("PROPERTY_SET_NOT_UNIQUE")
             else:
@@ -137,7 +175,11 @@ def verify_export(ifc_path: Path, receipt_path: Path) -> dict:
                     actual_type = nominal.is_a() if nominal else None
                     actual_value = nominal.wrappedValue if nominal else None
                     entry.update(actual_type=actual_type, actual_value=actual_value, expected_raw_type=row["raw_type"], expected_value=row.get("value"))
-                    effective_type = "Integer" if (row["property_set"], row["property"], row["raw_type"]) == ("Pset_建筑技术信息属性集", "地下建筑层数", "Integerl") else row["raw_type"]
+                    corrected_types = {
+                        ("Pset_建筑技术信息属性集", "地下建筑层数", "Integerl"): "Integer",
+                        ("Pset_建筑技术信息属性集", "建筑面积", "Reall"): "Real",
+                    }
+                    effective_type = corrected_types.get((row["property_set"], row["property"], row["raw_type"]), row["raw_type"])
                     expected_type = IFC_TYPES.get(effective_type)
                     entry["expected_export_type"] = effective_type
                     if expected_type is None:
@@ -164,6 +206,7 @@ def verify_export(ifc_path: Path, receipt_path: Path) -> dict:
         "schema_error_count": len(schema_errors), "schema_errors": schema_errors,
         "temporary_bridge_property_count": len(leaked_bridges),
         "spatial_owner_checks": spatial_owner_checks,
+        "quantity_checks": quantity_checks,
         "checks": checks, "failures": failures,
         "reference_software_ab_verified": False, "coverage_basis": "receipt materialization rows; not all 280 reference definitions",
     }

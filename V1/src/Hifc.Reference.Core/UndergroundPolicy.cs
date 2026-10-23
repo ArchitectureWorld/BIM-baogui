@@ -9,6 +9,28 @@ namespace Hifc.Reference
         public bool Confirmed { get; set; }
         public double? GroundElevationM { get; set; }
         public string[] LevelUniqueIds { get; set; } = new string[0];
+        public string BaseLevelUniqueId { get; set; }
+    }
+    public static class FootprintPolicy
+    {
+        public static void Populate(FieldCheck field, UndergroundSettings settings, UndergroundLevel[] levels, string levelUniqueId)
+        {
+            if (field.Property != "建筑基底" || string.IsNullOrWhiteSpace(settings?.BaseLevelUniqueId)) return;
+            var selected = (levels ?? new UndergroundLevel[0]).SingleOrDefault(l => l.UniqueId == settings.BaseLevelUniqueId);
+            var empty = (field.State == "缺参数" || field.State == "未填写") && string.IsNullOrWhiteSpace(field.Value);
+            if (selected == null)
+            {
+                if (empty) field.SuggestedValue = null;
+                field.Detail = "已确认的基底楼层被删除或替换，请在“楼层 / 基底 / 基准”中重新确认。";
+                return;
+            }
+            var suggested = levelUniqueId == selected.UniqueId ? "1" : "0";
+            if (empty) field.SuggestedValue = suggested;
+            var current = string.Equals(field.Value,"false",StringComparison.OrdinalIgnoreCase) ? "0"
+                : string.Equals(field.Value,"true",StringComparison.OrdinalIgnoreCase) ? "1" : field.Value;
+            field.SuggestionReason = "人工确认整栋建筑基底楼层：“" + selected.Name + "”；"
+                + (empty ? "仅补齐空值" : "已有值保留" + (current != suggested ? "，与当前楼层设置不同，请核对" : ""));
+        }
     }
     public sealed class UndergroundLevel
     {

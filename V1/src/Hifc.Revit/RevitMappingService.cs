@@ -22,15 +22,34 @@ namespace Hifc.Revit
 
         internal static ParameterRead[] Reads(Document doc, Element element, string name)
         {
-            var result = ReadOwner(element, name, "instance").ToList();
+            var parameters = element.GetParameters(name);
+            if (name == "标高" && element is FamilyInstance
+                && element.Category?.Id.IntegerValue == (int)BuiltInCategory.OST_Windows
+                && PlatformRules.IsActive(Management.PlatformContext.ProfileId(doc)) && parameters.Count == 2)
+            {
+                // Revit exposes the same window level through two built-in parameters.
+                // Normalize only this verified alias pair; custom or conflicting sources
+                // remain separate observations and retain the usual ambiguity check.
+                var family = parameters.FirstOrDefault(p => p.Id.IntegerValue == (int)BuiltInParameter.FAMILY_LEVEL_PARAM);
+                var schedule = parameters.FirstOrDefault(p => p.Id.IntegerValue == (int)BuiltInParameter.SCHEDULE_LEVEL_PARAM);
+                if (family?.HasValue == true && schedule?.HasValue == true
+                    && family.StorageType == StorageType.ElementId && schedule.StorageType == StorageType.ElementId
+                    && family.AsElementId() == schedule.AsElementId() && family.AsElementId() == element.LevelId
+                    && doc.GetElement(family.AsElementId()) is Level)
+                    parameters = new List<Parameter> { family };
+            }
+            var result = ReadParameters(parameters, name, "instance").ToList();
             var type = doc.GetElement(element.GetTypeId());
             if (type != null) result.AddRange(ReadOwner(type, name, "type"));
             return result.ToArray();
         }
 
         internal static IEnumerable<ParameterRead> ReadOwner(Element element, string name, string origin)
+            => ReadParameters(element.GetParameters(name), name, origin);
+
+        private static IEnumerable<ParameterRead> ReadParameters(IEnumerable<Parameter> parameters, string name, string origin)
         {
-            foreach (var parameter in element.GetParameters(name))
+            foreach (var parameter in parameters)
             {
                 object value = null;
                 if (parameter.HasValue)
@@ -54,6 +73,9 @@ namespace Hifc.Revit
         { return ReferencePolicy.ToBridgeValue(ReferencePolicy.Resolve(Reads(doc, element, SlotName), SlotName)); }
 
         internal static string Entity(Document doc, Element element)
+            => CaseWorkflow.ClassificationEntity(new ModelElementCheck { SourceEntity = SourceEntity(doc, element) }, ReferenceCatalog.LegacySlot(Slot(doc, element) ?? ""));
+
+        internal static string SourceEntity(Document doc, Element element)
         {
             if (element is ProjectInfo) return "IfcBuilding";
             if (element is Level) return "IfcBuildingStorey";
@@ -80,19 +102,36 @@ namespace Hifc.Revit
 
         internal static ReferenceProperty[] Properties(Document doc, Element element)
         {
+            var profileId = Management.PlatformContext.ProfileId(doc);
             if(element is ProjectInfo || element is Level)
             {
                 var names=element is ProjectInfo?new[]{"Pset_申报信息属性集","Pset_建筑技术信息属性集"}:new[]{"Pset_建筑楼层信息属性集"};
-                return CaseWorkflow.ForModel("报规","单体建筑").SelectMany(r=>r.Properties).Where(p=>!p.NativeGroup && p.Binding=="实例" && names.Contains(p.PropertySet))
+                return CaseWorkflow.ForModel(Management.PlatformContext.Stage(doc) ?? "报规","单体建筑",profileId).SelectMany(r=>r.Properties).Where(p=>!p.NativeGroup && p.Binding=="实例" && names.Contains(p.PropertySet))
                     .GroupBy(p=>ReferencePolicy.BridgeGuid(p)).Select(g=>g.First()).ToArray();
             }
             var slot = Slot(doc, element);
-            if(CaseWorkflow.AreaSlots.Contains(slot) && !(element is Area))throw new InvalidOperationException("构件 "+element.Id.IntegerValue+"：该报规区域类目需要面积（Area）载体。");
+            if(IsAreaSlot(slot, profileId) && !(element is Area))throw new InvalidOperationException("构件 "+element.Id.IntegerValue+"：该报规区域类目需要面积（Area）载体。");
             var entity = Entity(doc, element);
-            var properties = Catalog.ForSlot(slot).Where(p => p.Entity.Split(',').Contains(entity, StringComparer.Ordinal)).ToArray();
-            if (properties.Length == 0)
+            var properties = CaseExportPolicy.Properties(entity, slot, HasTypeEvidence(doc, element), profileId);
+            if (properties.Length == 0 && !string.IsNullOrWhiteSpace(slot))
                 throw new InvalidOperationException("构件 " + element.Id.IntegerValue + "：类目 " + slot + " 与 IFC 实体 " + entity + " 不匹配。本版请先选择支持的构件类别。");
             return properties.GroupBy(p => ReferencePolicy.BridgeGuid(p)).Select(g => g.First()).ToArray();
+        }
+        internal static bool HasTypeEvidence(Document doc, Element element)
+        {
+            if (SourceEntity(doc, element) != "IfcSlab") return false;
+            var slot = Slot(doc, element);
+            if (ReferenceCatalog.LegacySlot((slot ?? "").Trim()) != "总平构件") return false;
+            var type = doc.GetElement(element.GetTypeId());
+            var read = type == null ? null : ReferencePolicy.Resolve(ReadOwner(type, "构件类型", "type"), "构件类型");
+            return CaseExportPolicy.HasGeneralSiteTypeEvidence("IfcSlab", slot, ReferencePolicy.ToBridgeValue(read),
+                Management.PlatformContext.ProfileId(doc));
+        }
+
+        private static bool IsAreaSlot(string slot, string profileId)
+        {
+            slot = ReferenceCatalog.LegacySlot((slot ?? "").Trim());
+            return CaseWorkflow.AreaSlots.Contains(slot) || PlatformRules.IsActive(profileId) && slot == "室内停车场";
         }
 
         internal static object Capture(Document doc, Element[] elements)
@@ -106,7 +145,7 @@ namespace Hifc.Revit
                 {
                     id = element.Id.IntegerValue, unique_id = element.UniqueId, name = element.Name,
                     category = element.Category?.Name, ifc_entity_candidate = Entity(doc, element), slot = Slot(doc, element),
-                    parameters = Catalog.Properties.Select(p => p.SourceParameter).Append(SlotName).Distinct(StringComparer.Ordinal)
+                    parameters = CaseExportPolicy.SourceProperties(Management.PlatformContext.ProfileId(doc)).Select(p => p.SourceParameter).Append(SlotName).Append("IfcExportAs").Append("IfcExportType").Distinct(StringComparer.Ordinal)
                         .OrderBy(n => n, StringComparer.Ordinal).Select(name => new { name, observations = Reads(doc, element, name) }).ToArray()
                 }).ToArray()
             };
@@ -114,7 +153,11 @@ namespace Hifc.Revit
 
         internal static void Prepare(Document doc, Element[] elements, string slot, string outputDirectory)
         {
-            var properties = Catalog.ForSlot(slot);
+            if (string.IsNullOrWhiteSpace(slot)) throw new InvalidOperationException("类目为空，请先选择明确的业务分类。");
+            var profileId = Management.PlatformContext.ProfileId(doc);
+            if (IsAreaSlot(slot, profileId) && elements.Any(e => !(e is Area)))
+                throw new InvalidOperationException("该报规区域类目需要面积（Area）载体。");
+            var properties = CaseExportPolicy.PropertiesForSlot(slot, profileId);
             var definitions = properties.Select(p => p.SourceParameter).Append(SlotName).Distinct(StringComparer.Ordinal)
                 .Where(name => name != "IfcExportAs" && name != "IfcExportType" && name != "IfcObjectType")
                 .Where(name => elements.Any(e => Reads(doc, e, name).Length == 0 || name == SlotName && e.GetParameters(name).Count == 0))
@@ -133,9 +176,15 @@ namespace Hifc.Revit
 
         internal static void EnsureBridges(Document doc, Element[] elements, string outputDirectory)
         {
-            var definitions = Catalog.Properties.Where(p => !p.NativeGroup).GroupBy(p => ReferencePolicy.BridgeGuid(p))
-                .Select(g => new ParameterDefinition { Guid = g.Key, Name = ReferencePolicy.BridgeName(g.First()), Temporary = true }).ToArray();
-            EnsureDefinitions(doc, elements, definitions, outputDirectory);
+            var plan = elements.SelectMany(e => Properties(doc, e).Select(p => new { Element=e, Property=p })).ToArray();
+            foreach (var binding in plan.GroupBy(x => x.Property.Binding))
+            {
+                var owners = binding.Select(x => binding.Key == "类型" ? doc.GetElement(x.Element.GetTypeId()) : x.Element)
+                    .Where(e => e != null).GroupBy(e => e.Id.IntegerValue).Select(g => g.First()).ToArray();
+                var definitions = binding.GroupBy(x => ReferencePolicy.BridgeGuid(x.Property))
+                    .Select(g => new ParameterDefinition { Guid=g.Key, Name=ReferencePolicy.BridgeName(g.First().Property), Temporary=true }).ToArray();
+                if (owners.Length > 0) EnsureDefinitions(doc, owners, definitions, outputDirectory, binding.Key == "类型");
+            }
             doc.Regenerate();
         }
 
@@ -198,50 +247,105 @@ namespace Hifc.Revit
         }
 
         internal static object Materialize(Document doc, Element[] elements)
+            => MaterializeWithFloorAreas(doc,elements,null);
+        internal static object MaterializeWithFloorAreas(Document doc,Element[] elements,FloorAreaPlan floorAreas)
         {
             var writes = new List<object>();
-            var bridges = Catalog.Properties.Where(p => !p.NativeGroup).GroupBy(p => ReferencePolicy.BridgeGuid(p)).Select(g => g.First()).ToArray();
+            var written = new Dictionary<string, string>();
+            var profileId = Management.PlatformContext.ProfileId(doc);
             foreach (var element in elements)
             {
-                foreach (var bridge in bridges)
+                var properties = Properties(doc, element);
+                foreach (var property in properties)
                 {
-                    var parameter = element.get_Parameter(ReferencePolicy.BridgeGuid(bridge));
+                    var owner = property.Binding == "类型" ? doc.GetElement(element.GetTypeId()) : element;
+                    if (owner == null) throw new InvalidOperationException("类型属性缺少类型载体：" + element.Id);
+                    var value = ResolvedExportValue(doc,element,property,floorAreas,out var read,out var allocation);
+                    var parameter = owner.get_Parameter(ReferencePolicy.BridgeGuid(property));
                     if (parameter == null || parameter.StorageType != StorageType.String || parameter.IsReadOnly)
-                        throw new InvalidOperationException("临时导出参数不可写：" + bridge.PropertySet + "/" + bridge.Property);
-                    // Setting an unset Text parameter to "" marks it as having a value.
-                    // The 2020 exporter then emits empty properties and unrelated Psets.
-                    if (parameter.HasValue)
-                        throw new InvalidOperationException("临时导出参数已有残留值，无法保证类目隔离：" + bridge.PropertySet + "/" + bridge.Property);
-                }
-                foreach (var property in Properties(doc, element))
-                {
-                    var read = ReferencePolicy.Resolve(Reads(doc, element, property.SourceParameter), property.SourceParameter);
-                    var value = ExportValue(doc,element,property,read);
-                    var parameter = element.get_Parameter(ReferencePolicy.BridgeGuid(property));
-                    if (value != null)
+                        throw new InvalidOperationException("临时导出参数不可写：" + property.PropertySet + "/" + property.Property);
+                    var key = owner.UniqueId + "|" + ReferencePolicy.BridgeGuid(property);
+                    if (written.TryGetValue(key, out var previous))
                     {
-                        if (!parameter.Set(value) || parameter.AsString() != value)
+                        if (previous != value) throw new InvalidOperationException("共享类型导出值不一致：" + property.SourceParameter);
+                    }
+                    else
+                    {
+                        if (parameter.HasValue) throw new InvalidOperationException("临时导出参数已有残留值：" + property.SourceParameter);
+                        if (value != null && (!parameter.Set(value) || parameter.AsString() != value))
                             throw new InvalidOperationException("临时导出值回读失败：" + property.SourceParameter);
+                        written[key] = value;
                     }
                     writes.Add(new { element_id = element.Id.IntegerValue, unique_id = element.UniqueId, property_set = property.PropertySet,
+                        binding = property.Binding, owner_id = owner.Id.IntegerValue,
                         property = property.Property, raw_type = property.RawType, export_type=property.ExportType, source_parameter = property.SourceParameter,
-                        source_origin = read?.Origin, value, status = value == null ? "MISSING" : "MATERIALIZED" });
+                        source_origin = read?.Origin, floor_area_derivation=allocation, value, status = value == null ? "MISSING" : "MATERIALIZED" });
                 }
             }
             return writes;
         }
-        private static string ExportValue(Document doc,Element element,ReferenceProperty property,ParameterRead read)
+        internal static string ResolvedExportValue(Document doc,Element element,ReferenceProperty property,FloorAreaPlan floorAreas,
+            out ParameterRead read,out FloorAreaAllocation allocation)
         {
+            var owner=property.Binding=="类型"?doc.GetElement(element.GetTypeId()):element;
+            if(owner==null)throw new InvalidOperationException("类型属性缺少类型载体："+element.Id);
+            read=ReferencePolicy.Resolve(property.Binding=="类型"?ReadOwner(owner,property.SourceParameter,"type").ToArray()
+                :Reads(doc,element,property.SourceParameter),property.SourceParameter);
+            var value=ExportValue(doc,element,property,read,Management.PlatformContext.ProfileId(doc));
+            allocation=property.PropertySet==FloorAreaPolicy.RegionSet&&property.Property=="投影面积"
+                ?floorAreas?.Allocations.SingleOrDefault(c=>c.UniqueId==element.UniqueId&&c.Source==property.SourceParameter):null;
+            value=allocation?.ValueM2??value;
+            var profileId=Management.PlatformContext.ProfileId(doc);
+            if(PlatformRules.IsActive(profileId))
+            {
+                var parent=Properties(doc,element).FirstOrDefault(p=>p.PropertySet==property.PropertySet&&(p.Property=="主功能类别"||p.Property=="公建大类"));
+                var parentValue=parent==null?null:ReferencePolicy.ToBridgeValue(ReferencePolicy.Resolve(Reads(doc,element,parent.SourceParameter),parent.SourceParameter));
+                try { value=CaseExportPolicy.ValueForExport(property,value,profileId,parentValue); }
+                catch(InvalidOperationException error) {
+                    throw new InvalidOperationException("构件 "+element.Id.IntegerValue+" / "+property.PropertySet+"/"+property.Property+"："+error.Message+"。保留原参数值，请先核对业务输入。",error);
+                }
+            }
+            return value;
+        }
+        internal static string ExportValue(Document doc,Element element,ReferenceProperty property,ParameterRead read,string profileId)
+        {
+            var windowLength = PlatformRules.IsActive(profileId) && property.PropertySet == "Pset_窗信息属性集"
+                && new[] { "标高", "底高度", "高度", "宽度" }.Contains(property.Property);
+            if (windowLength)
+            {
+                var metres = WindowDimensionMeters(doc, element, property, read);
+                if (metres.HasValue) return metres.Value.ToString("R", CultureInfo.InvariantCulture);
+            }
             if(read?.StorageType=="Double" && read.HasValue)
             {
                 var owner=read.Origin=="type"?doc.GetElement(element.GetTypeId()):element;
                 var parameter=owner.GetParameters(property.SourceParameter).Single();
-                if(property.Property=="投影面积" && parameter.Definition.UnitType==UnitType.UT_Area)
+                if((property.Property=="投影面积"||property.Property=="楼层面积") && parameter.Definition.UnitType==UnitType.UT_Area)
                     return UnitUtils.ConvertFromInternalUnits(parameter.AsDouble(),DisplayUnitType.DUT_SQUARE_METERS).ToString("R",CultureInfo.InvariantCulture);
-                if((property.Property=="地下建筑高度" || property.Property=="地坪标高") && parameter.Definition.UnitType==UnitType.UT_Length)
+                if((property.Property=="地下建筑高度" || property.Property=="地坪标高" || windowLength) && parameter.Definition.UnitType==UnitType.UT_Length)
                     return UnitUtils.ConvertFromInternalUnits(parameter.AsDouble(),DisplayUnitType.DUT_METERS).ToString("R",CultureInfo.InvariantCulture);
             }
             return ReferencePolicy.ToBridgeValue(read);
+        }
+        internal static double? WindowDimensionMeters(Document doc, Element element, ReferenceProperty property, ParameterRead read)
+        {
+            if (read?.HasValue != true || read.Value == null) return null;
+            if (read.StorageType == "ElementId")
+            {
+                var level = property.Property == "标高" ? doc.GetElement(new ElementId(Convert.ToInt32(read.Value, CultureInfo.InvariantCulture))) as Level : null;
+                if (level == null) throw new InvalidOperationException("窗 " + element.Id.IntegerValue + " / " + property.Property + " 是对象引用，不能作为长度导出。");
+                return UnitUtils.ConvertFromInternalUnits(level.ProjectElevation, DisplayUnitType.DUT_METERS);
+            }
+            if (read.StorageType == "Double")
+            {
+                var owner = read.Origin == "type" ? doc.GetElement(element.GetTypeId()) : element;
+                var parameter = owner.GetParameters(property.SourceParameter).Single();
+                if (parameter.Definition.UnitType == UnitType.UT_Length)
+                    return UnitUtils.ConvertFromInternalUnits(parameter.AsDouble(), DisplayUnitType.DUT_METERS);
+            }
+            var text = ReferencePolicy.ToBridgeValue(read);
+            return double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var numeric)
+                && !double.IsNaN(numeric) && !double.IsInfinity(numeric) ? numeric : (double?)null;
         }
     }
 }

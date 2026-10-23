@@ -23,23 +23,32 @@ namespace Hifc.Revit.Management
         readonly TextBlock error=new TextBlock {TextWrapping=TextWrapping.Wrap};
         internal UndergroundLevelChoice[] Rows {get;}
         internal TextBox GroundInput {get;}=new TextBox {Width=130,VerticalContentAlignment=VerticalAlignment.Center};
+        internal ComboBox BaseSelector {get;}=new ComboBox {DisplayMemberPath="Name",SelectedValuePath="UniqueId",Width=190,Margin=new Thickness(8,8,0,0)};
         internal UndergroundSettings Result {get;private set;}
         internal UndergroundWindow(UndergroundLevel[] levels,UndergroundSettings settings)
         {
             this.levels=levels;settings=settings??new UndergroundSettings();
-            Title="地下楼层与地坪基准";Width=700;Height=580;MinWidth=610;MinHeight=450;WindowStartupLocation=WindowStartupLocation.CenterOwner;
+            Title="整栋建筑：楼层、基底与地坪基准";Width=740;Height=620;MinWidth=610;MinHeight=490;WindowStartupLocation=WindowStartupLocation.CenterOwner;
             LiquidGlassTheme.Apply(this);
             Rows=levels.Select(l=>new UndergroundLevelChoice {UniqueId=l.UniqueId,Name=l.Name,ElevationM=l.ElevationM,
                 Included=settings.Confirmed?(settings.LevelUniqueIds??new string[0]).Contains(l.UniqueId):!l.Name.Contains("结构")&&Regex.IsMatch(l.Name,@"^(B\d+|地下[一二三四五六七八九十0-9]+层)",RegexOptions.IgnoreCase)}).ToArray();
             var root=new Grid {Margin=new Thickness(18)};Content=root;
             foreach(var h in new[]{GridLength.Auto,GridLength.Auto,new GridLength(1,GridUnitType.Star),GridLength.Auto,GridLength.Auto})root.RowDefinitions.Add(new RowDefinition {Height=h});
             root.Children.Add(new TextBlock {Text="勾选计入地下层数的建筑楼层，排除重复结构和辅助标高。名称只提供候选，确认后才计算。\n标高统一采用项目标高（m）；高度建议为地坪基准到最低所选楼层的标高差，可在属性栏调整。",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,14)});
-            var datum=new WrapPanel {Margin=new Thickness(0,0,0,14)};Grid.SetRow(datum,1);root.Children.Add(datum);
+            var settingsPanel=new StackPanel {Margin=new Thickness(0,0,0,14)};Grid.SetRow(settingsPanel,1);root.Children.Add(settingsPanel);
+            var datum=new WrapPanel();settingsPanel.Children.Add(datum);
             datum.Children.Add(new TextBlock {Text="地坪基准（m）",VerticalAlignment=VerticalAlignment.Center,Margin=new Thickness(0,0,8,0)});datum.Children.Add(GroundInput);
             var ground=levels.FirstOrDefault(l=>Regex.IsMatch(l.Name,@"^(首层|一层|1层|1F$|F1$)",RegexOptions.IgnoreCase));
             GroundInput.Text=(settings.GroundElevationM??ground?.ElevationM??0).ToString("0.######",CultureInfo.InvariantCulture);
             var selector=new ComboBox {ItemsSource=levels,DisplayMemberPath="Name",Width=170,Margin=new Thickness(12,0,0,0),ToolTip="也可从标高复制地坪基准，再手工调整"};
             selector.SelectionChanged+=(s,e)=>{if(selector.SelectedItem is UndergroundLevel l)GroundInput.Text=l.ElevationM.ToString("0.######",CultureInfo.InvariantCulture);};datum.Children.Add(selector);
+            var footprint=new StackPanel {Orientation=Orientation.Horizontal};settingsPanel.Children.Add(footprint);
+            footprint.Children.Add(new TextBlock {Text="基底楼层",VerticalAlignment=VerticalAlignment.Center,Margin=new Thickness(0,8,0,0),Width=82});
+            BaseSelector.ItemsSource=new[]{new UndergroundLevel {UniqueId="",Name="未确认（沿用名称建议）"}}.Concat(levels).ToArray();
+            BaseSelector.SelectedValue=settings.BaseLevelUniqueId??"";
+            if(BaseSelector.SelectedIndex<0)error.Text="之前确认的基底楼层已不存在，请重新选择；已有属性值仍保留。";
+            BaseSelector.ToolTip="按整栋建筑选择实际基底楼层；只补齐空值，已有是/否不自动覆盖。";
+            footprint.Children.Add(BaseSelector);
             grid.ItemsSource=Rows;
             grid.Columns.Add(new DataGridCheckBoxColumn {Header="计入地下",Binding=new Binding("Included"){Mode=BindingMode.TwoWay,UpdateSourceTrigger=UpdateSourceTrigger.PropertyChanged},Width=90});
             grid.Columns.Add(new DataGridTextColumn {Header="建筑楼层 / 标高名称",Binding=new Binding("Name"),IsReadOnly=true,MinWidth=260,Width=new DataGridLength(1,DataGridLengthUnitType.Star)});
@@ -54,7 +63,8 @@ namespace Hifc.Revit.Management
         {
             grid.CommitEdit(DataGridEditingUnit.Cell,true);grid.CommitEdit(DataGridEditingUnit.Row,true);
             if(!double.TryParse(GroundInput.Text,NumberStyles.Float,CultureInfo.InvariantCulture,out var datum))throw new InvalidOperationException("请输入有效地坪基准，单位 m。");
-            var settings=new UndergroundSettings {Confirmed=true,GroundElevationM=datum,LevelUniqueIds=Rows.Where(r=>r.Included).Select(r=>r.UniqueId).ToArray()};
+            var settings=new UndergroundSettings {Confirmed=true,GroundElevationM=datum,LevelUniqueIds=Rows.Where(r=>r.Included).Select(r=>r.UniqueId).ToArray(),
+                BaseLevelUniqueId=BaseSelector.SelectedValue as string};
             var result=UndergroundPolicy.Evaluate(settings,levels);
             if(!result.Count.HasValue)throw new InvalidOperationException(result.Note);
             return settings;

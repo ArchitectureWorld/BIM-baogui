@@ -61,8 +61,75 @@ class VerifyNativeExport(unittest.TestCase):
         self.assertTrue(result["all_passed"], result)
         self.assertEqual(result["verified_properties"], 1)
 
+    def quantity_fixture(self, owner="1001", volume=4.05, include=True):
+        path, receipt_path = self.fixture()
+        receipt = json.loads(receipt_path.read_text("utf-8"))
+        receipt.update(export_base_quantities=True, quantity_floor_ids=[1001])
+        model = ifcopenshell.open(str(path))
+        if include:
+            slab = next(e for e in model.by_type("IfcSlab") if e.Tag == owner)
+            area = model.create_entity("IfcQuantityArea", Name="NetArea", AreaValue=40.5)
+            net = model.create_entity("IfcQuantityVolume", Name="NetVolume", VolumeValue=volume)
+            qto = model.create_entity("IfcElementQuantity", GlobalId=ifcopenshell.guid.new(),
+                                      Name="Qto_SlabBaseQuantities", Quantities=[area, net])
+            model.create_entity("IfcRelDefinesByProperties", GlobalId=ifcopenshell.guid.new(),
+                                RelatedObjects=[slab], RelatingPropertyDefinition=qto)
+        model.write(str(path))
+        receipt["ifc_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+        receipt_path.write_text(json.dumps(receipt), "utf-8")
+        return path, receipt_path
+
+    def test_quantity_switch_without_native_output_is_not_success(self):
+        result = verify.verify_export(*self.quantity_fixture(include=False))
+        self.assertFalse(result["all_passed"], "A true option hid absent native quantities")
+        self.assertTrue(any(f.get("code") == "SLAB_BASE_QUANTITIES_MISSING" for f in result["failures"]))
+
+    def test_standard_quantities_must_belong_to_the_expected_slab(self):
+        result = verify.verify_export(*self.quantity_fixture(owner="1002"))
+        self.assertFalse(result["all_passed"], "A peer slab's quantities satisfied this slab")
+
+    def test_native_standard_quantities_are_checked_without_overwriting_business_area(self):
+        result = verify.verify_export(*self.quantity_fixture())
+        self.assertTrue(result["all_passed"], result)
+        self.assertEqual(result["verified_properties"], 1)
+        self.assertEqual(len(result["quantity_checks"]), 1)
+
+    def test_invalid_standard_quantity_fails(self):
+        result = verify.verify_export(*self.quantity_fixture(volume=-4.05))
+        self.assertFalse(result["all_passed"])
+
     def test_wrong_owner_fails(self):
         self.assertFalse(verify.verify_export(*self.fixture(wrong_owner=True))["all_passed"])
+
+    def add_tag_collision(self, entity, *, mapped_feature=False):
+        path, receipt_path = self.fixture()
+        model = ifcopenshell.open(str(path))
+        other = model.create_entity(entity, GlobalId=ifcopenshell.guid.new(), Tag="1001")
+        if entity == "IfcOpeningElement":
+            model.create_entity("IfcRelVoidsElement", GlobalId=ifcopenshell.guid.new(),
+                                RelatingBuildingElement=model.by_type("IfcSlab")[0], RelatedOpeningElement=other)
+        if mapped_feature:
+            model.create_entity("IfcRelDefinesByProperties", GlobalId=ifcopenshell.guid.new(),
+                                RelatedObjects=[other], RelatingPropertyDefinition=model.by_type("IfcPropertySet")[0])
+        model.write(str(path))
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        receipt["ifc_sha256"] = verify.hash_file(path)
+        receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+        return verify.verify_export(path, receipt_path)
+
+    def test_opening_with_parent_tag_is_not_a_second_business_owner(self):
+        result = self.add_tag_collision("IfcOpeningElement")
+        self.assertTrue(result["all_passed"], result["failures"])
+
+    def test_two_real_slabs_with_same_tag_remain_ambiguous(self):
+        result = self.add_tag_collision("IfcSlab")
+        self.assertFalse(result["all_passed"])
+        self.assertTrue(any(f.get("code") == "OWNER_NOT_UNIQUE" for f in result["failures"]))
+
+    def test_business_pset_on_opening_is_still_rejected(self):
+        result = self.add_tag_collision("IfcOpeningElement", mapped_feature=True)
+        self.assertFalse(result["all_passed"])
+        self.assertTrue(any(f.get("code") == "MAPPED_PROPERTY_SET_ON_FEATURE" for f in result["failures"]))
 
     def test_wrong_number_fails(self):
         self.assertFalse(verify.verify_export(*self.fixture(wrong_value=True))["all_passed"])
@@ -101,6 +168,30 @@ class VerifyNativeExport(unittest.TestCase):
 
     def test_unknown_boolean_text_is_not_false(self):
         self.assertFalse(verify.same_value("not-a-bool", False, "Boolean"))
+
+    def test_type_pset_is_resolved_through_ifc_rel_defines_by_type(self):
+        path, receipt_path = self.fixture()
+        model = ifcopenshell.open(str(path))
+        owner = model.by_type("IfcSlab")[0]
+        prop = model.create_entity("IfcPropertySingleValue", Name="构件类型",
+                                   NominalValue=model.create_entity("IfcLabel", "250"))
+        pset = model.create_entity("IfcPropertySet", GlobalId=ifcopenshell.guid.new(),
+                                  Name="Pset_总平构件信息属性集", HasProperties=[prop])
+        type_owner = model.create_entity("IfcSlabType", GlobalId=ifcopenshell.guid.new(),
+                                         HasPropertySets=[pset], PredefinedType="FLOOR")
+        model.create_entity("IfcRelDefinesByType", GlobalId=ifcopenshell.guid.new(),
+                            RelatedObjects=[owner], RelatingType=type_owner)
+        model.write(str(path))
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        receipt["ifc_sha256"] = verify.hash_file(path)
+        receipt["materialization"].append({"element_id":1001,"binding":"类型",
+            "property_set":"Pset_总平构件信息属性集","property":"构件类型",
+            "raw_type":"Label","value":"250","status":"MATERIALIZED"})
+        receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+        self.assertTrue(verify.verify_export(path, receipt_path)["all_passed"])
+        receipt["materialization"][-1]["binding"] = "实例"
+        receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+        self.assertFalse(verify.verify_export(path, receipt_path)["all_passed"])
 
     def test_cli_refuses_to_replace_ifc_with_report(self):
         path, receipt = self.fixture()
@@ -196,6 +287,20 @@ class VerifyUndergroundExport(unittest.TestCase):
         result = verify.verify_export(*self.fixture(text_count=True))
         self.assertFalse(result["all_passed"])
         self.assertTrue(any("IFC_TYPE_MISMATCH" in row.get("problems", []) for row in result["checks"]))
+
+    def test_building_area_corrects_only_its_frozen_real_typo(self):
+        path, receipt_path = self.fixture()
+        model = ifcopenshell.open(str(path))
+        prop = model.by_type("IfcPropertySingleValue")[0]
+        prop.Name = "建筑面积"
+        prop.NominalValue = model.create_entity("IfcReal", 150.25)
+        model.write(str(path))
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        receipt["ifc_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+        receipt["materialization"][0].update(property="建筑面积", raw_type="Reall", value="150.25")
+        receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+        result = verify.verify_export(path, receipt_path)
+        self.assertTrue(result["all_passed"], result)
 
     def test_native_project_guid_takes_precedence_over_project_info_element_guid(self):
         path, receipt_path = self.fixture()

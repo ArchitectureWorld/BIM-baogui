@@ -25,10 +25,22 @@ namespace Hifc.Revit.Management
         public EditRequest[] Drafts { get; set; } = new EditRequest[0];
         public ManualWrite[] ManualWrites { get; set; } = new ManualWrite[0];
         public UndergroundSettings Underground { get; set; } = new UndergroundSettings();
+        public PlanningSettings Planning { get; set; } = new PlanningSettings();
+        internal void RebindDocumentKey(string key)
+        {
+            DocumentKey=key;
+            if(Snapshot!=null)Snapshot.DocumentKey=key;
+        }
+        internal void EnsureExportReady()
+        {
+            if (Drafts != null && Drafts.Length > 0)
+                throw new InvalidOperationException("管理窗口还有 " + Drafts.Length + " 项手工修改未写入。请打开模型属性管理，点“4 写入 Revit”并复检后再导出；若不需要这些修改，可在底部清除暂存。IFC 尚未生成。");
+        }
     }
     internal sealed class ManagementStateStore
     {
         readonly string path, key;
+        internal bool Exists => File.Exists(path);
         static JavaScriptSerializer Serializer() => new JavaScriptSerializer { MaxJsonLength = 64 * 1024 * 1024 };
         internal ManagementStateStore(string directory, string key)
         {
@@ -42,6 +54,7 @@ namespace Hifc.Revit.Management
             if (value == null || value.Version != 1 || value.DocumentKey != key) throw new InvalidOperationException("暂存记录与当前模型不匹配。");
             value.Drafts = value.Drafts ?? new EditRequest[0]; value.ManualWrites = value.ManualWrites ?? new ManualWrite[0];
             value.Underground=value.Underground??new UndergroundSettings();
+            value.Planning=value.Planning??new PlanningSettings();
             return value;
         }
         internal void Save(ManagementState value)
@@ -49,7 +62,23 @@ namespace Hifc.Revit.Management
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
             File.WriteAllText(temporary, Serializer().Serialize(value), new UTF8Encoding(false));
-            if (File.Exists(path)) File.Replace(temporary, path, null); else File.Move(temporary, path);
+            if (File.Exists(path)) ReplaceWithRetry(temporary, path); else File.Move(temporary, path);
+        }
+        internal static void ReplaceWithRetry(string temporary, string path, Action<string,string> replace = null, Action<int> delay = null)
+        {
+            var replaceFile = replace ?? ((source, target) => File.Replace(source, target, null));
+            var wait = delay ?? new Action<int>(System.Threading.Thread.Sleep);
+            for (int retry = 0; ; retry++)
+            {
+                try { replaceFile(temporary, path); return; }
+                catch (IOException error)
+                {
+                    // Retry only this failed atomic replacement while both recovery files remain.
+                    if (error.HResult != unchecked((int)0x80070497) || retry >= 3 ||
+                        !File.Exists(temporary) || !File.Exists(path)) throw;
+                    wait(100 << retry);
+                }
+            }
         }
     }
 }

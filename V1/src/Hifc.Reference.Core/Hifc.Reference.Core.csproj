@@ -5,5 +5,7 @@
     <EmbeddedResource Include="../../reference/gonggui/contract.json" LogicalName="Hifc.Reference.Contract.json" />
     <EmbeddedResource Include="../../reference/success-case-01/case-profiles.json" LogicalName="Hifc.Reference.SuccessCase.json" />
     <EmbeddedResource Include="../../reference/success-case-01/recognition-evidence.json" LogicalName="Hifc.Reference.RecognitionEvidence.json" />
+    <EmbeddedResource Include="../../reference/platform-420626-20261020/rules.json" LogicalName="Hifc.Reference.Platform420626.20261020.json" />
+    <EmbeddedResource Include="../../reference/platform-420626-20261020/source-metadata.json" LogicalName="Hifc.Reference.Platform420626.20261020.Source.json" />
   </ItemGroup>
 </Project>

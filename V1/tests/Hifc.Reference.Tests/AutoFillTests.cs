@@ -18,5 +18,10 @@ internal static class AutoFillTests
         check("net_land_type_uses_confirmed_business_class", () => { var f = new FieldCheck { Property = "类型", RawType = "Text", State = "未填写" }; Fill(f,"规划净用地","场地",null); Assert(f.SuggestedValue=="规划净用地"); });
         check("autofill_preserves_existing_manual_value_including_zero", () => { var f = new FieldCheck { Property = "投影面积", RawType = "Real", State = "有效", Value = "0" }; Fill(f,"规划净用地","场地",154.321); Assert(f.SuggestedValue==null); });
         check("unavailable_geometry_is_not_fabricated_as_zero_or_case_area", () => { var f = new FieldCheck { Property = "投影面积", RawType = "Real", State = "未填写" }; Fill(f,"规划净用地","场地",null); Assert(f.SuggestedValue==null); });
+        check("rescan_reports_geometry_difference_without_overwriting_existing_area",()=>{
+            var f=new FieldCheck{Property="投影面积",RawType="Real",State="有效",Value="20",MetricValue=20};
+            Fill(f,"建筑区域","楼面",25);
+            Assert(f.SuggestedValue==null && f.Value=="20" && f.SuggestionReason!=null && f.SuggestionReason.Contains("25"));
+        });
     }
 }

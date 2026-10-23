@@ -15,9 +15,10 @@ namespace Hifc.Revit
             Add(panel, "HifcV1Manager", "模型检查\n属性管理", typeof(ManagerCommand), "人工确认阶段，识别模型类型；每次全面检查当前文档并自动生成属性补齐预览，写入后全面复检及报告缺失。");
             Add(panel, "HifcV1Prepare", "选中构件\n赋属性", typeof(PrepareCommand), "读取 Revit 当前选择，人工指定业务类目，自动填值并直接编辑；仅写入所选实例，写入后全项目检查。");
             Add(panel, "HifcV1Capture", "导出取数\nJSON", typeof(CaptureCommand), "保存所选构件的实例/类型参数、值、类型及来源证据。");
-            Add(panel, "HifcV1Export", "工规导出\n验证", typeof(ExportCommand), "按参考映射导出所选构件。临时物化与视图在导出后回滚，附导出回执。");
+            Add(panel, "HifcV1Export", "导出项目\nIFC", typeof(ExportCommand), "默认导出当前项目全部可导出模型，包含面积（Area），无需预选；已分类载体输出对应 HIFC 属性，临时导出改动整体回滚，附导出回执。");
             Add(panel, "HifcV1About", "版本与\n验证范围", typeof(AboutCommand), "Revit 2020 验证版。原软件真实模型 A/B 尚待验证。");
             Smoke.Register(application);
+            application.ControlledApplication.DocumentSavedAs+=Management.ManagerController.SavedAs;
             return Result.Succeeded;
         }
         private static void Add(RibbonPanel panel, string id, string caption, Type type, string tooltip)
@@ -26,7 +27,7 @@ namespace Hifc.Revit
             if (type != typeof(AboutCommand)) data.AvailabilityClassName = typeof(ProjectAvailable).FullName;
             panel.AddItem(data);
         }
-        public Result OnShutdown(UIControlledApplication application) { Management.SelectionController.Shutdown(); Management.ManagerController.Shutdown(); return Result.Succeeded; }
+        public Result OnShutdown(UIControlledApplication application) { application.ControlledApplication.DocumentSavedAs-=Management.ManagerController.SavedAs;Management.SelectionController.Shutdown(); Management.ManagerController.Shutdown(); return Result.Succeeded; }
     }
 
     public sealed class ProjectAvailable : IExternalCommandAvailability

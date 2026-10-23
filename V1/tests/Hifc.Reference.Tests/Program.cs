@@ -60,8 +60,20 @@ internal static class Program
         CaseWorkflowTests.Run(Check);
         RecognitionTests.Run(Check);
         AutoFillTests.Run(Check);
+        ControlLineTests.Run(Check);
+        ExportNamingTests.Run(Check);
         ManagerImprovementsTests.Run(Check);
         UndergroundTests.Run(Check);
+        SiteClassificationTests.Run(Check);
+        ProjectExportTests.Run(Check);
+        BuildingCaseTests.Run(Check);
+        PlanningInputTests.Run(Check);
+        FloorAreaTests.Run(Check);
+        InputReviewTests.Run(Check);
+        PlatformWorkflowTests.Run(Check);
+        SummaryCacheTests.Run(Check);
+        PlatformRuleTests.Run(Check);
+        PlatformExportTests.Run(Check);
         Console.WriteLine("RESULT failures=" + failures + "; tests=" + tests);
         return failures == 0 ? 0 : 1;
     }

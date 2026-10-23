@@ -10,7 +10,7 @@ internal static class RecognitionTests
     private static void Assert(bool value, string reason) { if (!value) throw new Exception(reason); }
     private static object[] Candidates(ModelElementCheck row, string kind)
     {
-        var method = typeof(CaseWorkflow).GetMethod("GetCandidates");
+        var method = typeof(CaseWorkflow).GetMethod("GetCandidates", new[]{typeof(ModelElementCheck),typeof(string)});
         Assert(method != null, "Candidate evidence policy is missing");
         return ((System.Collections.IEnumerable)method.Invoke(null, new object[] { row, kind })).Cast<object>().ToArray();
     }
@@ -23,7 +23,7 @@ internal static class RecognitionTests
                 Assert(CaseWorkflow.SuggestSlots(fixture.Row, fixture.Scope).Contains(fixture.ExpectedSlot), "Missing " + fixture.ExpectedSlot + " for " + fixture.Row.Name));
         check("same_numeric_id_in_other_document_cannot_use_case_correspondence", () => {
             var row = new ModelElementCheck { Id = 451481, UniqueId = "another-document", Name = "道路", TypeName = "道路", Category = "楼板", Entity = "IfcSlab" };
-            Assert(CaseWorkflow.SuggestSlots(row, "总图").Length == 0, "Numeric ID leaked across documents");
+            Assert(CaseWorkflow.GetCandidates(row, "总图").All(c=>!c.CanPrepare && !c.Evidence.Contains("UniqueId")), "Numeric ID leaked across documents");
         });
         check("case_correspondence_requires_matching_model_scope", () => {
             var row = fixtures.Single(x => x.Row.Id == 451481 && x.Scope == "总图").Row;

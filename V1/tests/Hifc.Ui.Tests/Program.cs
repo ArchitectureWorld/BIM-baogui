@@ -23,7 +23,7 @@ internal sealed class FakeSession : IManagerSession
     public void Preview(EditRequest request) { LastPreview = request; }
     public void Apply(EditPreview preview) { }
     public void Write(EditRequest[] requests) { Written = requests; }
-    public void Export(int[] ids, string path) { }
+    public void ExportProject(string path) { }
     public void Close() { }
 }
 internal static class Program
@@ -40,7 +40,7 @@ internal static class Program
                 new[] { new ParameterRead { Name = p.SourceParameter, Origin = "instance", StorageType = "String", HasValue = true,
                     Value = p.RawType == "Boolean" ? "0" : p.RawType == "Real" ? "26.25" : "示例值" } })).ToArray() };
     }
-    internal static void Screenshot(ManagerWindow window, string path)
+    internal static void Screenshot(Window window, string path)
     {
         window.UpdateLayout(); Pump();
         var root = (FrameworkElement)window.Content;
@@ -103,6 +103,12 @@ internal static class Program
         SelectionDraftTests.Run(Check);
         SelectionWindowTests.Run(Check,output);
         UndergroundWindowTests.Run(Check,output);
+        SiteClassificationTests.Run(Check,output);
+        ControlLineTests.Run(Check,output);
+        PlanningWindowTests.Run(Check,output);
+        PlatformInputTests.Run(Check,output);
+        ExportReviewTests.Run(Check,output);
+        ManagementStateRetryTests.Run(Check);
         Console.WriteLine("RESULT failures=" + failures + "; tests=" + tests);
         File.WriteAllText(Path.Combine(output, "ui-tests.json"), new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(new { passed = tests - failures, tests, failures, scope = "Standalone actual WPF window with fake Revit adapter; not live-model API verification" }));
         return failures == 0 ? 0 : 1;
