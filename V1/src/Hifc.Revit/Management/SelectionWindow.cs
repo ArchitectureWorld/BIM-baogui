@@ -1,4 +1,5 @@
 using System;
+using Hifc.Reference;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -109,21 +110,29 @@ namespace Hifc.Revit.Management
             protected override FrameworkElement GenerateElement(DataGridCell cell,object item)
             {
                 if((item as SelectionField)?.RawType=="Boolean")return BooleanBox(false);
-                if(string.IsNullOrEmpty((item as SelectionField)?.AreaHint))return base.GenerateElement(cell,item);
+                if(string.IsNullOrEmpty((item as SelectionField)?.AreaHint)&&!ClassificationInputs.Supports(((SelectionField)item).Field.PropertySet,((SelectionField)item).Property))return base.GenerateElement(cell,item);
                 var panel=new StackPanel {Margin=new Thickness(3,2,3,2)};
                 var value=new TextBlock {TextWrapping=TextWrapping.Wrap};value.SetBinding(TextBlock.TextProperty,new Binding("Value"));panel.Children.Add(value);
                 var hint=new TextBlock {TextWrapping=TextWrapping.Wrap,FontSize=11,Foreground=LiquidGlassTheme.Color("#4376AD")};
                 hint.SetBinding(TextBlock.TextProperty,new Binding("AreaHint"));panel.Children.Add(hint);
+                var warning=new TextBlock {TextWrapping=TextWrapping.Wrap,FontSize=11,Foreground=LiquidGlassTheme.Color("#8A602B")};
+                var warningStyle=new Style(typeof(TextBlock));var empty=new DataTrigger {Binding=new Binding("ValueHint"),Value=""};
+                empty.Setters.Add(new Setter(VisibilityProperty,Visibility.Collapsed));warningStyle.Triggers.Add(empty);warning.Style=warningStyle;
+                warning.SetBinding(TextBlock.TextProperty,new Binding("ValueHint"));panel.Children.Add(warning);
                 return panel;
             }
             protected override FrameworkElement GenerateEditingElement(DataGridCell cell,object item)
             {
-                if(!((SelectionField)item).RawType.Equals("Boolean",StringComparison.Ordinal))return base.GenerateEditingElement(cell,item);
-                return BooleanBox(true);
+                var field=(SelectionField)item;
+                if(field.RawType=="Boolean")return BooleanBox(true);
+                if(field.ValueChoices.Length==0&&!ClassificationInputs.Supports(field.Field.PropertySet,field.Property))return base.GenerateEditingElement(cell,item);
+                var combo=new ComboBox {IsEditable=true,IsTextSearchEnabled=false,VerticalContentAlignment=VerticalAlignment.Center,Padding=new Thickness(3,0,3,0)};
+                combo.SetBinding(ComboBox.ItemsSourceProperty,new Binding("ValueChoices"));combo.SetBinding(ToolTipProperty,new Binding("ValueHint"));
+                combo.SetBinding(ComboBox.TextProperty,new Binding("Value"){Mode=BindingMode.TwoWay,UpdateSourceTrigger=UpdateSourceTrigger.LostFocus,ValidatesOnExceptions=true});return combo;
             }
-            protected override object PrepareCellForEdit(FrameworkElement element,RoutedEventArgs args){if(element is CheckBox box){var prior=box.IsChecked;box.Focus();if(args is MouseButtonEventArgs)box.IsChecked=!(prior??false);return prior;}return base.PrepareCellForEdit(element,args);}
-            protected override bool CommitCellEdit(FrameworkElement element){if(element is CheckBox box){box.GetBindingExpression(CheckBox.IsCheckedProperty)?.UpdateSource();return !Validation.GetHasError(box);}return base.CommitCellEdit(element);}
-            protected override void CancelCellEdit(FrameworkElement element,object value){if(element is CheckBox box)box.GetBindingExpression(CheckBox.IsCheckedProperty)?.UpdateTarget();else base.CancelCellEdit(element,value);}
+            protected override object PrepareCellForEdit(FrameworkElement element,RoutedEventArgs args){if(element is CheckBox box){var prior=box.IsChecked;box.Focus();if(args is MouseButtonEventArgs)box.IsChecked=!(prior??false);return prior;}if(element is ComboBox combo){combo.Focus();return combo.Text;}return base.PrepareCellForEdit(element,args);}
+            protected override bool CommitCellEdit(FrameworkElement element){if(element is CheckBox box){box.GetBindingExpression(CheckBox.IsCheckedProperty)?.UpdateSource();return !Validation.GetHasError(box);}if(element is ComboBox combo){combo.GetBindingExpression(ComboBox.TextProperty)?.UpdateSource();return !Validation.GetHasError(combo);}return base.CommitCellEdit(element);}
+            protected override void CancelCellEdit(FrameworkElement element,object value){if(element is CheckBox box)box.GetBindingExpression(CheckBox.IsCheckedProperty)?.UpdateTarget();else if(element is ComboBox combo)combo.GetBindingExpression(ComboBox.TextProperty)?.UpdateTarget();else base.CancelCellEdit(element,value);}
         }
     }
 }

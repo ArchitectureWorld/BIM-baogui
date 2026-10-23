@@ -109,6 +109,12 @@ def main():
         check("building_height_is_three_meters", near(height.wrappedValue, targets["expected_building_height"]))
         density = property_value(owner(targets["alias_carrier_id"]), "Pset_总平构件信息属性集", "建筑密度")
         check("mixed_boolean_keeps_ifc_name_and_manual_false", density.is_a("IfcBoolean") and density.wrappedValue is False)
+        if load("input.json").get("classification_inputs"):
+            classifications = targets.get("classification_targets", [])
+            check("five_custom_classification_targets_recorded", len(classifications) == 5)
+            for row in classifications:
+                value = property_value(owner(row["element_id"]), row["property_set"], row["property"])
+                check("custom_classification:" + row["property"], value.is_a(row["ifc_type"]) and value.wrappedValue == row["value"])
         booleans = [r for r in receipt["materialization"] if r.get("export_type", r["raw_type"]) == "Boolean" and r["status"] == "MATERIALIZED"]
         check("boolean_observations_are_nonempty", bool(booleans))
         for row in booleans:

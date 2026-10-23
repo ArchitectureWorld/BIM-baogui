@@ -1,0 +1,83 @@
+{
+  "version": "0.4.18-preview.2",
+  "assembly_version": "0.4.18.0",
+  "updated": "2026-10-23",
+  "status": "native_verified_pending_installation",
+  "source_branch": "codex/classification-inputs",
+  "base_commit": "f1322d1",
+  "candidate_installed": false,
+  "installed_version": "0.4.17.0",
+  "tests": {
+    "core": {"passed": 261, "failed": 0},
+    "wpf": {"passed": 136, "failed": 0, "evidence": "classification-reviewed-build.log"},
+    "workbook": {"passed": 21, "failed": 0},
+    "redline": {"passed": 33, "failed": 0},
+    "python": {"passed": 34, "failed": 0}
+  },
+  "candidate_plugin_sha256": "2ae8803b85d36ad30d1d78c7ad74f51576fbc94b1e92b45d96f791fa82f09918",
+  "candidate_core_sha256": "aeb7386207e8124b8d662ff5ef42bfe24825ae7d24bd9542180473963ad6b330",
+  "native": {
+    "state": "passed_generated_fixture",
+    "evidence_checkout": "Codex managed worktree hbbim-sync-preview",
+    "run": "validation/property-data-native-20261023-223126",
+    "passed": true,
+    "checks": 38,
+    "custom_classification_fields": 5,
+    "save_and_reopen_passed": true,
+    "same_process_continuation": false,
+    "test_host_sha256": "88016d3f63425b5605359d328c3783fb7c65bf393276ecca12062be14a769948",
+    "earlier_harness_failure_retained": false,
+    "candidate_unchanged_during_run": true,
+    "publisher_operations": "Performed by user"
+  },
+  "ifc": {
+    "evidence": "validation/property-data-native-20261023-223126/property-data-ifc-result.json",
+    "passed": true,
+    "checks": 48,
+    "schema_error_count": 0,
+    "materialized_properties": 19,
+    "materialized_strict_mapping_passed": true,
+    "custom_classification_fields": 5,
+    "custom_classification_type": "IfcLabel",
+    "manual_floor_area_m2": 123.45,
+    "manual_region_area_m2": 123.45,
+    "planning_height_m": 3,
+    "boolean_properties": 3,
+    "unfilled_fixture_properties": 35,
+    "full_business_completeness_passed": false,
+    "ifc_sha256": "e1b0f60e0a836c8181ab0dbda19e74617efcbe08bc932841cea05d46ad9ebe33"
+  },
+  "classification_policy": {
+    "dictionary_region": "420626",
+    "dictionary_snapshot": "2026-10-20",
+    "parent_functions": 11,
+    "school_children": 23,
+    "retain_child_when_parent_changes": true,
+    "allow_custom_text_classifications": true,
+    "custom_platform_recognition": "unverified",
+    "other_typed_and_fixed_rules_preserved": true
+  },
+  "scope": {
+    "merged_to_main": false,
+    "remote_pushed": false,
+    "customer_originals_modified": false,
+    "real_platform_acceptance": false,
+    "platform_writes_enabled": false
+  },
+  "cleanup": {
+    "test_host_exited_normally": true,
+    "formal_manifest_restored": true,
+    "temporary_manifest_removed": true,
+    "installed_0_4_17_unchanged_during_native_acceptance": true
+  },
+  "review": {
+    "critical": 0,
+    "important": 1,
+    "important_fixed": 1,
+    "fix": "Mixed manager classifications display multiple-values sentinel; untouched editor commits do not stage another object's first value; explicit common edits remain supported.",
+    "regression_red": "validation/ui-954d1f1f",
+    "regression_green": "classification-reviewed-build.log",
+    "remaining_blockers": 0
+  },
+  "documentation": "docs/0.4.18-分类下拉与自定义输入.md"
+}

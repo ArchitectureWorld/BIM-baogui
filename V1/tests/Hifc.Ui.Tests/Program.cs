@@ -108,6 +108,7 @@ internal static class Program
         ControlLineTests.Run(Check,output);
         PlanningWindowTests.Run(Check,output);
         PlatformInputTests.Run(Check,output);
+        ClassificationUiTests.Run(Check,output);
         ExportReviewTests.Run(Check,output);
         ManagementStateRetryTests.Run(Check);
         PlatformSyncWindowTests.Run(Check,output);

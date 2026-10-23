@@ -84,7 +84,8 @@ internal static class PlatformWorkflowTests
             Assert(copy[0].Fields.All(f=>f.Valid)&&row.Fields[0].Value=="住宅","merged legitimate school function rejected or scan mutated");
             var changed=PlanningInputs.WithDraftValues(copy,new[]{new PlanningValueOverride {
                 OwnerUniqueId="建筑区域",PropertySet="Pset_建筑区域信息属性集",Source="主功能类别",Binding="实例",Value="住宅"}});
-            Assert(!changed[0].Fields[1].Valid&&changed[0].Fields[1].Value=="办公室","changing parent silently accepted an incompatible child");
+            Assert(changed[0].Fields[1].Valid&&changed[0].Fields[1].Value=="办公室","changing parent erased or blocked the retained child");
+            Assert(PlatformInputReview.Build(changed,Profile).Any(i=>i.Property=="子功能类别"&&i.Detail.Contains("住宅")),"retained incompatible child lost its advisory review");
         });
         check("platform_false_compute_gate_skips_inapplicable_height_and_preserves_false",()=>{
             var row=Row("墙",Field("墙","是否为女儿墙","0","Boolean"),Field("墙","高度",null,"Real"));

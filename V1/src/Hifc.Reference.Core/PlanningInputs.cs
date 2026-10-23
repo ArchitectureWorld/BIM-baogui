@@ -170,8 +170,14 @@ namespace Hifc.Reference
                         settings.CommonValues==null || !settings.CommonValues.TryGetValue(key,out var value) || string.IsNullOrWhiteSpace(value))continue;
                     field.RuleProfileId=settings.RuleProfileId??"";
                     var parent=ParentValue(row.Fields,field.PropertySet,true);
-                    if(string.IsNullOrWhiteSpace(parent) && settings.CommonValues.TryGetValue(
-                        ReferenceCatalog.LegacySlot(field.PropertySet)+"|"+(field.Property=="子功能类别"?"主功能类别":"公建大类"),out var commonParent))parent=commonParent;
+                    settings.CommonValues.TryGetValue(ReferenceCatalog.LegacySlot(field.PropertySet)+"|"+(field.Property=="子功能类别"?"主功能类别":"公建大类"),out var commonParent);
+                    if(ClassificationInputs.IsChild(field.Property)) {
+                        // Explicit custom pairs may be reused within their own
+                        // parent scope, never copied into a different existing parent.
+                        if(string.IsNullOrWhiteSpace(parent))parent=commonParent;
+                        else if(!string.IsNullOrWhiteSpace(commonParent)&&parent.Trim()!=commonParent.Trim())continue;
+                        if(string.IsNullOrWhiteSpace(commonParent)&&PlatformRules.IsActive(settings.RuleProfileId)&&PlatformRules.ValueError(field.PropertySet,field.Property,value,parent)!=null)continue;
+                    }
                     var error=ModelChecks.InputError(field,value,parent);
                     if(error!=null || field.RawType=="Real" && Number(value)<0)
                     {field.Detail="项目统一设置的值无效，请重新确认："+value+(error==null?"":"；"+error);continue;}

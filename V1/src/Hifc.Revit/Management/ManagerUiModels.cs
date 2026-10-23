@@ -18,18 +18,22 @@ namespace Hifc.Revit.Management
     internal static class RuleInputOptions
     {
         internal const string PlatformTitle = "保康县420626报规(2026-10-20)";
-        internal static bool IsParentFunction(string property) => property=="主功能类别"||property=="公建大类";
-        internal static bool IsChildFunction(string property) => property=="子功能类别"||property=="公建小类";
+        internal static bool IsParentFunction(string property) => ClassificationInputs.IsParent(property);
+        internal static bool IsChildFunction(string property) => ClassificationInputs.IsChild(property);
         internal static string[] Choices(string profileId, string propertySet, string property, string parentFunction = null)
         {
-            var items = PlatformRules.IsActive(profileId) ? PlatformRules.Choices(propertySet, property, parentFunction)
-                : propertySet == "Pset_建筑技术信息属性集" && property == "建筑类型名称" ? new[] { "住宅", "公建", "中小学等", "幼儿园等", "厂房", "办公", "生活服务设施", "其它设施" }
-                : propertySet == "Pset_建筑技术信息属性集" && property == "建筑类别" ? new[] { "住宅", "商业", "商住", "配套车库", "中小学" }
-                : new string[0];
+            var items = ClassificationInputs.Supports(propertySet,property)?ClassificationInputs.Choices(propertySet,property,parentFunction)
+                : PlatformRules.IsActive(profileId)?PlatformRules.Choices(propertySet,property,parentFunction):new string[0];
+            // Keep the earlier factory/office presets in old-case mode; the
+            // selected platform profile still shows its own source dictionary.
+            if(!PlatformRules.IsActive(profileId)&&PlatformRules.CanonicalPropertySet(propertySet)=="Pset_建筑技术信息属性集"&&property=="建筑类型名称")
+                items=items.Concat(new[]{"厂房","办公","生活服务设施","其它设施"}).Distinct(StringComparer.Ordinal).ToArray();
             return items.Length == 0 ? items : new[] { "" }.Concat(items).ToArray();
         }
         internal static string ValueHint(string profileId, string propertySet, string property, string value, string parentFunction = null)
         {
+            if(ClassificationInputs.Supports(propertySet,property))
+                return string.IsNullOrWhiteSpace(value)?PlatformInputReview.DefaultHint(profileId,propertySet,property,value,parentFunction):ClassificationInputs.Hint(propertySet,property,value,parentFunction);
             if (!PlatformRules.IsActive(profileId)) return "";
             if (string.IsNullOrWhiteSpace(value)) return PlatformInputReview.DefaultHint(profileId,propertySet,property,value,parentFunction);
             if (IsChildFunction(property) && string.IsNullOrWhiteSpace(parentFunction))

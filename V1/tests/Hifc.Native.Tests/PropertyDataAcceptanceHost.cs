@@ -25,6 +25,7 @@ public sealed class PropertyDataAcceptanceHost:IExternalApplication,IExternalEve
     UIApplication continuationUi;bool continuationPending;
     DateTime manualDeadline;
     readonly Dictionary<string,bool> checks=new Dictionary<string,bool>();
+    readonly List<object> classificationTargets=new List<object>();
     JavaScriptSerializer Json()=>new JavaScriptSerializer{MaxJsonLength=64*1024*1024};
     void Write(string file,object value)=>File.WriteAllText(Path.Combine(run,file),Json().Serialize(value));
     void Log(string message)=>File.AppendAllText(Path.Combine(run,"progress.log"),DateTime.Now.ToString("O")+" "+message+Environment.NewLine);
@@ -104,6 +105,8 @@ public sealed class PropertyDataAcceptanceHost:IExternalApplication,IExternalEve
         aliasCarrierId=floors.Single(f=>f.GetParameters("类目").SingleOrDefault()?.AsString()=="总平构件").Id.IntegerValue;
         var settings=(PlanningSettings)Static("Management.PlatformContext","Settings",document);
         var heightSource=CaseExportPolicy.SourceProperties(PlatformRules.ProfileId).Single(p=>!p.NativeGroup&&p.Entity=="IfcBuilding"&&p.Property=="规划高度").SourceParameter;
+        var input=Json().Deserialize<Dictionary<string,object>>(File.ReadAllText(Path.Combine(run,"input.json")));
+        if(input.TryGetValue("classification_inputs",out var classificationFlag)&&Convert.ToBoolean(classificationFlag))ClassificationAcceptance(first);
         FinishDataChecks(ui,first,region,settings,heightSource,document.PathName);
     }
     object Scan(string kind)
@@ -241,7 +244,27 @@ public sealed class PropertyDataAcceptanceHost:IExternalApplication,IExternalEve
         Static("Management.CaseEdits","ApplyWithWorkbook",document,combined,new[]{decision});
         Check("workbook_official_values_and_references_written_together",((Array)Static("Management.ReportingWorkbookProjectStorage","Load",document)).Length==1&&Math.Abs(first.GetParameters("楼层面积").Single().AsDouble()*.3048*.3048-123.45)<1e-6);
         Check("workbook_meters_correct_with_millimeter_project_display",Math.Abs(document.ProjectInformation.GetParameters(heightSource).Single().AsDouble()*.3048-3)<1e-7);
+        if(input.TryGetValue("classification_inputs",out var classificationFlag)&&Convert.ToBoolean(classificationFlag))ClassificationAcceptance(first);
         FinishDataChecks(ui,first,region,settings,heightSource,path);
+    }
+    void ClassificationAcceptance(Level first)
+    {
+        var snapshot=Scan("单体建筑");var rows=(ModelElementCheck[])Get(snapshot,"Elements");
+        var civil=document.ProjectInformation.GetParameters("民用建筑").Single().AsInteger();var area=first.GetParameters("楼层面积").Single().AsDouble();
+        var inputs=new[]{new[]{"建筑技术","建筑类型名称","自定义校园建筑"},new[]{"建筑技术","建筑类别","自定义教学配套"},new[]{"建筑技术","建筑用途名称","自定义教学用途"},
+            new[]{"建筑区域","主功能类别","自定义主功能"},new[]{"建筑区域","子功能类别","自定义子功能"}};
+        var requests=inputs.Select(input=>{
+            var row=rows.Single(r=>r.Slots.Contains(input[0]));var field=row.Fields.Single(f=>f.Property==input[1]&&f.Binding=="实例");
+            var request=New("Management.EditRequest");Set(request,"Kind","赋值");Set(request,"Ids",new[]{row.Id});Set(request,"PropertySet",field.PropertySet);Set(request,"Source",field.Source);Set(request,"Binding",field.Binding);Set(request,"Value",input[2]);
+            var baseline=New("Management.EditBaseline");Set(baseline,"ElementId",row.Id);Set(baseline,"ElementUniqueId",row.UniqueId);Set(baseline,"OwnerUniqueId",field.OwnerUniqueId);Set(baseline,"Value",field.Value);Set(baseline,"State",field.State);Set(baseline,"SourceSignature",field.SourceSignature);
+            Set(request,"Baselines",Typed(T("Management.EditBaseline"),new[]{baseline}));
+            classificationTargets.Add(new{element_id=row.Id,owner_id=field.OwnerId,owner_unique_id=field.OwnerUniqueId,property_set=field.PropertySet,property=field.Property,source=field.Source,value=input[2],ifc_type="IfcLabel"});return request;
+        }).ToArray();
+        var preview=Static("Management.CaseEdits","PreviewBatch",document,snapshot,Typed(T("Management.EditRequest"),requests));
+        Static("Management.CaseEdits","Apply",document,preview);
+        Check("custom_classification_values_written_by_production_pipeline",classificationTargets.All(t=>document.GetElement(new ElementId((int)Get(t,"owner_id"))).GetParameters((string)Get(t,"source")).Single().AsString()==(string)Get(t,"value")));
+        Check("custom_classification_keeps_civil_participation_and_manual_area",document.ProjectInformation.GetParameters("民用建筑").Single().AsInteger()==civil&&first.GetParameters("楼层面积").Single().AsDouble()==area);
+        Write("classification-targets.json",classificationTargets);
     }
     void FinishDataChecks(UIApplication ui,Level first,Floor region,PlanningSettings settings,string heightSource,string path)
     {
@@ -255,10 +278,11 @@ public sealed class PropertyDataAcceptanceHost:IExternalApplication,IExternalEve
             var reopenedFirst=(Level)reopened.GetElement(first.UniqueId);
             Check("native_boolean_and_manual_floor_area_survive_reopen",reopenedFirst.GetParameters("建筑基底").Single().Definition.ParameterType==ParameterType.YesNo&&reopenedFirst.GetParameters("建筑基底").Single().AsInteger()==0&&Math.Abs(reopenedFirst.GetParameters("楼层面积").Single().AsDouble()*.3048*.3048-123.45)<1e-6);
             Check("workbook_and_manual_redline_metadata_survive_reopen",((Array)Static("Management.ReportingWorkbookProjectStorage","Load",reopened)).Length==1&&((RedlineData)Static("Management.RedlineProjectStorage","Load",reopened)).Points.Length==4);
+            if(classificationTargets.Count>0)Check("custom_classification_values_survive_reopen",classificationTargets.All(t=>reopened.GetElement((string)Get(t,"owner_unique_id")).GetParameters((string)Get(t,"source")).Single().AsString()==(string)Get(t,"value")));
         }finally{reopened.Close(false);}
         Static("Management.PlatformContext","Set",document,settings);Static("Management.PlatformContext","SetStage",document,"报规");
         var ifc=Path.Combine(run,"OUT_验收单体.ifc");Static("NativeExportService","ExportProject",document,ifc);Check("full_project_ifc_export_completed",File.Exists(ifc)&&File.Exists(Path.ChangeExtension(ifc,"receipt.json")));
-        Write("export-targets.json",new{ifc,first_level_id=first.Id.IntegerValue,first_level_unique_id=first.UniqueId,region_id=region.Id.IntegerValue,region_unique_id=region.UniqueId,expected_floor_area=123.45,expected_region_area=123.45,expected_building_height=3,alias_carrier_id=aliasCarrierId});
+        Write("export-targets.json",new{ifc,first_level_id=first.Id.IntegerValue,first_level_unique_id=first.UniqueId,region_id=region.Id.IntegerValue,region_unique_id=region.UniqueId,expected_floor_area=123.45,expected_region_area=123.45,expected_building_height=3,alias_carrier_id=aliasCarrierId,classification_targets=classificationTargets});
         // Exercise the actual manual-controller write, not only its UI abstraction.
         ui.ActiveUIDocument.Selection.SetElementIds(new[]{region.Id});Static("Management.SelectionController","Open",ui);
         var windows=(IDictionary)T("Management.SelectionController").GetField("Windows",Flags).GetValue(null);var controller=windows[document];selection=Get(controller,"Window");

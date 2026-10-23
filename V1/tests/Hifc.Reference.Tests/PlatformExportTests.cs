@@ -133,11 +133,12 @@ internal static class PlatformExportTests
             Rejected(() => Output(density, "0.5"), "a real density became an arbitrary boolean");
             Assert(Output(density, "0.5", "other-region") == "0.5", "another region was subjected to this profile's boolean interpretation");
         });
-        check("platform_export_rejects_function_mismatch_and_invalid_numeric_text", () => {
+        check("platform_export_preserves_explicit_custom_child_and_rejects_invalid_numeric_text", () => {
             var area = Properties("IfcSlab", "建筑区域");
             var child = area.Single(p => p.Property == "子功能类别");
             Assert(Output(child, "教室", Profile, "学校") == "教室", "a school classroom was rejected");
-            Rejected(() => Output(child, "商铺", Profile, "学校"), "a mismatched child function was exported");
+            Assert(Output(child,"商铺",Profile,"学校")=="商铺","explicit custom child text was erased or blocked");
+            Assert(PlatformRules.ValueError(child.PropertySet,child.Property,"商铺","学校")!=null,"custom classification weakened the reference dictionary");
             Rejected(() => Output(area.Single(p => p.Property == "投影面积"), "not-a-number"), "invalid numeric text was exported as an IFC Real");
         });
     }

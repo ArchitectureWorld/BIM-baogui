@@ -58,7 +58,18 @@ namespace Hifc.Revit.Management
         }
         internal static string HistoryKey(FieldCheck f) => f.OwnerUniqueId + "|" + f.PropertySet + "|" + f.Binding + "|" + f.Source;
         static string Key(FieldCheck f) => f.PropertySet + "|" + f.Binding + "|" + f.Source;
-        internal void Notify() => Changed?.Invoke();
+        internal string ParentFunction(SelectionField field)
+        {
+            var parents=Fields.Where(f=>PlatformRules.CanonicalPropertySet(f.Field.PropertySet)==PlatformRules.CanonicalPropertySet(field.Field.PropertySet)&&RuleInputOptions.IsParentFunction(f.Property))
+                .Select(f=>f.Value).Distinct().ToArray();
+            return parents.Length==1&&parents[0]!="多个值"?parents[0]:null;
+        }
+        internal void Notify(SelectionField changed)
+        {
+            if(RuleInputOptions.IsParentFunction(changed.Property))
+                foreach(var child in Fields.Where(f=>f.Field.PropertySet==changed.Field.PropertySet&&RuleInputOptions.IsChildFunction(f.Property)))child.Notify();
+            Changed?.Invoke();
+        }
     }
     internal sealed class SelectionField : INotifyPropertyChanged
     {
@@ -70,7 +81,10 @@ namespace Hifc.Revit.Management
         internal string RawValue { get; private set; }
         public string Property => Field.Property;
         public string Detail => Field.Source + " · " + Field.Binding + (Editable ? "" : " · 只读，避免影响未选中的同类型构件")
-            + (string.IsNullOrEmpty(Field.SuggestionReason) ? "" : " · " + Field.SuggestionReason);
+            + (string.IsNullOrEmpty(Field.SuggestionReason) ? "" : " · " + Field.SuggestionReason)
+            + (string.IsNullOrEmpty(ValueHint)?"":" · "+ValueHint);
+        public string[] ValueChoices => RuleInputOptions.Choices(Field.RuleProfileId,Field.PropertySet,Property,draft.ParentFunction(this));
+        public string ValueHint => RuleInputOptions.ValueHint(Field.RuleProfileId,Field.PropertySet,Property,Value,draft.ParentFunction(this));
         public string RawType => Field.RawType;
         public string AreaHint => AreaValueHint.For(Property, RawType, Editable);
         public bool Editable => Targets.All(f => f.Binding == "实例" && f.Origin != "type" && (f.Editable || f.State == "缺参数"));
@@ -92,11 +106,11 @@ namespace Hifc.Revit.Management
                 if (!Editable) throw new InvalidOperationException("该属性只读或来自共享类型。");
                 if (value == "多个值" || !Pending && value == Value) return;
                 RawValue = RawType == "Boolean" ? value == "是" || value == "true" ? "1" : value == "否" || value == "false" ? "0" : value == "未填写" ? "" : value : value ?? "";
-                Pending = true; Notify(); draft.Notify();
+                Pending = true; Notify(); draft.Notify(this);
             }
         }
         internal SelectionField(SelectionDraft draft, FieldCheck[] targets) { this.draft=draft; Targets=targets; }
         public event PropertyChangedEventHandler PropertyChanged;
-        internal void Notify() { foreach (var p in new[]{"Value","Checked","State","Background"}) PropertyChanged?.Invoke(this,new PropertyChangedEventArgs(p)); }
+        internal void Notify() { foreach (var p in new[]{"ValueChoices","Value","Checked","State","Background","ValueHint","Detail"}) PropertyChanged?.Invoke(this,new PropertyChangedEventArgs(p)); }
     }
 }

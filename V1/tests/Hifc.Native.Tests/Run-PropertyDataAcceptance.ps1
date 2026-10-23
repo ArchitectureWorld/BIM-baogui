@@ -2,7 +2,8 @@
 param(
     [string]$Template='C:\ProgramData\Autodesk\RVT 2020\Templates\China\DefaultCHSCHS.rte',
     [string]$PluginDirectory,
-    [string]$RestoreRun
+    [string]$RestoreRun,
+    [switch]$ClassificationInputs
 )
 $ErrorActionPreference='Stop'
 $addinRoot=Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'Autodesk\Revit\Addins\2020'
@@ -36,7 +37,7 @@ if([Reflection.AssemblyName]::GetAssemblyName($plugin).Version -ne [Reflection.A
 $run=Join-Path $workspace ('validation\property-data-native-'+(Get-Date -Format yyyyMMdd-HHmmss))
 New-Item -ItemType Directory -Path (Join-Path $run 'models'),(Join-Path $run 'host') -Force | Out-Null
 $hostCopy=Join-Path $run 'host\Hifc.Native.Tests.dll';Copy-Item -LiteralPath $hostAssembly -Destination $hostCopy
-@{package=$package;template=(Resolve-Path -LiteralPath $Template).Path}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $run 'input.json') -Encoding utf8
+@{package=$package;template=(Resolve-Path -LiteralPath $Template).Path;classification_inputs=[bool]$ClassificationInputs}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $run 'input.json') -Encoding utf8
 $xml=@"
 <?xml version="1.0" encoding="utf-8"?>
 <RevitAddIns>

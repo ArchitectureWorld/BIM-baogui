@@ -745,7 +745,7 @@ namespace Hifc.Revit.Management
             {
                 get {
                     var choices=Field.RawType=="Boolean" ? new[]{"未填写","是","否"} : RuleInputOptions.Choices(Field.RuleProfileId,Field.PropertySet,Field.Property,window.ParentFunction(Field,targets));
-                    if(!PlatformRules.IsActive(Field.RuleProfileId)&&Field.RawType!="Boolean"&&choices.Length>0&&!string.IsNullOrWhiteSpace(Value)&&!choices.Contains(Value))choices=choices.Concat(new[]{Value}).ToArray();
+                    if(!PlatformRules.IsActive(Field.RuleProfileId)&&!ClassificationInputs.Supports(Field.PropertySet,Field.Property)&&Field.RawType!="Boolean"&&choices.Length>0&&!string.IsNullOrWhiteSpace(Value)&&!choices.Contains(Value))choices=choices.Concat(new[]{Value}).ToArray();
                     if(lastChoices==null||!lastChoices.SequenceEqual(choices))lastChoices=choices;
                     return lastChoices;
                 }
@@ -755,8 +755,15 @@ namespace Hifc.Revit.Management
             public Brush Background => Brush(Field.ManualInputRequired && !Field.Valid || State.StartsWith("待写入") ? "#FFFFDADA" : State == "已手工写入" ? "#FFFFD9AD" : "#FFFFFFFF");
             public string Value
             {
-                get => Field.RawType == "Boolean" ? BooleanLabel(window.FieldValue(Field)) : window.FieldValue(Field);
-                set { window.StageTargets(Field, Field.RawType == "Boolean" ? BooleanRaw(value) : value ?? "", targets); Notify(); }
+                get {
+                    if(ClassificationInputs.Supports(Field.PropertySet,Field.Property)&&targets.SelectMany(row=>window.Effective(row).Fields.Where(f=>f.PropertySet==Field.PropertySet&&f.Source==Field.Source&&f.Binding==Field.Binding))
+                        .Select(window.FieldValue).Distinct(StringComparer.Ordinal).Take(2).Count()>1)return "多个值";
+                    return Field.RawType == "Boolean" ? BooleanLabel(window.FieldValue(Field)) : window.FieldValue(Field);
+                }
+                set {
+                    if(ClassificationInputs.Supports(Field.PropertySet,Field.Property)&&value=="多个值")return;
+                    window.StageTargets(Field, Field.RawType == "Boolean" ? BooleanRaw(value) : value ?? "", targets); Notify();
+                }
             }
             internal PropertyEditor(ManagerWindow window, FieldCheck field, ModelElementCheck[] targets) { this.window = window; Field = field; this.targets = targets; }
             public event PropertyChangedEventHandler PropertyChanged;
@@ -807,7 +814,7 @@ namespace Hifc.Revit.Management
                 var active=PlatformRules.IsActive(property?.RuleProfileId);
                 if(editor==null||editor.ValueChoices.Length==0&&!(active&&RuleInputOptions.IsChildFunction(property.Property)))return base.GenerateEditingElement(cell,dataItem);
                 var boolean = property.RawType == "Boolean";
-                var editable = !boolean && (active||property.Property == "建筑类别");
+                var editable = !boolean && (active||ClassificationInputs.Supports(property.PropertySet,property.Property));
                 var combo = new ComboBox { IsEditable = editable, IsTextSearchEnabled = !boolean&&!active, VerticalContentAlignment = VerticalAlignment.Center, Padding = new Thickness(3, 0, 3, 0) };
                 combo.SetBinding(ComboBox.ItemsSourceProperty,new Binding("ValueChoices"));
                 combo.SetBinding(ToolTipProperty,new Binding("ValueHint"));

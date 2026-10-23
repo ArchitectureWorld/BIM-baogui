@@ -76,6 +76,8 @@ namespace Hifc.Reference
             }
             if (!ModelChecks.ValueIsValid(property.ExportType, value))
                 throw new InvalidOperationException("值“" + value + "”不符合导出类型 " + property.ExportType);
+            if ((property.ExportType == "Text" || property.ExportType == "Label") && ClassificationInputs.Supports(property.PropertySet, property.Property))
+                return value;
             var error = PlatformRules.ValueError(property.PropertySet, property.Property, value, parentFunction);
             if (!string.IsNullOrEmpty(error)) throw new InvalidOperationException(error);
             return PlatformRules.Choices(property.PropertySet, property.Property, parentFunction).Length > 0 ? value.Trim() : value;
