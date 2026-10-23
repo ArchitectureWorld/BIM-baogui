@@ -1,16 +1,25 @@
 [CmdletBinding()]
-param()
+param([string]$PackageDirectory)
 $ErrorActionPreference = 'Stop'
 if (Get-Process -Name Revit -ErrorAction SilentlyContinue) { throw 'Close Revit normally before installing. No process will be stopped.' }
 $workspace = Split-Path -Parent $PSScriptRoot
-# Production installation remains pinned to the accepted stable release.
-# Platform sync preview builds are separate packages and are not installed here.
-$package = Join-Path $workspace 'dist\Hifc.V1.Revit2020-0.4.16'
+# Default to the user-authorized, verified trial package. Building another
+# preview does not automatically install it; an explicit package may be used.
+if (-not $PackageDirectory) { $PackageDirectory = Join-Path $workspace 'dist\Hifc.V1.Revit2020-0.4.17-preview.2' }
+$package = (Resolve-Path -LiteralPath $PackageDirectory).Path
 $addinRoot = Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'Autodesk\Revit\Addins\2020'
 $target = Join-Path $addinRoot 'Hifc.V1'
 $manifestPath = Join-Path $addinRoot 'Hifc.V1.addin'
 foreach ($sourceName in @('Hifc.V1.Revit.dll','Hifc.Reference.Core.dll','settings.json','build-manifest.json')) {
     if (-not (Test-Path -LiteralPath (Join-Path $package $sourceName))) { throw "Build package first: $sourceName" }
+}
+$buildManifest = Get-Content -LiteralPath (Join-Path $package 'build-manifest.json') -Raw | ConvertFrom-Json
+$packageVersion = [string]$buildManifest.version
+if ($packageVersion -notmatch '^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$') { throw 'Invalid package version.' }
+foreach ($entry in $buildManifest.files) {
+    if ([IO.Path]::GetFileName([string]$entry.name) -ne [string]$entry.name) { throw 'Invalid manifest file name.' }
+    $file = Join-Path $package $entry.name
+    if ((Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash -ne $entry.sha256 -or (Get-Item -LiteralPath $file).Length -ne $entry.bytes) { throw "Package manifest mismatch: $($entry.name)" }
 }
 $oldPlugin = Join-Path $addinRoot 'BIMBaoGui.RevitAddin\BIMBaoGui.RevitAddin.dll'
 $oldHash = if (Test-Path -LiteralPath $oldPlugin) { (Get-FileHash -LiteralPath $oldPlugin -Algorithm SHA256).Hash } else { $null }
@@ -51,7 +60,7 @@ $files = @('Hifc.V1.Revit.dll','Hifc.Reference.Core.dll') | ForEach-Object {
     if ($sourceHash -ne $installedHash) { throw "Installed hash mismatch: $_" }
     @{ name=$_; sha256=$installedHash.ToLowerInvariant(); matches_build=$true }
 }
-@{ version='0.4.16'; installed_directory=$target; addin_manifest=$manifestPath; files=@($files); previous_plugin_sha256=$oldHash; previous_plugin_unchanged=($oldHash -eq $newOldHash) } |
+@{ version=$packageVersion; source_package=$package; installed_directory=$target; addin_manifest=$manifestPath; files=@($files); previous_plugin_sha256=$oldHash; previous_plugin_unchanged=($oldHash -eq $newOldHash) } |
     ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $run 'install-receipt.json') -Encoding utf8
 Write-Output "Installed: $target"
 Write-Output "Receipt: $(Join-Path $run 'install-receipt.json')"

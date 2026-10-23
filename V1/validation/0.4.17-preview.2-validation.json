@@ -1,14 +1,14 @@
 {
   "version": "0.4.17-preview.2",
   "updated": "2026-10-23",
-  "status": "merged_preview_verified_stable_installation_retained",
+  "status": "installed_verified_trial_package",
   "source_branch": "main",
   "base_commit": "550d736b2238a3dfdaef550bc7ea8bcab1085904",
-  "installed_version": "0.4.16.0",
-  "candidate_installed": false,
-  "installed_plugin_sha256": "f3b16b8f8c001a5382475a9f581e14c5342bada240f4ef995fd058ae2490d603",
-  "candidate_plugin_sha256": "ac7df6deee20d3e897b1fe5d05c57c851259de8964cbe78fe4698f26e33d63b6",
-  "candidate_core_sha256": "964269cb9db225011d396711cc991e2fdeb11e21fae69dbc975595885d102a74",
+  "installed_version": "0.4.17.0",
+  "candidate_installed": true,
+  "installed_plugin_sha256": "0b79f7d8cc74c6c6a45835e7b2f72f1c2a7b8d44ca696354b1b6bde0325029f6",
+  "candidate_plugin_sha256": "0b79f7d8cc74c6c6a45835e7b2f72f1c2a7b8d44ca696354b1b6bde0325029f6",
+  "candidate_core_sha256": "77b814e88b44e8e788bdd425a91f045eb91917d3e901cf13038aa5de05f8d79a",
   "tests": {
     "platform_sync": {
       "failed": 0,
@@ -90,10 +90,10 @@
     "checks": 40
   },
   "cleanup": {
-    "installed_stable_plugin_unchanged": true,
     "test_host_exited_normally": true,
     "formal_manifest_restored": true,
-    "temporary_manifest_removed": true
+    "temporary_manifest_removed": true,
+    "stable_plugin_unchanged_during_native_acceptance": true
   },
   "final_build_log": "build-property-data-verified.log",
   "main_build": {
@@ -102,12 +102,23 @@
     "native_host_run_on_main_rebuild": false,
     "log": "validation/property-data-main-build-20261023-green.log",
     "all_passed": true,
-    "wpf_evidence": "validation/ui-11da7674"
+    "wpf_evidence": "validation/ui-11da7674",
+    "promoted_to_exact_native_verified_binaries": true
   },
   "integration": {
     "fixtures_commit": "52aa56bebab1bbc812e0dd3a0185fc27222906fb",
     "mode": "authorized_local_fast_forward",
     "implementation_commit": "6fac347e5a0f6d6d69e49b95bb16e361e773607a",
     "remote_pushed": false
+  },
+  "installation": {
+    "version": "0.4.17-preview.2",
+    "receipt": "outputs/install-20261023-214113-64319381/install-receipt.json",
+    "verified_files": 5,
+    "matches_native_verified_binaries": true,
+    "workspace_root": "main V1",
+    "previous_version": "0.4.16",
+    "customer_models_modified": false,
+    "post_install_host_loading_verified": false
   }
 }
