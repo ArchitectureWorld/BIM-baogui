@@ -1,0 +1,95 @@
+{
+  "version": "0.4.19-preview.1",
+  "assembly_version": "0.4.19.0",
+  "updated": "2026-10-23",
+  "status": "installed_verified_trial_package",
+  "source_branch": "main",
+  "implementation_commit": "95a3c9ef9e001b0afc694cd5a765ab106a7392ef",
+  "tests": {
+    "redline": {
+      "passed": 33,
+      "failed": 0
+    },
+    "build_log": "validation/export-delivery-build-20261023.log",
+    "python": {
+      "passed": 34,
+      "failed": 0
+    },
+    "wpf": {
+      "failed": 0,
+      "evidence": "validation/export-delivery-ui-20261023",
+      "passed": 140
+    },
+    "core": {
+      "passed": 267,
+      "failed": 0
+    },
+    "workbook": {
+      "passed": 21,
+      "failed": 0
+    }
+  },
+  "native": {
+    "fixture": "previously generated acceptance model copy",
+    "run": "validation/export-delivery-native-20261023-232500",
+    "source_files_unchanged": true,
+    "all_checks_passed": true,
+    "actual_exports": 3,
+    "cross_volume_publication": true,
+    "detected_type": "mixed; explicit building test context",
+    "source_kind_detection_changed": false,
+    "failed": 0,
+    "passed": 26
+  },
+  "ifc_audit": {
+    "full_mapping_audit_all_passed": false,
+    "nonempty_verified_fields_per_file": 19,
+    "full_mapping_diagnostics_unchanged": true,
+    "all_passed": true,
+    "known_empty_sources": 35,
+    "business_values_and_geometry_match_0418_baseline": true,
+    "known_empty_pset_diagnostics": 1,
+    "total": 27,
+    "passed": 27,
+    "schema_errors_per_file": 0
+  },
+  "behavior": {
+    "only_ifc_delivered": true,
+    "versions_reset_with_date": true,
+    "historical_files_removed": false,
+    "naming": "OUT_项目名称_阶段_具体单体名称或总图_YYYYMMDD_V1.ifc",
+    "custom_folder": true,
+    "internal_artifacts": "%LOCALAPPDATA%\\Hifc.V1\\export-records\\<export-id>",
+    "confirmation_changes_rvt_filename": false,
+    "default_folder": "beside RVT"
+  },
+  "installation": {
+    "workspace_root": "D:\\18_建模项目\\湖北BIM云平台\\V1",
+    "previous_version": "0.4.18-preview.2",
+    "plugin_sha256": "35e703400909c7450801d8b34cd4e7394902394da48b5d8a53d7ea9017505863",
+    "verified_files": 5,
+    "matches_native_verified_binaries": true,
+    "receipt": "outputs/install-20261023-231319-2f4d2b27/install-receipt.json",
+    "post_install_host_loading_verified": false,
+    "independent_audit": "outputs/install-20261023-231319-2f4d2b27/installed-files-audit.json",
+    "core_sha256": "3a888f36078d12886f69de5054f52bf95438e13348032ca933bbb0380e49d04c"
+  },
+  "scope": {
+    "merged_to_main": true,
+    "real_platform_acceptance": false,
+    "customer_originals_modified": false,
+    "remote_pushed": false,
+    "platform_writes_enabled": false
+  },
+  "cleanup": {
+    "formal_manifest_restored": true,
+    "host_exited_normally": true,
+    "temporary_manifest_removed": true
+  },
+  "review": {
+    "blocking_findings": 0,
+    "mode": "sequential self-review",
+    "native_receipt_consumers_updated": true
+  },
+  "documentation": "docs/0.4.19-导出命名与单文件交付.md"
+}

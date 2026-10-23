@@ -28,13 +28,15 @@
 
 **Files:** `V1/src/Hifc.Reference.Core/ExportFileNaming.cs`、`V1/src/Hifc.Revit/Management/ExportNamingWindow.cs`、`V1/src/Hifc.Revit/ExportDestinationPicker.cs`；对应 `ExportNamingTests.cs` 与 `ExportNamingWindowTests.cs`。
 
-- [ ] 更新核心真实行为断言，增加 WPF 名称编辑、目录切换、取消与重新计算版本测试，先观察失败。
-- [ ] 实现 `SuggestNames(modelPath,title,kind)`、`StemForNames(projectName,buildingName,stage,kind,date)`，保留旧版本分配函数。
-- [ ] 实现名称/目录窗口并接入 Picker，保留自动识别与后续核对。
-- [ ] 运行核心和 WPF，确认由失败变为通过。
+- [x] 更新核心真实行为断言，增加 WPF 名称编辑、目录切换、取消与重新计算版本测试，先观察失败。
+- [x] 实现 `SuggestNames(modelPath,title,kind)`、`StemForNames(projectName,buildingName,stage,kind,date)`，保留旧版本分配函数。
+- [x] 实现名称/目录窗口并接入 Picker，保留自动识别与后续核对。
+- [x] 运行核心和 WPF，确认由失败变为通过。
 
 ## Task 2: 验证、交付
 
-- [ ] 构建 0.4.19-preview.1 并运行相关回归；视觉核验真实 WPF 截图。
-- [ ] 审查差异、输出回执、版本与文档同步，提交明确文件并合入本地 main。
-- [ ] 确认 Revit 关闭后安装通过验证的包，核对安装哈希与备份；准确区分独立 WPF 验证与宿主加载。
+- [x] 构建 0.4.19-preview.1 并运行相关回归；视觉核验真实 WPF 截图。
+- [x] 审查差异、输出回执、版本与文档同步，提交明确文件并合入本地 main。
+- [x] 确认 Revit 关闭后安装通过验证的包，核对安装哈希与备份；准确区分独立 WPF 验证与宿主加载。
+
+用户后续批准：交付目录只生成 IFC，内部保存配置/日志/回执；日期独立计数。新增 ExportArtifacts、失败不发布与碰撞保护测试；原生 26 项、独立 IFC 27 项通过并完成安装。
