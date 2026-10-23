@@ -1,0 +1,13 @@
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
+<row r="1"><c r="A1" t="inlineStr"><is><t>HIFC 报规属性导入 v1</t></is></c></row>
+<row r="2"><c r="A2" t="inlineStr"><is><t>模型类型</t></is></c><c r="B2" t="inlineStr"><is><t>单体建筑</t></is></c></row>
+<row r="3"><c r="A3" t="inlineStr"><is><t>建筑名称</t></is></c><c r="B3" t="s"><v>0</v></c></row>
+<row r="5"><c r="A5" t="inlineStr"><is><t>楼层</t></is></c><c r="B5" t="inlineStr"><is><t>属性名称</t></is></c><c r="C5" t="inlineStr"><is><t>值</t></is></c><c r="D5" t="inlineStr"><is><t>单位</t></is></c><c r="E5" t="inlineStr"><is><t>备注</t></is></c></row>
+<row r="6"><c r="B6" t="inlineStr"><is><t>建筑名称</t></is></c><c r="C6" t="s"><v>0</v></c></row>
+<row r="7"><c r="B7" t="inlineStr"><is><t>建筑面积</t></is></c><c r="C7"><f>30*2</f><v>60</v></c><c r="D7" t="inlineStr"><is><t>m²</t></is></c></row>
+<row r="8"><c r="A8" t="inlineStr"><is><t>一层</t></is></c><c r="B8" t="inlineStr"><is><t>楼层面积</t></is></c><c r="C8"><v>60</v></c><c r="D8" t="inlineStr"><is><t>m²</t></is></c></row>
+<row r="9"><c r="B9" t="inlineStr"><is><t>民用建筑</t></is></c><c r="C9" t="b"><v>0</v></c></row>
+<row r="10"><c r="B10" t="inlineStr"><is><t>人数</t></is></c><c r="C10"><v>0</v></c></row>
+<row r="11"><c r="B11" t="inlineStr"><is><t>建筑体积</t></is></c><c r="C11"><f>100*3</f></c></row>
+<row r="12"><c r="B12" t="inlineStr"><is><t>设计说明</t></is></c><c r="C12" t="inlineStr"><is><t>留存原始资料</t></is></c></row>
+</sheetData><mergeCells count="1"><mergeCell ref="A1:E1" /></mergeCells></worksheet>
