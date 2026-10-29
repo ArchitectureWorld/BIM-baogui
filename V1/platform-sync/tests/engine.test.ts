@@ -7,12 +7,12 @@ import {randomUUID,createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {Store} from '../src/store.js';
 import {SyncEngine} from '../src/engine.js';
-import {verifyHandoff,freezeHandoff} from '../src/handoff.js';
+import {verifyHandoff,freezeHandoff,assertIfc} from '../src/handoff.js';
 import {redact} from '../src/security.js';
 import type {PlatformAdapter,Model,Snapshot,Operation,Progress,Handoff} from '../src/types.js';
 
 const sha=(v:string|Buffer)=>createHash('sha256').update(v).digest('hex');
-const ifc=(name:string)=>Buffer.from(`ISO-10303-21;\nHEADER;FILE_DESCRIPTION(('${name}'),'2;1');ENDSEC;\nDATA;#1=IFCPROJECT($);ENDSEC;\nEND-ISO-10303-21;`);
+const ifc=(name:string)=>Buffer.from(`ISO-10303-21;\nHEADER;FILE_DESCRIPTION(('${name}'),'2;1');FILE_SCHEMA(('IFC2X3'));ENDSEC;\nDATA;#1=IFCPROJECT($);ENDSEC;\nEND-ISO-10303-21;`);
 function handoff(root:string,name='new.ifc',doc='C:\\Models\\school.rvt') {
   const dir=join(root,randomUUID()); mkdirSync(dir,{recursive:true});
   const bytes=ifc(name); const id=randomUUID();
@@ -32,13 +32,90 @@ class Remote implements PlatformAdapter {
   async backup(m:Model){return {bytes:this.fault==='bad-backup'?ifc('wrong'):this.old,model_id:m.id,generation:m.generation,sha256:m.sha256!};}
   async deleteModel(m:Model,id:string){this.writes.push('delete');this.snap.models=this.snap.models.filter(x=>x.id!==m.id);this.operations.set(id,{id,kind:'delete',status:'completed',model_id:m.id,generation:m.generation});if(this.fault==='delete-lost')throw Error('connection lost');}
   async upload(file:string,hash:string,id:string){this.writes.push('upload');this.uploaded=readFileSync(file);this.operations.set(id,{id,kind:'upload',status:'completed',upload_id:'u1',sha256:hash});return {upload_id:'u1'};}
-  async submit(_upload:string,name:string,id:string){this.writes.push('submit');const n=this.writes.filter(x=>x==='submit').length+1;const m={id:'m'+n,name,generation:'g'+n,sha256:sha(this.uploaded)};this.snap.models.push(m);this.operations.set(id,{id,kind:'submit',status:'completed',model_id:m.id,generation:m.generation,sha256:m.sha256});this.status={operation_id:id,model_id:m.id,generation:m.generation,input_sha256:m.sha256,conversion:'completed',calculation:'completed',regulation:'failed',result_id:'result-current'};if(this.fault==='submit-lost')throw Error('lost submit response');return {model_id:m.id,generation:m.generation};}
+  async submit(_upload:string,name:string,id:string){this.writes.push('submit');const n=this.writes.filter(x=>x==='submit').length+1;const m={id:'m'+n,name,generation:'g'+n,sha256:sha(this.uploaded)};this.snap.models.push(m);this.operations.set(id,{id,kind:'submit',status:'completed',upload_id:_upload,model_id:m.id,generation:m.generation,sha256:m.sha256});this.status={operation_id:id,model_id:m.id,generation:m.generation,input_sha256:m.sha256,conversion:'completed',calculation:'completed',regulation:'failed',result_id:'result-current'};if(this.fault==='submit-lost')throw Error('lost submit response');return {model_id:m.id,generation:m.generation};}
   async progress(id:string){return {...this.status!,...(this.fault==='stale-complete'?{operation_id:'old-operation',result_id:'old'}:{}),...(this.fault==='conversion-failed'?{conversion:'failed' as const}:{})};}
   async operation(id:string){return this.operations.get(id)??{id,kind:'delete' as const,status:'absent' as const};}
   async close(){}
 }
 function setup(){const root=mkdtempSync(join(tmpdir(),'hifc-sync-'));const remote=new Remote();const store=new Store(join(root,'state'));const engine=new SyncEngine(store,remote,{pollMs:1,timeoutMs:30});const manifest=handoff(root);return {root,remote,store,engine,manifest};}
 async function bound(c:ReturnType<typeof setup>){return c.engine.bind('m1',c.manifest,{project_id:'p1',project_code:'C1',project_name:'School'});}
+
+test('explicit real mode still blocks an uneditable project before deletion',async()=>{
+ const c=setup();try{Object.defineProperty(c.remote,'mode',{value:'real'});c.remote.snap.writable=false;const b=await bound(c),p=await c.engine.plan(b.id,c.manifest);const r=await c.engine.run(p.id);assert.equal(r.state,'BLOCKED');assert.match(r.reason,/editable|可编辑/);assert.deepEqual(c.remote.writes,[]);}finally{c.store.close();}
+});
+test('real completion requires current calculation proof and no active overlay',async()=>{
+ const c=setup();try{Object.defineProperty(c.remote,'mode',{value:'real'});c.remote.snap.writable=true;const b=await bound(c),p=await c.engine.plan(b.id,c.manifest);const r=await c.engine.run(p.id);assert.notEqual(r.state,'SUCCEEDED');assert.deepEqual(c.remote.writes,['delete','upload','submit']);}finally{c.store.close();}
+});
+
+test('an unrelated model changed after planning blocks deletion',async()=>{
+ const c=setup();try{
+  c.remote.snap.models.push({id:'site',name:'site.ifc',generation:'site-v1',sha256:sha(ifc('site'))});
+  const b=await bound(c),p=await c.engine.plan(b.id,c.manifest);
+  c.remote.snap.models[1]!.generation='site-v2';
+  const result=await c.engine.run(p.id);
+  assert.equal(result.state,'BLOCKED');assert.deepEqual(c.remote.writes,[]);assert.match(result.reason,/non.target/i);
+ }finally{c.store.close();}
+});
+test('unrelated model deletion during replacement cannot be reported as success',async()=>{
+ const c=setup();try{
+  c.remote.snap.models.push({id:'site',name:'site.ifc',generation:'site-v1'});
+  const b=await bound(c),p=await c.engine.plan(b.id,c.manifest),submit=c.remote.submit.bind(c.remote);
+  c.remote.submit=async(...args)=>{const reply=await submit(...args);c.remote.snap.models=c.remote.snap.models.filter(m=>m.id!=='site');return reply;};
+  const result=await c.engine.run(p.id);
+  assert.equal(result.state,'UNKNOWN_RESULT');assert.match(result.reason,/non.target/i);
+  assert.equal(c.store.binding(b.id).remote_model_id,'m1');
+ }finally{c.store.close();}
+});
+test('new unrelated model before recovery prevents advancing a lost deletion',async()=>{
+ const c=setup();try{
+  const b=await bound(c),p=await c.engine.plan(b.id,c.manifest);c.remote.fault='delete-lost';
+  assert.equal((await c.engine.run(p.id)).state,'UNKNOWN_RESULT');
+  c.remote.snap.models.push({id:'external',name:'external.ifc',generation:'g-other'});
+  assert.equal((await c.engine.resume(p.id)).state,'UNKNOWN_RESULT');
+  assert.deepEqual(c.remote.writes,['delete']);
+ }finally{c.store.close();}
+});
+test('recovery refuses a modified previous-model backup before any continuation',async()=>{
+ const c=setup();try{
+  const b=await bound(c),p=await c.engine.plan(b.id,c.manifest);c.remote.fault='delete-lost';
+  const failed=await c.engine.run(p.id);writeFileSync(failed.backup_path!,ifc('tampered backup'));
+  const result=await c.engine.resume(p.id);
+  assert.equal(result.state,'UNKNOWN_RESULT');assert.match(result.reason,/backup/i);assert.deepEqual(c.remote.writes,['delete']);
+ }finally{c.store.close();}
+});
+test('recovery refuses a submit receipt associated with a different uploaded file',async()=>{
+ const c=setup();try{
+  const b=await bound(c),p=await c.engine.plan(b.id,c.manifest);c.remote.fault='submit-lost';
+  assert.equal((await c.engine.run(p.id)).state,'UNKNOWN_RESULT');
+  const id=p.id+':submit';c.remote.operations.set(id,{...c.remote.operations.get(id)!,upload_id:'another-upload'});
+  const result=await c.engine.resume(p.id);
+  assert.equal(result.state,'UNKNOWN_RESULT');assert.equal(c.store.binding(b.id).remote_model_id,'m1');
+ }finally{c.store.close();}
+});
+
+test('final verification refuses the old model reappearing and duplicate new identities',async()=>{
+ for(const variant of ['old','duplicate']){
+  const c=setup();try{
+   const b=await bound(c),p=await c.engine.plan(b.id,c.manifest),submit=c.remote.submit.bind(c.remote);
+   c.remote.submit=async(...args)=>{const reply=await submit(...args);c.remote.snap.models.push(variant==='old'?p.baseline:{...c.remote.snap.models[0]!,name:'duplicate.ifc'});return reply;};
+   assert.equal((await c.engine.run(p.id)).state,'UNKNOWN_RESULT');assert.equal(c.store.binding(b.id).remote_model_id,'m1');
+  }finally{c.store.close();}
+ }
+});
+
+test('legacy plans without non-target evidence cannot mutate or acquire a replacement baseline',async()=>{
+ const c=setup();try{
+  const b=await bound(c),p=await c.engine.plan(b.id,c.manifest);
+  delete (p as unknown as Record<string,unknown>).non_target_models;c.store.save(p);
+  assert.equal((await c.engine.run(p.id)).state,'BLOCKED');assert.deepEqual(c.remote.writes,[]);
+  assert.equal((await c.engine.resume(p.id)).state,'UNKNOWN_RESULT');assert.deepEqual(c.remote.writes,[]);
+ }finally{c.store.close();}
+});
+
+test('IFC validation rejects other STEP schemas and truncated data sections',()=>{
+ assert.throws(()=>assertIfc(Buffer.from("ISO-10303-21;\nHEADER;FILE_SCHEMA(('AUTOMOTIVE_DESIGN'));ENDSEC;\nDATA;#1=IFCPROJECT($);ENDSEC;\nEND-ISO-10303-21;")),/IFC/i);
+ assert.throws(()=>assertIfc(Buffer.from("ISO-10303-21;\nHEADER;FILE_SCHEMA(('IFC2X3'));ENDSEC;\nEND-ISO-10303-21;")),/IFC/i);
+});
 
 test('handoff rejects incomplete export, tampering and traversal; spool is frozen',()=>{
  const c=setup();const frozen=freezeHandoff(c.manifest,join(c.root,'spool'));assert.equal(verifyHandoff(frozen).handoff.original_name,'new.ifc');

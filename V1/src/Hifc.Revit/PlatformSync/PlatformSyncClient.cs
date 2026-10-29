@@ -43,6 +43,8 @@ namespace Hifc.Revit.PlatformSync
     { public string id { get; set; } public string name { get; set; } public string generation { get; set; } public override string ToString() => name; }
     public sealed class SyncInspection
     {
+        public bool? writable { get; set; }
+        public int? approval_state { get; set; }
         public string project_id { get; set; } public string project_code { get; set; } public string project_name { get; set; }
         public string scene_project_id { get; set; } public string revision { get; set; } public SyncRemoteModel[] models { get; set; } = new SyncRemoteModel[0];
     }
@@ -52,9 +54,24 @@ namespace Hifc.Revit.PlatformSync
         public string remote_model_id { get; set; } public string remote_model_name { get; set; } public string document_path { get; set; } public string project_unique_id { get; set; }
         public override string ToString() => (project_name ?? "") + " · " + remote_model_name;
     }
+    public sealed class SyncRunHandoff { public string original_name { get; set; } public string document_path { get; set; } }
+    public sealed class SyncReport
+    {
+        public string state { get; set; } public string reason { get; set; }
+        public string pdf_path { get; set; } public string txt_path { get; set; }
+    }
     public sealed class SyncRun
     {
         public string id { get; set; } public string state { get; set; } public string reason { get; set; }
+        public SyncRunHandoff handoff { get; set; }
+        public SyncReport report { get; set; }
+        public bool CanDownloadReport => state == "SUCCEEDED" && string.Equals(calculation_status, "completed", StringComparison.OrdinalIgnoreCase);
+        public string ReportLabel { get { switch (report?.state) {
+            case "PENDING": return "等待下载"; case "DOWNLOADING": return "下载中"; case "PUBLISHING": return "保存中";
+            case "SUCCEEDED": return "已保存"; case "NEEDS_LOGIN": return "需要登录"; case "BLOCKED": return "待核对"; case "FAILED": return "下载失败";
+            default: return state == "SUCCEEDED" ? "可下载" : "等待计算完成";
+        } } }
+        public string ModelLabel => string.IsNullOrWhiteSpace(handoff?.original_name) ? "本次 IFC" : PlatformSyncClient.SafeText(handoff.original_name);
         public string calculation_status { get; set; } public string regulation_status { get; set; }
         public string StateLabel {
             get { switch (state) {
@@ -72,6 +89,7 @@ namespace Hifc.Revit.PlatformSync
     }
     public sealed class SyncStatus
     { public SyncBinding[] bindings { get; set; } = new SyncBinding[0]; public SyncRun[] runs { get; set; } = new SyncRun[0]; }
+    public sealed class SyncWorkerLaunch { public bool started { get; set; } public string run_id { get; set; } public int pid { get; set; } }
     public sealed class PlatformExportContext
     {
         public string DocumentPath { get; set; } public string ProjectUniqueId { get; set; }
@@ -92,14 +110,18 @@ namespace Hifc.Revit.PlatformSync
         Task<SyncInspection> InspectAsync(PlatformSyncSettings settings);
         Task<SyncBinding> BindAsync(PlatformSyncSettings settings, string modelId, string handoff);
         Task<SyncRun> PlanAsync(PlatformSyncSettings settings, string bindingId, string handoff);
+        Task<SyncWorkerLaunch> StartAsync(PlatformSyncSettings settings, string runId);
+        Task<SyncWorkerLaunch> ReportAsync(PlatformSyncSettings settings, string runId);
     }
-    /// <summary>Arguments go directly to Node; no shell, tokens, or platform-write command exists here.</summary>
+    /// <summary>Paths and IDs go directly to Node; apply launches an independent worker without exposing credentials.</summary>
     public sealed class PlatformSyncClient : IPlatformSyncClient
     {
         public Task<SyncStatus> StatusAsync(PlatformSyncSettings s) => Invoke<SyncStatus>(s, "status");
         public Task<SyncInspection> InspectAsync(PlatformSyncSettings s) => Invoke<SyncInspection>(s, "inspect");
         public Task<SyncBinding> BindAsync(PlatformSyncSettings s, string id, string handoff) => Invoke<SyncBinding>(s, "bind", "--model", id, "--handoff", handoff);
         public Task<SyncRun> PlanAsync(PlatformSyncSettings s, string id, string handoff) => Invoke<SyncRun>(s, "plan", "--binding", id, "--handoff", handoff);
+        public Task<SyncWorkerLaunch> StartAsync(PlatformSyncSettings s, string id) => Invoke<SyncWorkerLaunch>(s, "start", "--run", id, "--apply");
+        public Task<SyncWorkerLaunch> ReportAsync(PlatformSyncSettings s, string id) => Invoke<SyncWorkerLaunch>(s, "report-start", "--run", id);
         public static string QuoteArgument(string value)
         {
             if (value == null || value.IndexOfAny(new[] { '\r', '\n', '\0' }) >= 0) throw new InvalidOperationException("同步参数无效。");
@@ -117,7 +139,7 @@ namespace Hifc.Revit.PlatformSync
         async Task<T> Invoke<T>(PlatformSyncSettings settings, string command, params string[] args) where T : class
         {
             settings.Validate();
-            if (!new[] { "status", "inspect", "bind", "plan" }.Contains(command)) throw new InvalidOperationException("预开发界面只允许读取和创建计划。");
+            if (!new[] { "status", "inspect", "bind", "plan", "start", "report-start" }.Contains(command)) throw new InvalidOperationException("不支持的同步操作。");
             var all = new[] { settings.WorkerPath, command, "--config", settings.ConfigPath }.Concat(args).Select(QuoteArgument);
             var start = new ProcessStartInfo(settings.NodePath, string.Join(" ", all)) {
                 UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden,
@@ -127,11 +149,11 @@ namespace Hifc.Revit.PlatformSync
             using (var process = new Process { StartInfo = start })
             {
                 process.Start(); var stdout = process.StandardOutput.ReadToEndAsync(); var stderr = process.StandardError.ReadToEndAsync();
-                var exited = await Task.Run(() => process.WaitForExit(120000));
-                if (!exited) { try { process.Kill(); } catch (InvalidOperationException) { } throw new InvalidOperationException("平台读取超时。请在独立同步程序中核对状态；未发起平台替换。"); }
+                var exited = await Task.Run(() => process.WaitForExit(command == "start" || command == "report-start" || command == "status" ? 30000 : 300000));
+                if (!exited) { try { process.Kill(); } catch (InvalidOperationException) { } throw new InvalidOperationException(command == "start" ? "后台启动回执超时，请刷新同步状态核对；窗口不会终止后台转换。" : "平台读取超时，请检查独立浏览器和连接状态。"); }
                 var text = await stdout; await stderr;
                 // Never echo raw stderr or arbitrary JSON on failures: they may contain page credentials.
-                if (process.ExitCode != 0) throw new InvalidOperationException("同步程序未完成（代码 " + process.ExitCode + "）。请查看独立程序的脱敏状态；未通过本窗口发起平台替换。");
+                if (process.ExitCode != 0) throw new InvalidOperationException("同步程序未完成（代码 " + process.ExitCode + "）。请刷新同步状态并查看独立程序的脱敏记录。");
                 try { return new JavaScriptSerializer { MaxJsonLength = 4 * 1024 * 1024 }.Deserialize<T>(text) ?? throw new InvalidOperationException("同步程序未返回有效数据。"); }
                 catch (ArgumentException) { throw new InvalidOperationException("同步程序响应格式不正确，未继续操作。"); }
             }

@@ -8,6 +8,7 @@ export interface Model { id: string; name: string; generation: string; sha256?: 
 export interface Snapshot {
   authenticated: boolean; project_id: string; project_code: string; project_name: string;
   scene_project_id: string; revision: string; models: Model[];
+  writable?: boolean; approval_state?: number;
 }
 export interface Binding {
   id: string; project_id: string; project_code: string; project_name: string;
@@ -19,13 +20,17 @@ export interface Progress {
   operation_id: string; model_id: string; generation: string; input_sha256: string;
   conversion: 'pending'|'completed'|'failed'; calculation: 'not_started'|'running'|'completed'|'failed';
   regulation: 'unknown'|'passed'|'failed'; result_id?: string;
+  current_calculation_proven?: boolean; active_overlay?: boolean;
 }
 export interface Operation {
   id: string; kind: 'delete'|'upload'|'submit'; status: 'absent'|'pending'|'completed'|'failed';
   model_id?: string; generation?: string; upload_id?: string; sha256?: string;
 }
 export interface PlatformAdapter {
-  readonly mode: 'fixture'|'real-readonly';
+  readonly mode: 'fixture'|'real-readonly'|'real';
+  prepare?(run:Run):void;
+  selectModel?(id:string):void;
+  browserOpen?():boolean;
   snapshot(): Promise<Snapshot>;
   backup(model: Model): Promise<Backup>;
   deleteModel(model: Model, operationId: string): Promise<void>;
@@ -33,19 +38,34 @@ export interface PlatformAdapter {
   submit(uploadId: string, name: string, operationId: string): Promise<{model_id: string; generation: string}>;
   progress(operationId: string): Promise<Progress>;
   operation(operationId: string): Promise<Operation>;
+  report?(run:Run): Promise<ReportPayload>;
   close(): Promise<void>;
 }
 export interface Run {
   id: string; binding_id: string; project_id: string; state: State; reason: string;
   created_utc: string; updated_utc: string; handoff: Handoff; manifest_path: string;
   baseline: Model; expected_project: Pick<Snapshot,'project_id'|'project_code'|'project_name'>;
+  /** Absent on legacy plans: never reconstruct this evidence after a write. */
+  non_target_models?: Model[];
   idempotency_key: string; upload_id?: string; new_model_id?: string; new_generation?: string;
   calculation_status: Progress['calculation']; regulation_status: Progress['regulation']; result_id?: string;
   backup_path?: string; backup_sha256?: string; intent?: {kind: Operation['kind'];operation_id: string;acknowledged?: boolean};
   rollback_of?: string;
+  report?: ReportDelivery;
+}
+export interface ReportPayload {
+  project_id:string; result_id:string; models:Model[]; pdf:Buffer;
+  calculation_completed_utc:string; generated_utc?:string;
+}
+export interface ReportDelivery {
+  state:'PENDING'|'DOWNLOADING'|'PUBLISHING'|'SUCCEEDED'|'BLOCKED'|'NEEDS_LOGIN'|'FAILED';
+  reason:string; updated_utc:string; downloaded_utc?:string;
+  calculation_completed_utc?:string; generated_utc?:string; models?:Model[];
+  pdf_path?:string; txt_path?:string; pdf_sha256?:string; txt_sha256?:string;
+  frozen_pdf?:string; frozen_txt?:string;
 }
 export interface Config {
-  schema: 'hifc.platform-sync-config/1'; adapter: 'fixture'|'real-readonly';
+  schema: 'hifc.platform-sync-config/1'; adapter: 'fixture'|'real-readonly'|'real';
   state_dir: string; browser_profile: string; entry_secret_file?: string; fixture_url?: string;
   expected_project?: {project_id: string;project_code: string;project_name: string};
   headless?: boolean;

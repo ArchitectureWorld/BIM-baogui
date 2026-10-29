@@ -31,7 +31,7 @@ function dpapi(action:'protect'|'unprotect',value:string):string {
 }
 export function loadConfig(file:string):Config {
  let c:Config;try{c=JSON.parse(readFileSync(file,'utf8').replace(/^\uFEFF/,''));}catch{throw new SyncError('CONFIG','Cannot read sync configuration.');}
- if(c.schema!=='hifc.platform-sync-config/1'||!['fixture','real-readonly'].includes(c.adapter)||!c.state_dir||!c.browser_profile)throw new SyncError('CONFIG','Unsupported sync configuration.');
+ if(c.schema!=='hifc.platform-sync-config/1'||!['fixture','real-readonly','real'].includes(c.adapter)||!c.state_dir||!c.browser_profile)throw new SyncError('CONFIG','Unsupported sync configuration.');
  // Never accept an inline credential, even if the rest of the config is valid.
  const raw=JSON.stringify(c);if(/(?:[?&]token=|"(?:token|password|entry_url)"\s*:)/i.test(raw))throw new SyncError('CONFIG','Plaintext credentials are forbidden in configuration.');
  const base=dirname(resolve(file)); c={...c,state_dir:resolve(base,c.state_dir),browser_profile:resolve(base,c.browser_profile),entry_secret_file:c.entry_secret_file?resolve(base,c.entry_secret_file):undefined};

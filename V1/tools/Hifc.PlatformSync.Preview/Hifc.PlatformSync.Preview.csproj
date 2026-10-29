@@ -9,6 +9,8 @@
     <ProjectReference Include="../../src/Hifc.Reference.Core/Hifc.Reference.Core.csproj" />
     <Compile Include="../../src/Hifc.Revit/PlatformSync/PlatformSyncClient.cs" Link="PlatformSyncClient.cs" />
     <Compile Include="../../src/Hifc.Revit/PlatformSync/PlatformSyncWindow.cs" Link="PlatformSyncWindow.cs" />
+    <Compile Include="../../src/Hifc.Revit/PlatformSync/PlatformSyncWindow.Layout.cs" Link="PlatformSyncWindow.Layout.cs" />
+    <Compile Include="../../src/Hifc.Revit/Management/LiquidGlassTheme.cs" Link="LiquidGlassTheme.cs" />
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
 </Project>

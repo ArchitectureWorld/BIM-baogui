@@ -90,7 +90,7 @@ namespace Hifc.Revit.PlatformSync
             }
             catch (Exception error) { request.SetException(error); }
         }
-        public string GetName() => "H-IFC 平台同步预开发 · 文档核对";
+        public string GetName() => "H-IFC 平台同步 · 文档核对";
         public void Close()
         {
             if (closed) return; closed = true; Windows.Remove(document); pending?.TrySetException(new InvalidOperationException("平台同步窗口已关闭。")); pending = null; external.Raise();

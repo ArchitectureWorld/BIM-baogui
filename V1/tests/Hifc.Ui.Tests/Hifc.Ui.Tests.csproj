@@ -15,6 +15,7 @@
     <Compile Include="../../src/Hifc.Revit/Management/ExportNamingWindow.cs" Link="ExportNamingWindow.cs" />
     <Compile Include="../../src/Hifc.Revit/PlatformSync/PlatformSyncClient.cs" Link="PlatformSyncClient.cs" />
     <Compile Include="../../src/Hifc.Revit/PlatformSync/PlatformSyncWindow.cs" Link="PlatformSyncWindow.cs" />
+    <Compile Include="../../src/Hifc.Revit/PlatformSync/PlatformSyncWindow.Layout.cs" Link="PlatformSyncWindow.Layout.cs" />
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
 </Project>

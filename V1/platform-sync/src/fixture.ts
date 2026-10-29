@@ -6,7 +6,7 @@ export interface FixtureFaults {loseDeleteResponse?:boolean;loseUploadResponse?:
 export interface FixtureServer {url:string;close():Promise<void>;control(faults:Partial<FixtureFaults>):void;snapshot():Snapshot;counters():{delete:number;upload:number;submit:number}}
 export interface FixtureOptions {faults?:FixtureFaults;port?:number;models?:Array<Model&{bytes:Buffer}>;project?:Pick<Snapshot,'project_id'|'project_code'|'project_name'>}
 const sha=(bytes:Buffer)=>createHash('sha256').update(bytes).digest('hex');
-const oldIfc=Buffer.from("ISO-10303-21;\nHEADER;FILE_DESCRIPTION(('old IFC'),'2;1');ENDSEC;\nDATA;#1=IFCPROJECT($);ENDSEC;\nEND-ISO-10303-21;");
+const oldIfc=Buffer.from("ISO-10303-21;\nHEADER;FILE_DESCRIPTION(('old IFC'),'2;1');FILE_SCHEMA(('IFC2X3'));ENDSEC;\nDATA;#1=IFCPROJECT($);ENDSEC;\nEND-ISO-10303-21;");
 const html=String.raw`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>HIFC 本地平台替换演练</title>
 <style>body{font:16px system-ui;margin:30px;background:#f4f6f8}main{max-width:900px;background:white;padding:25px}label.fileInfoLabel{display:block;border:1px solid #ddd;margin:8px;padding:12px}.fileNameSpan{display:inline-block;max-width:450px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}button,input{margin:8px;padding:8px}dialog{min-width:420px}label{display:block}output{display:block;white-space:pre-wrap}.error{color:#b00020}</style>
 <main aria-label="编辑项目"><h1>编辑项目</h1><p>仅本机演练，不连接真实平台。</p><pre id="identity"></pre><section aria-label="BIM模型"><h2>BIM模型</h2><div id="models"></div><button id="add">添加IFC模型</button></section><p id="result">历史计算：已完成</p></main>
@@ -36,7 +36,7 @@ export async function startFixture(options:FixtureOptions={}):Promise<FixtureSer
  const seed=options.models??[{id:'m1',name:'OUT_School_20261022_V1.ifc',generation:'g1',bytes:oldIfc}];
  const models=new Map<string,Model&{bytes:Buffer}>(seed.map(m=>[m.id,{...m,sha256:sha(m.bytes),bytes:Buffer.from(m.bytes)}]));
  const operations=new Map<string,Operation>(),uploads=new Map<string,{bytes:Buffer;sha256:string}>(),jobs=new Map<string,{value:Progress;started:number}>();
- function snapshot():Snapshot{return {authenticated:!faults.unauthenticated,...(options.project??{project_id:'p1',project_code:'SCHOOL-001',project_name:'School'}),scene_project_id:faults.wrongScene?'wrong-project':options.project?.project_id??'p1',revision:'r'+revision,models:[...models.values()].map(({bytes,...m})=>({...m,sha256:faults.unverifiedBackup?undefined:m.sha256}))};}
+ function snapshot():Snapshot{return {authenticated:!faults.unauthenticated,writable:true,approval_state:0,...(options.project??{project_id:'p1',project_code:'SCHOOL-001',project_name:'School'}),scene_project_id:faults.wrongScene?'wrong-project':options.project?.project_id??'p1',revision:'r'+revision,models:[...models.values()].map(({bytes,...m})=>({...m,sha256:faults.unverifiedBackup?undefined:m.sha256}))};}
  function json(res:ServerResponse,status:number,data:unknown){res.writeHead(status,{'content-type':'application/json; charset=utf-8','x-hifc-fixture':'hifc-sync-fixture/1','cache-control':'no-store'});res.end(JSON.stringify(data));}
  function loseResponse(res:ServerResponse){res.writeHead(200,{'content-type':'application/json','content-length':'1000'});res.flushHeaders();res.write('{"interrupted":');setTimeout(()=>res.destroy(),10);}
  async function body(req:IncomingMessage){const parts:Buffer[]=[];let size=0;for await(const item of req){const chunk=Buffer.from(item);size+=chunk.length;if(size>100*1024*1024)throw Error('Request too large.');parts.push(chunk);}return Buffer.concat(parts);}
@@ -80,7 +80,7 @@ export async function startFixture(options:FixtureOptions={}):Promise<FixtureSer
    const value=JSON.parse(bytes.toString('utf8')) as {upload_id:string;name:string;operation_id:string};const previous=operations.get(value.operation_id);if(previous){json(res,200,previous);return;}
    const input=uploads.get(value.upload_id);if(!input||!value.operation_id||!value.name||[...models.values()].some(m=>m.name===value.name)){json(res,409,{error:'Upload missing or filename conflict.'});return;}
    const n=++sequence,m:Model&{bytes:Buffer}={id:'m'+n,generation:'g'+n,name:value.name,sha256:input.sha256,bytes:Buffer.from(input.bytes)};models.set(m.id,m);revision++;counts.submit++;
-   operations.set(value.operation_id,{id:value.operation_id,kind:'submit',status:'completed',model_id:m.id,generation:m.generation,sha256:m.sha256});jobs.set(value.operation_id,{started:Date.now(),value:{operation_id:value.operation_id,model_id:m.id,generation:m.generation,input_sha256:input.sha256,conversion:'pending',calculation:'not_started',regulation:'unknown'}});
+   operations.set(value.operation_id,{id:value.operation_id,kind:'submit',status:'completed',upload_id:value.upload_id,model_id:m.id,generation:m.generation,sha256:m.sha256});jobs.set(value.operation_id,{started:Date.now(),value:{operation_id:value.operation_id,model_id:m.id,generation:m.generation,input_sha256:input.sha256,conversion:'pending',calculation:'not_started',regulation:'unknown'}});
    if(faults.loseSubmitResponse){loseResponse(res);return;}json(res,200,{model_id:m.id,generation:m.generation});return;
   }
   json(res,404,{error:'Unknown fixture endpoint.'});

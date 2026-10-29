@@ -5,7 +5,6 @@ import {chromium,type BrowserContext,type Page} from 'playwright';
 import {redact} from './security.js';
 import {SyncError,type Backup,type Config,type Model,type Operation,type PlatformAdapter,type Progress,type Snapshot} from './types.js';
 
-const realOrigin='https://hbbim.hbcic.net.cn:9000';
 export interface ReadonlyEvidence {
  connected:boolean;origin:string;page_title:string;login_required:boolean;project_form_visible:boolean;
  project_name_candidates:string[];project_code_candidates:string[];model_full_names:string[];
@@ -27,15 +26,11 @@ async function visibleEvidence(page:Page,blockedRequests=0):Promise<ReadonlyEvid
  });
  return {connected:true,origin:new URL(page.url()).origin,page_title:redact(found.title),login_required:found.login,project_form_visible:found.form,project_name_candidates:found.names.map(redact),project_code_candidates:found.codes.map(redact),model_full_names:found.models.map(redact),identity_complete:false,missing_proofs:['platform_project_id','active_scene_project_id','remote_model_ids','remote_model_generations'],blocked_non_read_requests:blockedRequests};
 }
-function allowedReal(value:string):URL {
- let url:URL;try{url=new URL(value);}catch{throw new SyncError('CONFIG','A valid allowed HTTPS platform URL is required.');}
- if(url.origin!==realOrigin||url.pathname!=='/planning-review'||url.username||url.password)throw new SyncError('CONFIG','Only the allowed HTTPS platform origin and /planning-review path are supported.');return url;
-}
 function fixtureUrl(value:string|undefined):URL {
  let url:URL;try{url=new URL(value??'');}catch{throw new SyncError('CONFIG','Fixture URL must use a literal loopback address.');}
  if(url.protocol!=='http:'||!['127.0.0.1','[::1]'].includes(url.hostname)||url.username||url.password||url.search||url.hash)throw new SyncError('CONFIG','Fixture URL must be an HTTP literal loopback address without credentials.');return url;
 }
-async function contextFor(config:Config,real:boolean):Promise<BrowserContext>{
+export async function contextFor(config:Config,real:boolean):Promise<BrowserContext>{
  const profile=resolve(config.browser_profile);if(!isAbsolute(config.browser_profile)||/[\\/](?:Google[\\/]Chrome|Microsoft[\\/]Edge)[\\/]User Data(?:[\\/]|$)/i.test(profile))throw new SyncError('CONFIG','Use a dedicated absolute browser profile directory.');
  mkdirSync(profile,{recursive:true});const executable=process.env.HIFC_SYNC_CHROMIUM;
  if(executable&&!existsSync(executable))throw new SyncError('CONFIG','HIFC_SYNC_CHROMIUM executable is unavailable.');
@@ -97,33 +92,8 @@ export class FixtureBrowserAdapter implements PlatformAdapter {
  async close(){if(!this.closed){this.closed=true;await this.context.close();}}
 }
 
-/** Preview deliberately cannot mutate a real platform. DOM identity must be publicly proven. */
-export class RealReadonlyBrowserAdapter implements PlatformAdapter {
- readonly mode='real-readonly' as const;private context?:BrowserContext;private page?:Page;private readonly entry:URL;private blockedRequests=0;
- constructor(private readonly config:Config,entryUrl:string){this.entry=allowedReal(entryUrl);}
- private denied():never{throw new SyncError('BLOCKED','Real platform is read-only in this preview; platform writes are disabled.');}
- async inspectEvidence():Promise<ReadonlyEvidence>{
-  if(!this.context){this.context=await contextFor(this.config,true);await this.context.route('**/*',route=>{if(['GET','HEAD','OPTIONS'].includes(route.request().method()))return route.continue();this.blockedRequests++;return route.abort('blockedbyclient');});this.page=this.context.pages()[0]??await this.context.newPage();this.page.setDefaultTimeout(30000);try{await this.page.goto(this.entry.href,{waitUntil:'domcontentloaded',timeout:60000});await this.page.locator('body').waitFor({state:'visible'});}catch{throw new SyncError('LOGIN','Read-only platform connection could not be established. Login or HTTPS trust may require attention.');}}
-  const page=this.page!;allowedReal(page.url());return visibleEvidence(page,this.blockedRequests);
- }
- async snapshot():Promise<Snapshot>{
-  const evidence=await this.inspectEvidence();
-  if(evidence.login_required){const error=new SyncError('LOGIN','The dedicated platform browser needs login.');Object.assign(error,{evidence});throw error;}
-  // No frontend-private Vue state, undocumented APIs, guessed IDs, config-as-evidence or
-  // name-only matching is used. The present platform has not exposed a proven visible
-  // project + active-scene identity and model-generation contract to this adapter.
-  const error=new SyncError('BLOCKED','Read-only page opened. Project, active-scene and model-generation identity cannot yet be proven from the documented visible UI; live binding is blocked pending adapter acceptance.');Object.assign(error,{evidence});throw error;
- }
- async backup(_model:Model):Promise<Backup>{throw new SyncError('BLOCKED','A real previous IFC download and matching current generation have not been verified.');}
- async deleteModel(_model:Model,_operationId:string):Promise<void>{this.denied();}
- async upload(_file:string,_sha256:string,_operationId:string):Promise<{upload_id:string}>{this.denied();}
- async submit(_uploadId:string,_name:string,_operationId:string):Promise<{model_id:string;generation:string}>{this.denied();}
- async progress(_operationId:string):Promise<Progress>{throw new SyncError('BLOCKED','Current-run result correlation is not accepted for the real platform.');}
- async operation(_operationId:string):Promise<Operation>{throw new SyncError('BLOCKED','Real operation reconciliation is unavailable in this read-only preview.');}
- async close(){if(this.context){const context=this.context;this.context=undefined;this.page=undefined;await context.close();}}
-}
 export async function createAdapter(config:Config,entryUrl?:string):Promise<PlatformAdapter>{
  if(config.adapter==='fixture')return FixtureBrowserAdapter.create(config);
- if(config.adapter==='real-readonly')return new RealReadonlyBrowserAdapter(config,entryUrl??'');
+ if(config.adapter==='real-readonly'||config.adapter==='real'){const {RealBrowserAdapter}=await import('./real-browser.js');return new RealBrowserAdapter(config,entryUrl??'');}
  throw new SyncError('CONFIG','Unsupported browser adapter.');
 }

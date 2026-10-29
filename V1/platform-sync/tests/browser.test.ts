@@ -6,12 +6,14 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {Store} from '../src/store.js';
 import {SyncEngine} from '../src/engine.js';
-import {createAdapter,FixtureBrowserAdapter,RealReadonlyBrowserAdapter} from '../src/browser.js';
+import {createAdapter,FixtureBrowserAdapter} from '../src/browser.js';
 import {startFixture,type FixtureFaults} from '../src/fixture.js';
+import {RealBrowserAdapter as RealReadonlyBrowserAdapter} from '../src/real-browser.js';
 import type {Config,Handoff} from '../src/types.js';
+import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
 
 const hash=(v:Buffer)=>createHash('sha256').update(v).digest('hex');
-const ifc=(name:string)=>Buffer.from(`ISO-10303-21;\nHEADER;FILE_DESCRIPTION(('${name}'),'2;1');ENDSEC;\nDATA;#1=IFCPROJECT($);ENDSEC;\nEND-ISO-10303-21;`);
+const ifc=(name:string)=>Buffer.from(`ISO-10303-21;\nHEADER;FILE_DESCRIPTION(('${name}'),'2;1');FILE_SCHEMA(('IFC2X3'));ENDSEC;\nDATA;#1=IFCPROJECT($);ENDSEC;\nEND-ISO-10303-21;`);
 function manifest(root:string){
  const dir=join(root,'input');mkdirSync(dir);const bytes=ifc('current'),id=randomUUID();
  const receipt=Buffer.from(JSON.stringify({schema_version:'hifc.native-export-receipt/1.5',export_id:id,ifc_sha256:hash(bytes),source_snapshot_before:'same',source_snapshot_after:'same',model_transaction:'RolledBack',export_scope:'CURRENT_PROJECT',doc_export_calls:1,ifc_postprocessed:false,original_export_server_restored:true,temporary_type_schedules_rolled_back:true}));
@@ -27,8 +29,17 @@ async function setup(faults:FixtureFaults={}){
 }
 
 test('browser plan has no writes; scoped UI replacement verifies current calculation separately from regulation',async()=>{
- const c=await setup();try{assert.equal(c.run.state,'PLANNED');assert.deepEqual(c.fixture.counters(),{delete:0,upload:0,submit:0});
+ const c=await setup();try{assert.equal((await c.adapter.snapshot()).writable,true,'fixture must expose editability to the plugin start gate');assert.equal(c.run.state,'PLANNED');assert.deepEqual(c.fixture.counters(),{delete:0,upload:0,submit:0});
  const r=await c.engine.run(c.run.id);assert.equal(r.state,'SUCCEEDED');assert.equal(r.calculation_status,'completed');assert.equal(r.regulation_status,'failed');assert.deepEqual(c.fixture.counters(),{delete:1,upload:1,submit:1});assert.notEqual(c.store.binding(c.binding.id).remote_model_id,c.run.baseline.id);
+ }finally{await c.close();}
+});
+
+test('background start returns before completion and worker continues after launcher exits',async()=>{
+ const c=await setup();try{
+  await c.adapter.close();const config=join(c.root,'config.json');writeFileSync(config,JSON.stringify(c.config));const cli=fileURLToPath(new URL('../src/cli.js',import.meta.url));
+  const start=spawnSync(process.execPath,[cli,'start','--config',config,'--run',c.run.id,'--apply'],{encoding:'utf8',windowsHide:true,timeout:15000});assert.equal(start.status,0,start.stderr);assert.equal(JSON.parse(start.stdout).started,true);
+  let r=c.store.run(c.run.id);const end=Date.now()+45000;while(r.state!=='SUCCEEDED'&&Date.now()<end){await new Promise(x=>setTimeout(x,200));r=c.store.run(c.run.id);}
+  assert.equal(r.state,'SUCCEEDED',r.reason);assert.deepEqual(c.fixture.counters(),{delete:1,upload:1,submit:1});
  }finally{await c.close();}
 });
 test('lost delete response survives browser restart and reconciles without repeating deletion',async()=>{

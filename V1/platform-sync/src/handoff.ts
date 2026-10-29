@@ -7,6 +7,8 @@ import {SyncError,type Handoff} from './types.js';
 const fail=(message:string):never=>{throw new SyncError('BLOCKED',message);};
 export function assertIfc(bytes:Buffer):void {
  if(bytes.length<40||!bytes.subarray(0,4096).toString('utf8').replace(/^\uFEFF/,'').trimStart().startsWith('ISO-10303-21;')||!bytes.subarray(Math.max(0,bytes.length-4096)).toString('utf8').includes('END-ISO-10303-21;'))fail('Backup/payload is not a complete STEP IFC.');
+ const text=bytes.toString('utf8'),header=/HEADER\s*;([\s\S]*?)ENDSEC\s*;/i.exec(text);
+ if(!header||!/FILE_SCHEMA\s*\(\s*\(\s*'IFC(?:2X3|4)[A-Z0-9_]*'\s*\)\s*\)\s*;/i.test(header[1]!)||! /DATA\s*;[\s\S]*#\d+\s*=\s*IFCPROJECT\s*\([\s\S]*ENDSEC\s*;\s*END-ISO-10303-21\s*;\s*$/i.test(text))fail('Backup/payload lacks an IFC schema or complete IFC project data section.');
 }
 export function verifyHandoff(manifestPath:string):{handoff:Handoff;ifcPath:string;receiptPath:string} {
  try{
