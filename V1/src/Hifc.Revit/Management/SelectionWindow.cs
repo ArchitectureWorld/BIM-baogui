@@ -1,4 +1,5 @@
 using System;
+using Hifc.Reference;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,6 +14,8 @@ namespace Hifc.Revit.Management
         readonly ISelectionSession session;
         readonly TextBlock summary = new TextBlock(), status = new TextBlock(), details = new TextBlock();
         readonly Button read = new Button { Content = "读取当前选择" }, write = new Button { Content = "写入所选构件" };
+        readonly Button fullReport=new Button {Content="完整检查报告",IsEnabled=false,Margin=new Thickness(12,0,0,0)};
+        string fullReportPath;
         bool restoring, busy, stale = true;
         internal SelectionDraft Draft { get; private set; }
         internal ComboBox StageSelector { get; } = new ComboBox { Width=110, ItemsSource=new[]{"报规","施工图"} };
@@ -48,10 +51,10 @@ namespace Hifc.Revit.Management
                 if(!ConfirmDiscard()){restoring=true;SlotSelector.SelectedItem=Draft?.Slot;restoring=false;return;}
                 session.Classify((string)SlotSelector.SelectedItem);
             };
-            Configure(FieldGrid,false);FieldGrid.SelectionUnit=DataGridSelectionUnit.CellOrRowHeader;
+            Configure(FieldGrid,false);FieldGrid.RowHeight=double.NaN;FieldGrid.MinRowHeight=34;FieldGrid.SelectionUnit=DataGridSelectionUnit.CellOrRowHeader;
             FieldGrid.Columns.Add(Column("属性","Property",200,false));
             var value=new ValueColumn {Header="值（单击修改）",MinWidth=180,Binding=new Binding("Value") {Mode=BindingMode.TwoWay,UpdateSourceTrigger=UpdateSourceTrigger.LostFocus,ValidatesOnExceptions=true},Width=new DataGridLength(1,DataGridLengthUnitType.Star)};
-            var cellStyle=new Style(typeof(DataGridCell));cellStyle.Setters.Add(new Setter(Control.BackgroundProperty,new Binding("Background")));value.CellStyle=cellStyle;FieldGrid.Columns.Add(value);
+            var cellStyle=new Style(typeof(DataGridCell));cellStyle.Setters.Add(new Setter(Control.BackgroundProperty,new Binding("Background")));cellStyle.Setters.Add(new Setter(ToolTipProperty,new Binding("AreaHint")));value.CellStyle=cellStyle;FieldGrid.Columns.Add(value);
             FieldGrid.Columns.Add(Column("状态","State",110,false));FieldGrid.Columns.Add(Column("来源 / 说明","Detail",230,false));
             FieldGrid.BeginningEdit+=(s,e)=>{if(!CanWrite || !(e.Row.Item is SelectionField f) || !f.Editable)e.Cancel=true;};
             FieldGrid.PreviewMouseLeftButtonDown+=(s,e)=>{
@@ -62,6 +65,7 @@ namespace Hifc.Revit.Management
             Grid.SetRow(FieldGrid,4);root.Children.Add(FieldGrid);
             details.TextWrapping=TextWrapping.Wrap;details.Margin=new Thickness(0,10,0,8);details.Foreground=LiquidGlassTheme.Color("#645B48");Grid.SetRow(details,5);root.Children.Add(details);
             var footer=new DockPanel();Grid.SetRow(footer,6);root.Children.Add(footer);write.Margin=new Thickness(12,0,0,0);LiquidGlassTheme.Primary(write);DockPanel.SetDock(write,Dock.Right);footer.Children.Add(write);
+            DockPanel.SetDock(fullReport,Dock.Right);footer.Children.Add(fullReport);fullReport.Click+=(s,e)=>{if(System.IO.File.Exists(fullReportPath))System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(fullReportPath){UseShellExecute=true});};
             status.Text="先在 Revit 中选择构件，再读取当前选择。";status.TextWrapping=TextWrapping.Wrap;status.VerticalAlignment=VerticalAlignment.Center;footer.Children.Add(status);
             write.Click+=(s,e)=>{try{CommitEditors();if(!CanWrite)throw new InvalidOperationException("请重新读取选择并指定业务类目。");session.Write(Draft.BuildRequests());}catch(Exception ex){SetStatus(ex.Message,true);}};
             Closed+=(s,e)=>session.Close();UpdateButtons();
@@ -85,22 +89,50 @@ namespace Hifc.Revit.Management
             Draft.SetClassification(slot,preview.ProposedElements);Draft.UpdateHistory(history);FieldGrid.ItemsSource=Draft.Fields;
             restoring=true;SlotSelector.SelectedItem=slot;restoring=false;stale=false;SetBusy(false);
             details.Text="将处理 "+Draft.Snapshot.Elements.Length+" 个实例；清理旧类目专属值 "+preview.Changes.Count(c=>c.Action=="清空")+" 项，补充参数 "+preview.Changes.Count(c=>c.Action=="新增参数")+" 项。";
+            var migrations=preview.Changes.Where(c=>c.Action=="迁移布尔").ToArray();
+            if(migrations.Length>0)details.Text+="\n是否参数将统一为原生复选框："+string.Join("；",migrations.Select(c=>c.Source+" / "+c.Detail));
             SetStatus(preview.Conflicts.Length>0?string.Join("；",preview.Conflicts):"自动值按每个构件分别计算；“多个值”仅为显示提示。",preview.Conflicts.Length>0);UpdateButtons();
         }
         internal void SetBusy(bool value){busy=value;StageSelector.IsEnabled=KindSelector.IsEnabled=SlotSelector.IsEnabled=!value;FieldGrid.IsEnabled=!value;UpdateButtons();}
-        internal void MarkStale(string text){stale=true;SetStatus(text,true);UpdateButtons();}
+        internal void MarkStale(string text){stale=true;fullReport.IsEnabled=false;SetStatus(text,true);UpdateButtons();}
         internal void SetStatus(string text,bool error=false){status.Text=text;status.Foreground=LiquidGlassTheme.Color(error?"#B83138":"#26465B");}
+        internal void SetFullCheckReport(string path){fullReportPath=path;fullReport.IsEnabled=System.IO.File.Exists(path);}
         void UpdateButtons(){write.IsEnabled=CanWrite;read.IsEnabled=!busy;}
         internal void CommitEditors(){if(!FieldGrid.CommitEdit(DataGridEditingUnit.Cell,true)||!FieldGrid.CommitEdit(DataGridEditingUnit.Row,true))throw new InvalidOperationException("请修正当前属性值后再写入。");}
         sealed class ValueColumn:DataGridTextColumn
         {
+            static CheckBox BooleanBox(bool editing)
+            {
+                var box=new CheckBox {IsThreeState=false,IsHitTestVisible=editing,Focusable=editing,VerticalAlignment=VerticalAlignment.Center,Margin=new Thickness(5,3,5,3)};
+                box.SetBinding(CheckBox.IsCheckedProperty,new Binding("Checked"){Mode=editing?BindingMode.TwoWay:BindingMode.OneWay,UpdateSourceTrigger=UpdateSourceTrigger.LostFocus,ValidatesOnExceptions=true});
+                box.SetBinding(ContentControl.ContentProperty,new Binding("Value"));return box;
+            }
+            protected override FrameworkElement GenerateElement(DataGridCell cell,object item)
+            {
+                if((item as SelectionField)?.RawType=="Boolean")return BooleanBox(false);
+                if(string.IsNullOrEmpty((item as SelectionField)?.AreaHint)&&!ClassificationInputs.Supports(((SelectionField)item).Field.PropertySet,((SelectionField)item).Property))return base.GenerateElement(cell,item);
+                var panel=new StackPanel {Margin=new Thickness(3,2,3,2)};
+                var value=new TextBlock {TextWrapping=TextWrapping.Wrap};value.SetBinding(TextBlock.TextProperty,new Binding("Value"));panel.Children.Add(value);
+                var hint=new TextBlock {TextWrapping=TextWrapping.Wrap,FontSize=11,Foreground=LiquidGlassTheme.Color("#4376AD")};
+                hint.SetBinding(TextBlock.TextProperty,new Binding("AreaHint"));panel.Children.Add(hint);
+                var warning=new TextBlock {TextWrapping=TextWrapping.Wrap,FontSize=11,Foreground=LiquidGlassTheme.Color("#8A602B")};
+                var warningStyle=new Style(typeof(TextBlock));var empty=new DataTrigger {Binding=new Binding("ValueHint"),Value=""};
+                empty.Setters.Add(new Setter(VisibilityProperty,Visibility.Collapsed));warningStyle.Triggers.Add(empty);warning.Style=warningStyle;
+                warning.SetBinding(TextBlock.TextProperty,new Binding("ValueHint"));panel.Children.Add(warning);
+                return panel;
+            }
             protected override FrameworkElement GenerateEditingElement(DataGridCell cell,object item)
             {
-                if(!((SelectionField)item).RawType.Equals("Boolean",StringComparison.Ordinal))return base.GenerateEditingElement(cell,item);
-                var combo=new ComboBox {ItemsSource=((SelectionField)item).Choices,VerticalContentAlignment=VerticalAlignment.Center};
-                combo.SetBinding(ComboBox.SelectedItemProperty,new Binding("Value") {Mode=BindingMode.TwoWay,UpdateSourceTrigger=UpdateSourceTrigger.LostFocus,ValidatesOnExceptions=true});return combo;
+                var field=(SelectionField)item;
+                if(field.RawType=="Boolean")return BooleanBox(true);
+                if(field.ValueChoices.Length==0&&!ClassificationInputs.Supports(field.Field.PropertySet,field.Property))return base.GenerateEditingElement(cell,item);
+                var combo=new ComboBox {IsEditable=true,IsTextSearchEnabled=false,VerticalContentAlignment=VerticalAlignment.Center,Padding=new Thickness(3,0,3,0)};
+                combo.SetBinding(ComboBox.ItemsSourceProperty,new Binding("ValueChoices"));combo.SetBinding(ToolTipProperty,new Binding("ValueHint"));
+                combo.SetBinding(ComboBox.TextProperty,new Binding("Value"){Mode=BindingMode.TwoWay,UpdateSourceTrigger=UpdateSourceTrigger.LostFocus,ValidatesOnExceptions=true});return combo;
             }
-            protected override bool CommitCellEdit(FrameworkElement element){if(element is ComboBox combo){combo.GetBindingExpression(ComboBox.SelectedItemProperty)?.UpdateSource();return !Validation.GetHasError(combo);}return base.CommitCellEdit(element);}
+            protected override object PrepareCellForEdit(FrameworkElement element,RoutedEventArgs args){if(element is CheckBox box){var prior=box.IsChecked;box.Focus();if(args is MouseButtonEventArgs)box.IsChecked=!(prior??false);return prior;}if(element is ComboBox combo){combo.Focus();return combo.Text;}return base.PrepareCellForEdit(element,args);}
+            protected override bool CommitCellEdit(FrameworkElement element){if(element is CheckBox box){box.GetBindingExpression(CheckBox.IsCheckedProperty)?.UpdateSource();return !Validation.GetHasError(box);}if(element is ComboBox combo){combo.GetBindingExpression(ComboBox.TextProperty)?.UpdateSource();return !Validation.GetHasError(combo);}return base.CommitCellEdit(element);}
+            protected override void CancelCellEdit(FrameworkElement element,object value){if(element is CheckBox box)box.GetBindingExpression(CheckBox.IsCheckedProperty)?.UpdateTarget();else if(element is ComboBox combo)combo.GetBindingExpression(ComboBox.TextProperty)?.UpdateTarget();else base.CancelCellEdit(element,value);}
         }
     }
 }

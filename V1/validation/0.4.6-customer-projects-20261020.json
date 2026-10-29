@@ -1,0 +1,205 @@
+{
+  "test_date": "2026-10-20",
+  "version": "0.4.6",
+  "phase": "报规",
+  "execution_completed": true,
+  "ready_for_submission": false,
+  "production_changed": false,
+  "git_pushed": false,
+  "platform_acceptance_verified": false,
+  "baseline_run": "customer-projects-20261020-174216",
+  "manual_followup_run": "customer-projects-20261020-190258",
+  "models": [
+    {
+      "name": "3D_歇马镇中心学校 (2)",
+      "automatic_kind": "待确认",
+      "tested_kind": "单体建筑",
+      "actions": {
+        "新增参数": 70,
+        "赋值": 16
+      },
+      "save_reopen_verified": true,
+      "mapping": {
+        "all_passed": false,
+        "verified_properties": 22,
+        "observed_properties": 48,
+        "schema_error_count": 0,
+        "temporary_bridge_property_count": 0,
+        "failure_codes": {
+          "OWNER_NOT_UNIQUE": 6,
+          "SOURCE_VALUE_MISSING": 24,
+          "PROPERTY_NOT_UNIQUE_OR_UNSUPPORTED": 21
+        },
+        "non_source_missing_failures": [
+          {
+            "code": "OWNER_NOT_UNIQUE",
+            "element_id": "392081",
+            "matches": 0
+          },
+          {
+            "element_id": "392081",
+            "property_set": "Pset_建筑楼层信息属性集",
+            "property": "建筑基底",
+            "source_parameter": "建筑基底",
+            "problems": [
+              "OWNER_NOT_UNIQUE"
+            ],
+            "passed": false
+          },
+          {
+            "element_id": "392081",
+            "property_set": "Pset_建筑楼层信息属性集",
+            "property": "楼层名称",
+            "source_parameter": "楼层名称",
+            "problems": [
+              "OWNER_NOT_UNIQUE"
+            ],
+            "passed": false
+          }
+        ]
+      },
+      "fields_valid": 17,
+      "fields_in_scan": 72,
+      "native_area_difference_count": 2,
+      "all_body_geometry": {
+        "model": "3D_歇马镇中心学校 (2)",
+        "products_with_body": 4649,
+        "meshed": 4648,
+        "failed": 1,
+        "failures": [
+          {
+            "step_id": 7739,
+            "tag": "613491",
+            "entity": "IfcWall",
+            "name": "基本墙:外墙:613491",
+            "mesh": null,
+            "passed": false,
+            "explicit_body_attempts": [
+              {
+                "representation_id": 7733,
+                "error": "Failed to process shape. Product: #7739=IfcWall('0IVlyr41D0qfNMs7$v95UA',#42,'基本墙:外墙:613491',$,'基本墙:外墙',#7704,#7735,'613491',.NOTDEFINED.), representation: #7733=IfcShapeRepresentation(#105,'Body','SweptSolid',(#7732))",
+                "diagnostics": "{\"level\":\"warning\",\"code\":\"GEO208\",\"message\":\"Added additional segment to close gap with length 5.8418498224186504 to:\",\"instance\":\"#7729=IfcIndexedPolyCurve(#7712,$,.F.)\",\"time\":\"2026-10-20 19:12:26\"}\n{\"level\":\"error\",\"code\":\"GEO027\",\"message\":\"Unknown error creating geometry\",\"instance\":\"#7732=IfcExtrudedAreaSolid(#7730,#7731,#20,800.)\",\"time\":\"2026-10-20 19:12:26\"}\n"
+              }
+            ]
+          }
+        ],
+        "by_entity": {
+          "IfcColumn": 1,
+          "IfcMember": 2880,
+          "IfcPlate": 1052,
+          "IfcRailing": 15,
+          "IfcSlab": 8,
+          "IfcWall": 567,
+          "IfcOpeningElement": 126
+        },
+        "elapsed_seconds": 6.469000000040978,
+        "scope": "IFC Body mesh generation only; not source geometry equivalence or platform approval"
+      },
+      "ifc_sha256": "81956d13f03a2a90cc2a6de34e5a0d2ecbf9a8d9e77852d83550104da0be0cb9"
+    },
+    {
+      "name": "3D_歇马镇中心学校-总图",
+      "automatic_kind": "总图",
+      "tested_kind": "自动识别",
+      "actions": {
+        "新增参数": 76,
+        "分类": 19,
+        "赋值": 19
+      },
+      "save_reopen_verified": true,
+      "mapping": {
+        "all_passed": false,
+        "verified_properties": 43,
+        "observed_properties": 81,
+        "schema_error_count": 0,
+        "temporary_bridge_property_count": 0,
+        "failure_codes": {
+          "SOURCE_VALUE_MISSING": 38,
+          "PROPERTY_NOT_UNIQUE_OR_UNSUPPORTED": 38
+        },
+        "non_source_missing_failures": []
+      },
+      "fields_valid": 23,
+      "fields_in_scan": 61,
+      "native_area_difference_count": 13,
+      "all_body_geometry": {
+        "model": "3D_歇马镇中心学校-总图",
+        "products_with_body": 26,
+        "meshed": 25,
+        "failed": 1,
+        "failures": [
+          {
+            "step_id": 3287,
+            "tag": "720177",
+            "entity": "IfcSlab",
+            "name": "楼板:道路:720177",
+            "mesh": null,
+            "passed": false,
+            "explicit_body_attempts": [
+              {
+                "representation_id": 3279,
+                "error": "Failed to process shape. Product: #3287=IfcSlab('1Z$OXZpK9DKABuFCLDY1jX',#42,'楼板:道路:720177',$,'楼板:道路',#3078,#3283,'720177',.FLOOR.), representation: #3279=IfcShapeRepresentation(#105,'Body','SweptSolid',(#3182))",
+                "diagnostics": "{\"level\":\"error\",\"code\":\"GEO027\",\"message\":\"BRep_API: command not done\",\"instance\":\"#3182=IfcExtrudedAreaSolid(#3176,#3181,#22,100.)\",\"time\":\"2026-10-20 19:12:26\"}\n"
+              }
+            ]
+          }
+        ],
+        "by_entity": {
+          "IfcSlab": 24,
+          "IfcSpace": 2
+        },
+        "elapsed_seconds": 0.10899999993853271,
+        "scope": "IFC Body mesh generation only; not source geometry equivalence or platform approval"
+      },
+      "ifc_sha256": "3f76631856dea10a375b7fa2a5f8fe276ecd812ce70fdcbd60bbdc62ba76af50"
+    }
+  ],
+  "land_boundary_overlap": {
+    "ids": [
+      717724,
+      718055
+    ],
+    "boundary_tessellation_symmetric_difference_m2": 1.9517668165883374e-12,
+    "native_top_z_m": [
+      -0.3,
+      -0.15
+    ],
+    "business_duplicate_not_assumed": true
+  },
+  "preservation": {
+    "revit_processes": 0,
+    "formal_manifest_present": true,
+    "temporary_manifest_removed": true,
+    "time": "2026-10-20T19:13:05.4672933+08:00",
+    "normal_journal_exit": true,
+    "originals": [
+      {
+        "unchanged": true,
+        "source": "D:\\18_建模项目\\2026.10_报规_\\3D_歇马镇中心学校 (2).rvt",
+        "sha256": "34fb87f356f79121e9ce7d2e0901af6caa13a7fbf86b1fe26735ca8b9ac94981",
+        "name": "3D_歇马镇中心学校 (2)"
+      },
+      {
+        "unchanged": true,
+        "source": "D:\\18_建模项目\\2026.10_报规_\\3D_歇马镇中心学校-总图.rvt",
+        "sha256": "a5921577b8f13ff22f27d1d5de29274f96269ef5ad6e07b1f1c4567c9b60b318",
+        "name": "3D_歇马镇中心学校-总图"
+      }
+    ],
+    "installed_assemblies": [
+      {
+        "unchanged": true,
+        "sha256": "a7f8ea5c70e12e968d411b0a2f7a07ba4f66c9ca341fe3220be3176471e2e45e",
+        "name": "Hifc.V1.Revit",
+        "version": "0.4.6.0"
+      },
+      {
+        "unchanged": true,
+        "sha256": "9b7cfcbf01ad6c07abc92fe947249f8a68322b2f4b64880c11471d02737016d7",
+        "name": "Hifc.Reference.Core",
+        "version": "0.4.6.0"
+      }
+    ]
+  },
+  "report": "docs/0.4.6-新项目实测报告.md"
+}

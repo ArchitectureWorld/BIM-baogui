@@ -1,0 +1,57 @@
+{
+  "version": "0.4.15",
+  "assembly_version": "0.4.15.0",
+  "date": "2026-10-23",
+  "scope": "Canonical name and redline-type suggestions, UI previews and production write enforcement for confirmed net-land control lines",
+  "tests": {
+    "wpf": 105,
+    "python": 34,
+    "core": 218,
+    "failures": 0
+  },
+  "red_phase": {
+    "core_failed": 5,
+    "wpf_failed": 3
+  },
+  "build": {
+    "warnings": 0,
+    "errors": 0,
+    "log": "build-0.4.15.log"
+  },
+  "package": "../dist/Hifc.V1.Revit2020-0.4.15",
+  "installed_version": "0.4.15",
+  "installation_status": "installed and actual loaded assemblies verified against package",
+  "install_receipt": "../outputs/install-20261023-103329-1f6d72bb/install-receipt.json",
+  "native_run": "control-line-defaults-0.4.15-20261023-103431",
+  "native_checks": 23,
+  "independent_checks": 151,
+  "native_check_failures": 0,
+  "native_ifc_verified": true,
+  "save_reopen_verified": true,
+  "original_rvt_changed": false,
+  "original_rvt_sha256": "b551da64be44d1d65ad0a05cbfab7bb4bee6a47cd70d423ae3c4de0aab5fe5aa",
+  "unselected_parameters_and_geometry_preserved": true,
+  "mapped_properties": 55,
+  "geometry_bodies": 26,
+  "parking_areas": 2,
+  "schema_errors": 0,
+  "control_line": {
+    "名称": "净用地控制红线",
+    "红线类型": "净用地控制红线"
+  },
+  "native_ifc_sha256": "ea7be93b1328075eb0bf3d1e8b9b98b7af166239869cb77560da27347eb0980c",
+  "native_report": "control-line-defaults-0.4.15-20261023-103431/final-verification.json",
+  "initial_test_helper_failure": "control-line-defaults-0.4.15-20261023-103431/attempt01-parameter-snapshot/acceptance-failed.json",
+  "temporary_addin_removed": true,
+  "platform_submitted": false,
+  "latest_customer_delivery": {
+    "source_preserved": true,
+    "directory": "../../artifacts/site02-updated-export-20261023-101348",
+    "maximum_mesh_area_difference_m2": 0.09442740097460955,
+    "strict_geometry_area_verified": false,
+    "ifc_sha256": "0905b8d251b23ab027a40829c6e6781c8fac8a05b0f6da7c1f710c222914307b",
+    "exporter_version": "0.4.14.0"
+  },
+  "git_committed": false,
+  "git_pushed": false
+}

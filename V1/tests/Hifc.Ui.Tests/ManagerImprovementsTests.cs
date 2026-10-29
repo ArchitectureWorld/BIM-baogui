@@ -48,12 +48,13 @@ internal static class ManagerImprovementsTests
             Assert(cell.IsEditing && Visual<TextBox>(cell) != null, "Single mouse event only selected the filled cell");
             window.FieldGrid.CancelEdit();
         });
-        check("boolean_editor_shows_unfilled_yes_no_without_losing_false", () => {
-            var content = Edit(window, fake.Snapshot.Elements[1], 0); var combo = Visual<ComboBox>(content);
-            Assert(combo != null, "Boolean is still a free text field");
-            Assert(combo.Items.Cast<string>().SequenceEqual(new[] { "未填写", "是", "否" }) && (string)combo.SelectedItem == "否", "False not shown explicitly");
-            combo.SelectedItem = "是"; window.FieldGrid.CommitEdit();
-            Assert(window.DraftRequests.Any(r => r.Value == "1"), "Dropdown did not stage true");
+        check("boolean_editor_is_checkbox_without_losing_false", () => {
+            var content = Edit(window, fake.Snapshot.Elements[1], 0); var checkbox = Visual<CheckBox>(content);
+            Assert(checkbox != null, "Boolean is not a standard checkbox");
+            Assert(checkbox.IsChecked == false && !checkbox.IsThreeState, "False not shown as unchecked");
+            checkbox.IsChecked = true; window.FieldGrid.CommitEdit();
+            Assert(window.DraftRequests.Any(r => r.Value == "1"), "Checkbox did not stage true");
+            Program.Screenshot(window,Path.Combine(output,"manager-boolean-checkbox.png"));
         });
         check("project_building_presets_allow_missing_factory_category", () => {
             window.FieldGrid.CancelEdit(); var content = Edit(window, fake.Snapshot.Elements[2], 0); var combo = Visual<ComboBox>(content);
@@ -92,7 +93,8 @@ internal static class ManagerImprovementsTests
         });
         check("role_remains_red_after_draft_and_clears_only_after_fresh_readback", () => {
             var road = new ModelElementCheck { Id = 4, UniqueId = "road", Name = "道路", Entity = "IfcSlab", Slot = "道路边界线", Classified = true,
-                Fields = new[] { new FieldCheck { PropertySet = "Pset_道路边界线信息属性集", Property = "道路宽度", Source = "道路边界线道路宽度", RawType = "Real", State = "未填写", Editable = true, OwnerId = 4, OwnerUniqueId = "road", Binding = "实例" } } };
+                Fields = new[] { new FieldCheck { PropertySet = "Pset_道路边界线信息属性集", Property = "道路宽度", Source = "道路边界线道路宽度", RawType = "Real", State = "未填写", Editable = true, OwnerId = 4, OwnerUniqueId = "road", Binding = "实例" },
+                    new FieldCheck { PropertySet = "Pset_道路边界线信息属性集", Property = "区内道路类型", Source = "区内道路类型", State = "有效", Value = "消防道路" } } };
             fake.Snapshot.Elements = new[] { road }; window.Accept(fake.Snapshot); window.ElementGrid.SelectedItem = road;
             var list = (ListBox)typeof(ManagerWindow).GetField("roleList",Flags).GetValue(window);
             Func<Color> color = () => ((SolidColorBrush)list.Items.Cast<object>().Single(i => ((RoleCoverage)i.GetType().GetProperty("Role").GetValue(i)).Slot == "道路边界线").GetType().GetProperty("Foreground").GetValue(list.Items.Cast<object>().Single(i => ((RoleCoverage)i.GetType().GetProperty("Role").GetValue(i)).Slot == "道路边界线"))).Color;

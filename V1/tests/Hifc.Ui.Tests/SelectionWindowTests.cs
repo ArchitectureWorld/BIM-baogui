@@ -44,6 +44,17 @@ internal static class SelectionWindowTests
             var png=new PngBitmapEncoder();png.Frames.Add(BitmapFrame.Create(bitmap));using(var stream=File.Create(Path.Combine(output,"selection-window.png")))png.Save(stream);
         });
         check("selection_stale_model_prevents_button_write",()=>{session.Written=null;window.MarkStale("模型已变更");FindButton(window,"写入所选构件").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));Assert(!window.CanWrite&&session.Written==null);});
+        check("selection_boolean_checkbox_supports_mixed_and_repeated_edits",()=>{
+            foreach(var row in rows)row.Fields=row.Fields.Concat(new[]{new FieldCheck {PropertySet="Pset_绿地信息属性集",Property="是否计入",Source="test-boolean",RawType="Boolean",Binding="实例",OwnerId=row.Id,OwnerUniqueId=row.UniqueId,State="有效",Value=row.Id==1?"1":"0",Editable=true,Origin="instance"}}).ToArray();
+            window.Accept(new SelectionReadResult {Snapshot=snapshot,Slots=new[]{"绿地"},SelectedCount=2});window.ShowClassification("绿地",new EditPreview {ProposedElements=rows,Changes=new EditChange[0]},new ManualWrite[0]);window.UpdateLayout();
+            var item=window.FieldGrid.Items.Cast<SelectionField>().Single(f=>f.RawType=="Boolean");Assert(item.Checked==null);
+            window.FieldGrid.CurrentCell=new DataGridCellInfo(item,window.FieldGrid.Columns[1]);Assert(window.FieldGrid.BeginEdit());window.UpdateLayout();
+            var checkbox=ManagerImprovementsTests.Visual<CheckBox>(window.FieldGrid.Columns[1].GetCellContent(item));Assert(checkbox!=null&&!checkbox.IsThreeState);
+            checkbox.IsChecked=false;window.CommitEditors();Assert(item.Checked==false&&window.Draft.BuildRequests().Single(r=>r.Source=="test-boolean").Value=="0");
+            window.FieldGrid.CurrentCell=new DataGridCellInfo(item,window.FieldGrid.Columns[1]);Assert(window.FieldGrid.BeginEdit());window.UpdateLayout();
+            checkbox=ManagerImprovementsTests.Visual<CheckBox>(window.FieldGrid.Columns[1].GetCellContent(item));checkbox.IsChecked=true;window.CommitEditors();Assert(item.Checked==true&&window.Draft.BuildRequests().Single(r=>r.Source=="test-boolean").Value=="1");
+            window.Width=1000;window.UpdateLayout();Program.Screenshot(window,Path.Combine(output,"selection-boolean-checkbox.png"));
+        });
         window.Close();
     }
     static Button FindButton(DependencyObject root,string text)

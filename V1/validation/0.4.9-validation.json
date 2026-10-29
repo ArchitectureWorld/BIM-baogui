@@ -1,0 +1,89 @@
+{
+  "version": "0.4.9",
+  "assembly_version": "0.4.9.0",
+  "date": "2026-10-21",
+  "status": "INSTALLED_PACKAGE_VERIFIED_NEXT_HOST_LOAD_PENDING",
+  "core": {
+    "passed": 191,
+    "failed": 0
+  },
+  "wpf": {
+    "passed": 90,
+    "failed": 0
+  },
+  "python": {
+    "passed": 30,
+    "failed": 0
+  },
+  "build_log": "validation/build-0.4.9.log",
+  "native": {
+    "run": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\area-program-0.4.9-20261021-214325",
+    "host": {
+      "pending_floor_atomic_writes": 12,
+      "existing_floor_region_writes": 7,
+      "stale_basis_rejected": true,
+      "direct_export_preserved_sources": true,
+      "repeat_writes": 0,
+      "save_reopen_verified": true,
+      "geometry_unchanged": true,
+      "baseline_unchanged": true,
+      "candidate_plugin": "D:\\18_建模项目\\湖北BIM云平台\\V1\\.codex-tmp\\area-program-049\\Revit\\bin\\Release\\net48\\Hifc.Area049.Revit.dll",
+      "candidate_core": "D:\\18_建模项目\\湖北BIM云平台\\V1\\.codex-tmp\\area-program-049\\Revit\\bin\\Release\\net48\\Hifc.Area049.Core.dll"
+    },
+    "independent_checks": 25,
+    "failures": [],
+    "scope": "Same production source, separately named assemblies in live Revit; copies only"
+  },
+  "package": "dist/Hifc.V1.Revit2020-0.4.9",
+  "package_hashes": {
+    "Hifc.V1.Revit.dll": "03f6fbffca3ab047eac4977d252b8c31c6f2cec86384afccdef7d83a5c1374d8",
+    "Hifc.Reference.Core.dll": "da81b86745a9b67ea7c7618d6714fd254ad4e63e46c43f222f2e8d1a368877b9"
+  },
+  "installed": {
+    "version": "0.4.9",
+    "assembly_version": "0.4.9.0",
+    "sha256": {
+      "Hifc.V1.Revit.dll": "03f6fbffca3ab047eac4977d252b8c31c6f2cec86384afccdef7d83a5c1374d8",
+      "Hifc.Reference.Core.dll": "da81b86745a9b67ea7c7618d6714fd254ad4e63e46c43f222f2e8d1a368877b9"
+    },
+    "installed_directory": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1",
+    "addin_manifest": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1.addin",
+    "receipt": "outputs/install-20261021-230707-7a766ffd/install-receipt.json",
+    "independent_verification": "outputs/install-20261021-230707-7a766ffd/installation-verification.json",
+    "verified_at": "2026-10-21T23:07:46.3707597+08:00",
+    "all_package_files_match": true,
+    "addin_target_verified": true,
+    "production_host_launch_verified": false,
+    "previous_version": "0.4.8",
+    "previous_install_backup": "outputs/install-20261021-230707-7a766ffd/previous-Hifc.V1",
+    "pending": "Next normal Revit launch loads installed 0.4.9; installation continuation did not start Revit"
+  },
+  "platform_area_baseline": {
+    "run": "validation/area-step01-20261021-203344",
+    "status": "USER_CONFIRMED_PLATFORM_CALCULATION_SUCCESS",
+    "total_m2": "6455.60"
+  },
+  "gate_single_change_test": {
+    "run": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\gate-step02-20261021-213140",
+    "verified": true,
+    "changes": [
+      {
+        "element_id": 49504,
+        "binding": "实例",
+        "pset": "Pset_建筑技术信息属性集",
+        "property": "建筑类型名称",
+        "before": [
+          "IfcLabel",
+          "公建"
+        ],
+        "after": [
+          "IfcLabel",
+          "中小学等"
+        ]
+      }
+    ],
+    "platform_result": "PENDING"
+  },
+  "original_rvt_written": false,
+  "git_commit_or_push": false
+}

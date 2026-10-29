@@ -1,0 +1,73 @@
+{
+  "revit_startup": {
+    "revit_pid": 187808,
+    "customer_model_opened": false,
+    "scope": "Installed host startup and command registration only",
+    "plugin_startup_success": true,
+    "main_window": "Autodesk Revit 2020 - [主页]",
+    "journal": "C:\\Users\\2899\\AppData\\Local\\Autodesk\\Revit\\Autodesk Revit 2020\\Journals\\journal.0774.txt",
+    "platform_sync_command_registered": true
+  },
+  "limits": [
+    "No customer-model UI walkthrough in this deployment",
+    "No new live model upload/calculation during deployment",
+    "Real network failure recovery and cross-machine exclusion remain incomplete"
+  ],
+  "tests": {
+    "core": 267,
+    "platform_sync": 80,
+    "failures": 0,
+    "workbook": 21,
+    "wpf": 151,
+    "redline": 33
+  },
+  "platform_sync": "0.2.0",
+  "git_pushed": false,
+  "platform_read": {
+    "model_count": 5,
+    "writable": false,
+    "authenticated": true,
+    "project_id": "1717b620-7dbd-40c9-b18d-28f364be1ae3",
+    "approval_state": 1
+  },
+  "installed": true,
+  "assembly": "0.4.20.0",
+  "report_recovery": {
+    "scope": "Installed worker replay of verified frozen report only; no platform operations",
+    "model_count": 5,
+    "sync_state": "SUCCEEDED",
+    "report_state": "SUCCEEDED",
+    "pdf_sha256": "f59edb267ee667ab9f088b4d1f7e3eea371691f0f206c847e3057e2e2d02f31a"
+  },
+  "evidence_directory": "../outputs/release-0.4.20-20261026",
+  "worker_files_verified": 535,
+  "git_committed": false,
+  "preserved_runs": 4,
+  "verified_utc": "2026-10-26T08:32:14.2805908Z",
+  "release": "0.4.20",
+  "schema": "hifc.release-validation/1",
+  "preserved_bindings": 2,
+  "installed_plugin_files": [
+    {
+      "name": "Hifc.Reference.Core.dll",
+      "sha256": "3e2388ca5c7bc49bfe6ee85f84fa826b804897d23cd0b86f780ead8d2bf59b71"
+    },
+    {
+      "name": "Hifc.Reference.Core.pdb",
+      "sha256": "9a359610115d482a132e2cfd8975200380026053d952c841d36158c16898c848"
+    },
+    {
+      "name": "Hifc.V1.Revit.dll",
+      "sha256": "0585f9899221490cf212cc19d1b266e1dad89b4d2a9d99a3ad8727591567e3b0"
+    },
+    {
+      "name": "Hifc.V1.Revit.pdb",
+      "sha256": "425fab3cb3728bfe35d93bcd5cdd9b4708f4dd570575a4f54e58717a4defc75b"
+    },
+    {
+      "name": "settings.json",
+      "sha256": "ae3543f7ca4d65044909c1e562e8de72bfcb544f32dcf2db0da05c19a72a4ef6"
+    }
+  ],
+  "rollback_directory": "outputs/install-20261026-161350-be66ea12"
+}

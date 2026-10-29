@@ -37,8 +37,9 @@ namespace Hifc.Revit.Management
     }
     internal static class ModelReader
     {
-        internal static string Key(Document doc) => Evidence.Hash(doc.PathName + "|" + doc.ProjectInformation.UniqueId
-            + (string.IsNullOrEmpty(doc.PathName) ? "|unsaved-" + System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(doc) : ""));
+        internal static string Key(Document doc) => KeyAtPath(doc,doc.PathName);
+        internal static string KeyAtPath(Document doc,string path) => Evidence.Hash(path + "|" + doc.ProjectInformation.UniqueId
+            + (string.IsNullOrEmpty(path) ? "|unsaved-" + System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(doc) : ""));
         private static string Text(Document doc, Element element, string name)
         {
             try { return ReferencePolicy.ToBridgeValue(ReferencePolicy.Resolve(RevitMappingService.Reads(doc, element, name), name)); }

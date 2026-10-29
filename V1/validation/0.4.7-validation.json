@@ -1,0 +1,178 @@
+{
+  "native_host": {
+    "run": "validation/customer-projects-20261021-073618",
+    "save_reopen_verified": true,
+    "new_ifc_geometry_verified": false,
+    "journal": "journal.0728.txt",
+    "pid": 180216,
+    "state": "COMPLETED_HOST_EXITED_TEST_ADDIN_RETIRED",
+    "processes": [],
+    "result_present": true,
+    "real_write_verified": true,
+    "all_body_readable": true,
+    "body_counts": {
+      "building": 4649,
+      "site": 26
+    },
+    "floor_carrier_counts": {
+      "building": 8,
+      "site": 24
+    },
+    "floor_projection_passed": {
+      "building": "8/8",
+      "site": "18/24"
+    },
+    "duplicate_building_floor_carriers_resolved": true,
+    "cleanup_receipt": "validation/customer-projects-20261021-073618/host-cleanup.json"
+  },
+  "source_models": [
+    {
+      "unchanged": true,
+      "name": "3D_歇马镇中心学校 (2)",
+      "sha256": "34fb87f356f79121e9ce7d2e0901af6caa13a7fbf86b1fe26735ca8b9ac94981"
+    },
+    {
+      "unchanged": true,
+      "name": "3D_歇马镇中心学校-总图",
+      "sha256": "a5921577b8f13ff22f27d1d5de29274f96269ef5ad6e07b1f1c4567c9b60b318"
+    }
+  ],
+  "limits": [
+    "Original reports and all 279 field records were reviewed; implementation gaps remain. The snapshot applies to 420626 / SUBTYPE=0 on 2026-10-20, not every region or stage.",
+    "32 source floors carry type text 250; broad evidence and export rules emit it as a business category outside the platform total-plan enumeration.",
+    "Building-region functions and coefficients, green type and coefficient, road data and several building project fields remain missing.",
+    "Frozen dictionary names, active case checks and actual export routes differ. Canopy spelling, indoor parking and window elevation/bottom-height need adaptation.",
+    "One extra floor business Pset still describes outdoor ground; F6 lacks a confirmed upper boundary. Building.Name remains empty.",
+    "Building area, floor calculation elevation/area and underground building height are local auxiliary metrics absent from this platform snapshot; do not treat them as its required inputs.",
+    "Six site floors fail the strict local 0.001 m2 diagnostic. Existing mesh maximum relative difference is about 0.018212 percent; this is not an actual platform geometry calculation.",
+    "Controlled test scope confirmation is not user approval of planning use or coefficients.",
+    "Only road width remains mandatory manual input.",
+    "No new platform upload or calculation was performed."
+  ],
+  "installation": {
+    "directory": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1",
+    "files": [
+      {
+        "matches_final_candidate": true,
+        "name": "Hifc.V1.Revit.dll",
+        "installed_sha256": "4318407bd40067182896145cdb81e0729bcf02153e7c2989695abd2b6a0639bb",
+        "final_candidate_sha256": "4318407bd40067182896145cdb81e0729bcf02153e7c2989695abd2b6a0639bb"
+      },
+      {
+        "matches_final_candidate": true,
+        "name": "Hifc.Reference.Core.dll",
+        "installed_sha256": "4bf499f2da62b22ca167a50b1c8b59a06e9ba825e61a96cf0f0c0ef06d5a66db",
+        "final_candidate_sha256": "4bf499f2da62b22ca167a50b1c8b59a06e9ba825e61a96cf0f0c0ef06d5a66db"
+      }
+    ],
+    "final_candidate_installed": true
+  },
+  "source_build": {
+    "build_manifest": "dist/Hifc.V1.Revit2020-0.4.7/build-manifest.json",
+    "python_log": "validation/python-0.4.7.log",
+    "core_tests": 131,
+    "build_log": "validation/build-0.4.7-final-candidate.log",
+    "visual_review": [
+      "validation/ui-0.4.7/manager-1080.png",
+      "validation/ui-0.4.7/planning-scope.png"
+    ],
+    "passed": true,
+    "wpf_tests": 76,
+    "python_tests": 30
+  },
+  "status": "LOCAL_WRITE_VERIFIED_REPORT_REVIEW_COMPLETE_PLATFORM_GAPS_CONFIRMED",
+  "updated": "2026-10-21T09:51:44.832642+08:00",
+  "git": {
+    "pushed": false,
+    "branch": "main",
+    "previous_uncommitted_changes_preserved": true,
+    "committed": false
+  },
+  "version": "0.4.7",
+  "schema": "hifc.release-validation/1.0",
+  "platform": {
+    "read_verified": true,
+    "rules_api_status": "code=50001",
+    "calculation_verified": false,
+    "uploads_or_project_changes_performed": false,
+    "logged_in_page_available": true,
+    "current_access_blocker": null,
+    "correct_url_opened": true,
+    "access_parameters_recorded": false,
+    "browser": "in-app browser",
+    "view": "审查/综合审查",
+    "view_filter": "不合格",
+    "view_result": "暂无数据",
+    "view_result_scope": "Current filtered view only; not a conclusion about previous reports or platform acceptance.",
+    "rules_snapshot_source": "User supplied original 2026-10-20 GetCodeFullData snapshot; 420626 / SUBTYPE=0",
+    "rules_api_status_note": "Historical independent API request before attachment recovery; the original rule snapshot is now available."
+  },
+  "previous_native_run": {
+    "run": "validation/customer-projects-20261020-233822",
+    "real_write_verified": true,
+    "all_body_readable": true,
+    "duplicate_floor_ids": [
+      660521,
+      717044
+    ],
+    "repeat_changes": 0,
+    "calculation_geometry_passed": false,
+    "save_reopen_verified": true
+  },
+  "prior_reports": {
+    "conversation_text_recovered": true,
+    "attachment_originals_retrieved": true,
+    "files": [
+      "ifc-live-calculation-rules-420626.json",
+      "ifc-model-audit-20261020.html"
+    ],
+    "crosscheck": "docs/0.4.7-昨日双报告逐项核对.md",
+    "original_directory": "网页相关报告",
+    "original_files": [
+      {
+        "path": "网页相关报告\\ifc-live-calculation-rules-420626.json",
+        "bytes": 265836,
+        "sha256": "f1868fa3a8f42890bba28192bd418b6a97da1cd194d6bddcba70863be39c5b64"
+      },
+      {
+        "path": "网页相关报告\\ifc-model-audit-20261020.html",
+        "bytes": 560880,
+        "sha256": "29d4a8313b5fdfd81a3abd741aa44bd2d1449fb2e812843e6631710d10cf5278"
+      }
+    ],
+    "html_embedded_rules_equal_to_separate_json": true,
+    "full_field_name_crosswalk_completed": true,
+    "field_records_reviewed": 279,
+    "evidence": "artifacts/platform-report-review-20261021/review-summary.json"
+  },
+  "report_review": {
+    "complete": true,
+    "production_code_changed_in_this_review": false,
+    "source_report_hashes_verified": true,
+    "compiled_core_matches_native_run": true,
+    "counts": {
+      "rules": 39,
+      "unique_psets": 38,
+      "field_records": 279,
+      "contract_entries": 280,
+      "contract_unique_names": 222,
+      "display_required_fields": 153,
+      "exact_name_matches": 178,
+      "name_mismatches": 101,
+      "display_required_name_mismatches": 10,
+      "internal_vs_display_name_differences": 27
+    },
+    "semantic_compliance_or_platform_acceptance_proven": false,
+    "report": "docs/0.4.7-昨日双报告逐项核对.md",
+    "crosswalk": "artifacts/platform-report-review-20261021/platform-field-crosswalk.csv",
+    "latest_ifc_input_review": "artifacts/platform-report-review-20261021/latest-ifc-applicable-input-review.json",
+    "geometry_diagnostic": {
+      "model": "3D_歇马镇中心学校-总图",
+      "id": 718462,
+      "source_m2": 518.4984388159252,
+      "ifc_mesh_m2": 518.5928662168998,
+      "absolute_delta_m2": 0.09442740097460955,
+      "relative_delta_percent": 0.018211704010189456
+    }
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "version": "0.4.12",
+  "assembly_version": "0.4.12.0",
+  "recorded_at": "2026-10-22T06:20:05.174089+00:00",
+  "status": "installed_usage_write_reopen_and_native_export_verified",
+  "tests": {
+    "core": {
+      "passed": 208,
+      "failed": 0
+    },
+    "wpf": {
+      "passed": 101,
+      "failed": 0
+    },
+    "python": {
+      "passed": 34,
+      "failed": 0
+    },
+    "build_warnings": 0,
+    "build_errors": 0,
+    "native_usage_and_ifc": {
+      "passed": 56,
+      "failed": 0
+    },
+    "earlier_reference_upgrade": {
+      "passed": 70,
+      "failed": 0
+    }
+  },
+  "logs": {
+    "build": "validation/build-0.4.12-final.log",
+    "python": "validation/python-0.4.12-final.log",
+    "core_red": "validation/usage-0412-core-red.log",
+    "ui_red": "validation/usage-0412-ui-red-required/test-output.log"
+  },
+  "installed": {
+    "receipt": "outputs\\install-20261022-140956-7cd14a7c\\install-receipt.json",
+    "independent_verification": "outputs\\install-20261022-140956-7cd14a7c\\independent-install-verification.json",
+    "actual_host_load_verified": true,
+    "files": [
+      {
+        "matches_build": true,
+        "sha256": "346ff903ffb96850412843d72d95469ebac02b89511e07e4922a5aa5359523bf",
+        "name": "Hifc.V1.Revit.dll"
+      },
+      {
+        "matches_build": true,
+        "sha256": "486c39660c080b4cb63ce13fb9878dd7ad8abfe1c12d68677d3a3dc17c1186b4",
+        "name": "Hifc.Reference.Core.dll"
+      }
+    ]
+  },
+  "package": {
+    "path": "dist/Hifc.V1.Revit2020-0.4.12",
+    "manifest": {
+      "version": "0.4.12",
+      "files": [
+        {
+          "sha256": "486c39660c080b4cb63ce13fb9878dd7ad8abfe1c12d68677d3a3dc17c1186b4",
+          "bytes": 554496,
+          "name": "Hifc.Reference.Core.dll"
+        },
+        {
+          "sha256": "83a777fd8e1865fce290315edf80d2a1298d1dbeb8b578fd0ce8a8d776b9bcdd",
+          "bytes": 34808,
+          "name": "Hifc.Reference.Core.pdb"
+        },
+        {
+          "sha256": "346ff903ffb96850412843d72d95469ebac02b89511e07e4922a5aa5359523bf",
+          "bytes": 312320,
+          "name": "Hifc.V1.Revit.dll"
+        },
+        {
+          "sha256": "818bc938b5e119c63af6bfcbe696dc68c004d789623b7a5ec789119491d4feed",
+          "bytes": 69536,
+          "name": "Hifc.V1.Revit.pdb"
+        },
+        {
+          "sha256": "ae3543f7ca4d65044909c1e562e8de72bfcb544f32dcf2db0da05c19a72a4ef6",
+          "bytes": 73,
+          "name": "settings.json"
+        }
+      ],
+      "reference_contract_sha256": "c1f3d74e17229aee4ed10bc4980532d2c7c61a5a783061c6e979562b808052c9",
+      "revit": "2020",
+      "target_framework": "net48"
+    }
+  },
+  "native": {
+    "run": "validation/building-usage-0412-20261022-140957",
+    "verification": "validation/building-usage-0412-20261022-140957/final-verification.json",
+    "files": [
+      {
+        "path": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\building-usage-0412-20261022-140957\\IFC交付\\A_综合楼1号_用途中学_民用建筑否.ifc",
+        "sha256": "43f7a59e80da688e50df737d85445d8fb1a73406b8ba6eab37e760808fd54583",
+        "model_copy": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\building-usage-0412-20261022-140957\\01_平台成功基线_民用建筑否\\models\\3D_歇马镇中心学校 (2).rvt"
+      },
+      {
+        "path": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\building-usage-0412-20261022-140957\\IFC交付\\B_综合楼1号_参考优化_用途中学_民用建筑是.ifc",
+        "sha256": "ab49a5021b5e57ccc714000791549b7fa1ffefefbe13dfd1afac894c42c08c67",
+        "model_copy": "D:\\18_建模项目\\湖北BIM云平台\\V1\\validation\\building-usage-0412-20261022-140957\\02_参考优化基线_民用建筑是\\models\\3D_歇马镇中心学校 (2).rvt"
+      }
+    ],
+    "models": [
+      {
+        "name": "3D_歇马镇中心学校 (2)",
+        "civil_preserved": "0",
+        "business_fields_written": 1,
+        "loaded": {
+          "plugin_path": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1\\Hifc.V1.Revit.dll",
+          "plugin_sha256": "346ff903ffb96850412843d72d95469ebac02b89511e07e4922a5aa5359523bf",
+          "plugin_version": "0.4.12.0",
+          "core_path": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1\\Hifc.Reference.Core.dll",
+          "core_sha256": "486c39660c080b4cb63ce13fb9878dd7ad8abfe1c12d68677d3a3dc17c1186b4",
+          "core_version": "0.4.12.0"
+        }
+      },
+      {
+        "name": "3D_歇马镇中心学校 (2)",
+        "civil_preserved": "1",
+        "business_fields_written": 1,
+        "loaded": {
+          "plugin_path": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1\\Hifc.V1.Revit.dll",
+          "plugin_sha256": "346ff903ffb96850412843d72d95469ebac02b89511e07e4922a5aa5359523bf",
+          "plugin_version": "0.4.12.0",
+          "core_path": "C:\\Users\\2899\\AppData\\Roaming\\Autodesk\\Revit\\Addins\\2020\\Hifc.V1\\Hifc.Reference.Core.dll",
+          "core_sha256": "486c39660c080b4cb63ce13fb9878dd7ad8abfe1c12d68677d3a3dc17c1186b4",
+          "core_version": "0.4.12.0"
+        }
+      }
+    ],
+    "ifc_postprocessed": false,
+    "original_models_changed": false
+  },
+  "field_rule": {
+    "pset": "Pset_建筑技术信息属性集",
+    "property": "建筑用途名称",
+    "accepted_addition": "中学",
+    "raw_snapshot_preserved": true,
+    "missing_highlight": "overview and property; cleared after write and full readback",
+    "civil_participation": "unchanged; separate from usage classification"
+  },
+  "evidence": {
+    "single_field": {
+      "source_report": "D:\\18_建模项目\\湖北BIM云平台\\artifacts\\building-usage-single-field-20261022-134434\\单字段测试核验.json",
+      "report_sha256": "d1d4a5bc9067df5c3902c8400701ccb925e796010623e5269699a8e02519d155",
+      "files_verified": true,
+      "user_confirmed_platform_result": "Only adding 建筑用途名称=中学 stopped residential classification and residential regulations; both civil flags false",
+      "confirmation_date": "2026-10-22",
+      "historical_report_status": "等待上传验证",
+      "original_report_preserved": true
+    },
+    "current_native_platform_upload": "not performed; user-confirmed success applies to supplied single-field experiment"
+  },
+  "exporter_trial": {
+    "run": "validation/reference04-view-probe-20261022-135005",
+    "promoted": false,
+    "decision": "validation/reference04-view-probe-20261022-135005/view-decision.json",
+    "reason": "One unmeshable wall and curved projection/volume differences; keep built-in IFC4DTV"
+  },
+  "limits": {
+    "standard_quantities": "Owned quantity coverage and finite values verified; native slab GrossVolume unit/semantic anomaly remains, never used to overwrite HIFC report areas",
+    "quantity_details": "validation/reference04-upgrade-20261022-133642/quantity-caveats.json",
+    "unconfirmed_inputs": [
+      "人数",
+      "建筑体积",
+      "海拔高度",
+      "室内外高差最大值",
+      "基点坐标",
+      "建筑投影面积统计口径"
+    ],
+    "new_platform_acceptance": false
+  },
+  "git": {
+    "committed": false,
+    "pushed": false
+  }
+}

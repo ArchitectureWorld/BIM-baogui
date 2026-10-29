@@ -1,0 +1,53 @@
+{
+  "schema_version": "hifc.platform-rule-source/1.0",
+  "profile_id": "hubei-420626-planning-20261020",
+  "title": "保康县 420626 · 报规 · SUBTYPE=0 · 2026-10-20 规则快照",
+  "scope": {
+    "area_code": "420626",
+    "area_name": "保康县",
+    "subtype": "0",
+    "phase": "报规",
+    "phase_basis": "用户确认",
+    "snapshot_date": "2026-10-20",
+    "project_name": "保康县歇马镇中心学校综合楼建设项目",
+    "applicability": "仅对应此项目、地区、SUBTYPE、阶段及日期快照；不代表全湖北省或施工图统一规则。"
+  },
+  "source": {
+    "original_repository_path": "网页相关报告/ifc-live-calculation-rules-420626.json",
+    "packaged_file": "rules.json",
+    "bytes": 265836,
+    "sha256": "f1868fa3a8f42890bba28192bd418b6a97da1cd194d6bddcba70863be39c5b64",
+    "copy_policy": "原附件逐字节保存，未过滤、改写或按编号去重。",
+    "response": "GetCodeFullData",
+    "cross_check": "与原始 HTML 报告内嵌 GetCodeFullData 响应深层比较相同。",
+    "review_repository_path": "V1/docs/0.4.7-昨日双报告逐项核对.md",
+    "evidence_repository_path": "artifacts/platform-report-review-20261021/"
+  },
+  "record_counts": {
+    "matching_rules": 39,
+    "unique_property_sets": 38,
+    "field_records_including_branches": 279,
+    "display_required_field_records": 153,
+    "different_display_and_internal_names": 27
+  },
+  "interpretation": {
+    "required_fields": "仅对实际存在且业务分类已确认适用的对象，使用 showProp=true 且 bAllowNull=false 的字段集合；不是所有模型必须具有全部 39 类对象。",
+    "field_names": "fieldShow 非空时作为有效显示/输出名称，缺少时回退 sPropName；查询显示名优先，再精确回退内部名。",
+    "default_values": "sPropDefault 与 sPropValue 仅作为原始元数据保留，不证明模型事实，不自动补入缺失值。",
+    "manual_input": "显示必填不等于逐项强制手填；仅道路宽度强制手填的产品策略由调用层负责。",
+    "functions": "公建大类及建筑区域主功能由 CodeComType 的键提供，公建小类及子功能必须从已知父类取值，不推定学校或教室。",
+    "parking": "停车位同一属性集保留 104/203 两个匹配分支，是否为室外停车场分别为否/是；匹配值不是缺失分类的自动补值。",
+    "hidden_and_empty_codes": "隐藏字段与空 sCode 字段完整保留；不把所有隐藏字段改为必填，也不丢弃无代码面积或审查开关。",
+    "enum_identity": "按完整文本保留枚举；门卫房与配电房共用 nID=33 仍分别保留；框架,剪力墙是一个完整选项。",
+    "numeric_types": "原 eDType=0 同时用于面积、整数、布尔及户型显示名，元数据原样保留；基础数值格式由现有属性类型层判断。",
+    "calculation_boundary": "此快照描述匹配、字段、枚举、默认值和计算开关，不包含完整服务器计算公式或本轮计算验收结果。"
+  },
+  "exact_property_set_aliases": {
+    "Pset_雨蓬信息属性集": "Pset_雨篷信息属性集"
+  },
+  "frozen_reference": {
+    "repository_path": "V1/reference/gonggui/contract.json",
+    "sha256": "c1f3d74e17229aee4ed10bc4980532d2c7c61a5a783061c6e979562b808052c9",
+    "policy": "本平台适配层不修改冻结参考契约。"
+  }
+}

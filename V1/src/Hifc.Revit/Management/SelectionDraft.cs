@@ -58,7 +58,18 @@ namespace Hifc.Revit.Management
         }
         internal static string HistoryKey(FieldCheck f) => f.OwnerUniqueId + "|" + f.PropertySet + "|" + f.Binding + "|" + f.Source;
         static string Key(FieldCheck f) => f.PropertySet + "|" + f.Binding + "|" + f.Source;
-        internal void Notify() => Changed?.Invoke();
+        internal string ParentFunction(SelectionField field)
+        {
+            var parents=Fields.Where(f=>PlatformRules.CanonicalPropertySet(f.Field.PropertySet)==PlatformRules.CanonicalPropertySet(field.Field.PropertySet)&&RuleInputOptions.IsParentFunction(f.Property))
+                .Select(f=>f.Value).Distinct().ToArray();
+            return parents.Length==1&&parents[0]!="多个值"?parents[0]:null;
+        }
+        internal void Notify(SelectionField changed)
+        {
+            if(RuleInputOptions.IsParentFunction(changed.Property))
+                foreach(var child in Fields.Where(f=>f.Field.PropertySet==changed.Field.PropertySet&&RuleInputOptions.IsChildFunction(f.Property)))child.Notify();
+            Changed?.Invoke();
+        }
     }
     internal sealed class SelectionField : INotifyPropertyChanged
     {
@@ -70,19 +81,24 @@ namespace Hifc.Revit.Management
         internal string RawValue { get; private set; }
         public string Property => Field.Property;
         public string Detail => Field.Source + " · " + Field.Binding + (Editable ? "" : " · 只读，避免影响未选中的同类型构件")
-            + (string.IsNullOrEmpty(Field.SuggestionReason) ? "" : " · " + Field.SuggestionReason);
+            + (string.IsNullOrEmpty(Field.SuggestionReason) ? "" : " · " + Field.SuggestionReason)
+            + (string.IsNullOrEmpty(ValueHint)?"":" · "+ValueHint);
+        public string[] ValueChoices => RuleInputOptions.Choices(Field.RuleProfileId,Field.PropertySet,Property,draft.ParentFunction(this));
+        public string ValueHint => RuleInputOptions.ValueHint(Field.RuleProfileId,Field.PropertySet,Property,Value,draft.ParentFunction(this));
         public string RawType => Field.RawType;
+        public string AreaHint => AreaValueHint.For(Property, RawType, Editable);
         public bool Editable => Targets.All(f => f.Binding == "实例" && f.Origin != "type" && (f.Editable || f.State == "缺参数"));
-        public string State => Pending ? "待写入" : Written ? "已手工写入" : Targets.Any(f => !string.IsNullOrEmpty(f.SuggestedValue)) ? "自动填写" : Targets.Any(f => !f.Valid) ? "待补充" : "已有值";
+        public string State => Pending ? "待写入" : Targets.Any(f => f.RequiresRuleWrite) ? "规则待写入" : Written ? "已手工写入" : Targets.Any(f => !string.IsNullOrEmpty(f.SuggestedValue)) ? "自动填写" : Targets.Any(f => !f.Valid) ? "待补充" : "已有值";
         public string Background => Pending ? "#FFFFE9E7" : Written ? "#FFFFE7C2" : "#FFFFFFFF";
         public string[] Choices => new[] { "多个值", "未填写", "是", "否" };
-        static string BooleanLabel(string v) => string.IsNullOrWhiteSpace(v) ? "未填写" : v == "1" ? "是" : v == "0" ? "否" : v;
+        static string BooleanLabel(string v) { try { return BooleanPolicy.Normalize(v)=="1"?"是":"否"; } catch (InvalidOperationException) { return v; } }
+        public bool? Checked { get { if(Value=="多个值")return null; try{return BooleanPolicy.Normalize(Value)=="1";}catch(InvalidOperationException){return null;} } set {if(value.HasValue)Value=value.Value?"是":"否";} }
         public string Value
         {
             get
             {
                 if (Pending) return RawType == "Boolean" ? BooleanLabel(RawValue) : RawValue;
-                var values = Targets.Select(f => !string.IsNullOrEmpty(f.Value) ? f.Value : f.SuggestedValue ?? "").Distinct().ToArray();
+                var values = Targets.Select(f => f.RequiresRuleWrite && f.SuggestedValue != null ? f.SuggestedValue : !string.IsNullOrEmpty(f.Value) ? f.Value : f.SuggestedValue ?? "").Distinct().ToArray();
                 return values.Length != 1 ? "多个值" : RawType == "Boolean" ? BooleanLabel(values[0]) : values[0];
             }
             set
@@ -90,11 +106,11 @@ namespace Hifc.Revit.Management
                 if (!Editable) throw new InvalidOperationException("该属性只读或来自共享类型。");
                 if (value == "多个值" || !Pending && value == Value) return;
                 RawValue = RawType == "Boolean" ? value == "是" || value == "true" ? "1" : value == "否" || value == "false" ? "0" : value == "未填写" ? "" : value : value ?? "";
-                Pending = true; Notify(); draft.Notify();
+                Pending = true; Notify(); draft.Notify(this);
             }
         }
         internal SelectionField(SelectionDraft draft, FieldCheck[] targets) { this.draft=draft; Targets=targets; }
         public event PropertyChangedEventHandler PropertyChanged;
-        internal void Notify() { foreach (var p in new[]{"Value","State","Background"}) PropertyChanged?.Invoke(this,new PropertyChangedEventArgs(p)); }
+        internal void Notify() { foreach (var p in new[]{"ValueChoices","Value","Checked","State","Background","ValueHint","Detail"}) PropertyChanged?.Invoke(this,new PropertyChangedEventArgs(p)); }
     }
 }

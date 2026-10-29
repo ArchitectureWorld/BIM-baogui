@@ -10,7 +10,8 @@ namespace Hifc.Reference
         public string Property { get; set; }
         public string RawType { get; set; }
         // Preserve the frozen source evidence; correct only this proven vendor typo at runtime.
-        public string ExportType => PropertySet == "Pset_建筑技术信息属性集" && Property == "地下建筑层数" && RawType == "Integerl" ? "Integer" : RawType;
+        public string ExportType => PropertySet == "Pset_建筑技术信息属性集" && Property == "地下建筑层数" && RawType == "Integerl" ? "Integer"
+            : PropertySet == "Pset_建筑技术信息属性集" && Property == "建筑面积" && RawType == "Reall" ? "Real" : RawType;
         public string SourceParameter { get; set; }
         public bool NativeGroup { get; set; }
     }

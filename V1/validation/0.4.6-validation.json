@@ -1,0 +1,152 @@
+{
+  "schema": "hifc.validation-summary/1.0",
+  "record_kind": "release_validation_summary",
+  "version": "0.4.6",
+  "assembly_version": "0.4.6.0",
+  "client_date": "2026-10-20",
+  "revit": "2020",
+  "documentation": "docs/0.4.6-案例02实施记录.md",
+  "package": "dist/Hifc.V1.Revit2020-0.4.6",
+  "local_evidence": "validation/building-case02-patched-20261020-161530/acceptance-summary.json",
+  "core": {
+    "passed": 116,
+    "failures": 0
+  },
+  "wpf": {
+    "passed": 72,
+    "failures": 0
+  },
+  "python": {
+    "passed": 26,
+    "failures": 0
+  },
+  "case02": {
+    "stage": "报规",
+    "host_checks": 30,
+    "host_all_passed": true,
+    "save_reopen_verified": true,
+    "above_and_below_ground_in_one_building": true,
+    "model_results": [
+      {
+        "name": "1#楼",
+        "buildings": 1,
+        "reference_fields": 226,
+        "verified_emitted_fields": 228,
+        "observed_fields_in_receipt": 233,
+        "missing_reference_fields": 0,
+        "carrier_or_storey_differences": 0,
+        "type_pset_window_instances": 13,
+        "type_pset_slab_instances": 21,
+        "instance_duplicates_of_type_psets": 0,
+        "schema_errors": 0,
+        "case_equivalent": false,
+        "strict_mapping_all_passed": false,
+        "source_missing_fields": 3,
+        "ifc_sha256": "ca77f05ff1a97f389be1ffa0aa029d70e8ee97c0bd111d60a330353f7a235bed"
+      },
+      {
+        "name": "2#楼",
+        "buildings": 1,
+        "reference_fields": 300,
+        "verified_emitted_fields": 306,
+        "observed_fields_in_receipt": 313,
+        "missing_reference_fields": 0,
+        "carrier_or_storey_differences": 0,
+        "type_pset_window_instances": 27,
+        "type_pset_slab_instances": 26,
+        "instance_duplicates_of_type_psets": 0,
+        "schema_errors": 0,
+        "case_equivalent": false,
+        "strict_mapping_all_passed": false,
+        "source_missing_fields": 5,
+        "ifc_sha256": "a1ff0acdb1ab9bdd2e6f1e97a5c8a07716d05353c87d24631660fca60690968e"
+      }
+    ],
+    "additional_reference_fields": [
+      2,
+      6
+    ],
+    "source_value_differences": [
+      0,
+      1
+    ],
+    "strict_completeness_exceptions": [
+      "2# source model building number is 1#; reference IFC says 2#. Source value is preserved.",
+      "The two parking Area objects have no 公建车位 source value; no value is invented.",
+      "室外地坪 is listed by the model scan but omitted as an IFC storey by the native exporter and by the reference IFC."
+    ],
+    "geometry": {
+      "all_passed": true,
+      "checks": 90,
+      "geometry_checks": 50,
+      "window_dimension_checks": 40
+    }
+  },
+  "site_regression": {
+    "host_checks": 35,
+    "host_all_passed": true,
+    "source_unchanged": true,
+    "local_evidence": "validation/site-classification-native-20261020-162044-ecf293c7",
+    "local_ifc_verified_fields": {
+      "mixed": 7,
+      "control-only": 3,
+      "changed-to-green": 4
+    },
+    "whole_project_verified_fields": 65,
+    "whole_project_source_missing": 40,
+    "whole_project_strict_all_passed": false,
+    "schema_errors_all_four_exports": 0,
+    "geometry_checks": 4,
+    "geometry_passed": true
+  },
+  "export": {
+    "default_scope": "CURRENT_PROJECT",
+    "selection_required": false,
+    "includes_area": true,
+    "doc_export_calls_per_file": 1,
+    "ifc_postprocessed": false,
+    "type_psets_scoped_to_native_type_owners": true,
+    "original_export_server_restored": true,
+    "temporary_schedules_and_bridges_rolled_back": true,
+    "autodesk_export_assemblies_distributed": false
+  },
+  "installation": {
+    "local_receipt": "outputs/install-20261020-161530-8c8299a1/install-receipt.json",
+    "actual_loaded_assemblies_match_package": true,
+    "cleanup": {
+      "production_addin_preserved": true,
+      "host_exited": true,
+      "temporary_building_addin_removed": true,
+      "temporary_site_addin_removed": true
+    },
+    "files": [
+      {
+        "name": "Hifc.V1.Revit.dll",
+        "sha256": "a7f8ea5c70e12e968d411b0a2f7a07ba4f66c9ca341fe3220be3176471e2e45e",
+        "package_build_install_match": true
+      },
+      {
+        "name": "Hifc.Reference.Core.dll",
+        "sha256": "9b7cfcbf01ad6c07abc92fe947249f8a68322b2f4b64880c11471d02737016d7",
+        "package_build_install_match": true
+      }
+    ]
+  },
+  "preservation": {
+    "case02_source_files_unchanged": 4,
+    "frozen_contract_unchanged": true
+  },
+  "manual_required_fields": [
+    "道路宽度"
+  ],
+  "platform_acceptance_verified": false,
+  "git_committed_or_pushed_this_run": false,
+  "limitations": [
+    "Strict property completeness remains false; do not equate native export success with full business completeness.",
+    "2# source model building number is 1#; reference IFC says 2#. Source value is preserved.",
+    "The two parking Area objects have no 公建车位 source value; no value is invented.",
+    "室外地坪 is listed by the model scan but omitted as an IFC storey by the native exporter and by the reference IFC.",
+    "WPF input events were tested; physical mouse end-to-end automation is not claimed.",
+    "Construction-stage rules and all official HIFC classes are outside this validation."
+  ]
+}

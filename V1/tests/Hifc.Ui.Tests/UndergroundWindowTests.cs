@@ -28,6 +28,19 @@ internal static class UndergroundWindowTests
     }
     public static void Run(Action<string,Action> check,string output)
     {
+        check("building_footprint_floor_is_selected_and_restored_by_unique_id",()=>{
+            var w=Dialog();try {
+                var p=w.GetType().GetProperty("BaseSelector",Flags);
+                Assert(p!=null,"No footprint floor selector");
+                var selector=(ComboBox)p.GetValue(w);
+                selector.SelectedValue="a";
+                var settings=(UndergroundSettings)Call(w,"BuildSettings");
+                Assert((string)Get(settings,"BaseLevelUniqueId")=="a","Selected basement identity was lost");
+                var next=(Window)Activator.CreateInstance(w.GetType(),Flags,null,new object[]{
+                    new[]{new UndergroundLevel {UniqueId="a",Name="改名后的基底",ElevationM=-3.6}},settings},null);
+                try {Assert((string)((ComboBox)Get(next,"BaseSelector")).SelectedValue=="a","Renaming the floor lost the confirmation");}finally{next.Close();}
+            }finally{w.Close();}
+        });
         check("underground_dialog_restores_only_confirmed_architectural_levels",()=>{
             var w=Dialog();try {w.Show();w.UpdateLayout();var selected=((IEnumerable)Get(w,"Rows")).Cast<object>().Where(r=>(bool)Get(r,"Included")).ToArray();Assert(selected.Length==1&&(string)Get(selected[0],"UniqueId")=="a","Cached confirmation was lost or a structure level was added");
                 var root=(FrameworkElement)w.Content;var image=new RenderTargetBitmap((int)root.ActualWidth,(int)root.ActualHeight,96,96,PixelFormats.Pbgra32);var drawing=new DrawingVisual();using(var ctx=drawing.RenderOpen()){ctx.DrawRectangle(w.Background,null,new Rect(0,0,root.ActualWidth,root.ActualHeight));ctx.DrawRectangle(new VisualBrush(root),null,new Rect(0,0,root.ActualWidth,root.ActualHeight));}image.Render(drawing);var png=new PngBitmapEncoder();png.Frames.Add(BitmapFrame.Create(image));using(var file=File.Create(Path.Combine(output,"underground-levels.png")))png.Save(file);
@@ -41,9 +54,9 @@ internal static class UndergroundWindowTests
         });
         check("underground_confirmation_persists_across_manager_reopen",()=>{
             var directory=Path.Combine(output,"underground-profiles");var session=new FakeSession();var w=new ManagerWindow(session,directory);
-            w.RestoreState("underground-test-model");var set=new UndergroundSettings {Confirmed=true,GroundElevationM=102,LevelUniqueIds=new[]{"level-a"}};
+            w.RestoreState("underground-test-model");var set=new UndergroundSettings {Confirmed=true,GroundElevationM=102,LevelUniqueIds=new[]{"level-a"},BaseLevelUniqueId="level-a"};
             var method=w.GetType().GetMethod("SetUndergroundSettings",Flags);Assert(method!=null,"Manager does not remember underground settings");method.Invoke(w,new object[]{set});w.Close();
-            var reopened=new ManagerWindow(session,directory);try {reopened.RestoreState("underground-test-model");var cached=(UndergroundSettings)Get(reopened,"UndergroundSettings");Assert(cached.Confirmed&&cached.GroundElevationM==102&&cached.LevelUniqueIds.SequenceEqual(new[]{"level-a"}),"Underground confirmation was not restored");}finally{reopened.Close();}
+            var reopened=new ManagerWindow(session,directory);try {reopened.RestoreState("underground-test-model");var cached=(UndergroundSettings)Get(reopened,"UndergroundSettings");Assert(cached.Confirmed&&cached.GroundElevationM==102&&cached.LevelUniqueIds.SequenceEqual(new[]{"level-a"})&&cached.BaseLevelUniqueId=="level-a","Underground and footprint confirmation was not restored");}finally{reopened.Close();}
         });
     }
 }

@@ -11,7 +11,7 @@ internal static class CaseWorkflowTests
     {
         var type = typeof(ModelChecks).Assembly.GetType("Hifc.Reference.CaseWorkflow");
         if (type == null) throw new Exception("Stage/type case workflow has not been implemented");
-        try { return type.GetMethod(name).Invoke(null, args); }
+        try { return type.GetMethods().Single(m => m.Name == name && m.GetParameters().Length == args.Length).Invoke(null, args); }
         catch (TargetInvocationException ex) { throw ex.InnerException; }
     }
     private static object Value(object item, string name) => item.GetType().GetProperty(name).GetValue(item);
@@ -33,12 +33,13 @@ internal static class CaseWorkflowTests
             var rules = ((Array)Call("ForModel", "报规", "总图")).Cast<object>().ToArray();
             Assert(rules.Count(r => !(bool)Value(r, "ReferenceSupplement")) == 8);
             var typeRule = rules.Single(r => (string)Value(r, "Slot") == "总平构件");
-            Assert((string)Value(typeRule, "Binding") == "类型");
-            Assert(((ReferenceProperty[])Value(typeRule, "Properties")).Length == 1);
+            Assert((string)Value(typeRule, "Binding") == "实例");
+            Assert(((ReferenceProperty[])Value(typeRule, "Properties")).Select(p=>p.Property).Distinct().Count() == 6);
         });
         check("single_building_common_case_does_not_require_factory_windows", () => {
             var rules = ((Array)Call("ForModel", "报规", "单体建筑")).Cast<object>().ToArray();
-            Assert(rules.Count(r => (bool)Value(r, "Required")) == 5);
+            Assert(rules.Count(r => (bool)Value(r, "Required")) == 4);
+            Assert(!(bool)Value(rules.Single(r => (string)Value(r, "Slot") == "总平构件"), "Required"));
             Assert(!(bool)Value(rules.Single(r => (string)Value(r, "Slot") == "窗"), "Required"));
         });
         check("site_classification_is_explainable", () => {
@@ -78,28 +79,28 @@ internal static class CaseWorkflowTests
             Assert((string)Value(Call("Detect", new object[] { new[] { row } }), "Kind") == "总图");
         });
         check("shared_type_fields_count_once_without_duplicate_elements", () => {
-            var first = Row("IfcSlab", "总平构件"); first.TypeId = 42;
-            var second = Row("IfcSlab", "总平构件"); second.TypeId = 42;
-            first.Fields = new[] { new FieldCheck { OwnerUniqueId = "type-42", Binding = "类型", PropertySet = "Pset_总平构件信息属性集", Property = "构件类型", State = "有效", Value = "0" } };
+            var first = Row("IfcWindow", "窗"); first.TypeId = 42;
+            var second = Row("IfcWindow", "窗"); second.TypeId = 42;
+            first.Fields = new[] { new FieldCheck { OwnerUniqueId = "type-42", Binding = "类型", PropertySet = "Pset_窗信息属性集", Property = "高度", State = "有效", Value = "1.5" } };
             second.Fields = first.Fields;
-            var result = (ModelSummary)Call("Summarize", "报规", "总图", new[] { first, second });
-            Assert(result.ElementCount == 2 && result.FieldCount == 1 && result.Roles.Single(r => r.Slot == "总平构件").Count == 1);
+            var result = (ModelSummary)Call("Summarize", "报规", "单体建筑", new[] { first, second });
+            Assert(result.ElementCount == 2 && result.FieldCount == 1 && result.Roles.Single(r => r.Slot == "窗").Count == 1);
         });
         check("case_empty_value_does_not_hide_a_missing_parameter", () => {
             Assert(new FieldCheck { AllowedEmpty = true, State = "未填写" }.Acceptable);
             Assert(!new FieldCheck { AllowedEmpty = true, State = "缺参数" }.Acceptable);
         });
-        check("technical_fields_add_optional_underground_count_without_other_requirements", () => {
+        check("technical_fields_support_optional_underground_count_and_calculated_area", () => {
             var rules = ((Array)Call("ForModel", "报规", "单体建筑")).Cast<object>();
             var technical = rules.Single(r => (string)Value(r, "Slot") == "建筑技术");
             var names = ((ReferenceProperty[])Value(technical, "Properties")).Select(p => p.Property).ToArray();
-            Assert(names.Length == 29 && names.Contains("地下建筑层数") && !names.Contains("建筑面积"));
+            Assert(names.Length == 30 && names.Contains("地下建筑层数") && names.Contains("建筑面积"));
             Assert(((string[])Value(technical,"EmptyAllowed")).Contains("地下建筑层数"));
         });
         check("site_inventory_uses_site_and_road_content_without_psets", () => {
             var rows = new[] { Row("IfcSlab", null, "道路"), Row("IfcSlab", null, "场地"), Row("IfcSlab", null, "绿化") };
             Assert((string)Value(Call("Detect", new object[] { rows }), "Kind") == "总图");
-            Assert(((string[])Call("SuggestSlots", rows[0], "总图")).Length == 0);
+            Assert(CaseWorkflow.GetCandidates(rows[0], "总图").All(c=>!c.CanPrepare));
         });
     }
 }
