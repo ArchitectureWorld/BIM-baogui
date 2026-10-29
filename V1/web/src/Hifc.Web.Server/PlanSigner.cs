@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Hifc.Web.Server;
 
-public sealed class PlanSigner : IDisposable
+public sealed partial class PlanSigner : IDisposable
 {
     private readonly RSA rsa;
     private readonly object gate = new();

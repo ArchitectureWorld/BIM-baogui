@@ -6,7 +6,20 @@ namespace System.Web.Script.Serialization
 {
     public sealed class JavaScriptSerializer
     {
-        private static readonly JsonSerializerOptions Options = new() { PropertyNameCaseInsensitive = true, IncludeFields = true };
+        private static readonly JsonSerializerOptions Options = CreateOptions();
+        private static JsonSerializerOptions CreateOptions()
+        {
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, IncludeFields = true };
+            options.Converters.Add(new ObjectConverter());
+            return options;
+        }
+        private sealed class ObjectConverter : System.Text.Json.Serialization.JsonConverter<object>
+        {
+            public override object Read(ref Utf8JsonReader reader, Type type, JsonSerializerOptions options)
+            { using var document = JsonDocument.ParseValue(ref reader); return JavaScriptSerializer.Read(document.RootElement); }
+            public override void Write(Utf8JsonWriter writer, object value, JsonSerializerOptions options)
+            { if (value.GetType() == typeof(object)) { writer.WriteStartObject(); writer.WriteEndObject(); } else JsonSerializer.Serialize(writer, value, value.GetType(), options); }
+        }
         public int MaxJsonLength { get; set; } = 16 * 1024 * 1024;
         public object DeserializeObject(string json)
         {

@@ -19,9 +19,10 @@ namespace Hifc.Web.Revit
             };
             panel.AddItem(command);
             UpdateCoordinator.Start();
+            ComponentCoordinator.Start();
             return Result.Succeeded;
         }
-        public Result OnShutdown(UIControlledApplication application) { WebCommand.CloseWindow(); return Result.Succeeded; }
+        public Result OnShutdown(UIControlledApplication application) { ComponentCoordinator.Stop(); WebCommand.CloseWindow(); return Result.Succeeded; }
     }
     public sealed class WebProjectAvailable : IExternalCommandAvailability
     {

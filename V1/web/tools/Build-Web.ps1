@@ -17,6 +17,8 @@ Push-Location $webRoot
 try {
     Invoke-WebCheck 'web-tests' @('run','--project','tests/Hifc.Web.Tests/Hifc.Web.Tests.csproj','-c','Release')
     Invoke-WebCheck 'existing-rule-regression' @('run','--project','tests/Hifc.Web.RuleRegression/Hifc.Web.RuleRegression.csproj','-c','Release')
+    Invoke-WebCheck 'rule-parity-tests' @('run','--project','tests/Hifc.Web.RuleParityTests/Hifc.Web.RuleParityTests.csproj','-c','Release')
+    Invoke-WebCheck 'component-tests' @('run','--project','tests/Hifc.Web.ComponentTests/Hifc.Web.ComponentTests.csproj','-c','Release')
     if($WithDatabase){
         Invoke-WebCheck 'database-tests' @('run','--project','tests/Hifc.Web.DatabaseTests/Hifc.Web.DatabaseTests.csproj','-c','Release')
     }
@@ -28,6 +30,8 @@ try {
         Write-Output ('desktop-tests: '+(Get-Content (Join-Path $logs 'desktop-tests.log') -Tail 1))
         Invoke-WebCheck 'native-test-build' @('build','tests/Hifc.Web.NativeTests/Hifc.Web.NativeTests.csproj','-c','Release','--nologo','-v','minimal')
         $nativeBuilt=$true
+        Invoke-WebCheck 'workbook-regression' @('run','--project','tests/Hifc.Web.WorkbookRegression/Hifc.Web.WorkbookRegression.csproj','-c','Release')
+        Invoke-WebCheck 'redline-regression' @('run','--project','tests/Hifc.Web.RedlineRegression/Hifc.Web.RedlineRegression.csproj','-c','Release','--',(Join-Path $webRoot '.local/redline-validation'))
     }
     $baselinePath=if($ProtectedBaseline){$ProtectedBaseline}else{Join-Path $webRoot '.local\baseline.json'}
     if(Test-Path -LiteralPath $baselinePath){& (Join-Path $PSScriptRoot 'Test-ProtectedLocalState.ps1') -Baseline $baselinePath}

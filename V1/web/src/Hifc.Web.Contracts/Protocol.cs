@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
@@ -31,23 +32,57 @@ namespace Hifc.Web.Contracts
         }
         public static string InventoryHash(ElementRecord[] elements) => Hash(string.Concat((elements ?? new ElementRecord[0]).OrderBy(x => x.UniqueId, StringComparer.Ordinal).Select(x => Pack(
             x.Id, x.UniqueId, x.TypeId, x.TypeUniqueId, x.Name, x.TypeName, x.Category, x.Entity, x.DeclaredSlot, x.AssignedSlot,
-            x.Level, x.Building, x.AreaScheme, x.CoverageNote, x.NativeAreaM2, x.ProjectedAreaM2))));
+            x.Level, x.Building, x.AreaScheme, x.CoverageNote, x.NativeAreaM2, x.ProjectedAreaM2,
+            x.SourceEntity, x.CategoryId, x.LevelUniqueId, x.LevelElevationM, x.ProjectionKey, x.GeometryFingerprint, Structured(x.ProjectionOverlaps), x.AreaAggregationIssue, x.AreaReason))));
         public static string ValuesHash(ParameterValue[] values) => Hash(string.Concat((values ?? new ParameterValue[0]).Select(x => Pack(
-            x.OwnerUniqueId, x.OwnerId, x.Source, x.Origin, x.Exists, x.HasValue, x.RawValue, x.DisplayValue, x.StorageType, x.Unit, x.ReadOnly, x.SharedGuid))
+            x.OwnerUniqueId, x.OwnerId, x.Source, x.Origin, x.Exists, x.HasValue, x.RawValue, x.DisplayValue, x.StorageType, x.Unit, x.ReadOnly, x.SharedGuid, x.DefinitionType, x.MetricValue))
             .OrderBy(x => x, StringComparer.Ordinal)));
         public static string ContextKey(RequestContext context) => context == null ? null : Pack(context.ProtocolMajor, context.ClientVersion, context.RuleVersion,
-            context.RequestId, context.DocumentSessionId, context.ScanId, context.SnapshotHash);
-        public static string PlanHash(EditPlan plan) => Hash(Pack("HIFC-WEB-EDIT-1", ContextKey(plan.Context), plan.Id, plan.CaptureHash, plan.ExpiresAtUtc) + string.Concat(
+            context.RequestId, context.DocumentSessionId, context.ScanId, context.SnapshotHash, context.ConfigurationHash);
+        public static string PlanHash(EditPlan plan) => Hash(Pack("HIFC-WEB-EDIT-2", ContextKey(plan.Context), plan.Id, plan.CaptureHash, plan.ExpiresAtUtc, Structured(plan.Native)) + string.Concat(
             plan.Changes.OrderBy(c => c.OwnerUniqueId, StringComparer.Ordinal).ThenBy(c => c.Source, StringComparer.Ordinal).ThenBy(c => c.Action, StringComparer.Ordinal)
             .Select(c => Pack(c.FieldKey, c.OwnerId, c.OwnerUniqueId, c.Source, c.SourceGuid, c.Origin, c.PropertySet, c.RawType,
-                c.ExpectedSignature, c.ExpectedValue, c.Value, c.Unit, c.Action, c.Reason, c.AffectedInstances, c.Manual))));
-        public static string PermitPayload(WritePermit permit) => Pack("HIFC-WEB-PERMIT-1", ContextKey(permit.Context), permit.Id, permit.PlanId, permit.PlanHash, permit.ExpiresAtUtc);
+                c.ExpectedSignature, c.ExpectedValue, c.Value, c.Unit, c.Action, c.Reason, c.AffectedInstances, c.Manual, c.DefinitionType))));
+        public static string PermitPayload(WritePermit permit) => Pack("HIFC-WEB-PERMIT-2", ContextKey(permit.Context), permit.Id, permit.PlanId, permit.PlanHash, permit.ExpiresAtUtc);
+        public static string ProjectDataHash(ProjectDataRecord[] records) => Hash(Structured((records ?? new ProjectDataRecord[0]).OrderBy(r => r.SchemaId, StringComparer.Ordinal).ToArray()));
+        public static string ConfigurationHash(ModelSettings settings, ProjectDataRecord[] records) => Hash(Pack("HIFC-WEB-CONFIG-2", Structured(settings ?? new ModelSettings()), ProjectDataHash(records)));
+        public static string DefinitionHash(NativeDefinitionSnapshot value) => Hash(Pack(value.Source, value.Guid, value.ParameterId, value.DefinitionType, value.Origin,
+            Structured((value.CategoryIds ?? new int[0]).OrderBy(id => id).ToArray()), ValuesHash(value.Values), Structured(value.Dependencies)));
+        public static string DefinitionSetHash(string source, NativeDefinitionSnapshot[] definitions) => Hash(Pack("HIFC-WEB-DEFINITIONS-2", source,
+            string.Concat((definitions ?? new NativeDefinitionSnapshot[0]).Where(d => d.Source == source).OrderBy(d => d.ParameterId).ThenBy(d => d.Guid, StringComparer.Ordinal)
+                .ThenBy(d => d.Origin, StringComparer.Ordinal).Select(d => Pack(DefinitionHash(d))))));
+        public static string CaptureHash(ParameterValue[] values, NativeDefinitionSnapshot[] definitions)
+        {
+            var items = definitions ?? new NativeDefinitionSnapshot[0];
+            return items.Length == 0 ? ValuesHash(values) : Hash(Pack("HIFC-WEB-CAPTURE-2", ValuesHash(values),
+                string.Concat(items.OrderBy(d => d.Source, StringComparer.Ordinal).ThenBy(d => d.ParameterId).Select(d => Pack(DefinitionHash(d))))));
+        }
+        public static string ExportHash(ExportPlan plan) => Hash(Pack("HIFC-WEB-EXPORT-2", ContextKey(plan.Context), plan.Id, plan.CaptureHash, plan.ExpiresAtUtc,
+            plan.FileName, plan.MappingText, plan.ExpectedDataHash, Structured(plan.TemporaryChanges), Structured(plan.Native), Structured(plan.Routes), Structured(plan.SuppressParameterNames), Structured(plan.Options)));
+        // Length-prefixed, culture-independent data encoding shared by net48 and net10.
+        // Only contract POCOs are passed here; executable type metadata is never serialized.
+        private static string Structured(object value, int depth = 0)
+        {
+            if (depth > 20) throw new InvalidOperationException("协议数据嵌套过深。");
+            if (value == null) return Pack((object)null);
+            if (value is string || value is DateTime || value.GetType().IsPrimitive || value is decimal) return Pack(value);
+            if (value is IDictionary dictionary)
+                return Pack("map", dictionary.Count) + string.Concat(dictionary.Keys.Cast<object>().OrderBy(k => Convert.ToString(k, CultureInfo.InvariantCulture), StringComparer.Ordinal)
+                    .Select(k => Pack(k, Structured(dictionary[k], depth + 1))));
+            if (value is IEnumerable sequence)
+            {
+                var items = sequence.Cast<object>().ToArray();
+                return Pack("array", items.Length) + string.Concat(items.Select(item => Pack(Structured(item, depth + 1))));
+            }
+            return Pack("object") + string.Concat(value.GetType().GetProperties().Where(p => p.CanRead && p.GetIndexParameters().Length == 0)
+                .OrderBy(p => p.Name, StringComparer.Ordinal).Select(p => Pack(p.Name, Structured(p.GetValue(value, null), depth + 1))));
+        }
     }
     public static class ProtocolGuard
     {
         public static void Match(RequestContext expected, RequestContext actual)
         {
-            if (expected == null || actual == null || expected.ProtocolMajor != 1 || actual.ProtocolMajor != 1 || Canonical.ContextKey(expected) != Canonical.ContextKey(actual))
+            if (expected == null || actual == null || expected.ProtocolMajor != 2 || actual.ProtocolMajor != 2 || Canonical.ContextKey(expected) != Canonical.ContextKey(actual))
                 throw new InvalidOperationException("响应的协议、文档、扫描或快照已不匹配，请重新检查。");
         }
         private static void Pages(int[] indexes, int[] counts, int total, int actual)
@@ -61,12 +96,15 @@ namespace Hifc.Web.Contracts
             if (pages == null || pages.Length == 0 || pages.Any(p => p == null || p.Elements == null || p.Context == null))
                 throw new InvalidOperationException("模型盘点页为空。");
             var first = pages[0];
+            var configuration = Canonical.ConfigurationHash(first.Settings, first.ProjectData);
+            if (first.Context.ConfigurationHash != configuration) throw new InvalidOperationException("设置或模型资料快照不一致，请重新检查。");
             var elements = pages.SelectMany(p => p.Elements).ToArray();
             Pages(pages.Select(p => p.PageIndex).ToArray(), pages.Select(p => p.PageCount).ToArray(), first.TotalElements, elements.Length);
             foreach (var page in pages)
             {
                 Match(first.Context, page.Context);
                 if (page.TotalElements != first.TotalElements || page.Stage != first.Stage || page.ModelKind != first.ModelKind || page.Elements.Length > 256
+                    || Canonical.ConfigurationHash(page.Settings, page.ProjectData) != configuration
                     || page.Elements.Any(e => e == null) || page.PageHash != Canonical.InventoryHash(page.Elements))
                     throw new InvalidOperationException("盘点页内容、阶段或散列不一致。");
             }
@@ -94,7 +132,9 @@ namespace Hifc.Web.Contracts
             foreach (var target in required)
                 if (values.Where(v => Key(v.OwnerUniqueId, v.Origin, v.Source) == Key(target.OwnerUniqueId, target.Origin, target.Source)).Any(v => v.OwnerId != target.OwnerId))
                     throw new InvalidOperationException("字段载体标识与盘点不一致。");
+            Definitions(pages);
         }
+        public static NativeDefinitionSnapshot[] Definitions(CapturePage[] pages) => DefinitionChunks.Assemble(pages);
     }
     public static class DraftRebaser
     {

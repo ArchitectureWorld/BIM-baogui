@@ -12,6 +12,7 @@ public sealed class WebRuntimeOptions
     public string BuildRevision { get; init; } = "development";
     public bool EnableAccounts { get; init; }
     public string ClientUpdateDirectory { get; init; } = Path.Combine(AppContext.BaseDirectory, "downloads");
+    public string ComponentDirectory { get; init; }
     public string TrustedProxyNetwork { get; init; }
 
     public static WebRuntimeOptions FromEnvironment()
@@ -40,12 +41,13 @@ public static class ServerApplication
     public static WebApplication Create(string[] args, WebRuntimeOptions options)
     {
         var builder = WebApplication.CreateBuilder(args);
-        builder.WebHost.ConfigureKestrel(settings => settings.AddServerHeader = false);
+        builder.WebHost.ConfigureKestrel(settings => { settings.AddServerHeader = false; settings.Limits.MaxRequestBodySize = 64L * 1024 * 1024; });
         builder.Services.AddSingleton(NpgsqlDataSource.Create(options.DatabaseConnectionString));
         builder.Services.AddSingleton<AccountStore>();
         builder.Services.AddSingleton(new PlanSigner(options.SigningKeyPath));
         builder.Services.AddSingleton<RuleAdapter>();
         builder.Services.AddSingleton<WorkflowStore>();
+        builder.Services.AddSingleton<PlatformLaunchStore>();
         builder.Services.AddSingleton<IdentityStore>();
         if (options.EnableAccounts) AdminPortal.Configure(builder, options);
         if (options.TrustedProxyNetwork != null) builder.Services.Configure<ForwardedHeadersOptions>(forwarded => {
@@ -63,6 +65,7 @@ public static class ServerApplication
             catch (NpgsqlException) when (!context.Response.HasStarted) { context.Response.StatusCode = 503; await context.Response.WriteAsJsonAsync(new ApiError { Code = "DATABASE_UNAVAILABLE", Message = "服务暂时不可用，请保留草稿后重试。" }); }
         });
         ClientUpdateEndpoints.Map(app, options.ClientUpdateDirectory);
+        ComponentEndpoints.Map(app, options.ComponentDirectory ?? Environment.GetEnvironmentVariable("HIFC_COMPONENT_DIRECTORY") ?? Path.Combine(options.ClientUpdateDirectory, "components"));
         app.MapGet("/health/live", () => Results.Ok(new { State = "live", Version = "0.5.0-dev", options.BuildRevision, AuthenticationConfigured = options.EnableAccounts }));
         app.MapGet("/health/ready", async (NpgsqlDataSource source, HttpContext context) => {
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
@@ -76,12 +79,14 @@ public static class ServerApplication
                 return Results.Json(new { State = "not-ready", Code = "DATABASE_UNAVAILABLE" }, statusCode: StatusCodes.Status503ServiceUnavailable);
             }
         });
-        app.MapGet("/api/v1/compatibility", (RuleAdapter rules, PlanSigner signer) => Results.Ok(new Compatibility {
-            RuleVersion = rules.RuleVersion, ServerTimeUtc = DateTime.UtcNow, SigningKey = signer.PublicKey
-        }));
+        app.MapGet("/api/v1/compatibility", (HttpContext context, RuleAdapter rules, PlanSigner signer) =>
+            context.Request.Query["protocol"] == "2" ? Results.Json<object>(new Compatibility {
+                RuleVersion = rules.RuleVersion, ServerTimeUtc = DateTime.UtcNow, SigningKey = signer.PublicKey,
+                DefaultRuleProfileId = rules.Profiles.First(p => p.Id != "").Id, RuleProfiles = rules.Profiles
+            }) : Results.Json<object>(new ApiError { Code = "CLIENT_UPDATE_REQUIRED", Message = "服务规则已升级，请关闭并重新打开 Revit 完成自动更新，再重新全面检查；已有草稿保留。" }, statusCode: 409));
         static IResult Closed() => Results.Json(new ApiError { Code = "AUTHENTICATION_NOT_CONFIGURED", Message = "登录方案尚未确定，账号和模型操作暂未开放。" }, statusCode: StatusCodes.Status503ServiceUnavailable);
         var methods = new[] { "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD" };
-        if (options.EnableAccounts) { app.UseRouting(); app.UseRateLimiter(); app.UseAuthentication(); app.UseAuthorization(); BusinessEndpoints.Map(app); AdminPortal.Map(app); }
+        if (options.EnableAccounts) { app.UseRouting(); app.UseRateLimiter(); app.UseAuthentication(); app.UseAuthorization(); BusinessEndpoints.Map(app); PlatformLaunchEndpoints.MapConsume(app); AdminPortal.Map(app); }
         app.MapMethods("/api/v1/{**path}", methods, () => options.EnableAccounts ? Results.NotFound() : Closed());
         app.MapMethods("/admin/{**path}", methods, () => options.EnableAccounts ? Results.Unauthorized() : Closed());
         app.MapGet("/", () => Results.Content(options.EnableAccounts ? AdminPortal.Home() : StatusPage, "text/html; charset=utf-8"));

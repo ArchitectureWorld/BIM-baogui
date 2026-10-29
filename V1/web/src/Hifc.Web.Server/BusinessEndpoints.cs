@@ -35,6 +35,12 @@ public static class BusinessEndpoints
         });
         group.MapGet("/checks/{scan}", async (string scan, WorkflowStore workflow, HttpContext context) => Results.Ok(await workflow.GetResultAsync(Actor(context), scan, context.RequestAborted)));
         group.MapPost("/edit-plans", async (PreviewRequest request, WorkflowStore workflow, HttpContext context) => Results.Ok(await workflow.PreviewAsync(Actor(context), request, context.RequestAborted)));
+        group.MapPost("/materials/preview", async (MaterialPreviewRequest request, WorkflowStore workflow, HttpContext context) => Results.Ok(await workflow.MaterialPreviewAsync(Actor(context), request, context.RequestAborted)));
+        group.MapPost("/materials/selections", async (MaterialSelectionRequest request, WorkflowStore workflow, HttpContext context) => { await workflow.MaterialSelectionsAsync(Actor(context), request, context.RequestAborted); return Results.NoContent(); });
+        group.MapPost("/materials/template", async (CompleteCheckRequest request, WorkflowStore workflow, HttpContext context) => Results.Ok(Convert.ToBase64String(await workflow.WorkbookTemplateAsync(Actor(context), request.Context, context.RequestAborted))));
+        group.MapPost("/export-plans", async (ExportRequest request, WorkflowStore workflow, HttpContext context) => Results.Ok(await workflow.PreviewExportAsync(Actor(context), request, context.RequestAborted)));
+        group.MapPost("/export-receipts", async (ExportReceipt receipt, WorkflowStore workflow, HttpContext context) => { await workflow.ExportReceiptAsync(Actor(context), receipt, context.RequestAborted); return Results.NoContent(); });
+        PlatformLaunchEndpoints.Map(group);
         group.MapPost("/edit-plans/{plan}/authorize", async (string plan, AuthorizeRequest request, WorkflowStore workflow, HttpContext context) => Results.Ok(await workflow.AuthorizeAsync(Actor(context), plan, request, context.RequestAborted)));
         group.MapPost("/write-receipts", async (WriteReceipt receipt, WorkflowStore workflow, HttpContext context) => {
             await workflow.ReceiptAsync(Actor(context), receipt, context.RequestAborted); return Results.NoContent();

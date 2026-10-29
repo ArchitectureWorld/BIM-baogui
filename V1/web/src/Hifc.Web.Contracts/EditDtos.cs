@@ -39,6 +39,7 @@ namespace Hifc.Web.Contracts
         public string Reason { get; set; }
         public int AffectedInstances { get; set; }
         public bool Manual { get; set; }
+        public string DefinitionType { get; set; }
     }
     public sealed class EditPlan
     {
@@ -47,6 +48,7 @@ namespace Hifc.Web.Contracts
         public string CaptureHash { get; set; }
         public DateTime ExpiresAtUtc { get; set; }
         public WriteChange[] Changes { get; set; } = new WriteChange[0];
+        public NativeOperations Native { get; set; } = new NativeOperations();
         public string Hash { get; set; }
         public string Signature { get; set; }
     }
@@ -81,6 +83,7 @@ namespace Hifc.Web.Contracts
         public RequestContext Context { get; set; }
         public EditDraft[] Drafts { get; set; } = new EditDraft[0];
         public bool IncludeSuggestions { get; set; } = true;
+        public MaterialDecision[] Materials { get; set; } = new MaterialDecision[0];
     }
     public sealed class AuthorizeRequest
     {

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Autodesk.Revit.DB;
-using Hifc.Revit.Management;
 using Hifc.Web.Contracts;
 using ElementRecord = Hifc.Web.Contracts.ElementRecord;
 using ParameterValue = Hifc.Web.Contracts.ParameterValue;
@@ -35,7 +34,7 @@ namespace Hifc.Web.Revit
             var instance = Text(element, name);
             return string.IsNullOrWhiteSpace(instance) ? Text(document.GetElement(element.GetTypeId()), name) : instance;
         }
-        private static string Entity(Document document, Element element)
+        internal static string Entity(Document document, Element element)
         {
             if (element is ProjectInfo) return "IfcBuilding";
             if (element is Level) return "IfcBuildingStorey";
@@ -60,15 +59,19 @@ namespace Hifc.Web.Revit
         public static ElementRecord[] Read(Document document, IDictionary<string, string> assigned = null)
         {
             if (document == null || !document.IsValidObject || document.IsFamilyDocument) throw new InvalidOperationException("请打开 Revit 项目模型。");
-            return new FilteredElementCollector(document).WhereElementIsNotElementType().Where(Included).Select(element => {
+            var rows = new FilteredElementCollector(document).WhereElementIsNotElementType().Where(Included).Select(element => {
                 var type = document.GetElement(element.GetTypeId());
+                var level = element as Level ?? document.GetElement(element.LevelId) as Level;
                 var row = new ElementRecord { Id = element.Id.IntegerValue, UniqueId = element.UniqueId, TypeId = type?.Id.IntegerValue ?? -1,
                     TypeUniqueId = type?.UniqueId, Name = element.Name, TypeName = type?.Name, Category = element.Category?.Name ?? element.GetType().Name,
+                    CategoryId = element.Category?.Id.IntegerValue ?? 0,
                     Entity = "UNKNOWN", Level = element is Level ? element.Name : document.GetElement(element.LevelId)?.Name ?? "项目信息 / 无所属楼层",
                     Building = string.IsNullOrWhiteSpace(document.ProjectInformation.BuildingName) ? document.Title : document.ProjectInformation.BuildingName,
-                    ProjectedAreaM2 = ModelGeometry.ProjectedAreaM2(element) };
+                    LevelUniqueId = level?.UniqueId, LevelElevationM = level == null ? (double?)null : UnitUtils.ConvertFromInternalUnits(level.ProjectElevation, DisplayUnitType.DUT_METERS),
+                    ProjectionKey = NativeGeometry.ProjectionKey(element), ProjectedAreaM2 = NativeGeometry.ProjectedAreaM2(element),
+                    GeometryFingerprint = element.Category?.CategoryType == CategoryType.Model && !(element is RevitLinkInstance) ? NativeRedlineGeometry.Fingerprint(document, element) : null };
                 if (assigned != null && assigned.TryGetValue(element.UniqueId, out var slot)) row.AssignedSlot = slot;
-                try { row.Entity = Entity(document, element); row.DeclaredSlot = Effective(document, element, "类目"); }
+                try { row.Entity = Entity(document, element); row.SourceEntity = element is Floor ? "IfcSlab" : row.Entity; row.DeclaredSlot = Effective(document, element, "类目"); }
                 catch (InvalidOperationException ex) { row.CoverageNote = ex.Message; }
                 if (element is RevitLinkInstance link) row.CoverageNote = link.GetLinkDocument() == null ? "链接未加载 · 尚未检查" : "链接模型 · 请在源文档全面检查";
                 if (element is Area area)
@@ -80,6 +83,8 @@ namespace Hifc.Web.Revit
                 }
                 return row;
             }).OrderBy(row => row.UniqueId, StringComparer.Ordinal).ToArray();
+            NativeGeometry.CheckAggregation(document, rows);
+            return rows;
         }
         public static ParameterValue[] ReadValues(Document document, CaptureTarget[] targets)
         {
@@ -104,11 +109,47 @@ namespace Hifc.Web.Revit
                     }
                     values.Add(new ParameterValue { OwnerId = target.OwnerId, OwnerUniqueId = target.OwnerUniqueId, Origin = target.Origin, Source = target.Source,
                         Exists = true, HasValue = parameter.HasValue, RawValue = raw, DisplayValue = parameter.StorageType == StorageType.String ? raw : parameter.AsValueString(),
-                        StorageType = parameter.StorageType.ToString(), Unit = parameter.StorageType == StorageType.Double ? "internal" : null,
+                        StorageType = parameter.StorageType.ToString(), DefinitionType = parameter.Definition.ParameterType.ToString(),
+                        MetricValue = MetricValue(document, parameter), Unit = parameter.StorageType == StorageType.Double ? "internal" : null,
                         ReadOnly = parameter.IsReadOnly, SharedGuid = parameter.IsShared ? parameter.GUID.ToString("D") : null });
                 }
             }
             return values.ToArray();
+        }
+        private static double? MetricValue(Document document, Parameter parameter)
+        {
+            if (!parameter.HasValue) return null;
+            if (parameter.StorageType == StorageType.ElementId && document.GetElement(parameter.AsElementId()) is Level level)
+                return UnitUtils.ConvertFromInternalUnits(level.ProjectElevation, DisplayUnitType.DUT_METERS);
+            if (parameter.StorageType != StorageType.Double) return null;
+            if (parameter.Definition.UnitType == UnitType.UT_Area) return UnitUtils.ConvertFromInternalUnits(parameter.AsDouble(), DisplayUnitType.DUT_SQUARE_METERS);
+            if (parameter.Definition.UnitType == UnitType.UT_Length) return UnitUtils.ConvertFromInternalUnits(parameter.AsDouble(), DisplayUnitType.DUT_METERS);
+            if (parameter.Definition.UnitType == UnitType.UT_Number) return parameter.AsDouble();
+            return null;
+        }
+        public static NativeDefinitionSnapshot[] ReadDefinitions(Document document, string[] sources = null)
+        {
+            var result = new List<NativeDefinitionSnapshot>();
+            var iterator = document.ParameterBindings.ForwardIterator();
+            iterator.Reset();
+            while (iterator.MoveNext())
+            {
+                if (!(iterator.Current is ElementBinding binding)) continue;
+                var definition = iterator.Key;
+                if (sources != null && !sources.Contains(definition.Name, StringComparer.Ordinal)) continue;
+                var parameter = definition is InternalDefinition internalDefinition ? document.GetElement(internalDefinition.Id) as ParameterElement : null;
+                var categories = binding.Categories.Cast<Category>().Select(c => c.Id.IntegerValue).OrderBy(c => c).ToArray();
+                var origin = binding is TypeBinding ? "type" : "instance";
+                var collector = new FilteredElementCollector(document);
+                if (origin == "type") collector.WhereElementIsElementType(); else collector.WhereElementIsNotElementType();
+                var owners = collector.Where(e => e.Category != null && categories.Contains(e.Category.Id.IntegerValue)).ToArray();
+                var row = new NativeDefinitionSnapshot { Source = definition.Name, Guid = (parameter as SharedParameterElement)?.GuidValue.ToString("D"),
+                    ParameterId = parameter?.Id.IntegerValue ?? -1, DefinitionType = definition.ParameterType.ToString(), Origin = origin, CategoryIds = categories,
+                    Values = ReadValues(document, owners.Select(e => new CaptureTarget { OwnerId = e.Id.IntegerValue, OwnerUniqueId = e.UniqueId, Origin = origin, Source = definition.Name }).ToArray()),
+                    Dependencies = NativeParameterDependencies.Read(document, parameter?.Id, definition.Name, owners) };
+                row.Hash = Canonical.DefinitionHash(row); result.Add(row);
+            }
+            return result.OrderBy(r => r.Source, StringComparer.Ordinal).ThenBy(r => r.ParameterId).ToArray();
         }
     }
 }

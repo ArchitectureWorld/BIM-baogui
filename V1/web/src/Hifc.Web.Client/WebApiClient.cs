@@ -94,8 +94,8 @@ namespace Hifc.Web.Client
         }
         public async Task<Compatibility> CompatibilityAsync(CancellationToken ct)
         {
-            var result = await Request<Compatibility>(HttpMethod.Get, "compatibility", null, ct, false).ConfigureAwait(false);
-            if (result == null || result.ProtocolMajor != 1 || string.IsNullOrWhiteSpace(result.RuleVersion) || result.SigningKey == null)
+            var result = await Request<Compatibility>(HttpMethod.Get, "compatibility?protocol=2", null, ct, false).ConfigureAwait(false);
+            if (result == null || result.ProtocolMajor != 2 || string.IsNullOrWhiteSpace(result.RuleVersion) || result.SigningKey == null)
                 throw new InvalidOperationException("服务器协议、规则版本或签名信息不完整。");
             compatibility = result; serverTime = DateTime.SpecifyKind(result.ServerTimeUtc, DateTimeKind.Utc); clockStart = Stopwatch.GetTimestamp(); return result;
         }
@@ -128,6 +128,28 @@ namespace Hifc.Web.Client
             WriteGuard.Permit(permit, plan, SigningKey, ServerNowUtc); return permit;
         }
         public async Task ReceiptAsync(WriteReceipt receipt, CancellationToken ct) => await Request<object>(HttpMethod.Post, "write-receipts", receipt, ct).ConfigureAwait(false);
+        public async Task<MaterialPreview> MaterialPreviewAsync(MaterialPreviewRequest request, CancellationToken ct)
+        {
+            var result = await Request<MaterialPreview>(HttpMethod.Post, "materials/preview", request, ct).ConfigureAwait(false);
+            ProtocolGuard.Match(request.Context, result?.Context); return result;
+        }
+        public async Task MaterialSelectionsAsync(MaterialSelectionRequest request, CancellationToken ct) =>
+            await Request<object>(HttpMethod.Post, "materials/selections", request, ct).ConfigureAwait(false);
+        public async Task<ExportPlan> PreviewExportAsync(ExportRequest request, CancellationToken ct)
+        {
+            var plan = await Request<ExportPlan>(HttpMethod.Post, "export-plans", request, ct).ConfigureAwait(false);
+            WriteGuard.Export(plan, request.Context, SigningKey, ServerNowUtc); return plan;
+        }
+        public async Task ExportReceiptAsync(ExportReceipt receipt, CancellationToken ct) =>
+            await Request<object>(HttpMethod.Post, "export-receipts", receipt, ct).ConfigureAwait(false);
+        public async Task<byte[]> WorkbookTemplateAsync(RequestContext context, CancellationToken ct)
+        {
+            var text = await Request<string>(HttpMethod.Post, "materials/template", new CompleteCheckRequest { Context = context }, ct).ConfigureAwait(false);
+            return Convert.FromBase64String(text);
+        }
+        public async Task<PlatformLaunchPermit> PlatformLaunchAsync(PlatformLaunchRequest request, CancellationToken ct) =>
+            await Request<PlatformLaunchPermit>(HttpMethod.Post, "platform/launch-permit", request, ct).ConfigureAwait(false);
+        public Task<PlatformLaunchPermit> AuthorizePlatformLaunchAsync(PlatformLaunchRequest request, CancellationToken ct) => PlatformLaunchAsync(request, ct);
         public void Dispose() => http.Dispose();
     }
 }

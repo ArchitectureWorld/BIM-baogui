@@ -2,6 +2,7 @@
 param([switch]$ValidateOnly)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'CertificateTrust.ps1')
+. (Join-Path $PSScriptRoot 'InstallPayload.ps1')
 $package=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'package.json') -Raw|ConvertFrom-Json
 $expected=@('Hifc.Web.Revit.dll','Hifc.Web.Client.dll','Hifc.Web.Contracts.dll','Newtonsoft.Json.dll','Hifc.Web.Update.exe','Hifc.Web.Update.exe.config')
 if($package.version -ne '0.5.0-Web' -or $package.addInId -ne '53ef39d3-a187-4fb5-90f8-29e91d747602' -or $package.releaseId -notmatch '^0\.5\.0-dev-[0-9]{8}T[0-9]{6}Z$'){throw 'Web 安装包标识无效。'}
@@ -17,6 +18,12 @@ Confirm-HifcServerCertificate -Certificate $certificate
 $publicKeyPath=Join-Path $PSScriptRoot 'update-public-key.json'
 $public=Get-Content -LiteralPath $publicKeyPath -Raw|ConvertFrom-Json
 if([Convert]::FromBase64String($public.modulus).Length -lt 256 -or -not $public.exponent){throw '更新签名公钥无效。'}
+if($package.componentsRequired){
+    $locksText=(& (Join-Path $PSScriptRoot 'client/Hifc.Web.Update.exe') --component-locks)-join ''
+    if($LASTEXITCODE -ne 0){throw '安装包的运行组件锁无法读取。'}
+    $locks=@($locksText|ConvertFrom-Json)
+    if($locks.Count -ne 2 -or @($locks|Where-Object {$_.mainReleaseId -ne $package.releaseId -or $_.mainSourceCommit -ne $package.sourceCommit}).Count){throw '运行组件与主安装包版本不匹配。'}
+}
 if($ValidateOnly){Write-Output 'PASS Web package files, independent identity, update key and pinned public certificate';return}
 if(Get-Process -Name Revit -ErrorAction SilentlyContinue){throw '请先关闭 Revit，再安装 Web 版。'}
 if(([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){
@@ -46,11 +53,16 @@ $currentMetadata=Join-Path $installation 'package.json'
 if(Test-Path -LiteralPath $currentMetadata){$current=Get-Content -LiteralPath $currentMetadata -Raw|ConvertFrom-Json;if($current.releaseId -and [string]::CompareOrdinal($current.releaseId,$package.releaseId) -gt 0){Write-Host '本机已安装更新的版本，继续保留当前版本。';return}}
 $installedKey=Join-Path $installation 'update-public-key.json'
 if(Test-Path -LiteralPath $installedKey){$known=Get-Content -LiteralPath $installedKey -Raw|ConvertFrom-Json;if($known.modulus -cne $public.modulus -or $known.exponent -cne $public.exponent){throw '更新签名身份与已安装版本不一致，请核实服务器。'}}
-$versionDirectory=Join-Path $installation ('releases/'+$package.releaseId)
-New-Item -ItemType Directory -Path $versionDirectory -Force|Out-Null
-foreach($name in $expected){Copy-Item -LiteralPath (Join-Path $PSScriptRoot ('client/'+$name)) -Destination (Join-Path $versionDirectory $name) -Force}
-Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'package.json') -Destination (Join-Path $versionDirectory 'package.json') -Force
 Copy-Item -LiteralPath $publicKeyPath -Destination $installedKey -Force
+$payloadStage=New-HifcPayloadStage -PackageRoot $PSScriptRoot -InstallationRoot $installation -Package $package
+try{
+    if($package.componentsRequired){
+        Write-Host '正在从 zetta 自动准备平台同步运行组件，请保持内网连接。'
+        & (Join-Path $payloadStage.CandidateDirectory 'Hifc.Web.Update.exe') --prepare-components $installation (Join-Path $payloadStage.CandidateDirectory 'package.json')
+        if($LASTEXITCODE -ne 0){throw '运行组件准备失败，尚未切换安装入口；请保持内网连接后重新运行安装器。'}
+    }
+    $versionDirectory=Complete-HifcPayloadStage -Stage $payloadStage
+}finally{Remove-HifcPayloadStage -Stage $payloadStage}
 $assembly=[Security.SecurityElement]::Escape((Join-Path $versionDirectory 'Hifc.Web.Revit.dll'))
 $xml="<?xml version=`"1.0`" encoding=`"utf-8`"?><RevitAddIns><AddIn Type=`"Application`"><Name>HIFC-V1-Web</Name><Assembly>$assembly</Assembly><AddInId>$($package.addInId)</AddInId><FullClassName>Hifc.Web.Revit.WebApp</FullClassName><VendorId>HIFC</VendorId><VendorDescription>HIFC Web</VendorDescription></AddIn></RevitAddIns>"
 [IO.File]::WriteAllText($manifest,$xml,(New-Object Text.UTF8Encoding($false)))

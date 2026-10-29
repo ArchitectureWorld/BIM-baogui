@@ -49,18 +49,32 @@ namespace Hifc.Web.Revit
         }
         public Task<ElementRecord[]> InventoryAsync(IDictionary<string, string> assigned) => Run((ui, doc) => NativeInventory.Read(doc, assigned));
         public Task<ParameterValue[]> ValuesAsync(CaptureTarget[] targets) => Run((ui, doc) => NativeInventory.ReadValues(doc, targets));
+        public Task<NativeDefinitionSnapshot[]> DefinitionsAsync(string[] sources) => Run((ui, doc) => NativeInventory.ReadDefinitions(doc, sources));
+        public Task<ProjectDataRecord[]> ProjectDataAsync() => Run((ui, doc) => NativeProjectData.Read(doc));
+        public Task<NativeRedlineEvidence> RedlineEvidenceAsync(string[] uniqueIds) => Run((ui, doc) => NativeRedlineGeometry.Capture(doc, uniqueIds));
+        public Task<Tuple<string, string>> DocumentIdentityAsync() => Run((ui, doc) => Tuple.Create(doc.PathName, doc.ProjectInformation.UniqueId));
         public Task<EditDraft[]> NormalizeDraftsAsync(EditDraft[] drafts, FieldResult[] fields) => Run((ui, doc) => drafts.Select(draft => {
             var field = fields.Single(f => f.Key == draft.FieldKey); var value = draft.Value;
             var parameters = doc.GetElement(field.OwnerUniqueId)?.GetParameters(field.Source);
-            if (parameters?.Count == 1 && parameters[0].StorageType == StorageType.Double)
+            if (field.RawType == "Boolean")
             {
-                if (string.IsNullOrWhiteSpace(value) || !UnitFormatUtils.TryParse(doc.GetUnits(), parameters[0].Definition.UnitType, value, out var raw))
-                    throw new InvalidOperationException(field.Property + "：请按当前项目单位输入数值，可附带单位；数值参数不能直接清空。");
-                value = raw.ToString("R", CultureInfo.InvariantCulture);
+                if (value == "是" || string.Equals(value, "true", StringComparison.OrdinalIgnoreCase)) value = "1";
+                else if (value == "否" || string.Equals(value, "false", StringComparison.OrdinalIgnoreCase)) value = "0";
+                else if (value != "" && value != "0" && value != "1") throw new InvalidOperationException(field.Property + "：请选择是、否或未填写。");
+            }
+            else if (field.RawType == "Real" || field.RawType == "Integer" || parameters?.Count == 1 && parameters[0].StorageType == StorageType.Double)
+            {
+                if (value == "" && (parameters == null || parameters.Count == 0 || parameters[0].StorageType == StorageType.String)) { }
+                else value = NativeUnitInput.Normalize(value, field.InputUnit, (text, unit) => {
+                    var type = unit == "m²" ? UnitType.UT_Area : UnitType.UT_Length;
+                    if (!UnitFormatUtils.TryParse(doc.GetUnits(), type, text, out var raw)) return null;
+                    return UnitUtils.ConvertFromInternalUnits(raw, unit == "m²" ? DisplayUnitType.DUT_SQUARE_METERS : DisplayUnitType.DUT_METERS);
+                });
             }
             return new EditDraft { FieldKey = draft.FieldKey, OriginalSignature = draft.OriginalSignature, OriginalValue = draft.OriginalValue, Value = value };
         }).ToArray());
         public Task<WriteReceipt> ApplyAsync(NativeWriteInput input, PublicSigningKey key, Func<DateTime> now) => Run((ui, doc) => NativeWriter.Apply(doc, input, key, now()));
+        public Task<ExportReceipt> ExportAsync(NativeExportInput input, PublicSigningKey key, Func<DateTime> now) => Run((ui, doc) => NativeExportExecutor.Execute(doc, input, key, now()));
         public Task LocateAsync(int[] ids) => Run((ui, doc) => { var elements = ids.Select(i => new ElementId(i)).Where(id => doc.GetElement(id) != null).ToArray(); ui.ActiveUIDocument.Selection.SetElementIds(elements); if (elements.Length > 0) ui.ActiveUIDocument.ShowElements(elements); return true; });
         public Task SaveAsync() => Run((ui, doc) => { if (string.IsNullOrWhiteSpace(doc.PathName)) throw new InvalidOperationException("请先在 Revit 中将模型另存为副本。"); doc.Save(); return true; });
         public void Execute(UIApplication application) { while (jobs.TryDequeue(out var job)) job(application); }

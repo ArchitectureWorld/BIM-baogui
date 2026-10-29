@@ -32,9 +32,11 @@ namespace Hifc.Web.Contracts
     }
     public sealed class Compatibility
     {
-        public int ProtocolMajor { get; set; } = 1;
+        public int ProtocolMajor { get; set; } = 2;
         public string ProductVersion { get; set; } = "0.5.0";
         public string RuleVersion { get; set; }
+        public string DefaultRuleProfileId { get; set; }
+        public RuleProfileInfo[] RuleProfiles { get; set; } = new RuleProfileInfo[0];
         public DateTime ServerTimeUtc { get; set; }
         public PublicSigningKey SigningKey { get; set; }
     }

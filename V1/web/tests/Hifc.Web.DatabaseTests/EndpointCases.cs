@@ -32,7 +32,7 @@ internal static class EndpointCases
             await test("zetta publishes a signed update manifest and its exact package through the actual HTTP server", async () => {
                 using var reply = await http.GetAsync("updates/latest"); Require(reply.IsSuccessStatusCode, "Update manifest endpoint is unavailable.");
                 var update = JsonWire.Deserialize<ClientUpdateManifest>(await reply.Content.ReadAsStringAsync());
-                using var compatibility = await http.GetAsync("api/v1/compatibility"); var key = JsonWire.Deserialize<Compatibility>(await compatibility.Content.ReadAsStringAsync()).SigningKey;
+                using var compatibility = await http.GetAsync("api/v1/compatibility?protocol=2"); var key = JsonWire.Deserialize<Compatibility>(await compatibility.Content.ReadAsStringAsync()).SigningKey;
                 UpdateTrust.Validate(update, key); Require(update.PackageUrl.StartsWith(UpdateTrust.Server, StringComparison.Ordinal), "Update source points away from zetta.");
                 using var package = await http.GetAsync(new Uri(update.PackageUrl).AbsolutePath);
                 Require(package.IsSuccessStatusCode && (await package.Content.ReadAsByteArrayAsync()).SequenceEqual(archive), "Update download differs from the signed manifest.");

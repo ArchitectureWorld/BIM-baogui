@@ -34,6 +34,9 @@ internal static class Program
             require(refused, "A draft path escaped its root.");
         });
         CanonicalCases.Run(test);
+        NativeParityCases.Run(test);
+        NativeSettingsCases.Run(test);
+        NativeWindowSmokeCases.Run(test);
         UpdateInstallCases.Run(test);
         DesktopHttpCase.Run(test);
         Console.WriteLine("RESULT " + passed + " passed; " + failed + " failed"); return failed == 0 ? 0 : 1;

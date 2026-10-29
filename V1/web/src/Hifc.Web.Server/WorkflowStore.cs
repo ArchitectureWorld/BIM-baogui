@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace Hifc.Web.Server;
 
-public sealed class WorkflowStore(NpgsqlDataSource source, RuleAdapter rules, PlanSigner signer)
+public sealed partial class WorkflowStore(NpgsqlDataSource source, RuleAdapter rules, PlanSigner signer)
 {
     private sealed class ScanState
     {
@@ -20,6 +20,9 @@ public sealed class WorkflowStore(NpgsqlDataSource source, RuleAdapter rules, Pl
         public WritePermit Permit { get; set; }
         public string PermitRequest { get; set; }
         public WriteReceipt Receipt { get; set; }
+        public Dictionary<string, MaterialPreviewRequest> MaterialRequests { get; set; } = new();
+        public Dictionary<string, MaterialPreview> MaterialPreviews { get; set; } = new();
+        public MaterialDecision[] PendingMaterials { get; set; } = [];
     }
     public async Task InitializeAsync(CancellationToken ct = default)
     {
@@ -33,6 +36,15 @@ public sealed class WorkflowStore(NpgsqlDataSource source, RuleAdapter rules, Pl
                 PRIMARY KEY(actor_id, scan_id)
             );
             CREATE UNIQUE INDEX IF NOT EXISTS workflows_plan ON hifc_web.workflows(plan_id) WHERE plan_id IS NOT NULL;
+            CREATE TABLE IF NOT EXISTS hifc_web.exports (
+                id text PRIMARY KEY,
+                actor_id uuid NOT NULL REFERENCES hifc_web.accounts(id) ON DELETE CASCADE,
+                scan_id text NOT NULL,
+                plan jsonb NOT NULL,
+                receipt jsonb,
+                updated_at timestamptz NOT NULL DEFAULT clock_timestamp()
+            );
+            CREATE INDEX IF NOT EXISTS exports_actor ON hifc_web.exports(actor_id,scan_id);
             """);
         await command.ExecuteNonQueryAsync(ct);
     }
@@ -61,6 +73,8 @@ public sealed class WorkflowStore(NpgsqlDataSource source, RuleAdapter rules, Pl
         var stored = await command.ExecuteScalarAsync(ct) as string;
         if (stored == null && !create) throw new InvalidOperationException("检查记录不存在，或不属于当前账号。");
         var state = stored == null ? new ScanState() : JsonSerializer.Deserialize<ScanState>(stored);
+        if (active && state.Context != null && (state.Context.ProtocolMajor != 2 || state.Context.RuleVersion != rules.RuleVersion))
+            throw new WebOperationException("CLIENT_UPDATE_REQUIRED", 409, "服务规则已升级，请关闭并重新打开 Revit 完成自动更新，再重新全面检查；已有草稿保留。");
         var result = operation(state, account);
         if (save)
         {
@@ -81,6 +95,8 @@ public sealed class WorkflowStore(NpgsqlDataSource source, RuleAdapter rules, Pl
     }
     public Task<CapturePlan> StartAsync(Guid actor, InventoryPage page, CancellationToken ct = default)
     {
+        if (page?.Context != null && (page.Context.ProtocolMajor != 2 || page.Context.RuleVersion != rules.RuleVersion))
+            throw new WebOperationException("CLIENT_UPDATE_REQUIRED", 409, "服务规则已升级，请关闭并重新打开 Revit 完成自动更新，再重新全面检查；已有草稿保留。");
         if (page?.Context == null || page.Elements == null || page.Elements.Length > 256 || page.PageCount < 1 || page.PageCount > 10000
             || page.PageIndex < 0 || page.PageIndex >= page.PageCount || page.TotalElements < 0 || page.TotalElements > 2000000 || page.Elements.Any(e => e == null)
             || page.PageHash != Canonical.InventoryHash(page.Elements)) throw new InvalidOperationException("模型盘点页无效。");
@@ -126,7 +142,8 @@ public sealed class WorkflowStore(NpgsqlDataSource source, RuleAdapter rules, Pl
             Match(state, request.Context);
             if (state.Result == null) throw new InvalidOperationException("请先完成全面检查。");
             if (state.Receipt?.TransactionCommitted == true) throw new InvalidOperationException("模型已经写入，请重新检查后再创建方案。");
-            state.Plan = rules.BuildEditPlan(state.Result, state.Values.SelectMany(p => p.Values).ToArray(), request.Drafts, request.IncludeSuggestions, account.ServerTimeUtc);
+            if (request.Materials?.Length > 0) SelectMaterials(state, request.Materials);
+            state.Plan = rules.BuildEditPlan(state.Result, state.Values.SelectMany(p => p.Values).ToArray(), request.Drafts, request.IncludeSuggestions, account.ServerTimeUtc, ResolveMaterials(state));
             signer.Sign(state.Plan); state.Permit = null; state.PermitRequest = null; state.Receipt = null; return state.Plan;
         }, ct);
     private async Task<string> ScanForPlan(Guid actor, string planId, CancellationToken ct)

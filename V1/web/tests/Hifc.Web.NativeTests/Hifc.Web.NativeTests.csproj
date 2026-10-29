@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Condition="'$(HifcWebAcceptanceSuffix)' != ''"><AssemblyName>Hifc.Web.NativeTests.$(HifcWebAcceptanceSuffix)</AssemblyName></PropertyGroup>
   <PropertyGroup><TargetFramework>net48</TargetFramework><PlatformTarget>x64</PlatformTarget><UseWPF>true</UseWPF></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/Hifc.Web.Revit/Hifc.Web.Revit.csproj" />

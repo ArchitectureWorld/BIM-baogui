@@ -34,6 +34,12 @@ internal static class FullFlow
                 var ribbonVerified = await bridge.Run(application => application.GetRibbonPanels("HIFC-V1-Web").Any(panel => panel.GetItems().Any(item => item.Name == "HifcV1WebManager")));
                 if (!ribbonVerified) throw new Exception("The installed independent HIFC-V1-Web Ribbon entry is missing.");
                 log("PASS installed independent HIFC-V1-Web Ribbon entry");
+                await bridge.Run(application => {
+                    var parity = new List<object>();
+                    NativeParityHostCases.Run(application.Application, (name, action) => { action(); parity.Add(new { name, passed = true }); log("PASS " + name); });
+                    File.WriteAllText(Path.Combine(run, "native-parity-results.json"), JsonWire.Serialize(new { passed = parity.Count, failed = 0, results = parity }));
+                    return true;
+                });
                 var update = await UpdateLifecycle.StartAsync(run, log);
                 foreach (var path in models)
                 {
@@ -78,6 +84,8 @@ internal static class FullFlow
                     }
                     finally { window.Close(); }
                 }
+                await NativeUnitFullFlow.RunAsync(action => bridge.Run(action), new Uri(config["server"]), run, log);
+                if (File.Exists(Path.Combine(run, "window-route.json"))) await bridge.Run(application => { NativeWindowRouteFixture.Run(application, run); log("PASS native exact-owner window routes; independent IFC audit pending"); return true; });
                 foreach (var sample in saved)
                 {
                     await bridge.Run(application => { OpenCopy(application, sample.Item1, run, log);

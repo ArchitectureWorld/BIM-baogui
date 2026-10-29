@@ -7,7 +7,8 @@ internal static class CanonicalCases
     {
         ElementRecord Sample(double value) => new ElementRecord { Id = 1, UniqueId = "a", NativeAreaM2 = 0.1, ProjectedAreaM2 = value };
         test("inventory geometry has the same specified encoding in Framework and modern NET", () => {
-            const string expected = "b74ceea2c8facd8cb79466d48cce5497be3053b49946699dfb2b2a44c87b8b27";
+            // Independently calculated from protocol-2 field order and IEEE-754 bits.
+            const string expected = "c9a5d263eee3d5473635af479f8af8dfbd430f8d422f876168d4031726a95629";
             var actual = Canonical.InventoryHash(new[] { Sample(1.2345678901234567) });
             if (actual != expected) throw new Exception("Cross-runtime inventory digest differs: " + actual);
         });

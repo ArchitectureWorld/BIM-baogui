@@ -43,6 +43,7 @@ try
     var app = ServerApplication.Create(args, options);
     await app.Services.GetRequiredService<AccountStore>().InitializeAsync();
     await app.Services.GetRequiredService<WorkflowStore>().InitializeAsync();
+    await app.Services.GetRequiredService<PlatformLaunchStore>().InitializeAsync();
     if (options.EnableAccounts) await app.Services.GetRequiredService<IdentityStore>().InitializeAsync();
     await app.RunAsync();
     return 0;

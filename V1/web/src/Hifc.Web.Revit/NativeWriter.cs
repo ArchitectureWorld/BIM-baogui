@@ -19,6 +19,7 @@ namespace Hifc.Web.Revit
         public EditPlan Plan { get; set; }
         public WritePermit Permit { get; set; }
         public IDictionary<string, string> AssignedSlots { get; set; }
+        public ModelSettings Settings { get; set; }
     }
     public static class NativeWriter
     {
@@ -34,7 +35,11 @@ namespace Hifc.Web.Revit
             ProtocolGuard.Match(input.Basis.Context, input.Capture.Context);
             if (!input.Capture.InventoryComplete || input.Plan.CaptureHash != input.Basis.CaptureHash) throw new InvalidOperationException("检查尚未完整完成。");
             var captured = NativeInventory.ReadValues(document, input.Capture.Targets);
-            WriteGuard.Capture(input.Basis, NativeInventory.Read(document, input.AssignedSlots), captured);
+            WriteGuard.Capture(input.Basis, NativeInventory.Read(document, input.AssignedSlots), captured, NativeInventory.ReadDefinitions(document, input.Capture.DefinitionSources));
+            if (input.Basis.Context.ConfigurationHash != Canonical.ConfigurationHash(input.Settings, NativeProjectData.Read(document)))
+                throw new InvalidOperationException("计算设置、项目资料或参数绑定已变化，请重新检查。");
+            NativeDefinitions.Validate(document, input.Plan.Native.Definitions);
+            NativeProjectData.Validate(document, input.Plan.Native.DataWrites);
             if (input.Plan.Changes.GroupBy(c => c.OwnerUniqueId + "\n" + c.Source).Any(g => g.Count() != 1)) throw new InvalidOperationException("写入目标重复。");
             foreach (var change in input.Plan.Changes)
             {
@@ -55,14 +60,19 @@ namespace Hifc.Web.Revit
                     {
                         WriteGuard.Permit(input.Permit, input.Plan, key, serverNowUtc.Add(elapsed.Elapsed));
                         transaction.Start();
-                        foreach (var sources in input.Plan.Changes.Where(c => c.Action == "Create").GroupBy(c => c.Source)) EnsureDefinition(document, sources.ToArray());
+                        NativeDefinitions.Apply(document, input.Plan.Native.Definitions);
+                        foreach (var sources in input.Plan.Changes.Where(c => c.Action == "Create" && !input.Plan.Native.Definitions.Any(d => d.Source == c.Source)).GroupBy(c => c.Source)) EnsureDefinition(document, sources.ToArray());
                         document.Regenerate();
                         foreach (var change in input.Plan.Changes) if (change.Value != null) Set(Writable(document, change), change);
+                        NativeProjectData.Apply(document, input.Plan.Native.DataWrites);
                         document.Regenerate(); Verify(document, input.Plan.Changes);
+                        NativeDefinitions.Verify(document, input.Plan.Native.Definitions, input.Plan.Changes, input.Basis.Definitions);
                         if (transaction.Commit() != TransactionStatus.Committed) throw new InvalidOperationException("写入事务未提交。");
                     }
                     // Updaters can run during Commit; the group remains rollbackable until this readback passes.
                     Verify(document, input.Plan.Changes);
+                    NativeProjectData.Verify(document, input.Plan.Native.DataWrites);
+                    NativeDefinitions.Verify(document, input.Plan.Native.Definitions, input.Plan.Changes, input.Basis.Definitions);
                     if (group.Assimilate() != TransactionStatus.Committed) throw new InvalidOperationException("写入事务组未提交。");
                     return new WriteReceipt { PermitId = input.Permit.Id, PlanId = input.Plan.Id, DocumentSessionId = input.DocumentSessionId,
                         TransactionCommitted = true, ReadbackPassed = true, CompletedUtc = DateTime.UtcNow,
@@ -71,25 +81,28 @@ namespace Hifc.Web.Revit
                 catch { if (group.GetStatus() == TransactionStatus.Started) group.RollBack(); throw; }
             }
         }
-        private static Parameter Writable(Document document, WriteChange change)
+        internal static Parameter Writable(Document document, WriteChange change)
         {
             var owner = document.GetElement(change.OwnerUniqueId);
             if (owner == null || owner.Id.IntegerValue != change.OwnerId || (owner is ElementType) != (change.Origin == "type")) throw new InvalidOperationException("参数载体已改变。");
             var parameters = owner.GetParameters(change.Source);
             if (parameters.Count != 1 || parameters[0].IsReadOnly || parameters[0].StorageType == StorageType.ElementId) throw new InvalidOperationException("参数不可写或有歧义：" + change.Source);
             var parameter = parameters[0];
+            if (!string.IsNullOrEmpty(change.DefinitionType) && parameter.Definition.ParameterType.ToString() != change.DefinitionType)
+                throw new InvalidOperationException("参数定义类型与签名计划不同：" + change.Source);
             if (change.Action == "Create" && (!parameter.IsShared || parameter.GUID != new Guid(change.SourceGuid))) throw new InvalidOperationException("新增参数的 GUID 不一致。");
             return parameter;
         }
         private static double Number(Parameter parameter, WriteChange change)
         {
             if (!double.TryParse(change.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) || double.IsInfinity(number) || double.IsNaN(number)) throw new InvalidOperationException("数值无效：" + change.Source);
+            if (parameter.Definition.UnitType == UnitType.UT_Number) return number;
             if (string.IsNullOrEmpty(change.Unit) || change.Unit == "internal") return number;
             if (change.Unit == "m²" && parameter.Definition.UnitType == UnitType.UT_Area) return UnitUtils.ConvertToInternalUnits(number, DisplayUnitType.DUT_SQUARE_METERS);
             if (change.Unit == "m" && parameter.Definition.UnitType == UnitType.UT_Length) return UnitUtils.ConvertToInternalUnits(number, DisplayUnitType.DUT_METERS);
             throw new InvalidOperationException("数值单位与模型参数不匹配：" + change.Source);
         }
-        private static void Set(Parameter parameter, WriteChange change)
+        internal static void Set(Parameter parameter, WriteChange change)
         {
             bool success;
             switch (parameter.StorageType)
@@ -97,13 +110,14 @@ namespace Hifc.Web.Revit
                 case StorageType.String: success = parameter.Set(change.Value); break;
                 case StorageType.Integer:
                     if (!int.TryParse(change.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var integer)) throw new InvalidOperationException("整数无效：" + change.Source);
+                    if (parameter.Definition.ParameterType == ParameterType.YesNo && integer != 0 && integer != 1) throw new InvalidOperationException("是/否参数只允许 0 或 1：" + change.Source);
                     success = parameter.Set(integer); break;
                 case StorageType.Double: success = parameter.Set(Number(parameter, change)); break;
                 default: throw new InvalidOperationException("参数存储类型不支持写入：" + change.Source);
             }
             if (!success) throw new InvalidOperationException("参数写入失败：" + change.Source);
         }
-        private static void Verify(Document document, WriteChange[] changes)
+        internal static void Verify(Document document, WriteChange[] changes)
         {
             foreach (var change in changes)
             {
@@ -115,12 +129,13 @@ namespace Hifc.Web.Revit
                 if (!equal) throw new InvalidOperationException("回读与拟写值不同，已回滚全部修改：" + change.Source);
             }
         }
-        private static void EnsureDefinition(Document document, WriteChange[] changes)
+        internal static void EnsureDefinition(Document document, WriteChange[] changes, int[] categoryIds = null)
         {
             var first = changes[0]; var guid = new Guid(first.SourceGuid);
-            if (changes.Any(c => c.SourceGuid != first.SourceGuid || c.Origin != first.Origin)) throw new InvalidOperationException("共享参数定义或绑定范围不一致。");
-            var owners = changes.Select(c => document.GetElement(c.OwnerUniqueId)).ToArray();
-            var categories = owners.Select(o => o.Category).GroupBy(c => c?.Id.IntegerValue).Select(g => g.First()).ToArray();
+            var definitionType = NativeDefinitions.Type(first.DefinitionType);
+            if (changes.Any(c => c.SourceGuid != first.SourceGuid || c.Origin != first.Origin || NativeDefinitions.Type(c.DefinitionType) != definitionType)) throw new InvalidOperationException("共享参数定义或绑定范围不一致。");
+            var categories = categoryIds == null ? changes.Select(c => document.GetElement(c.OwnerUniqueId)?.Category).GroupBy(c => c?.Id.IntegerValue).Select(g => g.First()).ToArray()
+                : categoryIds.Select(id => Category.GetCategory(document, new ElementId(id))).ToArray();
             if (categories.Any(c => c == null || !c.AllowsBoundParameters)) throw new InvalidOperationException("目标类别不支持共享参数。");
             var collector = new FilteredElementCollector(document).WherePasses(new ElementMulticategoryFilter(categories.Select(c => c.Id).ToList()));
             if (first.Origin == "type") collector.WhereElementIsElementType(); else collector.WhereElementIsNotElementType();
@@ -135,10 +150,10 @@ namespace Hifc.Web.Revit
                 var file = document.Application.OpenSharedParameterFile() ?? throw new InvalidOperationException("无法创建共享参数定义。");
                 var group = file.Groups.get_Item("HIFC Web") ?? file.Groups.Create("HIFC Web");
                 Definition definition = SharedParameterElement.Lookup(document, guid)?.GetDefinition();
-                if (definition != null && (definition.Name != first.Source || definition.ParameterType != ParameterType.Text)) throw new InvalidOperationException("共享参数 GUID 定义冲突。");
+                if (definition != null && (definition.Name != first.Source || definition.ParameterType != definitionType)) throw new InvalidOperationException("共享参数 GUID 定义冲突。");
                 if (definition == null)
                 {
-                    var external = group.Definitions.Create(new ExternalDefinitionCreationOptions(first.Source, ParameterType.Text) { GUID = guid, Visible = true, UserModifiable = true }) as ExternalDefinition
+                    var external = group.Definitions.Create(new ExternalDefinitionCreationOptions(first.Source, definitionType) { GUID = guid, Visible = true, UserModifiable = true }) as ExternalDefinition
                         ?? throw new InvalidOperationException("无法创建共享参数定义。");
                     // Import while the external file and group are alive. The binding map
                     // must use a definition owned by this model, rather than a temporary
@@ -151,6 +166,7 @@ namespace Hifc.Web.Revit
                 if (existing != null)
                 {
                     if ((existing is TypeBinding) != (first.Origin == "type")) throw new InvalidOperationException("已有参数绑定与方案来源不同。");
+                    if (categories.All(category => existing.Categories.Contains(category))) return;
                     foreach (Category category in existing.Categories) set.Insert(category);
                 }
                 foreach (var category in categories) set.Insert(category);

@@ -19,6 +19,8 @@ namespace Hifc.Web.Revit
         private readonly TextBox phone = new TextBox(), name = new TextBox();
         private readonly TextBox search = new TextBox { Width = 210 }, fieldSearch = new TextBox(), newValue = new TextBox();
         private readonly ComboBox kind = new ComboBox { Width = 125 }, slots = new ComboBox(), filter = new ComboBox { Width = 105 };
+        private readonly ComboBox valueChoice = new ComboBox { IsTextSearchEnabled = false };
+        private FrameworkElement textValueHost;
         private readonly ListBox categories = new ListBox { HorizontalContentAlignment = HorizontalAlignment.Stretch };
         private readonly TextBlock status = Text(), account = Text(), context = Text(), selection = Text(), propertyDetail = Text(), connectionStatus = Text(), previewSummary = Text();
         private readonly TextBlock updateStatus = Text();
@@ -44,7 +46,7 @@ namespace Hifc.Web.Revit
             MinWidth = 1080; MinHeight = 700; MaxHeight = SystemParameters.WorkArea.Height;
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
             LiquidGlassTheme.Apply(this);
-            foreach (var combo in new[] { kind, slots, filter }) LiquidGlassTheme.Combo(combo);
+            foreach (var combo in new[] { kind, slots, filter, valueChoice }) LiquidGlassTheme.Combo(combo);
             foreach (var input in new[] { search, fieldSearch, newValue, phone, name }) LiquidGlassTheme.SearchBox(input);
             var root = new Grid { Margin = new Thickness(21, 17, 21, 15), Background = Background };
             foreach (var height in new[] { GridLength.Auto, GridLength.Auto, GridLength.Auto, new GridLength(1, GridUnitType.Star), GridLength.Auto })
@@ -68,6 +70,27 @@ namespace Hifc.Web.Revit
             previewButton = Action("生成写入预览", async () => { session.IncludeSuggestions = suggestions.IsChecked == true; session.SkipInvalidDrafts = skipInvalid.IsChecked == true; await session.PreviewAsync(); if (session.Plan != null) ShowWritePreview(); }); toolbar.Children.Add(previewButton);
             writeButton = Action("写入并全面复检", session.WriteAsync, true); toolbar.Children.Add(writeButton);
             toolbar.Children.Add(Action("保存当前模型", session.SaveModelAsync));
+            toolbar.Children.Add(Action("计算设置", async () => {
+                if (!session.LiveCheck) await session.ScanAsync();
+                if (!await ResolveSettingsConflict()) return;
+                var window = new NativeSettingsWindow(session.Result, session.Workspace.Settings, session.LocateAsync) { Owner = this };
+                if (await window.ShowAsync()) { session.SetSettings(window.Result); await session.ScanAsync(); }
+            }));
+            toolbar.Children.Add(Action("地下 / 基底", async () => {
+                if (!session.LiveCheck) await session.ScanAsync();
+                if (!await ResolveSettingsConflict()) return;
+                var window = new NativeUndergroundWindow(session.Result, session.Workspace.Settings.Underground) { Owner = this };
+                if (await window.ShowAsync()) { session.Workspace.Settings.Underground = window.Result; session.SetSettings(session.Workspace.Settings); await session.ScanAsync(); }
+            }));
+            toolbar.Children.Add(Action("报规 Excel", () => ShowMaterials("workbook")));
+            toolbar.Children.Add(Action("红线资料", () => ShowMaterials("redline")));
+            toolbar.Children.Add(Action("暂存资料", () => { ShowPendingMaterials(); return Task.CompletedTask; }));
+            toolbar.Children.Add(Action("导出 IFC", async () => {
+                if (!session.LiveCheck) await session.ScanAsync();
+                await new NativeExportWindow(session) { Owner = this }.ShowAsync();
+            }));
+            toolbar.Children.Add(Action("平台同步与报告", async () => { await PlatformSync.WebPlatformSyncController.OpenAsync(session, this); }));
+            toolbar.Children.Add(Action("补传导出回执", session.RecordExportReceiptAsync));
             kind.Margin = new Thickness(8, 0, 8, 0); context.Margin = new Thickness(10, 0, 0, 0); context.VerticalAlignment = VerticalAlignment.Center; toolbar.Children.Add(context); Put(root, toolbar, 1);
 
             var metrics = new Grid { Margin = new Thickness(0, 0, 0, 14) };
@@ -109,7 +132,8 @@ namespace Hifc.Web.Revit
             Column(fields, "属性", "Field.Property", 135); Column(fields, "当前模型值", "Current", 150); fields.ItemsSource = editors; fields.Margin = new Thickness(0, 9, 0, 7); Put(right, fields, 3);
             var editArea = new StackPanel(); propertyDetail.FontSize = 11; propertyDetail.MaxHeight = 90; editArea.Children.Add(propertyDetail);
             editArea.Children.Add(Text("拟写值 · 自动保留为本机草稿", new Thickness(0, 8, 0, 5)));
-            newValue.ToolTip = "数值按当前项目单位输入；可附带单位。类型字段会影响同类型实例。"; editArea.Children.Add(SearchHost(newValue, "选中属性后输入拟写值"));
+            newValue.ToolTip = "不带单位的数字按字段显示的 m / m² 输入；也可附带明确单位。类型字段会影响同类型实例。";
+            textValueHost = SearchHost(newValue, "选中属性后输入拟写值"); editArea.Children.Add(textValueHost); editArea.Children.Add(valueChoice);
             var draftActions = new WrapPanel { Margin = new Thickness(0, 8, 0, 9) };
             draftActions.Children.Add(Action("采用模型值", () => Resolve(false))); draftActions.Children.Add(Action("确认保留草稿", () => Resolve(true))); editArea.Children.Add(draftActions);
             editArea.Children.Add(suggestions); editArea.Children.Add(skipInvalid); Put(right, editArea, 4);
@@ -123,9 +147,16 @@ namespace Hifc.Web.Revit
             elements.SelectionChanged += (s, e) => { if (!restoring) RebuildEditors(); }; fieldSearch.TextChanged += (s, e) => RebuildEditors();
             fields.SelectionChanged += (s, e) => LoadSelectedField();
             newValue.TextChanged += (s, e) => { if (!loadingValue && !session.Busy && fields.SelectedItem is Editor editor && editor.Editable) editor.Input = newValue.Text; };
+            valueChoice.SelectionChanged += (s, e) => { if (!loadingValue && !session.Busy && fields.SelectedItem is Editor editor && editor.Editable && valueChoice.SelectedItem is string value) editor.Input = value == "（未填写）" ? "" : value == "是" ? "1" : value == "否" ? "0" : value; };
+            valueChoice.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent, new TextChangedEventHandler((s, e) => {
+                if (!loadingValue && valueChoice.IsEditable && valueChoice.IsKeyboardFocusWithin && !session.Busy && fields.SelectedItem is Editor editor && editor.Editable) editor.Input = valueChoice.Text;
+            }));
             suggestions.Checked += InvalidateOptions; suggestions.Unchecked += InvalidateOptions; skipInvalid.Checked += InvalidateOptions; skipInvalid.Unchecked += InvalidateOptions;
             phone.Text = session.ActivePhone ?? ""; name.Text = session.ActiveName; session.Changed += Refresh; UpdateCoordinator.Changed += UpdateNotice; UpdateNotice(); Refresh();
-            Loaded += async (s, e) => { if (!string.IsNullOrEmpty(phone.Text) && !string.IsNullOrEmpty(name.Text)) await session.RunAsync(() => session.ConnectAsync(phone.Text, name.Text, false)); };
+            Loaded += async (s, e) => await session.RunAsync(async () => {
+                await session.RestoreModelSettingsAsync();
+                if (!string.IsNullOrEmpty(phone.Text) && !string.IsNullOrEmpty(name.Text)) await session.ConnectAsync(phone.Text, name.Text, false);
+            });
             Closing += (s, e) => {
                 if (session.Busy) { e.Cancel = true; return; }
                 try { session.Flush(); } catch (Exception ex) { e.Cancel = true; MessageBox.Show(this, "草稿暂未保存，请保留窗口并重试。\n" + ex.Message, "HIFC Web"); return; }
@@ -150,7 +181,7 @@ namespace Hifc.Web.Revit
             if (primary) LiquidGlassTheme.Primary(button);
             button.Click += async (s, e) => await session.RunAsync(action); buttons.Add(button); return button;
         }
-        private Task Resolve(bool keep) { if (fields.SelectedItem is Editor editor) { var key = editor.Field.Key; session.ResolveDraft(editor.Field, keep); RebuildEditors(); SelectField(key); } return Task.CompletedTask; }
+        private Task Resolve(bool keep) { if (fields.SelectedItem is Editor editor) { var key = editor.Field.Key; foreach(var field in editor.Fields) session.ResolveDraft(field, keep); RebuildEditors(); SelectField(key); } return Task.CompletedTask; }
         private void InvalidateOptions(object sender, RoutedEventArgs e) { session.IncludeSuggestions = suggestions.IsChecked == true; session.SkipInvalidDrafts = skipInvalid.IsChecked == true; session.InvalidatePlan(); }
 
         public void ShowAccountWindow()
@@ -169,9 +200,30 @@ namespace Hifc.Web.Revit
         private static void Input(StackPanel form, string label, TextBox input) { form.Children.Add(Text(label, new Thickness(0, 9, 0, 5))); form.Children.Add(SearchHost(input, "")); }
         public void ShowWritePreview() { centerTabs.SelectedIndex = 1; UpdateLayout(); }
         public void ShowObjects() { centerTabs.SelectedIndex = 0; UpdateLayout(); }
+        private async Task<bool> ResolveSettingsConflict()
+        {
+            if (!session.Workspace.SettingsConflict) return true;
+            var choice = MessageBox.Show(this, "模型中保存的计算设置已变化，本机未提交修改仍保留。\n\n是：保留本机草稿，并在本次写入时更新模型设置。\n否：采用模型中已保存的设置。\n取消：暂不处理，保留现状。", "确认计算设置来源", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+            if (choice == MessageBoxResult.Cancel) return false;
+            await session.ResolveModelSettingsAsync(choice == MessageBoxResult.Yes); await session.ScanAsync(); return true;
+        }
+        private async Task ShowMaterials(string kind)
+        {
+            if (!session.LiveCheck) await session.ScanAsync();
+            await new NativeMaterialWindow(session, kind) { Owner = this }.ShowAsync();
+        }
+        private void ShowPendingMaterials()
+        {
+            var window = new Window { Title = "暂存资料 · 与属性一同提交", Width = 760, Height = 420, Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner };
+            LiquidGlassTheme.Apply(window); var root = new DockPanel { Margin = new Thickness(20) }; window.Content = root;
+            var table = Table(); Column(table, "来源", "SourcePath", 330); Column(table, "类型", "Preview.Kind", 100); Column(table, "预览", "Preview.Id", 220); table.ItemsSource = session.Workspace.Materials;
+            var footer = new StackPanel { Margin = new Thickness(0, 10, 0, 0) }; footer.Children.Add(Text("重新检查后，旧资料预览需要重新导入核对。移除暂存仅取消本轮提交，不删除模型内既有资料。"));
+            var remove = new Button { Content = "移除所选暂存", HorizontalAlignment = HorizontalAlignment.Right }; remove.Click += async (s, e) => { remove.IsEnabled = false; try { foreach (var item in table.SelectedItems.Cast<PendingMaterial>().ToArray()) await session.RemoveMaterialAsync(item.Preview.Id); table.ItemsSource = session.Workspace.Materials; } catch (Exception ex) { MessageBox.Show(window, ex.Message, "暂存资料"); } finally { remove.IsEnabled = true; } };
+            footer.Children.Add(remove); DockPanel.SetDock(footer, Dock.Bottom); root.Children.Add(footer); root.Children.Add(table); window.ShowDialog();
+        }
         public void SelectElement(int id) { categories.SelectedIndex = 0; filter.SelectedIndex = 0; search.Clear(); var row = elements.Items.Cast<ElementResult>().FirstOrDefault(item => item.Element.Id == id); elements.SelectedItem = row; if (row != null) elements.ScrollIntoView(row); }
         public void SelectField(string key) { fieldSearch.Clear(); fields.SelectedItem = editors.FirstOrDefault(editor => editor.Field.Key == key); if (fields.SelectedItem != null) fields.ScrollIntoView(fields.SelectedItem); }
-        public void EditSelectedValue(string value) { if (!(fields.SelectedItem is Editor editor) || !editor.Editable) throw new InvalidOperationException("请先选择可编辑属性。"); newValue.Text = value; }
+        public void EditSelectedValue(string value) { if (!(fields.SelectedItem is Editor editor) || !editor.Editable) throw new InvalidOperationException("请先选择可编辑属性。"); editor.Input = value; LoadSelectedField(); }
 
         private void Refresh()
         {
@@ -179,13 +231,13 @@ namespace Hifc.Web.Revit
             status.Text = connectionStatus.Text = session.Status; progress.Visibility = session.Busy ? Visibility.Visible : Visibility.Collapsed;
             account.Text = session.Account == null ? "尚未连接 · 点击“账号与连接”开始" : session.Account.RealName + "  ·  " + (session.Account.IsActive ? "有效至 " + new DateTimeOffset(session.Account.ExpiresAtUtc).ToOffset(TimeSpan.FromHours(8)).ToString("yyyy-MM-dd HH:mm") : "已到期，请联系管理员延期");
             if (session.Account != null && shownAccountId != session.Account.Id) { shownAccountId = session.Account.Id; phone.Text = session.Account.Phone; name.Text = session.Account.RealName; }
-            context.Text = session.Result == null ? "等待全面检查" : session.Result.ModelKind + (session.LiveCheck ? " · 本轮检查" : " · 待重新检查");
+            context.Text = (session.Result == null ? "等待全面检查" : session.Result.ModelKind + (session.LiveCheck ? " · 本轮检查" : " · 待重新检查")) + " · " + session.SettingsStatus;
             objectCount.Text = session.Result?.Elements.Length.ToString() ?? "—";
             issueCount.Text = session.Result?.Fields.Count(Problem).ToString() ?? "—"; draftCount.Text = session.Workspace.Drafts.Length.ToString(); changeCount.Text = session.Plan?.Changes.Length.ToString() ?? "—";
             foreach (var button in buttons) button.IsEnabled = !session.Busy;
             var active = session.Account?.IsActive == true;
             scanButton.IsEnabled = !session.Busy && active; previewButton.IsEnabled = !session.Busy && active && session.Result != null;
-            writeButton.IsEnabled = !session.Busy && active && session.Plan?.Changes.Length > 0;
+            writeButton.IsEnabled = !session.Busy && active && session.Plan != null && (session.Plan.Changes.Length > 0 || session.Plan.Native.DataWrites.Length > 0 || session.Plan.Native.Definitions.Length > 0);
             assignButton.IsEnabled = !session.Busy && active && elements.SelectedItems.Count > 0 && slots.Items.Count > 0;
             locateButton.IsEnabled = !session.Busy && elements.SelectedItems.Count > 0;
             fields.IsEnabled = elements.IsEnabled = categories.IsEnabled = kind.IsEnabled = slots.IsEnabled = suggestions.IsEnabled = skipInvalid.IsEnabled = !session.Busy;
@@ -198,7 +250,7 @@ namespace Hifc.Web.Revit
             }
             if (categories.Items.Count == 0) { categories.ItemsSource = new[] { new Category("全部对象", 0, "请先全面检查") }; categories.SelectedIndex = 0; }
             if (!ReferenceEquals(shownPlan, session.Plan)) { shownPlan = session.Plan; preview.ItemsSource = shownPlan?.Changes; }
-            previewSummary.Text = shownPlan == null ? "尚未生成预览。修改草稿后，请点击“生成写入预览”。" : shownPlan.Changes.Length + " 项修改 · 核对原值、拟写值与影响范围后，点击“写入并全面复检”。";
+            previewSummary.Text = shownPlan == null ? "尚未生成预览。修改草稿后，请点击“生成写入预览”。暂存资料 " + session.Workspace.Materials.Length + " 项。" : shownPlan.Changes.Length + " 项属性修改 · " + shownPlan.Native.Definitions.Length + " 项定义操作 · " + shownPlan.Native.DataWrites.Length + " 项模型资料 · 核对后点击“写入并全面复检”。";
             RefreshFieldDetail();
         }
         private void UpdateNotice()
@@ -221,7 +273,8 @@ namespace Hifc.Web.Revit
         private void RebuildEditors()
         {
             var key = (fields.SelectedItem as Editor)?.Field.Key; var selected = elements.SelectedItems.Cast<ElementResult>().Select(row => row.Element.Id).ToArray(); var query = fieldSearch.Text.Trim(); editors.Clear();
-            if (session.Result != null) foreach (var field in session.Result.Fields.Where(field => selected.Contains(field.ElementId) && (query == "" || (field.Property + " " + field.Source).IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0))) editors.Add(new Editor(session, field));
+            if (session.Result != null) foreach (var group in session.Result.Fields.Where(field => selected.Contains(field.ElementId) && (query == "" || (field.Property + " " + field.Source).IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0))
+                .GroupBy(field => field.PropertySet + "\n" + field.Property + "\n" + field.RawType + "\n" + field.Binding)) editors.Add(new Editor(session, group.ToArray()));
             selection.Text = "可见 " + elements.Items.Count + " 项 · 已选 " + selected.Length + " 项";
             fields.SelectedItem = editors.FirstOrDefault(editor => editor.Field.Key == key) ?? editors.FirstOrDefault();
             assignButton.IsEnabled = !session.Busy && session.Account?.IsActive == true && selected.Length > 0 && slots.Items.Count > 0;
@@ -229,11 +282,21 @@ namespace Hifc.Web.Revit
         }
         private void LoadSelectedField()
         {
-            loadingValue = true; newValue.Text = (fields.SelectedItem as Editor)?.Input ?? ""; loadingValue = false; RefreshFieldDetail();
+            loadingValue = true;
+            var editor = fields.SelectedItem as Editor; newValue.Text = editor?.Input ?? "";
+            var choices = editor?.Choices ?? new string[0]; var choice = choices.Length > 0;
+            textValueHost.Visibility = choice ? Visibility.Collapsed : Visibility.Visible; valueChoice.Visibility = choice ? Visibility.Visible : Visibility.Collapsed;
+            valueChoice.ItemsSource = choices; valueChoice.IsEditable = choice && editor.Field.InputKind == "editable-choice";
+            if (valueChoice.IsEditable) valueChoice.ClearValue(Control.TemplateProperty); else LiquidGlassTheme.Combo(valueChoice);
+            valueChoice.SelectedItem = editor?.Input == "1" && editor.Field.RawType == "Boolean" ? "是" : editor?.Input == "0" && editor.Field.RawType == "Boolean" ? "否" : editor?.Input == "" && editor.Field.RawType == "Boolean" ? "（未填写）" : editor?.Input;
+            if (valueChoice.IsEditable) valueChoice.Text = editor?.Input ?? "";
+            valueChoice.ToolTip = editor?.Mixed == true ? "多个值；仅在明确选择或输入后修改所选对象。" : "选择服务器建议或输入自定义值。";
+            loadingValue = false; RefreshFieldDetail();
         }
         private void RefreshFieldDetail()
         {
             var editor = fields.SelectedItem as Editor; newValue.IsEnabled = !session.Busy && editor?.Editable == true;
+            valueChoice.IsEnabled = newValue.IsEnabled;
             propertyDetail.Text = editor == null ? "在中间列表选中构件，再选择需要编辑的属性。" : editor.Field.Property + " · " + editor.Scope + (editor.Unit == "" ? "" : " · " + editor.Unit) + "\n" + editor.State + (editor.Original == "" ? "" : " · 草稿原值：" + editor.Original) + "\n" + editor.Field.Detail;
             propertyDetail.ToolTip = propertyDetail.Text;
         }
@@ -248,17 +311,24 @@ namespace Hifc.Web.Revit
         public sealed class CategoryRole { public string Slot { get; set; } }
         public sealed class Editor : INotifyPropertyChanged
         {
-            private readonly WebModelSession session; private string input;
+            private readonly WebModelSession session; private readonly NativeEditBuffer buffer;
             public FieldResult Field { get; }
-            public string Current => Field.DisplayValue ?? Field.Value ?? "（" + Field.State + "）";
+            public FieldResult[] Fields { get; }
+            public bool Mixed => buffer.Mixed;
+            public string Current => Fields.Select(f => NativeUnitInput.DisplayValue(f) ?? "（" + f.State + "）").Distinct().Count() > 1 ? "多个值（" + Fields.Length + " 项）" : NativeUnitInput.DisplayValue(Field) ?? "（" + Field.State + "）";
+            public string[] Choices => Field.RawType == "Boolean" ? (Fields.All(f => f.AllowedEmpty) ? new[] { "（未填写）", "是", "否" } : new[] { "是", "否" }) : Fields.Select(f => f.Options ?? new string[0]).Aggregate((left, right) => left.Intersect(right).ToArray());
             public string Original => session.Workspace.Drafts.SingleOrDefault(draft => draft.FieldKey == Field.Key) is EditDraft draft ? draft.OriginalValue ?? "（原未填写）" : "";
-            public bool Editable => Field.Editable;
-            public string Scope => Field.Binding == "类型" ? "同类型 " + Field.AffectedInstances + " 项" : "当前构件";
-            public string Unit => Field.SuggestionUnit == "internal" ? "项目单位" : Field.SuggestionUnit ?? (Field.RawType == "Boolean" ? "是 / 否" : "");
-            public string State => session.IsConflict(Field.Key) ? "原值变化，需确认" : Field.ManualInputRequired && string.IsNullOrWhiteSpace(input) ? "道路宽度待手填" : Field.State;
-            public string Input { get => input; set { if (input == value) return; input = value; session.SetDraft(Field, value); PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Input))); PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(State))); } }
+            public bool Editable => Fields.All(f => f.Editable) && (Field.InputKind != "choice" || Choices.Length > 0);
+            public string Scope => Field.Binding == "类型" ? "同类型影响 " + Fields.GroupBy(f => f.OwnerUniqueId).Sum(g => g.First().AffectedInstances) + " 项" : "所选 " + Fields.Length + " 个构件";
+            public string Unit => Field.InputUnit ?? (Field.RawType == "Boolean" ? "是 / 否" : Field.RawType == "Real" || Field.RawType == "Integer" ? "无单位" : "");
+            public string State => Fields.Any(f => session.IsConflict(f.Key)) ? "原值变化，需确认" : Field.ManualInputRequired && string.IsNullOrWhiteSpace(Input) ? "待手工填写" : Field.State;
+            public string Input { get => buffer.Input; set { buffer.Set(value); PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Input))); PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(State))); } }
             public event PropertyChangedEventHandler PropertyChanged;
-            public Editor(WebModelSession session, FieldResult field) { this.session = session; Field = field; input = session.Workspace.Drafts.SingleOrDefault(draft => draft.FieldKey == field.Key)?.Value ?? field.DisplayValue ?? field.Value ?? ""; }
+            public Editor(WebModelSession session, FieldResult field) : this(session, new[] { field }) { }
+            public Editor(WebModelSession session, FieldResult[] fields) {
+                this.session = session; Fields = fields; Field = fields[0];
+                buffer = new NativeEditBuffer(fields, session.Workspace.Drafts, session.SetDraft);
+            }
         }
     }
 }

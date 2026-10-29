@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Hifc.Web.RuleEngine/Hifc.Web.RuleEngine.csproj" />
     <Compile Include="../../../tests/Hifc.Reference.Tests/*.cs" Link="ExistingTests/%(Filename)%(Extension)" />
+    <Compile Include="../../../src/Hifc.Revit/NativeExportProfile.cs" Link="ExistingTests/NativeExportProfile.cs" />
     <None Include="../../../tests/fixtures/recognition-rows.json" Link="recognition-rows.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

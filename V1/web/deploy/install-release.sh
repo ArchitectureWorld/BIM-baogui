@@ -43,6 +43,26 @@ for name in app_db_password postgres_admin_password; do
   chmod 0444 "$base/secrets/$name"
 done
 install -d -m 0700 -o 1654 -g 1654 "$base/data/server"
+python3 - "$release" "$base/data/server/components" "$release_id" <<'PY'
+import hashlib,json,pathlib,shutil,sys
+release=pathlib.Path(sys.argv[1]); root=pathlib.Path(sys.argv[2]); release_id=sys.argv[3]
+source=release/'server/downloads/components'/release_id
+assert source.is_dir() and not source.is_symlink(), 'Required runtime components are missing'
+root.mkdir(exist_ok=True); assert not root.is_symlink()
+target=root/release_id
+assert not target.exists() and not target.is_symlink(), 'Component release already exists; immutable releases cannot be replaced'
+locks=list(source.glob('*/*/lock.json')); assert len(locks)==2
+for entry in source.rglob('*'):
+    assert not entry.is_symlink(), 'Component source contains a link'
+for path in locks:
+    item=json.loads(path.read_text(encoding='utf-8-sig'))
+    archive=path.parent/'archive.zip'
+    assert item['MainReleaseId']==release_id if 'MainReleaseId' in item else item['mainReleaseId']==release_id
+    expected=item.get('ArchiveSha256',item.get('archiveSha256'))
+    assert hashlib.sha256(archive.read_bytes()).hexdigest()==expected
+shutil.copytree(source,target)
+for entry in [root,target,*target.rglob('*')]: entry.chmod(0o755 if entry.is_dir() else 0o444)
+PY
 install -d -m 0700 -o 1000 -g 1000 "$base/data/caddy"
 if [[ ! -d "$base/data/postgres" ]]; then install -d -m 0700 "$base/data/postgres"; fi
 python3 - "$release" "$allowed_networks" "$base/config/allowed-clients.txt" <<'PY'

@@ -23,6 +23,12 @@ internal static class HostCases
     }
     internal static void Run(Action<string, Action> test)
     {
+        test("old client compatibility receives an actionable upgrade response", () => WithHost(uri => {
+            using var client = new HttpClient(); using var reply = client.GetAsync(new Uri(uri, "api/v1/compatibility")).GetAwaiter().GetResult();
+            var error = JsonWire.Deserialize<ApiError>(reply.Content.ReadAsStringAsync().GetAwaiter().GetResult());
+            if (reply.StatusCode != HttpStatusCode.Conflict || error?.Code != "CLIENT_UPDATE_REQUIRED" || !error.Message.Contains("Revit"))
+                throw new Exception("An old client was not told how to upgrade before a protocol-2 scan.");
+        }));
         test("host liveness remains available while the database is unreachable", () => WithHost(uri => {
             using var client = new HttpClient(); using var reply = client.GetAsync(new Uri(uri, "health/live")).GetAwaiter().GetResult();
             if (reply.StatusCode != HttpStatusCode.OK) throw new Exception("Process liveness is unavailable.");
@@ -35,7 +41,7 @@ internal static class HostCases
         }));
         test("deployed compatibility route is readable by the actual Web client", () => WithHost(uri => {
             using var client = new WebApiClient(uri); var result = client.CompatibilityAsync(CancellationToken.None).GetAwaiter().GetResult();
-            if (result.ProtocolMajor != 1 || result.ProductVersion != "0.5.0" || result.RuleVersion != "reference-0.4.4-web1" || result.SigningKey == null || string.IsNullOrWhiteSpace(result.SigningKey.Modulus))
+            if (result.ProtocolMajor != 2 || result.ProductVersion != "0.5.0" || result.RuleVersion != "reference-0.4.20-web2" || result.SigningKey == null || string.IsNullOrWhiteSpace(result.SigningKey.Modulus))
                 throw new Exception("The host did not expose the actual protocol and public signing key.");
         }));
         test("deferred authentication keeps registration and model mutation routes closed", () => WithHost(uri => {

@@ -40,10 +40,19 @@ namespace Hifc.Web.Client
             Signature(Canonical.PermitPayload(permit), permit.Signature, key);
         }
         public static void Capture(CheckResult basis, ElementRecord[] current, ParameterValue[] values)
+            => Capture(basis, current, values, new NativeDefinitionSnapshot[0]);
+        public static void Capture(CheckResult basis, ElementRecord[] current, ParameterValue[] values, NativeDefinitionSnapshot[] definitions)
         {
             if (basis == null || !basis.Complete || current == null || values == null || basis.Context == null
-                || basis.Context.SnapshotHash != Canonical.InventoryHash(current) || basis.CaptureHash != Canonical.ValuesHash(values))
+                || basis.Context.SnapshotHash != Canonical.InventoryHash(current) || basis.CaptureHash != Canonical.CaptureHash(values, definitions))
                 throw new InvalidOperationException("当前模型、类型、参数来源或原值已变化，请重新检查后合并草稿。");
+        }
+        public static void Export(ExportPlan plan, RequestContext expected, PublicSigningKey key, DateTime nowUtc)
+        {
+            if (plan == null || string.IsNullOrWhiteSpace(plan.Id) || nowUtc >= plan.ExpiresAtUtc || plan.Hash != Canonical.ExportHash(plan))
+                throw new InvalidOperationException("导出方案已过期或内容不一致，请重新检查。");
+            ProtocolGuard.Match(expected, plan.Context);
+            Signature(plan.Hash, plan.Signature, key);
         }
     }
 }

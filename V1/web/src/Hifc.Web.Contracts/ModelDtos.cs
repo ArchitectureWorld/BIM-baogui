@@ -8,13 +8,14 @@ namespace Hifc.Web.Contracts
     }
     public sealed class RequestContext
     {
-        public int ProtocolMajor { get; set; } = 1;
+        public int ProtocolMajor { get; set; } = 2;
         public string ClientVersion { get; set; } = "0.5.0";
         public string RuleVersion { get; set; }
         public string RequestId { get; set; }
         public string DocumentSessionId { get; set; }
         public string ScanId { get; set; }
         public string SnapshotHash { get; set; }
+        public string ConfigurationHash { get; set; } = Canonical.ConfigurationHash(new ModelSettings(), new ProjectDataRecord[0]);
     }
     public sealed class ElementRecord
     {
@@ -26,14 +27,23 @@ namespace Hifc.Web.Contracts
         public string TypeName { get; set; }
         public string Category { get; set; }
         public string Entity { get; set; }
+        public string SourceEntity { get; set; }
+        public int CategoryId { get; set; }
         public string DeclaredSlot { get; set; }
         public string AssignedSlot { get; set; }
         public string Level { get; set; }
+        public string LevelUniqueId { get; set; }
+        public double? LevelElevationM { get; set; }
         public string Building { get; set; }
         public string AreaScheme { get; set; }
         public string CoverageNote { get; set; }
         public double? NativeAreaM2 { get; set; }
         public double? ProjectedAreaM2 { get; set; }
+        public string ProjectionKey { get; set; }
+        public string GeometryFingerprint { get; set; }
+        public NativeProjectionOverlap[] ProjectionOverlaps { get; set; } = new NativeProjectionOverlap[0];
+        public string AreaAggregationIssue { get; set; }
+        public string AreaReason { get; set; }
     }
     public sealed class InventoryPage
     {
@@ -45,6 +55,8 @@ namespace Hifc.Web.Contracts
         public int TotalElements { get; set; }
         public string PageHash { get; set; }
         public ElementRecord[] Elements { get; set; } = new ElementRecord[0];
+        public ModelSettings Settings { get; set; } = new ModelSettings();
+        public ProjectDataRecord[] ProjectData { get; set; } = new ProjectDataRecord[0];
     }
     public sealed class CaptureTarget
     {
@@ -61,6 +73,7 @@ namespace Hifc.Web.Contracts
         public string ModelKind { get; set; }
         public string[] DetectionEvidence { get; set; } = new string[0];
         public CaptureTarget[] Targets { get; set; } = new CaptureTarget[0];
+        public string[] DefinitionSources { get; set; } = new string[0];
     }
     public sealed class ParameterValue
     {
@@ -76,6 +89,8 @@ namespace Hifc.Web.Contracts
         public string Unit { get; set; }
         public bool ReadOnly { get; set; }
         public string SharedGuid { get; set; }
+        public string DefinitionType { get; set; }
+        public double? MetricValue { get; set; }
     }
     public sealed class CapturePage
     {
@@ -85,6 +100,8 @@ namespace Hifc.Web.Contracts
         public int TotalValues { get; set; }
         public string PageHash { get; set; }
         public ParameterValue[] Values { get; set; } = new ParameterValue[0];
+        public NativeDefinitionSnapshot[] Definitions { get; set; } = new NativeDefinitionSnapshot[0];
+        public NativeDefinitionChunk[] DefinitionChunks { get; set; } = new NativeDefinitionChunk[0];
     }
     public sealed class FieldResult
     {
@@ -112,6 +129,15 @@ namespace Hifc.Web.Contracts
         public bool ManualInputRequired { get; set; }
         public string SourceSignature { get; set; }
         public int AffectedInstances { get; set; }
+        public string RuleProfileId { get; set; }
+        public string RequiredValue { get; set; }
+        public double? MetricValue { get; set; }
+        public bool FloorAreaOverride { get; set; }
+        public string DefinitionType { get; set; }
+        public string InputKind { get; set; }
+        public string InputUnit { get; set; }
+        public string[] Options { get; set; } = new string[0];
+        public string ParentProperty { get; set; }
     }
     public sealed class ElementResult
     {
@@ -120,6 +146,7 @@ namespace Hifc.Web.Contracts
         public string[] CandidateSlots { get; set; } = new string[0];
         public string[] CandidateEvidence { get; set; } = new string[0];
         public string Status { get; set; }
+        public string Identity { get; set; }
     }
     public sealed class CheckResult
     {
@@ -133,5 +160,12 @@ namespace Hifc.Web.Contracts
         public FieldResult[] Fields { get; set; } = new FieldResult[0];
         public string[] AvailableSlots { get; set; } = new string[0];
         public int ReviewCount { get; set; }
+        public ModelSettings Settings { get; set; } = new ModelSettings();
+        public ProjectDataRecord[] ProjectData { get; set; } = new ProjectDataRecord[0];
+        public NativeDefinitionSnapshot[] Definitions { get; set; } = new NativeDefinitionSnapshot[0];
+        public string[] DefinitionSources { get; set; } = new string[0];
+        public RuleProfileInfo[] RuleProfiles { get; set; } = new RuleProfileInfo[0];
+        public FieldResult[] CommonFields { get; set; } = new FieldResult[0];
+        public string[] CalculationIssues { get; set; } = new string[0];
     }
 }

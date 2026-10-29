@@ -37,7 +37,10 @@ public sealed class HifcWebNativeHost : IExternalApplication
     {
         var ui = sender as UIApplication; if (ui == null) return;
         ui.Idling -= Tick;
+        try { LoadedAssemblyAudit.Verify(run); }
+        catch (Exception ex) { Log("LOAD_AUDIT_ERROR " + ex); File.WriteAllText(Path.Combine(run, "host-error.json"), JsonWire.Serialize(new { error = ex.ToString() })); return; }
         if (File.Exists(Path.Combine(run, "full-flow.json"))) { FullFlow.Start(ui, run); return; }
+        if (File.Exists(Path.Combine(run, "window-route.json"))) { NativeWindowRouteFixture.Run(ui, run); return; }
         Document doc = null;
         try
         {
@@ -107,6 +110,7 @@ public sealed class HifcWebNativeHost : IExternalApplication
                     }
                 }
             });
+            NativeParityHostCases.Run(ui.Application, Test);
             File.WriteAllText(Path.Combine(run, "native-results.json"), JsonWire.Serialize(new { passed, failed, results, scope = "Real Revit 2020 model copy; native transport/security tests, not Linux end-to-end acceptance" }));
         }
         catch (Exception ex) { Log("HOST_ERROR " + ex); File.WriteAllText(Path.Combine(run, "host-error.json"), JsonWire.Serialize(new { error = ex.ToString() })); }
@@ -117,8 +121,9 @@ public sealed class HifcWebNativeHost : IExternalApplication
     private static NativeWriteInput Build(Document doc, CaptureTarget[] targets, string value, RSA rsa)
     {
         var records = NativeInventory.Read(doc); var values = NativeInventory.ReadValues(doc, targets);
-        var context = new RequestContext { RuleVersion = "native-fixture", RequestId = Guid.NewGuid().ToString("N"), DocumentSessionId = "native-doc", ScanId = Guid.NewGuid().ToString("N"), SnapshotHash = Canonical.InventoryHash(records) };
-        var basis = new CheckResult { Context = context, Complete = true, CaptureHash = Canonical.ValuesHash(values) };
+        var settings = new ModelSettings(); var data = NativeProjectData.Read(doc); var sources = targets.Select(t => t.Source).Distinct().ToArray(); var definitions = NativeInventory.ReadDefinitions(doc, sources);
+        var context = new RequestContext { RuleVersion = "native-fixture", RequestId = Guid.NewGuid().ToString("N"), DocumentSessionId = "native-doc", ScanId = Guid.NewGuid().ToString("N"), SnapshotHash = Canonical.InventoryHash(records), ConfigurationHash = Canonical.ConfigurationHash(settings, data) };
+        var basis = new CheckResult { Context = context, Complete = true, CaptureHash = Canonical.CaptureHash(values, definitions), Definitions = definitions, Settings = settings, ProjectData = data };
         var plan = new EditPlan { Context = context, Id = Guid.NewGuid().ToString("N"), CaptureHash = basis.CaptureHash, ExpiresAtUtc = DateTime.UtcNow.AddSeconds(120), Changes = targets.Select(target => {
             var captured = values.Where(item => item.OwnerUniqueId == target.OwnerUniqueId && item.Source == target.Source && item.Origin == target.Origin).ToArray();
             return new WriteChange { OwnerId = target.OwnerId, OwnerUniqueId = target.OwnerUniqueId, Source = target.Source, SourceGuid = target.Source == Source ? SourceGuid : "eed3b68b-49d5-448f-8622-1108143efbcc",
@@ -127,7 +132,7 @@ public sealed class HifcWebNativeHost : IExternalApplication
         plan.Hash = Canonical.PlanHash(plan); plan.Signature = Convert.ToBase64String(rsa.SignData(Encoding.UTF8.GetBytes(plan.Hash), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
         var permit = new WritePermit { Context = context, Id = Guid.NewGuid().ToString("N"), PlanId = plan.Id, PlanHash = plan.Hash, ExpiresAtUtc = DateTime.UtcNow.AddSeconds(25) };
         permit.Signature = Convert.ToBase64String(rsa.SignData(Encoding.UTF8.GetBytes(Canonical.PermitPayload(permit)), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
-        return new NativeWriteInput { DocumentSessionId = "native-doc", Basis = basis, Capture = new CapturePlan { Context = context, Targets = targets, InventoryComplete = true }, Plan = plan, Permit = permit };
+        return new NativeWriteInput { DocumentSessionId = "native-doc", Basis = basis, Settings = settings, Capture = new CapturePlan { Context = context, Targets = targets, DefinitionSources = sources, InventoryComplete = true }, Plan = plan, Permit = permit };
     }
     private sealed class InterferenceUpdater : IUpdater
     {

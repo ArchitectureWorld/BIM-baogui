@@ -37,11 +37,25 @@ namespace Hifc.Web.Revit
     {
         public string DocumentKey { get; set; }
         public string ModelKind { get; set; } = "自动识别";
+        public ModelSettings Settings { get; set; } = new ModelSettings();
+        public bool SettingsDirty { get; set; }
+        public bool SettingsConflict { get; set; }
+        public string LastModelSettingsHash { get; set; }
         public Dictionary<string, string> AssignedSlots { get; set; } = new Dictionary<string, string>();
         public EditDraft[] Drafts { get; set; } = new EditDraft[0];
         public CheckResult LastCheck { get; set; }
         public WriteReceipt PendingReceipt { get; set; }
         public WriteReceipt LastReceipt { get; set; }
+        public ExportReceipt LastExport { get; set; }
+        public bool ExportReceiptRecorded { get; set; }
+        public PendingMaterial[] Materials { get; set; } = new PendingMaterial[0];
+    }
+    public sealed class PendingMaterial
+    {
+        public string SourcePath { get; set; }
+        public MaterialPreview Preview { get; set; }
+        public MaterialDecision Decision { get; set; }
+        public string ScanId { get; set; }
     }
     public sealed class WorkspaceStore
     {

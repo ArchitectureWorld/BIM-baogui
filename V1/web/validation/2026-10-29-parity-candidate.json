@@ -1,0 +1,67 @@
+{
+  "schema": "hifc.web.parity-candidate/1",
+  "status": "candidate-awaiting-native-acceptance",
+  "verifiedUtc": "2026-10-29T11:58:46.2831884Z",
+  "sourceSnapshot": "fa88c56ce8eb5dd0d01406b220d06409ca9107ee",
+  "localReferenceVersion": "0.4.20",
+  "webProduct": "0.5.0",
+  "ruleVersion": "reference-0.4.20-web2",
+  "protocolMajor": 2,
+  "tests": {
+    "web": 90,
+    "core": 267,
+    "ruleParity": 43,
+    "components": 16,
+    "database": 39,
+    "desktop": 27,
+    "workbook": 21,
+    "redline": 33,
+    "webCli": 9,
+    "installerPayloadPowerShell51": 5,
+    "failures": 0,
+    "sourceGuardPowerShell7": 12,
+    "sourceGuardPowerShell51": 12
+  },
+  "protected": {
+    "localInstalledFiles": 7,
+    "originalModels": 8,
+    "hashesUnchanged": true
+  },
+  "nativeHostExecuted": true,
+  "nativeIfcAuditExecuted": false,
+  "physicalWindows11Verified": false,
+  "productionDeployed": false,
+  "platformMutationPerformed": false,
+  "reviewFixes": [
+    "canonical metric input and same-unit no-op comparison",
+    "duplicate net-land projections rejected before signing",
+    "parameter definition chunks preserve every owner",
+    "Web calculation settings stored with RVT transaction",
+    "adapter-level launch authorization",
+    "SQLite database and sidecar link isolation",
+    "immutable same-release installer staging",
+    "strict Revit2020 unbind-before-delete with rollback-only dependency probe",
+    "pre/post build clean commit provenance guards"
+  ],
+  "pending": [
+    "User accepts current native publisher prompt; continue prepared new-suffix run",
+    "Real model-copy complete workflow and unit/settings restore tests",
+    "Native multi-window IFC routing audit",
+    "Actual old updater and fresh installer against final zetta release",
+    "Approved external platform target and interactive login if live mutation acceptance is requested",
+    "Production deployment and remote branch synchronization"
+  ],
+  "evidence": [
+    ".local/implementation-20261029/integrated-final.log",
+    ".local/implementation-20261029/installer-payload-ps51.log",
+    ".local/rule-validation/final-logs",
+    ".local/native-build/task3-ledger.json",
+    ".local/review-p1-final.log",
+    ".local/node-system-ca-probe.json",
+    ".local/implementation-20261029/integrated-after-native-fix.log",
+    ".local/full-experience-20261029-193317/loaded-assemblies.json",
+    ".local/full-experience-20261029-193317/full-error.json"
+  ],
+  "nativeHostAcceptancePassed": false,
+  "nativeHostStatus": "First native run verified five isolated loaded assemblies and rolled back a definition deletion; strict unbind fix reviewed and built; new run awaits publisher confirmation."
+}

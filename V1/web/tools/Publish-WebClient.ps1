@@ -2,6 +2,9 @@
 param([string]$ReleaseId=('0.5.0-dev-'+[DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ')))
 $ErrorActionPreference='Stop'
 $webRoot=Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot 'WebSourceGuard.ps1')
+$sourceSnapshot=New-HifcSourceSnapshot -Repository $webRoot -RequiredBranch 'hifc-web'
+$sourceCommit=$sourceSnapshot.SourceCommit
 . (Join-Path $PSScriptRoot 'Get-WebDotNet.ps1')
 $sdk=Get-HifcWebDotNet
 if($ReleaseId -notmatch '^0\.5\.0-dev-[0-9]{8}T[0-9]{6}Z$'){throw 'Invalid client release id.'}
@@ -10,8 +13,11 @@ $package=Join-Path $output 'HIFC-0.5.0-Web'
 New-Item -ItemType Directory -Path (Join-Path $package 'client') -Force|Out-Null
 Push-Location $webRoot
 try{
-    if(((& git branch --show-current)-join '') -ne 'hifc-web'){throw 'Use the existing hifc-web branch.'}
-    & $sdk build src/Hifc.Web.Revit/Hifc.Web.Revit.csproj -c Release --nologo -v minimal > (Join-Path $output 'build.log') 2>&1
+    $componentOutput=Join-Path $webRoot ('.local/components-'+$ReleaseId.Substring(10))
+    & (Join-Path $PSScriptRoot 'Publish-WebComponents.ps1') -ReleaseId $ReleaseId -SourceCommit $sourceCommit -OutputDirectory $componentOutput > (Join-Path $output 'components-build.log') 2>&1
+    $componentLock=Join-Path $componentOutput 'component-locks.json'
+    if(-not(Test-Path -LiteralPath $componentLock)){throw 'Locked runtime component build failed.'}
+    & $sdk build src/Hifc.Web.Revit/Hifc.Web.Revit.csproj -c Release ('-p:ComponentLockFile='+$componentLock) --nologo -v minimal > (Join-Path $output 'build.log') 2>&1
     if($LASTEXITCODE -ne 0){Get-Content (Join-Path $output 'build.log') -Tail 20;throw 'Web client build failed.'}
     $names=@('Hifc.Web.Revit.dll','Hifc.Web.Client.dll','Hifc.Web.Contracts.dll','Newtonsoft.Json.dll','Hifc.Web.Update.exe','Hifc.Web.Update.exe.config')
     $files=@()
@@ -33,15 +39,16 @@ try{
     Copy-Item -LiteralPath (Join-Path $webRoot '.local/certificates/hifc-web-root-ca.crt') -Destination (Join-Path $package 'hifc-web-root-ca.crt')
     Add-Type -AssemblyName System.Net.Http
     $handler=New-Object Net.Http.HttpClientHandler; $handler.UseProxy=$false; $http=New-Object Net.Http.HttpClient($handler)
-    try{$public=($http.GetStringAsync('https://192.168.6.45:8443/api/v1/compatibility').GetAwaiter().GetResult()|ConvertFrom-Json).signingKey}finally{$http.Dispose()}
+    try{$public=($http.GetStringAsync('https://192.168.6.45:8443/api/v1/compatibility?protocol=2').GetAwaiter().GetResult()|ConvertFrom-Json).signingKey}finally{$http.Dispose()}
     if([Convert]::FromBase64String($public.modulus).Length -lt 256){throw 'The zetta update signing key is unavailable.'}
     $public|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $package 'update-public-key.json') -Encoding utf8
-    [ordered]@{version='0.5.0-Web';addInId='53ef39d3-a187-4fb5-90f8-29e91d747602';releaseId=$ReleaseId;sourceCommit=((& git rev-parse HEAD)-join '');createdUtc=[DateTime]::UtcNow.ToString('O');files=$files}|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $package 'package.json') -Encoding utf8
+    [ordered]@{version='0.5.0-Web';addInId='53ef39d3-a187-4fb5-90f8-29e91d747602';releaseId=$ReleaseId;sourceCommit=$sourceCommit;componentsRequired=$true;createdUtc=[DateTime]::UtcNow.ToString('O');files=$files}|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $package 'package.json') -Encoding utf8
     & (Join-Path $PSScriptRoot 'Test-WebInstallerEntry.ps1') -Package $package
     if($LASTEXITCODE -ne 0){throw 'Web installer validation failed.'}
     & (Join-Path $PSScriptRoot 'Test-WebCertificateTrust.ps1') -Package $package
     $archive=Join-Path $output 'HIFC-0.5.0-Web.zip'
     Compress-Archive -LiteralPath $package -DestinationPath $archive
-    [ordered]@{archive=$archive;package=$package;sha256=(Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant();sourceCommit=((& git rev-parse HEAD)-join '')}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $webRoot '.local/latest-client-release.json') -Encoding utf8
+    Assert-HifcSourceSnapshot $sourceSnapshot
+    [ordered]@{archive=$archive;package=$package;sha256=(Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant();sourceCommit=$sourceCommit;components=(Join-Path $componentOutput 'components');componentLock=$componentLock;releaseId=$ReleaseId}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $webRoot '.local/latest-client-release.json') -Encoding utf8
     Get-Content -LiteralPath (Join-Path $webRoot '.local/latest-client-release.json')
 }finally{Pop-Location}
