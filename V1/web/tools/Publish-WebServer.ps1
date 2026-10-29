@@ -18,7 +18,7 @@ try {
     & (Join-Path $PSScriptRoot 'Publish-WebClient.ps1') -ReleaseId $ReleaseId|Out-Null
     $clientRelease=Get-Content -LiteralPath (Join-Path $webRoot '.local/latest-client-release.json')|ConvertFrom-Json
     if($clientRelease.sourceCommit -ne $sourceCommit){throw 'Client/server source revisions differ.'}
-    foreach($entry in @(@('src/Hifc.Web.Server/Hifc.Web.Server.csproj','server'),@('tests/Hifc.Web.DatabaseTests/Hifc.Web.DatabaseTests.csproj','database-tests'),@('tests/Hifc.Web.Tests/Hifc.Web.Tests.csproj','web-tests'),@('tests/Hifc.Web.RuleRegression/Hifc.Web.RuleRegression.csproj','rule-tests'))){
+    foreach($entry in @(@('src/Hifc.Web.Server/Hifc.Web.Server.csproj','server'),@('tests/Hifc.Web.DatabaseTests/Hifc.Web.DatabaseTests.csproj','database-tests'),@('tests/Hifc.Web.Tests/Hifc.Web.Tests.csproj','web-tests'),@('tests/Hifc.Web.RuleRegression/Hifc.Web.RuleRegression.csproj','rule-tests'),@('tests/Hifc.Web.RuleParityTests/Hifc.Web.RuleParityTests.csproj','parity-tests'))){
         $log=Join-Path $releaseRoot ($entry[1]+'-publish.log')
         & $sdk publish $entry[0] -c Release -r linux-x64 --self-contained false -p:UseAppHost=false -o (Join-Path $payload $entry[1]) > $log 2>&1
         if($LASTEXITCODE -ne 0){Get-Content -LiteralPath $log -Tail 12;throw 'Linux server publish failed.'}

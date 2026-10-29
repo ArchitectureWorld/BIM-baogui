@@ -105,12 +105,6 @@ internal static class NativeUnitFullFlow
             && !string.IsNullOrEmpty(previous.LastModelSettingsHash), "The source settings baseline was not committed and saved.");
         await VerifyFreshSettingsAsync(access, server, run, unitPath, previous.Settings, previous.LastModelSettingsHash, log);
         log("PASS resumed saved-RVT settings restoration into a new Web state directory; prior numeric writes were not rerun");
-        var routeConfig = Path.Combine(run, "window-route.json");
-        if (!File.Exists(routeConfig)) File.Copy(Path.Combine(sourceRun, "window-route.json"), routeConfig, false);
-        await native(ui => {
-            Require(NativeWindowRouteFixture.Run(ui, run), "Native window route fixture failed; see window-route-error.json.");
-            log("PASS resumed native exact-owner window exports; independent IFC audit pending"); return true;
-        });
         var reopened = new List<object>();
         foreach (var path in JsonWire.Deserialize<string[]>(File.ReadAllText(Path.Combine(sourceRun, "models.json"))))
         {
@@ -131,6 +125,13 @@ internal static class NativeUnitFullFlow
             reopened.Add(new { model = Path.GetFileName(path), reopened = true, checkedFields = count }); log("PASS resumed saved-value reopen " + Path.GetFileName(path));
         }
         Require(reopened.Count > 0, "Resume source did not list verified model copies.");
+        File.WriteAllText(Path.Combine(run, "saved-models-reopen-results.json"), JsonWire.Serialize(new { passed = true, sourceRun, reopened = reopened.Count, results = reopened }));
+        var routeConfig = Path.Combine(run, "window-route.json");
+        if (!File.Exists(routeConfig)) File.Copy(Path.Combine(sourceRun, "window-route.json"), routeConfig, false);
+        await native(ui => {
+            Require(NativeWindowRouteFixture.Run(ui, run), "Native window route fixture failed; see window-route-error.json.");
+            log("PASS resumed native exact-owner window exports; independent IFC audit pending"); return true;
+        });
         var result = JsonWire.Serialize(new { resumeOnly = true, sourceRun, passed = reopened.Count, failed = 0, results = reopened, reopened = reopened.Count,
             settingsRestored = true, windowRoutesNativeExported = true, independentIfcAuditRequired = true, priorNumericWritesRerun = false, server = server.AbsoluteUri });
         File.WriteAllText(Path.Combine(run, "resume-results.json"), result); File.WriteAllText(Path.Combine(run, "full-results.json"), result);

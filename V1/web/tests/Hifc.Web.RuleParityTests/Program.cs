@@ -218,6 +218,21 @@ internal static class Program
             try {f.Engine.BuildExportPlan(basis,f.Values,request,DateTime.UtcNow);throw new Exception("shared unclassified window type was exported");}
             catch(InvalidOperationException ex){Assert(ex.Message.Contains("未确认的同类型实例"),"shared type scope not rejected by intended policy: "+ex.Message);}
         });
+        Test("server_export_rejects_all_windows_invalid_name_characters_on_every_os",()=>{
+            var f=new Fixture();var basis=f.Check();
+            foreach(var invalid in Enumerable.Range(0,32).Select(i=>(char)i).Concat(new[]{'<','>',':','"','/','\\','|','?','*'})) {
+                var request=Export(basis);request.FileName="OUT_学校"+invalid+"一期_报规_总图_20261029_V1.ifc";
+                try {f.Engine.BuildExportPlan(basis,f.Values,request,DateTime.UtcNow);throw new Exception("Windows-invalid U+"+((int)invalid).ToString("X4")+" accepted by server on "+System.Runtime.InteropServices.RuntimeInformation.OSDescription);}
+                catch(InvalidOperationException) {}
+            }
+        });
+        Test("server_export_accepts_confirmed_chinese_basename_without_host_path_semantics",()=>{
+            var f=new Fixture([Element("building",1,"IfcBuilding")],kind:"单体建筑");var basis=f.Check();var request=Export(basis);request.FileName="OUT_学校_一期_报规_3D实验楼_20261029_V11.ifc";
+            var plan=f.Engine.BuildExportPlan(basis,f.Values,request,DateTime.UtcNow);Assert(plan.FileName==request.FileName,"confirmed Chinese project/building identity changed");
+            foreach(var rooted in new[]{@"D:\模型\"+request.FileName,@"\\nas\模型\"+request.FileName,"/srv/models/"+request.FileName}) {
+                request.FileName=rooted;Reject(()=>f.Engine.BuildExportPlan(basis,f.Values,request,DateTime.UtcNow));
+            }
+        });
         Console.WriteLine($"RESULT failures={failures}; tests={tests}");Environment.ExitCode=failures==0?0:1;
     }
 }

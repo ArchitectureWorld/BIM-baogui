@@ -12,7 +12,10 @@ public sealed partial class RuleAdapter
         ValidateBasis(basis,values);ProtocolGuard.Match(basis.Context,request.Context);
         if(request.HasPendingMaterials)throw new InvalidOperationException("存在未提交资料，请写入并重新全面检查后导出。");
         var name=request.FileName;
-        if(string.IsNullOrWhiteSpace(name)||name.IndexOfAny(new[]{'/','\\',':','\r','\n','\t','<','>','"','|','?','*'})>=0||name.Length>180)throw new InvalidOperationException("导出文件名只能是有效文件名，不能包含目录。");
+        // The output is written by Windows/Revit even when this service runs on
+        // Linux. Path.GetInvalidFileNameChars on the service OS is not this contract.
+        if(string.IsNullOrWhiteSpace(name)||name.Any(c=>c<' ')||name.IndexOfAny(new[]{'/','\\',':','<','>','"','|','?','*'})>=0||name.Length>180)
+            throw new InvalidOperationException("导出文件名只能是有效的 Windows 文件名，不能包含控制字符或目录。");
         var match=Regex.Match(name,@"^OUT_(.+)_(报规)_(.+)_([0-9]{8})_V([0-9]+)\.ifc$",RegexOptions.CultureInvariant);
         if(!match.Success||!DateTime.TryParseExact(match.Groups[4].Value,"yyyyMMdd",CultureInfo.InvariantCulture,DateTimeStyles.None,out var date)
             ||!long.TryParse(match.Groups[5].Value,out var revision)||revision<1)throw new InvalidOperationException("请确认项目、单体、日期和版本，使用 OUT_项目_报规_单体_yyyyMMdd_V1.ifc 文件名。");

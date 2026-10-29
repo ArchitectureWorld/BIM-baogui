@@ -43,9 +43,13 @@ namespace Hifc.Web.Revit
         public static ExportReceipt Execute(Document document, NativeExportInput input, PublicSigningKey key, DateTime nowUtc)
         {
             if (document == null || !document.IsValidObject || document.IsModifiable || document.IsReadOnly || document.IsFamilyDocument
-                || input?.Basis == null || input.DocumentSessionId != input.Basis.Context.DocumentSessionId)
+                || input?.Basis?.Context == null || input.DocumentSessionId != input.Basis.Context.DocumentSessionId)
                 throw new InvalidOperationException("当前模型不能导出，请重新全面检查。");
             var plan = input.Plan; WriteGuard.Export(plan, input.Basis.Context, key, nowUtc);
+            if (plan.Native?.DataWrites == null || plan.Native.Definitions == null || plan.TemporaryChanges == null || plan.Routes == null || plan.Options == null || plan.SuppressParameterNames == null
+                || input.Basis.Elements == null || input.Basis.Elements.Any(e => e?.Element == null)
+                || plan.TemporaryChanges.Any(c => c == null) || plan.Routes.Any(r => r == null || string.IsNullOrWhiteSpace(r.Entity) || r.OwnerUniqueIds == null || r.Properties == null || r.Properties.Any(p => p == null)))
+                throw new InvalidOperationException("导出方案包含缺失的载体、操作或路由数据。");
             if (plan.CaptureHash != input.Basis.CaptureHash || input.Capture == null || !input.Capture.InventoryComplete)
                 throw new InvalidOperationException("导出计划不属于当前完整检查。");
             ProtocolGuard.Match(input.Basis.Context, input.Capture.Context);
@@ -70,7 +74,7 @@ namespace Hifc.Web.Revit
             File.WriteAllText(mapping, plan.MappingText ?? "", new UTF8Encoding(false));
             var service = ExternalServiceRegistry.GetService(ExternalServices.BuiltInExternalServices.IFCExporterService) as SingleServerService;
             var previousServer = service?.GetActiveServerId();
-            var before = Snapshot(document); bool exported = false; TransactionStatus rollback;
+            var before = Snapshot(document, Path.Combine(artifactDirectory, "snapshot-before-diagnostics.json"), plan.Id); bool exported = false; TransactionStatus rollback;
             NativeTypePropertyScope scope = null;
             using (var transaction = new Transaction(document, "HIFC Web · 临时 IFC 属性与原生导出（回滚）"))
             {
@@ -110,7 +114,7 @@ namespace Hifc.Web.Revit
                 }
                 finally { rollback = transaction.GetStatus() == TransactionStatus.Started ? transaction.RollBack() : transaction.GetStatus(); }
             }
-            var after = Snapshot(document);
+            var after = Snapshot(document, Path.Combine(artifactDirectory, "snapshot-after-diagnostics.json"), plan.Id);
             if (rollback != TransactionStatus.RolledBack || before != after || service?.GetActiveServerId() != previousServer
                 || scope?.ScheduleIds.Any(id => document.GetElement(id) != null) == true)
                 throw new InvalidOperationException("导出后模型或导出器未恢复，未发布 IFC。");
@@ -132,7 +136,10 @@ namespace Hifc.Web.Revit
             foreach (var source in sources.Distinct())
             {
                 var definitions = new List<Definition>(); var iterator = document.ParameterBindings.ForwardIterator(); iterator.Reset();
-                while (iterator.MoveNext()) if (iterator.Key.Name == source) definitions.Add(iterator.Key);
+                while (iterator.MoveNext()) {
+                    var definition = iterator.Key ?? throw new InvalidOperationException("导出回退隔离遇到空参数绑定定义：" + source);
+                    if (definition.Name == source) definitions.Add(definition);
+                }
                 foreach (var definition in definitions) if (!document.ParameterBindings.Remove(definition)) throw new InvalidOperationException("无法隔离原生同名回退来源：" + source);
                 document.Regenerate();
                 var applicable = routes.Where(r => !r.ExactOwnerFilter && r.Origin == "instance" && r.Properties.Any(p => p.Property == source && (p.ExportType == "Real" || p.ExportType == "Boolean"))).ToArray();
@@ -145,24 +152,95 @@ namespace Hifc.Web.Revit
                     {
                         var bridge = element.get_Parameter(new Guid(property.BridgeGuid));
                         if (bridge?.StorageType == StorageType.String && bridge.HasValue && !string.IsNullOrWhiteSpace(bridge.AsString())) continue;
-                        var type = document.GetElement(element.GetTypeId());
+                        var typeId = element.GetTypeId(); var type = typeId == null ? null : document.GetElement(typeId);
                         if (new[] { element, type }.Where(e => e != null).Any(e => e.GetParameters(source).Any(p => p.HasValue && (p.StorageType != StorageType.String || !string.IsNullOrEmpty(p.AsString())))))
                             throw new InvalidOperationException("族或内置参数存在不能安全隔离的同名回退来源：" + element.Id.IntegerValue + " / " + source);
                     }
                 }
             }
         }
-        private static string Snapshot(Document document)
+        private sealed class SnapshotParameter
         {
-            var rows = new FilteredElementCollector(document).WhereElementIsNotElementType().ToArray()
-                .Concat(new FilteredElementCollector(document).WhereElementIsElementType().ToArray()).OrderBy(e => e.UniqueId, StringComparer.Ordinal);
-            var hashes = rows.Select(element => Canonical.Hash(JsonWire.Serialize(new { element.UniqueId, TypeId = element.GetTypeId().IntegerValue,
-                Parameters = element.Parameters.Cast<Parameter>().OrderBy(p => p.Id.IntegerValue).Select(p => new {
-                    Id = p.Id.IntegerValue, Name = p.Definition.Name, Type = p.Definition.ParameterType.ToString(), p.HasValue,
-                    Raw = !p.HasValue ? null : p.StorageType == StorageType.String ? p.AsString() : p.StorageType == StorageType.Integer ? p.AsInteger().ToString(CultureInfo.InvariantCulture)
-                        : p.StorageType == StorageType.Double ? p.AsDouble().ToString("R", CultureInfo.InvariantCulture) : p.StorageType == StorageType.ElementId ? p.AsElementId().IntegerValue.ToString(CultureInfo.InvariantCulture) : null
-                }).ToArray() }))).ToArray();
-            return Canonical.Hash(string.Join("\n", hashes) + "\n" + JsonWire.Serialize(NativeProjectData.Read(document)) + "\n" + Canonical.InventoryHash(NativeInventory.Read(document)));
+            public bool ParameterPresent { get; set; }
+            public int? Id { get; set; }
+            public bool? DefinitionPresent { get; set; }
+            public string ReadState { get; set; }
+            public string Name { get; set; }
+            public string Type { get; set; }
+            public string StorageType { get; set; }
+            public bool? HasValue { get; set; }
+            public bool? ElementIdValuePresent { get; set; }
+            public string Raw { get; set; }
+        }
+        private static SnapshotParameter ReadSnapshotParameter(Element owner, Parameter parameter, int ordinal, List<object> diagnostics)
+        {
+            var value = new SnapshotParameter { ParameterPresent = parameter != null }; var stage = "parameter";
+            Action<string> note = kind => diagnostics.Add(new { kind, elementId = owner.Id?.IntegerValue, owner.UniqueId, elementType = owner.GetType().FullName,
+                parameterOrdinal = ordinal, parameterId = value.Id, value.DefinitionPresent, value.ReadState, value.Name, value.Type, value.StorageType, value.HasValue, value.ElementIdValuePresent,
+                rawHash = value.Raw == null ? null : Canonical.Hash(value.Raw), rawLength = value.Raw?.Length });
+            if (parameter == null) { note("NullParameterEntry"); return value; }
+            try {
+                stage = "Id"; value.Id = parameter.Id?.IntegerValue;
+                stage = "Definition"; var definition = parameter.Definition; value.DefinitionPresent = definition != null;
+                if (definition == null)
+                {
+                    // Revit's internal ParameterSet can expose an opaque slot with
+                    // a readable ID but no ParamDef. Reading StorageType/HasValue
+                    // from that slot dereferences native null memory in Revit 2020.
+                    // Preserve its identity and explicit opacity in both hashes.
+                    value.ReadState = "OpaqueMissingDefinition"; note("NullDefinition"); return value;
+                }
+                value.ReadState = "Defined";
+                stage = "Definition.Name"; value.Name = definition?.Name;
+                stage = "Definition.ParameterType"; value.Type = definition?.ParameterType.ToString();
+                stage = "StorageType"; var storage = parameter.StorageType; value.StorageType = storage.ToString();
+                stage = "HasValue"; value.HasValue = parameter.HasValue;
+                if (value.HasValue == true) {
+                    stage = "Raw." + storage;
+                    switch (storage) {
+                        case StorageType.String: value.Raw = parameter.AsString(); break;
+                        case StorageType.Integer: value.Raw = parameter.AsInteger().ToString(CultureInfo.InvariantCulture); break;
+                        case StorageType.Double: value.Raw = parameter.AsDouble().ToString("R", CultureInfo.InvariantCulture); break;
+                        case StorageType.ElementId:
+                            var reference = parameter.AsElementId(); value.ElementIdValuePresent = reference != null;
+                            value.Raw = reference?.IntegerValue.ToString(CultureInfo.InvariantCulture); break;
+                        default: throw new InvalidOperationException("有值参数没有可可靠读取的存储类型：" + storage);
+                    }
+                }
+                if (!value.Id.HasValue) note("NullParameterId");
+                if (value.DefinitionPresent == false) note("NullDefinition");
+                if (value.ElementIdValuePresent == false) note("NullElementIdValue");
+                return value;
+            }
+            catch (Exception ex) when (ex is Autodesk.Revit.Exceptions.ApplicationException || ex is InvalidOperationException || ex is ArgumentException || ex is NullReferenceException) {
+                note("ReadFailed:" + stage);
+                throw new InvalidOperationException("导出快照参数读取失败，未跳过保护数据：element=" + owner.Id?.IntegerValue + ", parameter=" + value.Id + ", ordinal=" + ordinal + ", stage=" + stage, ex);
+            }
+        }
+        private static string Snapshot(Document document, string diagnosticPath, string planId)
+        {
+            var diagnostics = new List<object>(); var hashes = new List<string>(); var parameterCount = 0;
+            try {
+                var rows = new FilteredElementCollector(document).WhereElementIsNotElementType().ToArray()
+                    .Concat(new FilteredElementCollector(document).WhereElementIsElementType().ToArray()).ToArray();
+                if (rows.Any(e => e == null)) throw new InvalidOperationException("导出快照构件枚举含空对象，不能完成模型保护快照。");
+                foreach (var element in rows.OrderBy(e => e.UniqueId, StringComparer.Ordinal)) {
+                    var parameters = element.Parameters; var values = new List<SnapshotParameter>(); var ordinal = 0;
+                    if (parameters == null) diagnostics.Add(new { kind = "NullParameterCollection", elementId = element.Id?.IntegerValue, element.UniqueId, elementType = element.GetType().FullName });
+                    else foreach (Parameter parameter in parameters) { values.Add(ReadSnapshotParameter(element, parameter, ordinal++, diagnostics)); parameterCount++; }
+                    // Preserve every entry and explicit null state. Sort full records so
+                    // anonymous entries do not depend on ParameterSet enumeration order.
+                    var serialized = values.Select(v => JsonWire.Serialize(v)).OrderBy(v => v, StringComparer.Ordinal).ToArray();
+                    hashes.Add(Canonical.Hash(JsonWire.Serialize(new { Id = element.Id?.IntegerValue, element.UniqueId, TypeId = element.GetTypeId()?.IntegerValue,
+                        ParametersPresent = parameters != null, Parameters = serialized })));
+                }
+                return Canonical.Hash(string.Join("\n", hashes) + "\n" + JsonWire.Serialize(NativeProjectData.Read(document)) + "\n" + Canonical.InventoryHash(NativeInventory.Read(document)));
+            }
+            catch (Exception ex) when (ex is Autodesk.Revit.Exceptions.ApplicationException || ex is InvalidOperationException || ex is ArgumentException || ex is NullReferenceException) {
+                diagnostics.Add(new { kind = "SnapshotFailed", error = ex.ToString() });
+                throw new InvalidOperationException(ex.Message + "；快照诊断：" + diagnosticPath, ex);
+            }
+            finally { File.WriteAllText(diagnosticPath, JsonWire.Serialize(new { planId, elementsCaptured = hashes.Count, parameterCount, diagnostics }), new UTF8Encoding(false)); }
         }
         private static string FileHash(string path) { using (var stream = File.OpenRead(path)) using (var sha = SHA256.Create()) return string.Concat(sha.ComputeHash(stream).Select(b => b.ToString("x2"))); }
     }
