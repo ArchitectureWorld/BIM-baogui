@@ -16,7 +16,7 @@ internal static class NativeWindowRouteFixture
 {
     // Isolates the native IFC executor. Business authorization of a partially
     // classified shared type remains a separate real-server regression.
-    internal static void Run(UIApplication ui, string run)
+    internal static bool Run(UIApplication ui, string run)
     {
         Document document = null;
         try {
@@ -59,7 +59,8 @@ internal static class NativeWindowRouteFixture
                     typed = new { path = typed.IfcPath, sha256 = typed.IfcHash, typed.SourceRestored, expectedSet = "Pset_HifcWebTypeRouteProbe", expectedMarkers = new[] { "TYPE_A", "TYPE_B" }, allInstancesClassifiedBeforeExport = true }, inputHashes
                 }));
             }
-        } catch (Exception ex) { File.WriteAllText(Path.Combine(run, "window-route-error.json"), JsonWire.Serialize(new { error = ex.ToString() })); }
+            return true;
+        } catch (Exception ex) { File.WriteAllText(Path.Combine(run, "window-route-error.json"), JsonWire.Serialize(new { error = ex.ToString() })); return false; }
         finally { if (document != null && document.IsValidObject) document.Close(false); if (ui.Application.Documents.Size == 0) ui.PostCommand(RevitCommandId.LookupPostableCommandId(PostableCommand.ExitRevit)); }
     }
     private static ExportReceipt Export(Document document, Element[] owners, string origin, string set, string[] markers, string directory, string fileName, RSA rsa, PublicSigningKey key)

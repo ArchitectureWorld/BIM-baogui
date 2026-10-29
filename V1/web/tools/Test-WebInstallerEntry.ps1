@@ -20,7 +20,7 @@ $ProgressPreference='SilentlyContinue'
 [Console]::OutputEncoding=New-Object Text.UTF8Encoding($false)
 Write-Output ('HIFC_TEST_PARENT_POLICY='+(Get-ExecutionPolicy))
 $command='/d /s /c ""'+$env:HIFC_INSTALLER_TEST_ENTRY+'"'
-if($env:HIFC_INSTALLER_TEST_MODE -eq 'validate'){$command+=' -ValidateOnly'}
+if($env:HIFC_INSTALLER_TEST_MODE -like 'validate*'){$command+=' -ValidateOnly'}
 $command+='"'
 $start=New-Object Diagnostics.ProcessStartInfo
 $start.FileName=$env:ComSpec;$start.Arguments=$command;$start.UseShellExecute=$false;$start.CreateNoWindow=$true
@@ -70,6 +70,22 @@ if($validation.exitCode -ne 0 -or $validation.output -notmatch 'PASS Web package
     throw ('Actual installer entry failed under Restricted; see '+$run)
 }
 if((Test-Path -LiteralPath $manifest) -or (Test-Path -LiteralPath $root)){throw 'ValidateOnly installed files instead of just validating.'}
+$fixtureMetadata=Join-Path $fixture 'package.json'
+$metadataBytes=[IO.File]::ReadAllBytes($fixtureMetadata)
+$fixturePackage=Get-Content -LiteralPath $fixtureMetadata -Raw -Encoding utf8|ConvertFrom-Json
+$componentVersionBindingVerified=$false
+if($fixturePackage.componentsRequired){
+    try{
+        # Only change the declared source; the real packaged updater and its
+        # embedded component locks remain untouched. This must fail closed.
+        $fixturePackage.sourceCommit=if($fixturePackage.sourceCommit -eq ('f'*40)){'e'*40}else{'f'*40}
+        [IO.File]::WriteAllText($fixtureMetadata,($fixturePackage|ConvertTo-Json -Depth 10),[Text.UTF8Encoding]::new($true))
+        $mismatch=Invoke-Installer 'validate-component-mismatch'
+        if($mismatch.exitCode -eq 0 -or $mismatch.output -match 'PASS Web package files'){throw 'Installer accepted component locks bound to another source commit.'}
+        if((Test-Path -LiteralPath $manifest) -or (Test-Path -LiteralPath $root)){throw 'Component mismatch validation installed files.'}
+        $componentVersionBindingVerified=$true
+    }finally{[IO.File]::WriteAllBytes($fixtureMetadata,$metadataBytes)}
+}
 if($WithInstallation){
     if(Get-Process -Name Revit -ErrorAction SilentlyContinue){throw 'Actual installation verification requires Revit to be closed.'}
     $thumbprint='90DEB5EDA2139C762DE841D4C76C4BE973DE081F'
@@ -93,5 +109,5 @@ if($WithInstallation){
     if((Get-FileHash -LiteralPath $manifest -Algorithm SHA256).Hash -ne $manifestHash -or (Get-FileHash -LiteralPath (Join-Path $root 'package.json') -Algorithm SHA256).Hash -ne $metadataHash -or (Get-FileHash -LiteralPath $localManifest -Algorithm SHA256).Hash -ne $localHash){throw 'Rejected installation changed active Web or Local files.'}
 }
 if((Read-PersistentPolicies) -cne $before){throw 'Persistent execution policies changed.'}
-[ordered]@{verifiedUtc=[DateTime]::UtcNow.ToString('O');parentExecutionPolicy='Restricted';actualCmdEntryVerified=$true;spaceAndChinesePathVerified=$true;persistentPoliciesUnchanged=$true;isolatedInstallationVerified=[bool]$WithInstallation;failureExitAndOldInstallationVerified=[bool]$WithInstallation;scope='real Windows PowerShell 5.1 and CMD; isolated user directories; not a colleague physical Windows 11 machine'}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $run 'result.json') -Encoding utf8
+[ordered]@{verifiedUtc=[DateTime]::UtcNow.ToString('O');parentExecutionPolicy='Restricted';actualCmdEntryVerified=$true;spaceAndChinesePathVerified=$true;componentVersionBindingVerified=$componentVersionBindingVerified;persistentPoliciesUnchanged=$true;isolatedInstallationVerified=[bool]$WithInstallation;failureExitAndOldInstallationVerified=[bool]$WithInstallation;scope='real Windows PowerShell 5.1 and CMD; isolated user directories; not a colleague physical Windows 11 machine'}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $run 'result.json') -Encoding utf8
 Write-Output ('PASS actual CMD installer under Restricted; installation='+[bool]$WithInstallation+'; persistent policies unchanged; '+$run)

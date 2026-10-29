@@ -23,10 +23,18 @@ internal static class FullFlow
         dispatcher.BeginInvoke(new Action(async () => {
             var results = new List<object>(); var saved = new List<Tuple<string, CaptureTarget, string>>();
             var config = JsonWire.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.Combine(run, "full-flow.json")));
-            var models = JsonWire.Deserialize<string[]>(File.ReadAllText(Path.Combine(run, "models.json")));
+            var models = File.Exists(Path.Combine(run, "models.json")) ? JsonWire.Deserialize<string[]>(File.ReadAllText(Path.Combine(run, "models.json"))) : new string[0];
             Action<string> log = value => File.AppendAllText(Path.Combine(run, "full-progress.log"), DateTime.UtcNow.ToString("O") + " " + value + Environment.NewLine);
             try
             {
+                if (config.TryGetValue("resume_only", out var resumeOnly) && bool.TryParse(resumeOnly, out var resume) && resume)
+                {
+                    if (!config.TryGetValue("resume_from", out var sourceRun)) throw new InvalidOperationException("resume_from is required for resume-only acceptance.");
+                    await NativeUnitFullFlow.ResumeAsync(action => bridge.Run(action), new Uri(config["server"]), run, sourceRun, log);
+                    await bridge.Run(application => { application.PostCommand(RevitCommandId.LookupPostableCommandId(PostableCommand.ExitRevit)); return true; });
+                    return;
+                }
+                if (models.Length == 0) throw new InvalidOperationException("No verified model copies were configured.");
                 if (config["server"] == "https://192.168.6.45:8443/" && !RootTrusted()) {
                     log("等待用户完成 Windows 根证书安全确认；客户端将使用系统证书验证。");
                     while (!RootTrusted()) await Task.Delay(1000);
@@ -85,7 +93,10 @@ internal static class FullFlow
                     finally { window.Close(); }
                 }
                 await NativeUnitFullFlow.RunAsync(action => bridge.Run(action), new Uri(config["server"]), run, log);
-                if (File.Exists(Path.Combine(run, "window-route.json"))) await bridge.Run(application => { NativeWindowRouteFixture.Run(application, run); log("PASS native exact-owner window routes; independent IFC audit pending"); return true; });
+                if (File.Exists(Path.Combine(run, "window-route.json"))) await bridge.Run(application => {
+                    if (!NativeWindowRouteFixture.Run(application, run)) throw new InvalidOperationException("Native window route fixture failed; see window-route-error.json. No passing full-flow result will be emitted.");
+                    log("PASS native exact-owner window routes; independent IFC audit pending"); return true;
+                });
                 foreach (var sample in saved)
                 {
                     await bridge.Run(application => { OpenCopy(application, sample.Item1, run, log);

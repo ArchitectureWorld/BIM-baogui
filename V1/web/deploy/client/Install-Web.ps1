@@ -21,7 +21,10 @@ if([Convert]::FromBase64String($public.modulus).Length -lt 256 -or -not $public.
 if($package.componentsRequired){
     $locksText=(& (Join-Path $PSScriptRoot 'client/Hifc.Web.Update.exe') --component-locks)-join ''
     if($LASTEXITCODE -ne 0){throw '安装包的运行组件锁无法读取。'}
-    $locks=@($locksText|ConvertFrom-Json)
+    # PS5.1 emits a JSON array as one pipeline object. Normalize after direct
+    # assignment so @() contains two locks rather than one nested Object[].
+    $parsedLocks=ConvertFrom-Json -InputObject $locksText
+    $locks=@($parsedLocks)
     if($locks.Count -ne 2 -or @($locks|Where-Object {$_.mainReleaseId -ne $package.releaseId -or $_.mainSourceCommit -ne $package.sourceCommit}).Count){throw '运行组件与主安装包版本不匹配。'}
 }
 if($ValidateOnly){Write-Output 'PASS Web package files, independent identity, update key and pinned public certificate';return}
