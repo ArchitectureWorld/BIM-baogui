@@ -8,16 +8,21 @@ namespace Hifc.Revit.Management
 {
     internal sealed class ExportNamingWindow : Window
     {
-        readonly string stage,kind;readonly DateTime date;
+        readonly string stage,kind;
+        readonly Func<DateTime> currentTime;
         readonly TextBox project=new TextBox(),building=new TextBox(),directory=new TextBox();
         readonly TextBlock preview=new TextBlock {TextWrapping=TextWrapping.Wrap,FontSize=16},status=new TextBlock {TextWrapping=TextWrapping.Wrap};
         readonly Button confirm=new Button {Content="确认，继续导出",IsDefault=true,Padding=new Thickness(18,8,18,8)};
         internal string ConfirmedPath { get; private set; }
         internal Func<string,string> BrowseDirectory { get; set; }
         internal ExportNamingWindow(string modelPath,string title,string stage,string kind,DateTime date,string initialDirectory)
+            : this(modelPath,title,stage,kind,()=>date,initialDirectory)
         {
-            this.stage=stage;this.kind=kind;this.date=date;
-            Title="导出 IFC · 名称和位置";Width=800;Height=470;MinWidth=720;MinHeight=450;
+        }
+        internal ExportNamingWindow(string modelPath,string title,string stage,string kind,Func<DateTime> currentTime,string initialDirectory)
+        {
+            this.stage=stage;this.kind=kind;this.currentTime=currentTime??throw new ArgumentNullException(nameof(currentTime));
+            Title="导出 IFC · 名称和位置";Width=800;Height=550;MinWidth=720;MinHeight=530;
             WindowStartupLocation=WindowStartupLocation.CenterOwner;LiquidGlassTheme.Apply(this);NameScope.SetNameScope(this,new NameScope());
             var names=ExportFileNaming.SuggestNames(modelPath,title,kind);
             project.Text=names.ProjectName;building.Text=names.BuildingName;building.IsReadOnly=kind=="总图";directory.Text=initialDirectory;
@@ -32,12 +37,16 @@ namespace Hifc.Revit.Management
             var body=new StackPanel();root.Children.Add(body);
             body.Children.Add(new TextBlock {Text="确认本次导出的名称和保存位置",FontSize=22,Margin=new Thickness(0,0,0,8)});
             body.Children.Add(new TextBlock {Text="阶段："+stage+"    模型类型："+kind+"\n这里的名称仅用于 IFC 文件，不修改原 RVT 名称或模型属性。",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,14)});
+            var sourceName=new TextBlock {Text="原文件名　"+(string.IsNullOrWhiteSpace(modelPath)?title:Path.GetFileName(modelPath)),TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,8)};
+            Register("SourceNameText",sourceName);body.Children.Add(sourceName);
+            if(!string.IsNullOrEmpty(names.SuggestionMessage))
+                body.Children.Add(new TextBlock {Text=names.SuggestionMessage,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,10)});
             Row(body,"项目名称",project);
             Row(body,kind=="总图"?"总图标识":"具体单体名称",building);
             var folder=new DockPanel();var browse=new Button {Content="浏览…",Padding=new Thickness(14,5,14,5),Margin=new Thickness(8,0,0,0)};
             DockPanel.SetDock(browse,Dock.Right);folder.Children.Add(browse);folder.Children.Add(directory);Row(body,"保存文件夹",folder);
             body.Children.Add(new TextBlock {Text="本次 IFC 文件名",Margin=new Thickness(0,8,0,8)});body.Children.Add(preview);
-            body.Children.Add(new TextBlock {Text="同名文件自动递增 V1、V2…；导出目录只保存 IFC。",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,10,0,0)});
+            body.Children.Add(new TextBlock {Text="确认时使用当天日期，并接续同目录、新旧顺序中的最高版本。",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,10,0,0)});
             project.TextChanged+=(s,e)=>Refresh();building.TextChanged+=(s,e)=>Refresh();directory.TextChanged+=(s,e)=>Refresh();
             browse.Click+=(s,e)=>{var chosen=BrowseDirectory?.Invoke(directory.Text);if(!string.IsNullOrWhiteSpace(chosen))directory.Text=chosen;};
             confirm.Click+=(s,e)=>{var path=RefreshPath();if(path!=null){ConfirmedPath=path;DialogResult=true;}};
@@ -51,9 +60,8 @@ namespace Hifc.Revit.Management
         }
         string NextPath()
         {
-            var stem=ExportFileNaming.StemForNames(project.Text,building.Text,stage,kind,date);
             if(!Path.IsPathRooted(directory.Text)||!Directory.Exists(directory.Text))throw new InvalidOperationException("请选择一个已存在的保存文件夹。");
-            return ExportFileNaming.NextPath(Path.GetFullPath(directory.Text),stem);
+            return ExportFileNaming.NextPathForNames(Path.GetFullPath(directory.Text),project.Text,building.Text,stage,kind,currentTime());
         }
         void Refresh()=>RefreshPath();
         string RefreshPath()

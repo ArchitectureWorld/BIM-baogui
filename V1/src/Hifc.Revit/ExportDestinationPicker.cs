@@ -16,7 +16,8 @@ namespace Hifc.Revit
         internal static string DefaultPath(Document doc,string kind,DateTime date)
         {
             var directory=ExportFileNaming.InitialDirectory(doc.PathName,Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
-            return ExportFileNaming.NextPath(directory,ExportFileNaming.Stem(doc.PathName,doc.Title,PlatformContext.Stage(doc),kind,date));
+            var names=ExportFileNaming.SuggestNames(doc.PathName,doc.Title,kind);
+            return ExportFileNaming.NextPathForNames(directory,names.ProjectName,names.BuildingName,PlatformContext.Stage(doc),kind,date);
         }
         internal static string Pick(UIApplication ui)
         {
@@ -40,13 +41,13 @@ namespace Hifc.Revit
                 else return null;
             }
             var directory=ExportFileNaming.InitialDirectory(doc.PathName,Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
-            var window=new ExportNamingWindow(doc.PathName,doc.Title,stage,kind,DateTime.Now,directory);
+            var window=new ExportNamingWindow(doc.PathName,doc.Title,stage,kind,()=>DateTime.Now,directory);
             new System.Windows.Interop.WindowInteropHelper(window).Owner=ui.MainWindowHandle;
             window.BrowseDirectory=current=> {
                 using(var dialog=new System.Windows.Forms.FolderBrowserDialog {Description="选择 IFC 保存文件夹",SelectedPath=current,ShowNewFolderButton=true})
                     return dialog.ShowDialog(new DialogOwner(new System.Windows.Interop.WindowInteropHelper(window).Handle))==System.Windows.Forms.DialogResult.OK?dialog.SelectedPath:null;
             };
-            // Confirmation recomputes the version in the selected directory. The
+            // Confirmation reads the current date and recomputes the version. The
             // existing export review still displays this path before writing.
             return window.ShowDialog()==true?window.ConfirmedPath:null;
         }

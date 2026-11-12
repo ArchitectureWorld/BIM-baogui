@@ -41,7 +41,7 @@ namespace Hifc.Reference
     public static class PlatformRules
     {
         public const string ProfileId = "hubei-420626-planning-20261020";
-        public const string Title = "保康县 420626 · 报规 · SUBTYPE=0 · 2026-10-20 规则快照";
+        public const string Title = "保康县 420626 · 报规 · SUBTYPE=0 · 2026-11-05 平台与交付必填检查";
         public const string SnapshotSha256 = "f1868fa3a8f42890bba28192bd418b6a97da1cd194d6bddcba70863be39c5b64";
         private static readonly Lazy<Catalog> Snapshot = new Lazy<Catalog>(Load);
 
@@ -74,8 +74,10 @@ namespace Hifc.Reference
         // Combined field lists are for display/validation. Branch-specific defaults remain in Rules().
         public static PlatformFieldRule[] Fields(string pset) => FindFields(pset).Select(Clone).ToArray();
 
+        public static PlatformFieldRule[] InputFields(string pset) => PlatformInputOverrides.Apply(CanonicalPropertySet(pset),Fields(pset));
+
         public static string[] RequiredFields(string pset)
-            => FindFields(pset).Where(field => field.DisplayRequired).Select(field => field.Name).ToArray();
+            => InputFields(pset).Where(field => field.DisplayRequired).Select(field => field.Name).ToArray();
 
         public static string[] Choices(string pset, string property, string parentFunction = null)
         {
@@ -120,14 +122,13 @@ namespace Hifc.Reference
         private static PlatformFieldRule FindField(string pset, string property)
         {
             if (string.IsNullOrWhiteSpace(property)) return null;
-            var fields = FindFields(pset);
+            var fields = InputFields(pset);
             var name = property.Trim();
             // Match the effective display name first; only then use an exact internal-name fallback.
             var found = fields.FirstOrDefault(field => field.Name == name);
             if (found != null) return found;
             var canonical = CanonicalPropertySet(pset);
-            return Snapshot.Value.Rules.Where(rule => rule.PropertySet == canonical).SelectMany(rule => rule.Fields)
-                .FirstOrDefault(field => field.InternalName == name);
+            return fields.FirstOrDefault(field => field.InternalName == name);
         }
 
         private static string[] Choices(string pset, PlatformFieldRule field, string parentFunction)
@@ -136,11 +137,6 @@ namespace Hifc.Reference
             // Supersedes the earlier 净用地规划控制红线 spelling; keep the frozen snapshot intact.
             if (CanonicalPropertySet(pset) == "Pset_规划控制线信息属性集" && field.Name == "红线类型")
                 return field.Items.Concat(new[] { "净用地控制红线" }).Distinct(StringComparer.Ordinal).ToArray();
-            // The 2026-10-22 single-field platform trial accepted 中学 on IfcBuilding.
-            // Extend effective choices only; preserve the signed source snapshot and
-            // its original 裙房/塔楼 metadata. Civil-defence participation is independent.
-            if (CanonicalPropertySet(pset) == "Pset_建筑技术信息属性集" && field.Name == "建筑用途名称")
-                return field.Items.Concat(new[] { "中学" }).Distinct(StringComparer.Ordinal).ToArray();
             if (field.InternalName == "公建大类") return Snapshot.Value.Functions.Keys.ToArray();
             if (field.InternalName == "公建小类")
             {

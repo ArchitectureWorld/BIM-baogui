@@ -3,9 +3,13 @@ param([string]$PackageDirectory)
 $ErrorActionPreference = 'Stop'
 if (Get-Process -Name Revit -ErrorAction SilentlyContinue) { throw 'Close Revit normally before installing. No process will be stopped.' }
 $workspace = Split-Path -Parent $PSScriptRoot
-# Default to the user-authorized 0.4.20 release. Build.ps1 only builds;
-# an explicit package may be used for separately authorized candidate installs.
-if (-not $PackageDirectory) { $PackageDirectory = Join-Path $workspace 'dist\Hifc.V1.Revit2020-0.4.20' }
+# Build.ps1 only builds. Installation uses the current declared package or an explicit path.
+if (-not $PackageDirectory) {
+    $properties=[xml](Get-Content -LiteralPath (Join-Path $workspace 'Directory.Build.props') -Raw)
+    $declaredVersion=[string]$properties.Project.PropertyGroup.Version
+    if($declaredVersion -notmatch '^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$'){throw 'Invalid declared plugin version.'}
+    $PackageDirectory = Join-Path $workspace ('dist\Hifc.V1.Revit2020-'+$declaredVersion)
+}
 $package = (Resolve-Path -LiteralPath $PackageDirectory).Path
 $addinRoot = Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'Autodesk\Revit\Addins\2020'
 $target = Join-Path $addinRoot 'Hifc.V1'

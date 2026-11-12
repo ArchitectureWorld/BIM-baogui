@@ -99,6 +99,8 @@ internal static class Program
         Check("minimum_window_layout_renders", () => { window.Width = 1080; window.Height = 650; Pump(); Screenshot(window, Path.Combine(output, "manager-1080.png")); });
         window.Close();
         SimplifiedWorkflowTests.Run(Check, output);
+        BuildingAreaStatisticsWindowTests.Run(Check, output);
+        SiteStatisticsWindowTests.Run(Check, output);
         ManagerImprovementsTests.Run(Check, output);
         SelectionDraftTests.Run(Check);
         SelectionWindowTests.Run(Check,output);
@@ -110,6 +112,9 @@ internal static class Program
         PlatformInputTests.Run(Check,output);
         ClassificationUiTests.Run(Check,output);
         ExportReviewTests.Run(Check,output);
+        ExportBlockerTests.Run(Check,output);
+        AreaAdvisoryExportTests.Run(Check);
+        RequiredSubmissionUiTests.Run(Check,output);
         ExportNamingWindowTests.Run(Check,output);
         ManagementStateRetryTests.Run(Check);
         PlatformSyncWindowTests.Run(Check,output);

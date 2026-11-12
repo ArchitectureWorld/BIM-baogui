@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>Hifc.ProjectionCandidate</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/Hifc.Revit/Management/ModelGeometry.cs" />
+    <Compile Include="../../src/Hifc.Revit/Evidence.cs" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="RevitAPI"><HintPath>C:/Program Files/Autodesk/Revit 2020/RevitAPI.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Hifc.Reference.Core"><HintPath>$(ReferenceCorePath)</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

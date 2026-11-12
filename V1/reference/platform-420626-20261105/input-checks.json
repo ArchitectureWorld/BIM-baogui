@@ -1,0 +1,577 @@
+{
+  "schema": "hifc.supplemental-platform-input-checks/1",
+  "id": "hbbim-420626-report-20261105",
+  "date": "2026-11-05",
+  "scope": "保康县420626报规；所列三个属性集的补充检查，不代表完整平台验收",
+  "evidence": {
+    "report_file": "HBBIM_Tekun_Check_20261104.html",
+    "report_sha256": "8f8d422d003e4eab14249dc8cd7acf318f8ccec15ea048efd375422acae7eab7",
+    "baseline_rules_sha256": "f1868fa3a8f42890bba28192bd418b6a97da1cd194d6bddcba70863be39c5b64",
+    "mapping_contract_sha256": "c1f3d74e17229aee4ed10bc4980532d2c7c61a5a783061c6e979562b808052c9",
+    "previous_input_profile_sha256": "ea0f70c4a5870f3a911799d079aa7ed6c08be24f294542676a5b17a0b09dfbbe",
+    "current_user_report": {
+      "source": "D:\\18_建模项目\\2026.10_报规_保康县保南片区特困人员供养服务中心_0\\20261019-保康现有资料\\HBBIM_Tekun_Check_20261105.html",
+      "sha256": "adadbe51a6692ac442ddc237db8e6c3d303ee775b6e8c07eea799b953c7968a5",
+      "planning_date": "2026-11-05",
+      "authority": "read-only platform observations supplied by user; recommendations are not modification authorization"
+    },
+    "delivery_guide": {
+      "file": "湖北省BIM报规交付指南_20260423.pdf",
+      "sha256": "e3abe66562751e25daea9d5bfce1bf5a052471aee34a63aa733f88e469b5c01b",
+      "page": 18,
+      "mandatory_fields": [
+        "临时永久",
+        "结构类型",
+        "形状"
+      ]
+    }
+  },
+  "notes": [
+    "Required flags and building enums follow the dated supplied report, not universal H-IFC requirements.",
+    "UI defaults never establish an IFC or Revit value.",
+    "Historical custom values such as 中学 remain source data but do not pass this profile enum check.",
+    "Building safety internal name 建筑等级 maps to UI 安全等级 under code 20415; source and IFC names remain explicit.",
+    "交付指南必填与平台UI必填取适用要求的并集；临时永久、结构类型、形状在当前UI仍为选填，但交付指南要求必填。未据默认值补齐业务数据。"
+  ],
+  "property_sets": {
+    "Pset_建筑技术信息属性集": {
+      "entities": [
+        "IfcBuilding"
+      ],
+      "fields": [
+        {
+          "name": "投影面积",
+          "required": true,
+          "choices": [],
+          "platform_code": "",
+          "platform_internal_name": "投影面积",
+          "platform_default": "",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "投影面积",
+          "raw_type": "Real"
+        },
+        {
+          "name": "建筑编号",
+          "required": true,
+          "choices": [],
+          "platform_code": "20401",
+          "platform_internal_name": "建筑编号",
+          "platform_default": "1",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "建筑编号",
+          "raw_type": "Label"
+        },
+        {
+          "name": "建筑名称",
+          "required": false,
+          "choices": [],
+          "platform_code": "20420",
+          "platform_internal_name": "建筑名称",
+          "platform_default": "",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "建筑名称",
+          "raw_type": "Label"
+        },
+        {
+          "name": "规划高度",
+          "required": true,
+          "choices": [],
+          "platform_code": "20402",
+          "platform_internal_name": "规划高度(米)",
+          "platform_default": "0.0",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "规划高度",
+          "raw_type": "Real"
+        },
+        {
+          "name": "地坪标高",
+          "required": false,
+          "choices": [],
+          "platform_code": "20410",
+          "platform_internal_name": "地坪标高(米)",
+          "platform_default": "0.0",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "地坪标高",
+          "raw_type": "Real"
+        },
+        {
+          "name": "地上建筑层数",
+          "required": true,
+          "choices": [],
+          "platform_code": "20411",
+          "platform_internal_name": "地上层数",
+          "platform_default": "6",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "地上建筑层数",
+          "raw_type": "Integer"
+        },
+        {
+          "name": "地下建筑层数",
+          "required": true,
+          "choices": [],
+          "platform_code": "20412",
+          "platform_internal_name": "地下层数",
+          "platform_default": "0",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "地下建筑层数",
+          "raw_type": "Integer"
+        },
+        {
+          "name": "耐火等级",
+          "required": true,
+          "choices": [
+            "一级",
+            "二级",
+            "三级",
+            "四级"
+          ],
+          "platform_code": "20416",
+          "platform_internal_name": "耐火等级",
+          "platform_default": "一级",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "耐火等级",
+          "raw_type": "Label"
+        },
+        {
+          "name": "安全等级",
+          "required": true,
+          "choices": [
+            "普通建筑",
+            "重要建筑"
+          ],
+          "platform_code": "20415",
+          "platform_internal_name": "建筑等级",
+          "platform_default": "普通建筑",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "安全等级",
+          "raw_type": "Label"
+        },
+        {
+          "name": "户数",
+          "required": false,
+          "choices": [],
+          "platform_code": "20403",
+          "platform_internal_name": "户数",
+          "platform_default": "0",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "户数",
+          "raw_type": "Integer"
+        },
+        {
+          "name": "保障房户数",
+          "required": false,
+          "choices": [],
+          "platform_code": "20421",
+          "platform_internal_name": "保障房户数",
+          "platform_default": "0",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "保障房户数",
+          "raw_type": "Integer"
+        },
+        {
+          "name": "建筑类型名称",
+          "required": true,
+          "choices": [
+            "住宅",
+            "公建",
+            "中小学等",
+            "幼儿园等"
+          ],
+          "platform_code": "20413",
+          "platform_internal_name": "建筑性质",
+          "platform_default": "住宅",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "建筑类型名称",
+          "raw_type": "Label"
+        },
+        {
+          "name": "建筑用途名称",
+          "required": true,
+          "choices": [
+            "裙房",
+            "塔楼"
+          ],
+          "platform_code": "20414",
+          "platform_internal_name": "建筑用途",
+          "platform_default": "裙房",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "建筑用途名称",
+          "raw_type": "Label"
+        },
+        {
+          "name": "建筑类别",
+          "required": true,
+          "choices": [
+            "住宅",
+            "商业",
+            "商住",
+            "配套车库",
+            "中小学",
+            "幼儿园",
+            "垃圾回收站",
+            "公共厕所",
+            "变电站",
+            "箱式变电站",
+            "燃气调压站",
+            "中低压调压站",
+            "地下调压站",
+            "其它配套",
+            "影剧院",
+            "艺术中心",
+            "游泳馆",
+            "体育场(馆)",
+            "展览馆",
+            "医院",
+            "大型商场",
+            "大中专院校",
+            "大门",
+            "垃圾中转站",
+            "城市书房",
+            "游乐场",
+            "博物馆",
+            "宾馆",
+            "交通场站",
+            "福利院",
+            "门卫房",
+            "配电房",
+            "门诊楼"
+          ],
+          "platform_code": "20406",
+          "platform_internal_name": "建筑类型",
+          "platform_default": "住宅",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "建筑类别",
+          "raw_type": "Label"
+        },
+        {
+          "name": "消防高度",
+          "required": true,
+          "choices": [],
+          "platform_code": "20409",
+          "platform_internal_name": "消防高度(米)",
+          "platform_default": "0.0",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "消防高度",
+          "raw_type": "Real"
+        },
+        {
+          "name": "檐口高度",
+          "required": false,
+          "choices": [],
+          "platform_code": "20404",
+          "platform_internal_name": "檐口高度(米)",
+          "platform_default": "0.0",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "檐口高度",
+          "raw_type": "Real"
+        },
+        {
+          "name": "屋脊高度",
+          "required": false,
+          "choices": [],
+          "platform_code": "20405",
+          "platform_internal_name": "屋脊高度(米)",
+          "platform_default": "0.0",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "屋脊高度",
+          "raw_type": "Real"
+        },
+        {
+          "name": "海拔高度",
+          "required": false,
+          "choices": [],
+          "platform_code": "20422",
+          "platform_internal_name": "海拔高度(米)",
+          "platform_default": "0.0",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "海拔高度",
+          "raw_type": "Real"
+        },
+        {
+          "name": "建筑状态",
+          "required": true,
+          "choices": [
+            "拟建",
+            "现状"
+          ],
+          "platform_code": "20428",
+          "platform_internal_name": "建筑状态",
+          "platform_default": "拟建",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "建筑状态",
+          "raw_type": "Label"
+        },
+        {
+          "name": "临时永久",
+          "required": true,
+          "choices": [
+            "永久",
+            "临时"
+          ],
+          "platform_code": "20407",
+          "platform_internal_name": "临时永久",
+          "platform_default": "永久",
+          "required_evidence": "2026-04 official BIM delivery guideline page18, verified against PDF on 2026-11-05; current UI remains optional",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "临时永久",
+          "raw_type": "Label",
+          "platform_ui_required": false,
+          "delivery_required": true,
+          "platform_default_is_input": false
+        },
+        {
+          "name": "结构类型",
+          "required": true,
+          "choices": [
+            "框架",
+            "剪力墙",
+            "框架,剪力墙",
+            "砖混",
+            "钢架"
+          ],
+          "platform_code": "20408",
+          "platform_internal_name": "结构类型",
+          "platform_default": "剪力墙",
+          "required_evidence": "2026-04 official BIM delivery guideline page18, verified against PDF on 2026-11-05; current UI remains optional",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "结构类型",
+          "raw_type": "Label",
+          "platform_ui_required": false,
+          "delivery_required": true,
+          "platform_default_is_input": false
+        },
+        {
+          "name": "形状",
+          "required": true,
+          "choices": [
+            "异型",
+            "条形",
+            "塔式"
+          ],
+          "platform_code": "20417",
+          "platform_internal_name": "形状",
+          "platform_default": "条形",
+          "required_evidence": "2026-04 official BIM delivery guideline page18, verified against PDF on 2026-11-05; current UI remains optional",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "形状",
+          "raw_type": "Label",
+          "platform_ui_required": false,
+          "delivery_required": true,
+          "platform_default_is_input": false
+        },
+        {
+          "name": "山墙开窗",
+          "required": true,
+          "choices": [
+            "东侧",
+            "西侧",
+            "南侧",
+            "北侧",
+            "两侧",
+            "无"
+          ],
+          "platform_code": "20418",
+          "platform_internal_name": "山墙开窗",
+          "platform_default": "无",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "山墙开窗",
+          "raw_type": "Label"
+        },
+        {
+          "name": "民用建筑",
+          "required": true,
+          "choices": [
+            "是",
+            "否"
+          ],
+          "platform_code": "20419",
+          "platform_internal_name": "民用建筑",
+          "platform_default": "是",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "民用建筑",
+          "raw_type": "Boolean"
+        },
+        {
+          "name": "装配式奖励面积",
+          "required": false,
+          "choices": [],
+          "platform_code": "20429",
+          "platform_internal_name": "装配式奖励面积",
+          "platform_default": "0.0",
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "装配式奖励面积",
+          "raw_type": "Real"
+        },
+        {
+          "name": "建筑面积",
+          "platform_code": "",
+          "platform_internal_name": null,
+          "platform_default": null,
+          "required": false,
+          "choices": [],
+          "required_evidence": "2026-11-04 supplied live-UI report",
+          "choices_evidence": "2026-11-04 supplied live-UI report",
+          "binding": "实例",
+          "revit_source_parameter": "建筑面积",
+          "raw_type": "Real"
+        }
+      ]
+    },
+    "Pset_绿地信息属性集": {
+      "entities": [
+        "IfcBuildingElementProxy",
+        "IfcSlab"
+      ],
+      "fields": [
+        {
+          "name": "投影面积",
+          "required": true,
+          "choices": [],
+          "platform_code": "",
+          "platform_internal_name": "投影面积",
+          "platform_default": "",
+          "required_evidence": "2026-10-20 platform snapshot",
+          "choices_evidence": "2026-10-20 platform snapshot",
+          "binding": "实例",
+          "revit_source_parameter": "绿地投影面积",
+          "raw_type": "Real"
+        },
+        {
+          "name": "绿地类型",
+          "required": true,
+          "choices": [
+            "集中绿地",
+            "宅旁绿地",
+            "水域",
+            "屋顶绿地",
+            "口袋公园",
+            "道路绿地",
+            "附属绿地",
+            "其它绿地",
+            "庭院绿地"
+          ],
+          "platform_code": "20201",
+          "platform_internal_name": "类型",
+          "platform_default": "集中绿地",
+          "required_evidence": "2026-11-04 supplied report",
+          "choices_evidence": "2026-10-20 baseline plus 庭院绿地 observed in 2026-11-04 supplied report",
+          "binding": "实例",
+          "revit_source_parameter": "绿地类型",
+          "raw_type": "Label"
+        },
+        {
+          "name": "折算系数",
+          "required": true,
+          "choices": [],
+          "platform_code": "20202",
+          "platform_internal_name": "折算系数",
+          "platform_default": "1.0",
+          "required_evidence": "2026-10-20 platform snapshot",
+          "choices_evidence": "2026-10-20 platform snapshot",
+          "binding": "实例",
+          "revit_source_parameter": "折算系数",
+          "raw_type": "Real"
+        }
+      ]
+    },
+    "Pset_道路红线信息属性集": {
+      "entities": [
+        "IfcBuildingElementProxy",
+        "IfcSlab"
+      ],
+      "fields": [
+        {
+          "name": "名称",
+          "required": false,
+          "choices": [],
+          "platform_code": "21103",
+          "platform_internal_name": "名称",
+          "platform_default": "",
+          "required_evidence": "2026-10-20 platform snapshot",
+          "choices_evidence": "2026-10-20 platform snapshot",
+          "binding": "实例",
+          "revit_source_parameter": "道路红线名称",
+          "raw_type": "Text"
+        },
+        {
+          "name": "道路类型",
+          "required": true,
+          "choices": [
+            "主干路",
+            "次干路",
+            "快速路",
+            "支路"
+          ],
+          "platform_code": "21101",
+          "platform_internal_name": "道路类型",
+          "platform_default": "主干路",
+          "required_evidence": "2026-11-04 supplied report",
+          "choices_evidence": "2026-10-20 platform snapshot",
+          "binding": "实例",
+          "revit_source_parameter": "道路红线道路类型",
+          "raw_type": "Label"
+        },
+        {
+          "name": "红线宽度",
+          "required": false,
+          "choices": [],
+          "platform_code": "21102",
+          "platform_internal_name": "红线宽度",
+          "platform_default": "15.0",
+          "required_evidence": "2026-10-20 platform snapshot",
+          "choices_evidence": "2026-10-20 platform snapshot",
+          "binding": "实例",
+          "revit_source_parameter": "红线宽度",
+          "raw_type": "Real"
+        }
+      ]
+    }
+  }
+}

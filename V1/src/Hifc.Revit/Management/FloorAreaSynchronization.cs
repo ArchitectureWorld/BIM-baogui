@@ -17,11 +17,8 @@ namespace Hifc.Revit.Management
         {
             if(PlatformContext.Stage(doc)!="报规"||!mappedElements.Any(e=>PlatformContext.CanonicalSlot(RevitMappingService.Slot(doc,e),PlatformContext.ProfileId(doc))=="建筑区域"))
                 return new FloorAreaPlan();
-            var scan=Read(doc);var plan=FloorAreaPolicy.Build(scan.Elements,scan.Planning);
-            if(plan.Issues.Length>0)throw new InvalidOperationException(string.Join("\n",plan.Issues));
-            var mapped=mappedElements.Select(e=>e.UniqueId).ToArray();
-            if(plan.Allocations.Any(c=>!mapped.Contains(c.UniqueId)))throw new InvalidOperationException("楼层面积同步包含尚未写入分类的建筑区域，请先完成全面检查并写入。");
-            return plan;
+            var scan=Read(doc);
+            return FloorAreaExportPolicy.Build(scan.Elements,scan.Planning);
         }
         internal static string Fingerprint(Document doc)
         {

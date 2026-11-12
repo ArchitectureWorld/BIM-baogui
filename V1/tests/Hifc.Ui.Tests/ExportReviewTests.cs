@@ -13,6 +13,14 @@ internal static class ExportReviewTests
     static void Assert(bool ok,string why){if(!ok)throw new Exception(why);}
     public static void Run(Action<string,Action> check,string output)
     {
+        check("export_review_disables_continue_for_required_input_gaps",()=>{
+            var row=new ModelElementCheck {Id=66,Name="待补绿地",UniqueId="green-required-ui",Slot="绿地",Entity="IfcSlab",Classified=true,
+                Fields=new[]{new FieldCheck {RuleProfileId=PlatformRules.ProfileId,PropertySet="Pset_绿地信息属性集",Property="绿地类型",Source="绿地类型",RawType="Label",State="未填写",Binding="实例"}}};
+            var data=new ExportReviewData {Title="必填门禁",ProfileId=PlatformRules.ProfileId,Inputs=PlatformInputReview.Build(new[]{row},PlatformRules.ProfileId)};
+            var window=new ExportReviewWindow(data);try {window.Show();window.UpdateLayout();
+                Assert(!((Button)window.FindName("ContinueExportButton")).IsEnabled,"Required inputs can be acknowledged away");
+            } finally {window.Close();}
+        });
         check("export_review_shows_final_versioned_destination",()=>{
             var data=new ExportReviewData{Title="学校_总图"};
             var field=typeof(ExportReviewData).GetProperty("OutputPath");Assert(field!=null,"Final output destination is missing");

@@ -17,7 +17,7 @@ namespace Hifc.Revit.Management
     }
     internal static class RuleInputOptions
     {
-        internal const string PlatformTitle = "保康县420626报规(2026-10-20)";
+        internal const string PlatformTitle = "保康县420626报规(2026-11-04必填补充)";
         internal static bool IsParentFunction(string property) => ClassificationInputs.IsParent(property);
         internal static bool IsChildFunction(string property) => ClassificationInputs.IsChild(property);
         internal static string[] Choices(string profileId, string propertySet, string property, string parentFunction = null)
@@ -33,7 +33,10 @@ namespace Hifc.Revit.Management
         internal static string ValueHint(string profileId, string propertySet, string property, string value, string parentFunction = null)
         {
             if(ClassificationInputs.Supports(propertySet,property))
-                return string.IsNullOrWhiteSpace(value)?PlatformInputReview.DefaultHint(profileId,propertySet,property,value,parentFunction):ClassificationInputs.Hint(propertySet,property,value,parentFunction);
+            {
+                var hint=string.IsNullOrWhiteSpace(value)?PlatformInputReview.DefaultHint(profileId,propertySet,property,value,parentFunction):ClassificationInputs.Hint(propertySet,property,value,parentFunction);
+                return !PlatformRules.IsActive(profileId)&&!string.IsNullOrEmpty(hint)?"平台识别待验证。"+hint:hint;
+            }
             if (!PlatformRules.IsActive(profileId)) return "";
             if (string.IsNullOrWhiteSpace(value)) return PlatformInputReview.DefaultHint(profileId,propertySet,property,value,parentFunction);
             if (IsChildFunction(property) && string.IsNullOrWhiteSpace(parentFunction))

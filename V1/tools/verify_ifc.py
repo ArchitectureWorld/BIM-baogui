@@ -15,6 +15,25 @@ import ifcopenshell.validate
 
 IFC_TYPES = {"Real": "IfcReal", "Integer": "IfcInteger", "Boolean": "IfcBoolean", "Label": "IfcLabel", "Text": "IfcText", "Duration": "IfcDuration"}
 
+NATIVE_BOOLEAN_OLD = 'hbbim-420626-boolean-label/20261104'
+NATIVE_BOOLEAN_CURRENT = 'hbbim-420626-boolean-label/20261105'
+def proved_boolean_field(source, policy, policy_path):
+    if policy == NATIVE_BOOLEAN_OLD:
+        return (source.get('property_set'), source.get('property')) in {
+            ('Pset_建筑技术信息属性集', '民用建筑'), ('Pset_建筑楼层信息属性集', '建筑基底')}
+    if policy != NATIVE_BOOLEAN_CURRENT:
+        return False
+    data = policy_path.read_bytes()
+    if hashlib.sha256(data).hexdigest() != 'f93cd1f9a41575bae56165642a9fff517eeddf0a68a084b08eb87ecd6972b54c':
+        return False
+    rules = json.loads(data)
+    if rules.get('policy_id') != policy or rules.get('profile_id') != 'hubei-420626-planning-20261020':
+        return False
+    return any((row['PropertySet'], row['Property'], row['Binding'], row['SourceParameter']) ==
+        (source.get('property_set'), source.get('property'), source.get('binding'), source.get('source_parameter'))
+        for row in rules['fields'])
+
+
 
 def hash_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -180,6 +199,19 @@ def verify_export(ifc_path: Path, receipt_path: Path) -> dict:
                         ("Pset_建筑技术信息属性集", "建筑面积", "Reall"): "Real",
                     }
                     effective_type = corrected_types.get((row["property_set"], row["property"], row["raw_type"]), row["raw_type"])
+                    if row.get("native_encoding") is not None:
+                        encoding = receipt.get("native_value_encoding_policy")
+                        localized = (receipt.get("native_value_encoding_policy") == encoding
+                            and row.get("native_encoding") == encoding
+                            and proved_boolean_field(row, encoding, ROOT / "reference/platform-420626-20261105/boolean-encoding.json")
+                            and row.get("binding") == "实例" and row.get("raw_type") == "Boolean"
+                            and row.get("source_export_type") == "Boolean" and row.get("export_type") == "Label"
+                            and row.get("source_value") in ("0", "1")
+                            and row.get("value") == ("是" if row.get("source_value") == "1" else "否"))
+                        if localized:
+                            effective_type = "Label"
+                        else:
+                            problems.append("UNVERIFIED_NATIVE_VALUE_ENCODING")
                     expected_type = IFC_TYPES.get(effective_type)
                     entry["expected_export_type"] = effective_type
                     if expected_type is None:

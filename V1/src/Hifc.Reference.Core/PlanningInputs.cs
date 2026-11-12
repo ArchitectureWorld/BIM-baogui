@@ -52,6 +52,10 @@ namespace Hifc.Reference
         public static void ValidateFields(ModelElementCheck[] rows)
         {
             foreach (var row in rows) ControlLinePolicy.Populate(row);
+            ValidateRuleFields(rows);
+        }
+        public static void ValidateRuleFields(ModelElementCheck[] rows)
+        {
             PlatformInputReview.ApplyManualPolicy(rows);
             foreach (var row in rows)
                 foreach (var field in row.Fields.Where(f=>PlatformRules.IsActive(f.RuleProfileId)))
@@ -251,6 +255,7 @@ namespace Hifc.Reference
         {
             if (!PlatformRules.IsActive(ruleProfileId)) return Issues(rows, kind);
             var issues = new List<string>(DuplicateLandIssues(rows));
+            issues.AddRange(SiteBoundaryPolicy.Review(rows,kind,ruleProfileId).Select(issue=>issue.Detail));
             issues.AddRange(PlatformInputReview.Build(rows,ruleProfileId)
                 .Where(i=>i.Code=="HIFC_PLATFORM_DEFAULT_RISK")
                 .GroupBy(i=>i.PropertySet+"|"+i.Property+"|"+i.DefaultValue)

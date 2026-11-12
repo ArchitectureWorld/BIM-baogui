@@ -31,6 +31,8 @@ internal static class PlatformSyncHandoffTests
             Directory.CreateDirectory(Root); Ifc = Path.Combine(Root, "OUT_学校_报规_总图_20261023_V1.ifc"); Receipt = Path.Combine(Root, "export.receipt.json"); Document = Path.Combine(Root, "school.rvt");
             File.WriteAllText(Ifc, "ISO-10303-21;\nDATA;\nENDSEC;\nEND-ISO-10303-21;", new UTF8Encoding(false));
             Data = new Dictionary<string, object> { { "schema_version", "hifc.native-export-receipt/1.5" }, { "export_id", Id }, { "ifc_path", Ifc }, { "ifc_sha256", Hash(Ifc) }, { "source_snapshot_before", "snapshot" }, { "source_snapshot_after", "snapshot" }, { "model_transaction", "RolledBack" }, { "export_scope", "CURRENT_PROJECT" }, { "doc_export_calls", 1 }, { "ifc_postprocessed", false }, { "original_export_server_restored", true }, { "temporary_type_schedules_rolled_back", true } };
+            Data["schema_version"]="hifc.native-export-receipt/1.7";
+            Data["input_validation"]=new RequiredInputValidation{rule_profile_id=PlatformRules.ProfileId,model_kind="总图",complete=true,checked_objects=1,checked_fields=3,blocking_count=0};
             Save();
         }
         internal void Save() { File.WriteAllText(Receipt, Json.Serialize(Data), new UTF8Encoding(false)); }
@@ -40,6 +42,9 @@ internal static class PlatformSyncHandoffTests
     }
     internal static void Run(Action<string, Action> check)
     {
+        check("sync_legacy_receipt_without_required_input_validation_is_blocked",()=>{
+            using(var f=new Fixture()){f.Data["schema_version"]="hifc.native-export-receipt/1.5";f.Data.Remove("input_validation");f.Save();Reject(()=>f.Register());}
+        });
         check("sync_only_freezes_a_full_success_receipt_and_publishes_matching_hashes", () => {
             using (var f = new Fixture()) {
                 var path = f.Freeze(f.Register()); var manifest = Json.Deserialize<Dictionary<string, object>>(File.ReadAllText(path)); var folder = Path.GetDirectoryName(path);

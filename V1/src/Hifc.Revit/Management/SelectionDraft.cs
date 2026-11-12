@@ -80,16 +80,18 @@ namespace Hifc.Revit.Management
         internal bool Written { get; set; }
         internal string RawValue { get; private set; }
         public string Property => Field.Property;
+        public string DisplayProperty => Field.Property+(Targets.Any(f=>f.RequiredForSubmission)?" *":"");
         public string Detail => Field.Source + " · " + Field.Binding + (Editable ? "" : " · 只读，避免影响未选中的同类型构件")
             + (string.IsNullOrEmpty(Field.SuggestionReason) ? "" : " · " + Field.SuggestionReason)
             + (string.IsNullOrEmpty(ValueHint)?"":" · "+ValueHint);
         public string[] ValueChoices => RuleInputOptions.Choices(Field.RuleProfileId,Field.PropertySet,Property,draft.ParentFunction(this));
-        public string ValueHint => RuleInputOptions.ValueHint(Field.RuleProfileId,Field.PropertySet,Property,Value,draft.ParentFunction(this));
+        public string ValueHint => Targets.Any(f=>f.RequiredForSubmission&&string.IsNullOrWhiteSpace(f.Value))
+            ?PlatformInputReview.RequiredInputHint(Field):RuleInputOptions.ValueHint(Field.RuleProfileId,Field.PropertySet,Property,Value,draft.ParentFunction(this));
         public string RawType => Field.RawType;
         public string AreaHint => AreaValueHint.For(Property, RawType, Editable);
         public bool Editable => Targets.All(f => f.Binding == "实例" && f.Origin != "type" && (f.Editable || f.State == "缺参数"));
-        public string State => Pending ? "待写入" : Targets.Any(f => f.RequiresRuleWrite) ? "规则待写入" : Written ? "已手工写入" : Targets.Any(f => !string.IsNullOrEmpty(f.SuggestedValue)) ? "自动填写" : Targets.Any(f => !f.Valid) ? "待补充" : "已有值";
-        public string Background => Pending ? "#FFFFE9E7" : Written ? "#FFFFE7C2" : "#FFFFFFFF";
+        public string State => Pending ? "待写入" :Targets.Any(f=>f.NeedsInputAttention)?"必填/取值待修正": Targets.Any(f => f.RequiresRuleWrite) ? "规则待写入" : Written ? "已手工写入" : Targets.Any(f => !string.IsNullOrEmpty(f.SuggestedValue)) ? "自动填写" : Targets.Any(f => !f.Valid) ? "待补充" : "已有值";
+        public string Background => Pending||Targets.Any(f=>f.NeedsInputAttention) ? "#FFFFE9E7" : Written ? "#FFFFE7C2" : "#FFFFFFFF";
         public string[] Choices => new[] { "多个值", "未填写", "是", "否" };
         static string BooleanLabel(string v) { try { return BooleanPolicy.Normalize(v)=="1"?"是":"否"; } catch (InvalidOperationException) { return v; } }
         public bool? Checked { get { if(Value=="多个值")return null; try{return BooleanPolicy.Normalize(Value)=="1";}catch(InvalidOperationException){return null;} } set {if(value.HasValue)Value=value.Value?"是":"否";} }

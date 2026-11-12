@@ -1,0 +1,197 @@
+{
+  "schema": "hifc.platform-native-boolean-policy/1",
+  "profile_id": "hubei-420626-planning-20261020",
+  "policy_id": "hbbim-420626-boolean-label/20261105",
+  "rule_source_sha256": "ef090cac59d9483ec9deb628aa92f1b018c342d8293e123717b3cd379695aaf8",
+  "fields": [
+    {
+      "PropertySet": "Pset_停车位信息属性集",
+      "Property": "是否为室外停车场",
+      "Entity": "IfcSpace",
+      "Binding": "实例",
+      "SourceParameter": "是否为室外停车场"
+    },
+    {
+      "PropertySet": "Pset_停车位信息属性集",
+      "Property": "充电车位",
+      "Entity": "IfcSpace",
+      "Binding": "实例",
+      "SourceParameter": "充电车位"
+    },
+    {
+      "PropertySet": "Pset_停车位信息属性集",
+      "Property": "公建车位",
+      "Entity": "IfcSpace",
+      "Binding": "实例",
+      "SourceParameter": "公建车位"
+    },
+    {
+      "PropertySet": "Pset_停车场信息属性集",
+      "Property": "是否为充电车场",
+      "Entity": "IfcSpace",
+      "Binding": "实例",
+      "SourceParameter": "是否为充电车场"
+    },
+    {
+      "PropertySet": "Pset_停车场信息属性集",
+      "Property": "公建车位",
+      "Entity": "IfcSpace",
+      "Binding": "实例",
+      "SourceParameter": "停车场公建车位"
+    },
+    {
+      "PropertySet": "Pset_其它构件信息属性集",
+      "Property": "间距审查",
+      "Entity": "IfcSlab",
+      "Binding": "实例",
+      "SourceParameter": "其他构件间距审查"
+    },
+    {
+      "PropertySet": "Pset_其它构件信息属性集",
+      "Property": "退让审查",
+      "Entity": "IfcSlab",
+      "Binding": "实例",
+      "SourceParameter": "其他构件退让审查"
+    },
+    {
+      "PropertySet": "Pset_其它构件信息属性集",
+      "Property": "间距审查",
+      "Entity": "IfcBuildingElementProxy",
+      "Binding": "实例",
+      "SourceParameter": "其他构件间距审查"
+    },
+    {
+      "PropertySet": "Pset_其它构件信息属性集",
+      "Property": "退让审查",
+      "Entity": "IfcBuildingElementProxy",
+      "Binding": "实例",
+      "SourceParameter": "其他构件退让审查"
+    },
+    {
+      "PropertySet": "Pset_建筑技术信息属性集",
+      "Property": "民用建筑",
+      "Entity": "IfcBuilding",
+      "Binding": "实例",
+      "SourceParameter": "民用建筑"
+    },
+    {
+      "PropertySet": "Pset_建筑楼层信息属性集",
+      "Property": "建筑基底",
+      "Entity": "IfcBuildingStorey",
+      "Binding": "实例",
+      "SourceParameter": "建筑基底"
+    },
+    {
+      "PropertySet": "Pset_总平构件信息属性集",
+      "Property": "建筑密度",
+      "Entity": "IfcBuildingElementProxy",
+      "Binding": "实例",
+      "SourceParameter": "总平构件建筑密度"
+    },
+    {
+      "PropertySet": "Pset_总平构件信息属性集",
+      "Property": "建筑密度",
+      "Entity": "IfcSlab",
+      "Binding": "实例",
+      "SourceParameter": "总平构件建筑密度"
+    },
+    {
+      "PropertySet": "Pset_楼梯段信息属性集",
+      "Property": "是否为室外楼梯",
+      "Entity": "IfcStairFlight",
+      "Binding": "实例",
+      "SourceParameter": "是否为室外楼梯"
+    },
+    {
+      "PropertySet": "Pset_楼梯段信息属性集",
+      "Property": "间距审查",
+      "Entity": "IfcStairFlight",
+      "Binding": "实例",
+      "SourceParameter": "楼梯段间距审查"
+    },
+    {
+      "PropertySet": "Pset_楼梯段信息属性集",
+      "Property": "退让审查",
+      "Entity": "IfcStairFlight",
+      "Binding": "实例",
+      "SourceParameter": "楼梯段退让审查"
+    },
+    {
+      "PropertySet": "Pset_空调板信息属性集",
+      "Property": "间距审查",
+      "Entity": "IfcSlab",
+      "Binding": "实例",
+      "SourceParameter": "空调板间距审查"
+    },
+    {
+      "PropertySet": "Pset_空调板信息属性集",
+      "Property": "退让审查",
+      "Entity": "IfcSlab",
+      "Binding": "实例",
+      "SourceParameter": "空调板退让审查"
+    },
+    {
+      "PropertySet": "Pset_阳台信息属性集",
+      "Property": "间距审查",
+      "Entity": "IfcSlab",
+      "Binding": "实例",
+      "SourceParameter": "阳台间距审查"
+    },
+    {
+      "PropertySet": "Pset_阳台信息属性集",
+      "Property": "退让审查",
+      "Entity": "IfcSlab",
+      "Binding": "实例",
+      "SourceParameter": "阳台退让审查"
+    },
+    {
+      "PropertySet": "Pset_阳台信息属性集",
+      "Property": "是否有顶",
+      "Entity": "IfcSlab",
+      "Binding": "实例",
+      "SourceParameter": "阳台是否有顶"
+    },
+    {
+      "PropertySet": "Pset_阳台信息属性集",
+      "Property": "是否为露台",
+      "Entity": "IfcSlab",
+      "Binding": "实例",
+      "SourceParameter": "阳台是否为露台"
+    },
+    {
+      "PropertySet": "Pset_阳台信息属性集",
+      "Property": "是否封闭",
+      "Entity": "IfcSlab",
+      "Binding": "实例",
+      "SourceParameter": "阳台是否封闭"
+    },
+    {
+      "PropertySet": "Pset_雨篷信息属性集",
+      "Property": "间距审查",
+      "Entity": "IfcSlab",
+      "Binding": "实例",
+      "SourceParameter": "雨蓬间距审查"
+    },
+    {
+      "PropertySet": "Pset_雨篷信息属性集",
+      "Property": "退让审查",
+      "Entity": "IfcSlab",
+      "Binding": "实例",
+      "SourceParameter": "雨蓬退让审查"
+    },
+    {
+      "PropertySet": "Pset_飘窗信息属性集",
+      "Property": "间距审查",
+      "Entity": "IfcSlab",
+      "Binding": "实例",
+      "SourceParameter": "飘窗间距审查"
+    },
+    {
+      "PropertySet": "Pset_飘窗信息属性集",
+      "Property": "退让审查",
+      "Entity": "IfcSlab",
+      "Binding": "实例",
+      "SourceParameter": "飘窗退让审查"
+    }
+  ]
+}

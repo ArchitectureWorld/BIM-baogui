@@ -57,7 +57,11 @@ internal static class Program
             if (!text.Contains("\tReall\t")) throw new Exception("raw reference type silently corrected");
         });
         ModelChecksTests.Run(Check);
+        BuildingAreaStatisticsTests.Run(Check);
+        SiteStatisticsTests.Run(Check);
         CaseWorkflowTests.Run(Check);
+        SiteBoundaryTests.Run(Check);
+        UnconfirmedExportInputTests.Run(Check);
         RecognitionTests.Run(Check);
         AutoFillTests.Run(Check);
         BooleanPolicyTests.Run(Check);
@@ -74,11 +78,15 @@ internal static class Program
         BuildingCaseTests.Run(Check);
         PlanningInputTests.Run(Check);
         FloorAreaTests.Run(Check);
+        FloorAreaToleranceTests.Run(Check);
+        FloorAreaExportTests.Run(Check);
         InputReviewTests.Run(Check);
+        RequiredSubmissionTests.Run(Check);
         PlatformWorkflowTests.Run(Check);
         SummaryCacheTests.Run(Check);
         PlatformRuleTests.Run(Check);
         PlatformExportTests.Run(Check);
+        PlatformNativeEncodingTests.Run(Check);
         Console.WriteLine("RESULT failures=" + failures + "; tests=" + tests);
         return failures == 0 ? 0 : 1;
     }

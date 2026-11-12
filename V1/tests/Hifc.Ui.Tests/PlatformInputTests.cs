@@ -250,38 +250,40 @@ internal static class PlatformInputTests
                 Assert(types.SequenceEqual(new[] { "住宅", "公建", "中小学等", "幼儿园等" }), "Building type is mixed with use or legacy presets");
                 var categories = CommonEditor(window, "建筑类别").Items.Cast<string>().ToArray();
                 Assert(categories.Contains("门卫房") && categories.Contains("配电房"), "Duplicate enum IDs discarded a valid category");
-                Assert(CommonEditor(window, "建筑用途名称").Items.Cast<string>().Where(v => v != "").SequenceEqual(new[] { "裙房", "塔楼", "中学" }), "Verified building use is absent");
+                Assert(CommonEditor(window, "建筑用途名称").Items.Cast<string>().Where(v => v != "").SequenceEqual(new[] { "裙房", "塔楼" }), "Verified building use is absent");
                 Assert(CommonEditor(window, "结构类型").Items.Cast<string>().Contains("框架,剪力墙"), "A comma inside an enum value was split");
             } finally { window.Close(); }
             window = Planning(kind: "总图");
             try {
                 window.Show(); Selector(window).SelectedValue = Profile; Pump(window);
                 var green = CommonEditor(window, "绿地类型");
-                Assert(green.Items.Cast<string>().Count(v => v != "") == 8 && green.Text == "", "Green type is missing choices or silently defaults");
+                Assert(green.Items.Cast<string>().Count(v => v != "") == 9 && green.Text == "", "Green type is missing choices or silently defaults");
                 Assert(string.IsNullOrEmpty((string)Get(Row(window, "折算系数","绿地"), "Value")), "Green factor silently defaulted to one");
             } finally { window.Close(); }
         });
-        check("platform_school_usage_common_value_saves_and_reopens_without_civil_default", () => {
+        check("platform_building_shape_common_value_saves_and_reopens_without_civil_default", () => {
             var window = Planning();
             PlanningSettings saved;
             try {
                 window.Show(); Selector(window).SelectedValue = Profile; Pump(window);
                 var editor = CommonEditor(window, "建筑用途名称");
-                Assert(editor.Items.Cast<string>().Contains("中学"), "School usage cannot be selected");
-                Type(editor, "中学"); Pump(window);
+                Assert(editor.Items.Cast<string>().Contains("塔楼"), "School usage cannot be selected");
+                Type(editor, "塔楼"); Pump(window);
                 Assert(string.IsNullOrEmpty((string)Get(Row(window, "建筑用途名称"), "ValueHint")), "Verified usage still shows an invalid-value hint");
                 saved = Saved(window);
-                Assert(saved.CommonValues["建筑技术|建筑用途名称"] == "中学" && !saved.CommonValues.ContainsKey("建筑技术|民用建筑"), "Saving usage defaulted civil participation");
+                Assert(saved.CommonValues["建筑技术|建筑用途名称"] == "塔楼" && !saved.CommonValues.ContainsKey("建筑技术|民用建筑"), "Saving usage defaulted civil participation");
             } finally { window.Close(); }
             window = Planning(saved);
             try {
                 window.Show(); Pump(window);
-                Assert(CommonEditor(window, "建筑用途名称").Text == "中学", "Saved usage was lost on reopening");
+                Assert(CommonEditor(window, "建筑用途名称").Text == "塔楼", "Saved usage was lost on reopening");
             } finally { window.Close(); }
         });
         check("platform_missing_usage_is_red_in_overview_and_property_until_readback", () => {
             var fake = new FakeSession { Snapshot = Sample() };
             var building = fake.Snapshot.Elements[1];
+            building.Fields.Single(f=>f.Property=="建筑类型名称").Value="公建"; building.Fields.Single(f=>f.Property=="建筑类别").Value="福利院";building.Fields.Single(f=>f.Property=="建筑类别").State="有效";
+            building.Fields.Single(f=>f.Property=="结构类型").Value="框架";building.Fields.Single(f=>f.Property=="结构类型").State="有效";
             var field = building.Fields.Single(f => f.Property == "建筑用途名称");
             var window = new ManagerWindow(fake, Path.Combine(output, "platform-usage-red-" + Guid.NewGuid().ToString("N"))); fake.Window = window;
             try {
@@ -296,14 +298,14 @@ internal static class PlatformInputTests
                 Assert(editor().SourceDetail.Contains("建筑用途名称"), "Missing-value explanation does not name the field");
                 list.ScrollIntoView(role()); Pump(window);
                 Program.Screenshot(window, Path.Combine(output, "platform-building-usage-required.png"));
-                window.StageValue(field, "中学"); Pump(window);
+                window.StageValue(field, "塔楼"); Pump(window);
                 Assert(roleRed() && fieldRed(), "An unsaved draft removed the red indicator");
-                window.RecordCommitted(new EditPreview { Changes = new[] { new EditChange { Action = "赋值", OwnerUniqueId = field.OwnerUniqueId, Source = field.Source, ExpectedRaw = "中学" } } }, window.DraftRequests);
-                field.Value = "中学"; field.State = "有效"; window.Accept(fake.Snapshot); window.ElementGrid.SelectedItem = building; Pump(window);
+                window.RecordCommitted(new EditPreview { Changes = new[] { new EditChange { Action = "赋值", OwnerUniqueId = field.OwnerUniqueId, Source = field.Source, ExpectedRaw = "塔楼" } } }, window.DraftRequests);
+                field.Value = "塔楼"; field.State = "有效"; window.Accept(fake.Snapshot); window.ElementGrid.SelectedItem = building; Pump(window);
                 Assert(!roleRed() && !fieldRed(), "Written usage remained red after a fresh readback");
             } finally { window.Close(); }
         });
-        check("platform_school_usage_property_editor_stages_only_usage", () => {
+        check("platform_building_shape_property_editor_stages_only_usage", () => {
             var fake = new FakeSession { Snapshot = Sample() };
             var building = fake.Snapshot.Elements[1];
             building.Fields = building.Fields.Concat(new[] { Field(52, BuildingSet, "民用建筑", "0", "Boolean") }).ToArray();
@@ -311,12 +313,12 @@ internal static class PlatformInputTests
             try {
                 window.Show(); window.StageSelector.SelectedItem = "报规"; window.KindSelector.SelectedItem = "单体建筑"; window.StartFullCheck();
                 var editor = Edit(window, building, "建筑用途名称");
-                Assert(editor.Items.Cast<string>().Contains("中学"), "Property editor has no verified school option");
-                Type(editor, "中学"); Commit(window);
-                Assert(window.DraftRequests.Length == 1 && window.DraftRequests[0].Source == "建筑用途名称" && window.DraftRequests[0].Value == "中学", "Usage edit staged unrelated values");
+                Assert(editor.Items.Cast<string>().Contains("塔楼"), "Property editor has no verified school option");
+                Type(editor, "塔楼"); Commit(window);
+                Assert(window.DraftRequests.Length == 1 && window.DraftRequests[0].Source == "建筑用途名称" && window.DraftRequests[0].Value == "塔楼", "Usage edit staged unrelated values");
                 var row = window.FieldGrid.Items.Cast<ManagerWindow.PropertyEditor>().Single(r => r.Property == "建筑用途名称");
                 Assert(string.IsNullOrEmpty((string)Get(row, "ValueHint")) && building.Fields.Last().Value == "0", "Usage edit remained invalid or changed civil participation");
-                Assert(Edit(window, building, "建筑用途名称").Text == "中学", "Pending usage is not editable again");
+                Assert(Edit(window, building, "建筑用途名称").Text == "塔楼", "Pending usage is not editable again");
                 Commit(window); Program.Screenshot(window, Path.Combine(output, "platform-school-usage.png"));
             } finally { window.Close(); }
         });

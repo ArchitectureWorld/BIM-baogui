@@ -299,7 +299,7 @@ namespace Hifc.Revit.Management
             detail.MaxHeight = 94; detail.Margin = new Thickness(4, 0, 4, 12);
             Put(right, detail, 1);
             FieldGrid.IsReadOnly = false;
-            Column(FieldGrid, "属性", "Property", 100);
+            Column(FieldGrid, "属性（* 必填）", "DisplayProperty", 115);
             FieldGrid.Columns[0].IsReadOnly = true;
             var valueColumn = new PropertyValueColumn
             {
@@ -735,10 +735,11 @@ namespace Hifc.Revit.Management
             string[] lastChoices;
             public FieldCheck Field { get; }
             public string Property => Field.Property;
+            public string DisplayProperty => Field.Property+(Field.RequiredForSubmission?" *":"");
             public string SourceDetail => window.EditReason(Field) ?? string.Join("\n",new[]{ValueHint,AreaHint,window.InputUnitHint(Field,targets),Field.SuggestionReason??Field.Detail}.Where(text=>!string.IsNullOrEmpty(text)));
             public string AreaHint => AreaValueHint.For(Property, Field.RawType, window.EditReason(Field) == null);
             public string State => window.EditReason(Field) ?? (window.FieldMark(Field)=="有效"&&!string.IsNullOrEmpty(ValueHint)?"规则值待核对":window.FieldMark(Field));
-            public string ValueHint => Field.ManualInputRequired && string.IsNullOrWhiteSpace(window.FieldValue(Field))
+            public string ValueHint => Field.RequiredForSubmission && string.IsNullOrWhiteSpace(window.FieldValue(Field))
                 ? PlatformInputReview.RequiredInputHint(Field)
                 : RuleInputOptions.ValueHint(Field.RuleProfileId,Field.PropertySet,Field.Property,window.FieldValue(Field),window.ParentFunction(Field,targets));
             public string[] ValueChoices
@@ -752,7 +753,7 @@ namespace Hifc.Revit.Management
             }
             public string BooleanValue { get => BooleanLabel(Value); set { if (value != null) Value = value == "未填写" ? "" : value == "是" ? "1" : "0"; } }
             public bool? Checked { get { try { return BooleanPolicy.Normalize(window.FieldValue(Field)) == "1"; } catch (InvalidOperationException) { return null; } } set { if (value.HasValue) Value = value.Value ? "1" : "0"; } }
-            public Brush Background => Brush(Field.ManualInputRequired && !Field.Valid || State.StartsWith("待写入") ? "#FFFFDADA" : State == "已手工写入" ? "#FFFFD9AD" : "#FFFFFFFF");
+            public Brush Background => Brush(Field.NeedsInputAttention || State.StartsWith("待写入") ? "#FFFFDADA" : State == "已手工写入" ? "#FFFFD9AD" : "#FFFFFFFF");
             public string Value
             {
                 get {

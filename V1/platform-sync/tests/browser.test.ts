@@ -5,6 +5,7 @@ import {mkdtempSync,mkdirSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {Store} from '../src/store.js';
+import {passedInputFixture} from './required-input-fixture.js';
 import {SyncEngine} from '../src/engine.js';
 import {createAdapter,FixtureBrowserAdapter} from '../src/browser.js';
 import {startFixture,type FixtureFaults} from '../src/fixture.js';
@@ -16,7 +17,7 @@ const hash=(v:Buffer)=>createHash('sha256').update(v).digest('hex');
 const ifc=(name:string)=>Buffer.from(`ISO-10303-21;\nHEADER;FILE_DESCRIPTION(('${name}'),'2;1');FILE_SCHEMA(('IFC2X3'));ENDSEC;\nDATA;#1=IFCPROJECT($);ENDSEC;\nEND-ISO-10303-21;`);
 function manifest(root:string){
  const dir=join(root,'input');mkdirSync(dir);const bytes=ifc('current'),id=randomUUID();
- const receipt=Buffer.from(JSON.stringify({schema_version:'hifc.native-export-receipt/1.5',export_id:id,ifc_sha256:hash(bytes),source_snapshot_before:'same',source_snapshot_after:'same',model_transaction:'RolledBack',export_scope:'CURRENT_PROJECT',doc_export_calls:1,ifc_postprocessed:false,original_export_server_restored:true,temporary_type_schedules_rolled_back:true}));
+ const receipt=Buffer.from(JSON.stringify({schema_version:'hifc.native-export-receipt/1.7',input_validation:passedInputFixture(),export_id:id,ifc_sha256:hash(bytes),source_snapshot_before:'same',source_snapshot_after:'same',model_transaction:'RolledBack',export_scope:'CURRENT_PROJECT',doc_export_calls:1,ifc_postprocessed:false,original_export_server_restored:true,temporary_type_schedules_rolled_back:true}));
  const h:Handoff={schema:'hifc.platform-sync-handoff/1',export_id:id,created_utc:new Date().toISOString(),document_path:'C:\\Models\\school.rvt',project_unique_id:'school-guid',original_name:'OUT_School_20261023_V2.ifc',ifc_file:'model.ifc',receipt_file:'native.receipt.json',ifc_sha256:hash(bytes),receipt_sha256:hash(receipt)};
  writeFileSync(join(dir,h.ifc_file),bytes);writeFileSync(join(dir,h.receipt_file),receipt);writeFileSync(join(dir,'handoff.json'),JSON.stringify(h));return join(dir,'handoff.json');
 }

@@ -17,6 +17,7 @@ namespace Hifc.Revit.Management
             internal Document Document;
             internal PlanningSettings Settings;
             internal string Stage;
+            internal string Kind;
         }
         private static readonly List<Entry> Current = new List<Entry>();
         private static Entry Find(Document doc)
@@ -33,12 +34,14 @@ namespace Hifc.Revit.Management
             var key = ModelReader.Key(doc);
             var store = new ManagementStateStore(Path.Combine(RuntimePaths.OutputDirectory(), "management-profiles"), key);
             var state = store.Load();
-            entry = new Entry { Document=doc, Settings=state.Planning ?? new PlanningSettings(), Stage=state.Stage };
+            entry = new Entry { Document=doc, Settings=state.Planning ?? new PlanningSettings(), Stage=state.Stage, Kind=state.Kind };
             Current.Add(entry);
             return entry;
         }
         internal static PlanningSettings Settings(Document doc) => Get(doc).Settings;
         internal static string Stage(Document doc) => Get(doc).Stage;
+        internal static string Kind(Document doc) => Get(doc).Kind;
+        internal static void SetKind(Document doc,string kind) => Get(doc).Kind=kind;
         internal static void Set(Document doc, PlanningSettings settings)
         {
             var serializer = new JavaScriptSerializer { MaxJsonLength = 64 * 1024 * 1024 };

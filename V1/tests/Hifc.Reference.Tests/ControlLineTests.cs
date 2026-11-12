@@ -16,21 +16,33 @@ internal static class ControlLineTests
     }
     public static void Run(Action<string,Action> check)
     {
-        check("manual_net_land_control_prepares_both_confirmed_values",()=>{
+        check("county_net_land_defaults_keep_name_and_type_distinct",()=>{
             var row=Row();
-            Assert(row.Fields.All(f=>f.SuggestedValue==Label),"Manual net-land control still copies native name or leaves type empty");
+            Assert(row.Fields[0].SuggestedValue==Label&&row.Fields[1].SuggestedValue=="红线","Name and enum are still forced to the same value");
             Assert(row.Fields.All(f=>f.Value==null),"Preview changed source values");
         });
-        check("net_land_control_corrects_old_defaults_without_mutating_baselines",()=>{
+        check("county_net_land_keeps_written_names_and_types_without_forced_rewrites",()=>{
             var row=Row(name:"用地红线",type:"净用地规划控制红线");
-            Assert(row.Fields.All(f=>f.SuggestedValue==Label&&!f.Acceptable),"Legacy defaults are not pending correction");
+            Assert(row.Fields.All(f=>f.SuggestedValue==null&&f.RequiredValue==null),"Existing values still get forced rewrites");
             Assert(row.Fields[0].Value=="用地红线"&&row.Fields[1].Value=="净用地规划控制红线","Original values lost");
         });
-        check("net_land_control_cannot_be_cleared_or_reverted_to_native_name",()=>{
-            foreach(var field in Row().Fields) {
-                Assert(ModelChecks.InputError(field,Label)==null,"Confirmed value rejected");
-                Assert(ModelChecks.InputError(field,"")!=null&&ModelChecks.InputError(field,"用地红线")!=null,"Rule allows empty or old value");
-            }
+        check("county_red_type_stays_required_and_validates_its_actual_enum",()=>{
+            var row=Row();var fields=row.Fields;
+            Assert(ModelChecks.InputError(fields[1],"红线")==null,"Valid platform red enum rejected");
+            Assert(ModelChecks.InputError(fields[1],Label)==null,"Legacy compatible value rejected");
+            Assert(!PlanningInputs.AcceptableForRules(fields[1],fields,PlatformRules.ProfileId)&&
+                PlatformInputReview.Build(new[]{row},PlatformRules.ProfileId).Any(i=>i.Property=="红线类型"&&i.BlocksExport),"Missing required type can be exported");
+            Assert(ModelChecks.InputError(fields[1],"不存在的线型")!=null,"Unknown type passed enum validation");
+            Assert(ModelChecks.InputError(fields[0],"用地红线")==null,"Name is still forced to the type label");
+        });
+        check("current_site_redline_value_is_exportable_without_suggestion",()=>{
+            var row=Row(name:Label,type:"红线");
+            Assert(row.Fields.All(f=>f.Valid&&f.SuggestedValue==null&&f.RequiredValue==null),"Actual site value remains blocked");
+            Assert(!PlatformInputReview.Build(new[]{row},PlatformRules.ProfileId).Any(i=>i.BlocksExport),"Export preflight still blocks the actual redline");
+        });
+        check("redline_pairing_accepts_red_enum_with_confirmed_net_land_name",()=>{
+            Assert(RedlineRoles.Resolve(Row(name:Label,type:"红线"))==RedlineRoles.Control,"Current red enum not recognized for net-land pairing");
+            Assert(RedlineRoles.Resolve(Row(name:"道路红线",type:"红线"))==null,"An arbitrary red control was paired as net land");
         });
         check("correct_net_land_control_is_idempotent",()=>{
             Assert(Row(name:Label,type:Label).Fields.All(f=>f.Valid&&f.SuggestedValue==null),"Already correct values get repeat suggestions");
@@ -50,8 +62,10 @@ internal static class ControlLineTests
         });
         check("net_land_control_draft_clear_remains_invalid",()=>{
             var row=Row(name:Label,type:Label); var field=row.Fields[1];
-            var draft=PlanningInputs.WithDraftValues(new[]{row},new[]{new PlanningValueOverride {OwnerUniqueId=field.OwnerUniqueId,PropertySet=field.PropertySet,Source=field.Source,Binding=field.Binding,Value=""}}).Single().Fields[1];
-            Assert(!PlanningInputs.AcceptableForRules(draft,new[]{draft},field.RuleProfileId)&&ModelChecks.InputError(draft,"")!=null,"Draft clearing bypassed rule");
+            var draftRows=PlanningInputs.WithDraftValues(new[]{row},new[]{new PlanningValueOverride {OwnerUniqueId=field.OwnerUniqueId,PropertySet=field.PropertySet,Source=field.Source,Binding=field.Binding,Value=""}});
+            var draft=draftRows.Single().Fields[1];
+            Assert(!PlanningInputs.AcceptableForRules(draft,new[]{draft},field.RuleProfileId)&&
+                PlatformInputReview.Build(draftRows,PlatformRules.ProfileId).Any(i=>i.Property=="红线类型"&&i.BlocksExport),"Draft clearing bypassed required export validation");
         });
     }
 }

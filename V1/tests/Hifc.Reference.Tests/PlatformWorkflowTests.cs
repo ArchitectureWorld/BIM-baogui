@@ -35,17 +35,17 @@ internal static class PlatformWorkflowTests
             }
             Assert(properties.Where(p => p.Property == "名称").All(p => p.SourceParameter == "规划控制线名称"), "IFC name lost its dedicated Revit source");
         });
-        check("verified_school_usage_writes_and_exports_without_changing_civil_participation", () => {
+        check("building_shape_writes_and_exports_without_changing_civil_participation", () => {
             foreach (var civil in new[] { "0", "1" }) {
                 var usage = Field("建筑技术", "建筑用途名称", null, "Label");
                 var row = Row("建筑技术", usage, Field("建筑技术", "民用建筑", civil, "Boolean"));
                 row.Entity = "IfcBuilding";
                 var edited = PlanningInputs.WithDraftValues(new[] { row }, new[] { new PlanningValueOverride {
-                    OwnerUniqueId = "建筑技术", PropertySet = usage.PropertySet, Source = usage.Source, Binding = "实例", Value = "中学" } });
-                Assert(edited[0].Fields[0].Valid && edited[0].Fields[0].Value == "中学", "school usage is rejected in the draft validation path");
+                    OwnerUniqueId = "建筑技术", PropertySet = usage.PropertySet, Source = usage.Source, Binding = "实例", Value = "塔楼" } });
+                Assert(edited[0].Fields[0].Valid && edited[0].Fields[0].Value == "塔楼", "building shape is rejected in the draft validation path");
                 Assert(edited[0].Fields[1].Value == civil && row.Fields[0].Value == null, "usage edit changed civil participation or the source scan");
                 var definition = CaseExportPolicy.PropertiesForSlot("建筑技术", Profile).Single(p => p.Property == "建筑用途名称");
-                Assert(CaseExportPolicy.ValueForExport(definition, edited[0].Fields[0].Value, Profile) == "中学", "export remapped or blocked the verified label");
+                Assert(CaseExportPolicy.ValueForExport(definition, edited[0].Fields[0].Value, Profile) == "塔楼", "export remapped or blocked the current shape label");
             }
         });
         check("platform_rejects_nonempty_out_of_enum_without_replacing_source", () => {
@@ -84,8 +84,8 @@ internal static class PlatformWorkflowTests
             Assert(copy[0].Fields.All(f=>f.Valid)&&row.Fields[0].Value=="住宅","merged legitimate school function rejected or scan mutated");
             var changed=PlanningInputs.WithDraftValues(copy,new[]{new PlanningValueOverride {
                 OwnerUniqueId="建筑区域",PropertySet="Pset_建筑区域信息属性集",Source="主功能类别",Binding="实例",Value="住宅"}});
-            Assert(changed[0].Fields[1].Valid&&changed[0].Fields[1].Value=="办公室","changing parent erased or blocked the retained child");
-            Assert(PlatformInputReview.Build(changed,Profile).Any(i=>i.Property=="子功能类别"&&i.Detail.Contains("住宅")),"retained incompatible child lost its advisory review");
+            Assert(!changed[0].Fields[1].Valid&&changed[0].Fields[1].Value=="办公室","changing parent erased or accepted the incompatible child");
+            Assert(PlatformInputReview.Build(changed,Profile).Any(i=>i.Property=="子功能类别"&&i.Detail.Contains("住宅")&&i.BlocksExport),"incompatible child lost its mandatory review");
         });
         check("platform_false_compute_gate_skips_inapplicable_height_and_preserves_false",()=>{
             var row=Row("墙",Field("墙","是否为女儿墙","0","Boolean"),Field("墙","高度",null,"Real"));

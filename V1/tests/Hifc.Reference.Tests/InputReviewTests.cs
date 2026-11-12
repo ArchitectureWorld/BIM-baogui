@@ -24,8 +24,8 @@ internal static class InputReviewTests
                 usage.SuggestedValue="中学";
                 Assert(role().NeedsAttention&&usage.Value==null,"Suggestion was counted as a saved usage value");
                 var review=PlatformInputReview.Build(new[]{row},profile).Single(i=>i.Property=="建筑用途名称");
-                Assert(review.Code=="BUILDING_USAGE_REQUIRED"&&review.Detail.Contains("住宅")&&!review.Detail.Contains("消防道路"),"Missing-usage report uses the wrong cause");
-                usage.Value="中学";usage.State="有效";
+                Assert(review.Code=="BUILDING_USAGE_REQUIRED"&&review.Detail.Contains("裙房")&&!review.Detail.Contains("消防道路"),"Missing-usage report uses the wrong field semantics");
+                usage.Value=PlatformRules.IsActive(profile)?"塔楼":"中学";usage.State="有效";
                 Assert(!role().NeedsAttention&&civil.Value=="0","Readback did not resolve attention or changed civil participation");
                 usage.Value=null;usage.State="未填写";
                 Assert(role().NeedsAttention,"Later manual clearing was not detected on full check");
@@ -47,7 +47,8 @@ internal static class InputReviewTests
             foreach(var kind in new[]{"小区干道","楼间交通",(string)null}) {
                 var row=Row("道路边界线",Field("道路边界线","区内道路类型",kind),Field("道路边界线","道路宽度",null,"Real"));
                 var summary=CaseWorkflow.Summarize("报规","总图",new[]{row},Profile);
-                Assert(!summary.Roles.Single(r=>r.Slot=="道路边界线").NeedsAttention,"Non-fire road was forced to fill width: "+kind);
+                Assert(!row.Fields[1].ManualInputRequired,"Non-fire road was forced to fill width: "+kind);
+                if(kind!=null)Assert(!summary.Roles.Single(r=>r.Slot=="道路边界线").NeedsAttention,"Known ordinary road unexpectedly incomplete");
             }
         });
         check("fire_width_requirement_recomputed_when_road_use_changes",()=>{

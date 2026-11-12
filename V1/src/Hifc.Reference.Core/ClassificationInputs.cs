@@ -3,8 +3,8 @@ using System.Linq;
 
 namespace Hifc.Reference
 {
-    // A text classification may be user-defined. The frozen platform enum
-    // remains strict reference evidence for suggestions and advisory warnings.
+    // Existing custom text remains visible. Current platform enums are validated
+    // before writing/export; editor flexibility does not imply a valid submission.
     public static class ClassificationInputs
     {
         public static bool IsParent(string property)=>property=="主功能类别"||property=="公建大类";
@@ -23,7 +23,7 @@ namespace Hifc.Reference
             if(!Supports(propertySet,property)||string.IsNullOrWhiteSpace(value))return "";
             if(IsChild(property)&&string.IsNullOrWhiteSpace(parent))return "请先核对主功能；子功能按主功能提供选项，现有值保留。";
             var error=PlatformRules.ValueError(propertySet,property,value,parent);
-            return string.IsNullOrEmpty(error)?"":"自定义分类，平台识别待验证。"+error;
+            return string.IsNullOrEmpty(error)?"":"当前平台枚举不匹配，须核实修正。"+error;
         }
     }
 }

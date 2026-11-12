@@ -40,6 +40,9 @@ internal static class Program
             Assert(table.Items.Single(i => i.Field == "民用建筑").Value == "0", "valid false was erased");
             Assert(table.Items.Single(i => i.Field == "楼层面积").LevelName == "一层", "floor identity lost");
         });
+        BuildingAreaWorkbookTests.Run();
+        BlankReportingWorkbookTests.Run();
+        SiteStatisticsWorkbookTests.Run();
         PlannerTests.Run();
         BoundaryTests.Run();
         UnitTests.Run();
