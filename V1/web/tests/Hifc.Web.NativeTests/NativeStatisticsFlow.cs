@@ -25,11 +25,14 @@ internal static class NativeStatisticsFlow
             await session.ScanAsync();
             foreach (var field in session.Result.Fields.Where(f => f.PropertySet == "Pset_建筑区域信息属性集" && (f.Property == "计算系数" || f.Property == "计容系数")))
                 session.SetDraft(field, "0.5");
-            await session.PreviewAsync(); await session.WriteAsync(); await session.SaveModelAsync();
+            await session.PreviewAsync();
+            if (session.Plan.Changes.Length > 0 || session.Plan.Native.DataWrites.Length > 0 || session.Plan.Native.Definitions.Length > 0)
+            { await session.WriteAsync(); await session.SaveModelAsync(); }
             var report = await Capture(native, session, "building", run, "building", log);
-            Require(report.Building.Total.DeclaredProjectionArea == 250m && report.Building.Total.GeometricArea == 200m, "Building statistics lost saved/native area units.");
-            Require(report.Building.Total.CalculatedArea == 125m && report.Building.Total.FloorRatioArea == 125m, "Native 0.5 coefficients do not independently yield 125m².");
+            Require(Near(report.Building.Total.DeclaredProjectionArea, 250m) && Near(report.Building.Total.GeometricArea, 200m), "Building statistics lost saved/native area units.");
+            Require(Near(report.Building.Total.CalculatedArea, 125m) && Near(report.Building.Total.FloorRatioArea, 125m), "Native 0.5 coefficients do not independently yield 125m².");
             await RenderNormalWindow(native, session, "building", run, log);
+            await BlankWorkbookRoundtrip(session, run, log);
         }
 
         var configuration = JsonWire.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.Combine(run, "window-route.json")));
@@ -64,7 +67,7 @@ internal static class NativeStatisticsFlow
             var report = await Capture(native, session, "site", run, "site-linked", log);
             Require(report.Site.Sources.Count(s => s.Selected) == 2, "Duplicate link placement was counted twice or a selected link disappeared.");
             var green = report.Site.Rows.Where(r => r.Kind == "绿地").OrderByDescending(r => r.IsSubtotal).First();
-            Require(green.DeclaredArea == 800m && green.GeometricArea == 600m, "Host/link geometric and declared areas do not match 500+300 and400+200.");
+            Require(Near(green.DeclaredArea, 800m) && Near(green.GeometricArea, 600m), "Host/link geometric and declared areas do not match 500+300 and400+200.");
             await RenderNormalWindow(native, session, "site", run, log);
         }
         File.WriteAllText(Path.Combine(run, "statistics-native-results.json"), JsonWire.Serialize(new { passed = true, buildingArea = 250, buildingGeometry = 200,
@@ -110,9 +113,16 @@ internal static class NativeStatisticsFlow
         try
         {
             var report = window.GetType().GetProperty("CurrentReport", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            var status = window.GetType().GetProperty("StatusText", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            string previous = null;
             var deadline = DateTime.UtcNow.AddSeconds(90);
-            while (window.IsVisible && report.GetValue(window) == null && DateTime.UtcNow < deadline) await Task.Delay(200);
-            Require(window.IsVisible && report.GetValue(window) != null, "Normal statistics window did not complete its own refresh.");
+            while (window.IsVisible && report.GetValue(window) == null && DateTime.UtcNow < deadline)
+            {
+                var message = (status?.GetValue(window) as System.Windows.Controls.TextBlock)?.Text;
+                if (message != previous) { log("Statistics window " + kind + ": " + message); previous = message; }
+                await Task.Delay(200);
+            }
+            Require(window.IsVisible && report.GetValue(window) != null, "Normal statistics window did not complete its own refresh: " + previous);
             window.UpdateLayout();
             var image = new RenderTargetBitmap((int)window.ActualWidth, (int)window.ActualHeight, 96, 96, PixelFormats.Pbgra32); image.Render(window);
             var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(image));
@@ -175,5 +185,56 @@ internal static class NativeStatisticsFlow
         return (string)typeof(NativeExportExecutor).GetMethod("Snapshot", BindingFlags.Static | BindingFlags.NonPublic)
             .Invoke(null, new object[] { document, Path.Combine(run, label + ".json"), label });
     }
+    private static async Task BlankWorkbookRoundtrip(WebModelSession session, string run, Action<string> log)
+    {
+        var path = Path.Combine(run, "blank-building.xlsx");
+        File.WriteAllBytes(path, await session.BlankWorkbookAsync());
+        System.Xml.Linq.XNamespace ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+        using (var archive = System.IO.Compression.ZipFile.OpenRead(path))
+        {
+            foreach (var part in archive.Entries.Where(p => p.FullName.StartsWith("xl/worksheets/", StringComparison.Ordinal)))
+            {
+                using (var input = part.Open())
+                {
+                    var sheet = System.Xml.Linq.XDocument.Load(input);
+                    var rows = sheet.Descendants(ns + "row").Where(row => (int)row.Attribute("r") >= 6).ToArray();
+                    Require(rows.Length > 0, "Blank native workbook has no business rows.");
+                    foreach (var row in rows)
+                    {
+                        var cell = row.Elements(ns + "c").Single(c => (string)c.Attribute("r") == "C" + (string)row.Attribute("r"));
+                        Require(cell.Value == "" && !cell.Descendants(ns + "f").Any(), "A native blank business value was prefilled.");
+                    }
+                }
+            }
+        }
+        var target = session.Result.Elements.Single(e => e.Element.Entity == "IfcBuilding").Element.UniqueId;
+        var previous = session.Result.Fields.Single(f => f.ElementUniqueId == target && f.Property == "建筑面积");
+        decimal.TryParse(previous.Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var previousValue);
+        var previousArea = previous.MetricValue.HasValue ? (decimal)previous.MetricValue.Value : previousValue;
+        var expected = Near(previousArea, 123.45m) ? 124.45m : 123.45m;
+        var filled = Path.Combine(run, "filled-building.xlsx"); File.Copy(path, filled, false);
+        using (var archive = System.IO.Compression.ZipFile.Open(filled, System.IO.Compression.ZipArchiveMode.Update))
+        {
+            var part = archive.GetEntry("xl/worksheets/sheet1.xml"); System.Xml.Linq.XDocument sheet;
+            using (var input = part.Open()) sheet = System.Xml.Linq.XDocument.Load(input);
+            var row = sheet.Descendants(ns + "row").Single(r => r.Elements(ns + "c").Any(c => ((string)c.Attribute("r")).StartsWith("B", StringComparison.Ordinal) && c.Value == "建筑面积"));
+            row.Elements(ns + "c").Single(c => ((string)c.Attribute("r")).StartsWith("C", StringComparison.Ordinal)).Descendants(ns + "t").Single().Value = expected.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            part.Delete(); var replacement = archive.CreateEntry("xl/worksheets/sheet1.xml");
+            using (var output = replacement.Open()) sheet.Save(output);
+        }
+        var preview = await session.PreviewMaterialAsync(new MaterialPreviewRequest { Kind = "workbook", FileName = "filled-building.xlsx", SourcePath = filled,
+            ContentBase64 = Convert.ToBase64String(File.ReadAllBytes(filled)), TargetBuildingUniqueId = target });
+        var changes = preview.Changes.Where(c => c.CanSelect && c.Property == "建筑面积").ToArray();
+        File.WriteAllText(Path.Combine(run, "blank-workbook-preview.json"), JsonWire.Serialize(preview));
+        Require(changes.Length == 1 && changes[0].ElementUniqueId == target, "Filled blank workbook did not uniquely match its current building.");
+        await session.AcceptMaterialAsync(preview, new MaterialDecision { PreviewId = preview.Id, Accepted = true, SelectedKeys = changes.Select(c => c.Key).ToArray() }, filled);
+        await session.PreviewAsync(); await session.WriteAsync(); await session.SaveModelAsync();
+        var field = session.Result.Fields.Single(f => f.ElementUniqueId == target && f.Property == "建筑面积");
+        var actual = field.MetricValue.HasValue ? (decimal)field.MetricValue.Value : decimal.Parse(field.Value, System.Globalization.CultureInfo.InvariantCulture);
+        Require(Near(actual, expected) && session.Workspace.LastReceipt.ReadbackPassed, "Workbook import did not survive native write/readback.");
+        File.WriteAllText(Path.Combine(run, "blank-workbook-roundtrip.json"), JsonWire.Serialize(new { passed = true, everyBusinessCellBlank = true, buildingMatched = true, writtenBuildingAreaM2 = actual, modelSaved = true }));
+        log("PASS native blank workbook export, explicit conflict selection, write/readback and model save");
+    }
+    private static bool Near(decimal? actual, decimal expected) => actual.HasValue && Math.Abs(actual.Value - expected) < .000001m;
     private static void Require(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
 }

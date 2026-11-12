@@ -21,6 +21,7 @@ internal static class FullFlow
     {
         var bridge = new Bridge(); var dispatcher = Dispatcher.CurrentDispatcher;
         dispatcher.BeginInvoke(new Action(async () => {
+            System.Threading.SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(dispatcher));
             var results = new List<object>(); var saved = new List<Tuple<string, CaptureTarget, string>>();
             var config = JsonWire.Deserialize<Dictionary<string, string>>(File.ReadAllText(Path.Combine(run, "full-flow.json")));
             var models = File.Exists(Path.Combine(run, "models.json")) ? JsonWire.Deserialize<string[]>(File.ReadAllText(Path.Combine(run, "models.json"))) : new string[0];
@@ -30,7 +31,9 @@ internal static class FullFlow
                 if (config.TryGetValue("resume_only", out var resumeOnly) && bool.TryParse(resumeOnly, out var resume) && resume)
                 {
                     if (!config.TryGetValue("resume_from", out var sourceRun)) throw new InvalidOperationException("resume_from is required for resume-only acceptance.");
-                    await NativeUnitFullFlow.ResumeAsync(action => bridge.Run(action), new Uri(config["server"]), run, sourceRun, log);
+                    Func<Task> statistics = config.TryGetValue("resume_statistics", out var statisticsFlag) && statisticsFlag == "true"
+                        ? (Func<Task>)(() => NativeStatisticsFlow.RunAsync(action => bridge.Run(action), new Uri(config["server"]), run, log)) : null;
+                    await NativeUnitFullFlow.ResumeAsync(action => bridge.Run(action), new Uri(config["server"]), run, sourceRun, log, statistics);
                     await bridge.Run(application => { application.PostCommand(RevitCommandId.LookupPostableCommandId(PostableCommand.ExitRevit)); return true; });
                     return;
                 }

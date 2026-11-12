@@ -32,7 +32,7 @@ namespace Hifc.Web.Revit
         private NativeStatisticsCapture capture;
         private StatisticsResponse report;
         private long epoch, reportEpoch;
-        private bool busy, closed;
+        private bool busy, closed, disposed;
         private string documentList;
 
         internal static Window Open(UIApplication ui, WebModelSession session, string kind)
@@ -94,7 +94,8 @@ namespace Hifc.Web.Revit
         }
         private void Idle(object sender, IdlingEventArgs e)
         {
-            if (closed || busy) return;
+            if (closed) { DisposeInApiContext(); return; }
+            if (busy) return;
             SyncDocuments();
         }
         private void Changed(object sender, DocumentChangedEventArgs e)
@@ -113,10 +114,20 @@ namespace Hifc.Web.Revit
                 try { if (closed) completion.TrySetCanceled(); else completion.TrySetResult(action(ui)); }
                 catch (Exception ex) { completion.TrySetException(ex); }
             }, Cancel = () => completion.TrySetCanceled() });
-            if (external.Raise() == ExternalEventRequest.Denied) completion.TrySetException(new InvalidOperationException("请结束当前 Revit 命令后重试。"));
+            try
+            {
+                var request = external.Raise();
+                if (request == ExternalEventRequest.Denied || request == ExternalEventRequest.TimedOut)
+                    completion.TrySetException(new InvalidOperationException("请结束当前 Revit 命令后重试。"));
+            }
+            catch (Exception ex) { completion.TrySetException(ex); }
             return completion.Task;
         }
-        public void Execute(UIApplication app) { while (jobs.TryDequeue(out var job)) job.Execute(app); }
+        public void Execute(UIApplication app)
+        {
+            if (closed) { DisposeInApiContext(); return; }
+            while (jobs.TryDequeue(out var job)) job.Execute(app);
+        }
         public string GetName() => "HIFC Web statistics read-only capture";
 
         private async Task RefreshAsync(string key, string[] selected)
@@ -246,8 +257,15 @@ namespace Hifc.Web.Revit
         private void MarkStale(string message) { building?.MarkStale(message); site?.MarkStale(message); }
         private void Close()
         {
-            closed = true; owner.Application.DocumentChanged -= Changed; owner.Idling -= Idle;
+            closed = true;
             while (jobs.TryDequeue(out var job)) job.Cancel();
+            external.Raise();
+        }
+        private void DisposeInApiContext()
+        {
+            if (disposed) return;
+            disposed = true;
+            owner.Application.DocumentChanged -= Changed; owner.Idling -= Idle;
             capture?.Dispose(); external.Dispose(); session.Dispose();
         }
     }

@@ -89,7 +89,7 @@ internal static class NativeUnitFullFlow
         await VerifyFreshSettingsAsync(reopenedAccess, server, run, fixture.Path, committedSettings, committedSettingsHash, log);
         log("PASS signed Web model settings survive RVT save/reopen and restore into a fresh Web state directory before login");
     }
-    internal static async Task ResumeAsync(Func<Func<UIApplication, object>, Task<object>> native, Uri server, string run, string sourceRun, Action<string> log)
+    internal static async Task ResumeAsync(Func<Func<UIApplication, object>, Task<object>> native, Uri server, string run, string sourceRun, Action<string> log, Func<Task> afterSettings = null)
     {
         run = Path.GetFullPath(run); sourceRun = Path.GetFullPath(sourceRun);
         Require(!string.Equals(run, sourceRun, StringComparison.OrdinalIgnoreCase)
@@ -105,6 +105,7 @@ internal static class NativeUnitFullFlow
             && !string.IsNullOrEmpty(previous.LastModelSettingsHash), "The source settings baseline was not committed and saved.");
         await VerifyFreshSettingsAsync(access, server, run, unitPath, previous.Settings, previous.LastModelSettingsHash, log);
         log("PASS resumed saved-RVT settings restoration into a new Web state directory; prior numeric writes were not rerun");
+        if (afterSettings != null) await afterSettings();
         var reopened = new List<object>();
         foreach (var path in JsonWire.Deserialize<string[]>(File.ReadAllText(Path.Combine(sourceRun, "models.json"))))
         {
