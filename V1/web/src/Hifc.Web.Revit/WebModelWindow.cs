@@ -16,6 +16,7 @@ namespace Hifc.Web.Revit
     public sealed class WebModelWindow : Window
     {
         private readonly WebModelSession session;
+        internal WebModelSession Session => session;
         private readonly TextBox phone = new TextBox(), name = new TextBox();
         private readonly TextBox search = new TextBox { Width = 210 }, fieldSearch = new TextBox(), newValue = new TextBox();
         private readonly ComboBox kind = new ComboBox { Width = 125 }, slots = new ComboBox(), filter = new ComboBox { Width = 105 };
@@ -82,7 +83,10 @@ namespace Hifc.Web.Revit
                 var window = new NativeUndergroundWindow(session.Result, session.Workspace.Settings.Underground) { Owner = this };
                 if (await window.ShowAsync()) { session.Workspace.Settings.Underground = window.Result; session.SetSettings(session.Workspace.Settings); await session.ScanAsync(); }
             }));
-            toolbar.Children.Add(Action("报规 Excel", () => ShowMaterials("workbook")));
+            toolbar.Children.Add(Action("报规表导出", ExportBlankWorkbookAsync));
+            toolbar.Children.Add(Action("报规表导入", () => ShowMaterials("workbook")));
+            toolbar.Children.Add(Action("单体面积统计", () => session.OpenStatisticsAsync("building")));
+            toolbar.Children.Add(Action("总图统计", () => session.OpenStatisticsAsync("site")));
             toolbar.Children.Add(Action("红线资料", () => ShowMaterials("redline")));
             toolbar.Children.Add(Action("暂存资料", () => { ShowPendingMaterials(); return Task.CompletedTask; }));
             toolbar.Children.Add(Action("导出 IFC", async () => {
@@ -211,6 +215,22 @@ namespace Hifc.Web.Revit
         {
             if (!session.LiveCheck) await session.ScanAsync();
             await new NativeMaterialWindow(session, kind) { Owner = this }.ShowAsync();
+        }
+        internal Task ImportWorkbookAsync() => session.RunAsync(() => ShowMaterials("workbook"));
+        internal Task ExportWorkbookCommandAsync() => session.RunAsync(ExportBlankWorkbookAsync);
+        private async Task ExportBlankWorkbookAsync()
+        {
+            var bytes = await session.BlankWorkbookAsync();
+            var dialog = new Microsoft.Win32.SaveFileDialog { Filter = "Excel (*.xlsx)|*.xlsx", OverwritePrompt = true,
+                FileName = session.Title + "_空白报规表_" + DateTime.Today.ToString("yyyyMMdd") + ".xlsx" };
+            if (dialog.ShowDialog(this) != true) return;
+            var temporary = dialog.FileName + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try {
+                System.IO.File.WriteAllBytes(temporary, bytes);
+                if (System.IO.File.Exists(dialog.FileName)) System.IO.File.Replace(temporary, dialog.FileName, null);
+                else System.IO.File.Move(temporary, dialog.FileName);
+            }
+            finally { if (System.IO.File.Exists(temporary)) System.IO.File.Delete(temporary); }
         }
         private void ShowPendingMaterials()
         {

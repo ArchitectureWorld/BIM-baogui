@@ -8,7 +8,7 @@ namespace Hifc.Web.Contracts
     }
     public sealed class RequestContext
     {
-        public int ProtocolMajor { get; set; } = 2;
+        public int ProtocolMajor { get; set; } = 3;
         public string ClientVersion { get; set; } = "0.5.0";
         public string RuleVersion { get; set; }
         public string RequestId { get; set; }

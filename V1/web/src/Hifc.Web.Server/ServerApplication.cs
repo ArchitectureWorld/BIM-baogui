@@ -80,7 +80,7 @@ public static class ServerApplication
             }
         });
         app.MapGet("/api/v1/compatibility", (HttpContext context, RuleAdapter rules, PlanSigner signer) =>
-            context.Request.Query["protocol"] == "2" ? Results.Json<object>(new Compatibility {
+            context.Request.Query["protocol"] == "3" ? Results.Json<object>(new Compatibility {
                 RuleVersion = rules.RuleVersion, ServerTimeUtc = DateTime.UtcNow, SigningKey = signer.PublicKey,
                 DefaultRuleProfileId = rules.Profiles.First(p => p.Id != "").Id, RuleProfiles = rules.Profiles
             }) : Results.Json<object>(new ApiError { Code = "CLIENT_UPDATE_REQUIRED", Message = "服务规则已升级，请关闭并重新打开 Revit 完成自动更新，再重新全面检查；已有草稿保留。" }, statusCode: 409));

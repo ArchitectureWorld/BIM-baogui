@@ -3,10 +3,14 @@
   <ItemGroup>
     <ProjectReference Include="../Hifc.Web.Contracts/Hifc.Web.Contracts.csproj" />
     <Compile Include="../../../src/Hifc.Reference.Core/*.cs" Link="ExistingRules/%(Filename)%(Extension)" />
+    <Compile Remove="../../../src/Hifc.Reference.Core/BuildingAreaStatisticsInput.cs;../../../src/Hifc.Reference.Core/BuildingAreaStatisticsModels.cs;../../../src/Hifc.Reference.Core/SiteStatisticsModels.cs" />
     <EmbeddedResource Include="../../../reference/gonggui/contract.json" LogicalName="Hifc.Reference.Contract.json" />
     <EmbeddedResource Include="../../../reference/success-case-01/case-profiles.json" LogicalName="Hifc.Reference.SuccessCase.json" />
     <EmbeddedResource Include="../../../reference/success-case-01/recognition-evidence.json" LogicalName="Hifc.Reference.RecognitionEvidence.json" />
     <EmbeddedResource Include="../../../reference/platform-420626-20261020/rules.json" LogicalName="Hifc.Reference.Platform420626.20261020.json" />
     <EmbeddedResource Include="../../../reference/platform-420626-20261020/source-metadata.json" LogicalName="Hifc.Reference.Platform420626.20261020.Source.json" />
+    <EmbeddedResource Include="../../../reference/platform-420626-20261104/input-checks.json" LogicalName="Hifc.Reference.Platform420626.20261104.Inputs.json" />
+    <EmbeddedResource Include="../../../reference/platform-420626-20261105/input-checks.json" LogicalName="Hifc.Reference.Platform420626.20261105.Inputs.json" />
+    <EmbeddedResource Include="../../../reference/platform-420626-20261105/boolean-encoding.json" LogicalName="Hifc.Reference.Platform420626.20261105.BooleanEncoding.json" />
   </ItemGroup>
 </Project>

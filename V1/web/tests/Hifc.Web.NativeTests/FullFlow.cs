@@ -93,6 +93,7 @@ internal static class FullFlow
                     finally { window.Close(); }
                 }
                 await NativeUnitFullFlow.RunAsync(action => bridge.Run(action), new Uri(config["server"]), run, log);
+                await NativeStatisticsFlow.RunAsync(action => bridge.Run(action), new Uri(config["server"]), run, log);
                 if (File.Exists(Path.Combine(run, "window-route.json"))) await bridge.Run(application => {
                     if (!NativeWindowRouteFixture.Run(application, run)) throw new InvalidOperationException("Native window route fixture failed; see window-route-error.json. No passing full-flow result will be emitted.");
                     log("PASS native exact-owner window routes; independent IFC audit pending"); return true;

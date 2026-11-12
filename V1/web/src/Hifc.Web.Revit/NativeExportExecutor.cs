@@ -122,7 +122,7 @@ namespace Hifc.Web.Revit
             if (!exported || !File.Exists(staged) || new FileInfo(staged).Length == 0) throw new InvalidOperationException("原生导出器未产生有效 IFC。");
             var receipt = new ExportReceipt { PlanId = plan.Id, DocumentSessionId = input.DocumentSessionId, IfcPath = target,
                 IfcHash = FileHash(staged), ReceiptPath = Path.Combine(artifactDirectory, "receipt.json"), SnapshotBefore = before, SnapshotAfter = after,
-                SourceRestored = true, Exported = true, CompletedUtc = DateTime.UtcNow };
+                SourceRestored = true, Exported = true, CompletedUtc = DateTime.UtcNow, InputValidation = plan.InputValidation };
             File.WriteAllText(receipt.ReceiptPath, JsonWire.Serialize(receipt), new UTF8Encoding(false));
             Directory.CreateDirectory(Path.GetDirectoryName(target));
             // Final directory receives exactly one IFC. Mapping and evidence stay private.

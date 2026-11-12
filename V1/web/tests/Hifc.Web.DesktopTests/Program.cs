@@ -6,8 +6,14 @@ using Hifc.Web.Revit;
 
 internal static class Program
 {
+    [STAThread]
     private static int Main()
     {
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) => {
+            var error = args.ExceptionObject as Exception;
+            var path = Path.Combine(Environment.CurrentDirectory, "V1", "web", ".local", "desktop-unhandled.txt");
+            try { File.WriteAllText(path, error?.GetType().FullName + "\n" + error?.Message + "\n" + error?.StackTrace); } catch { }
+        };
         int passed = 0, failed = 0;
         Action<string, Action> test = (name, action) => { try { action(); passed++; Console.WriteLine("PASS " + name); } catch (Exception ex) { failed++; Console.WriteLine("FAIL " + name + ": " + ex.GetType().Name + " " + ex.Message); } };
         Action<bool, string> require = (condition, message) => { if (!condition) throw new Exception(message); };
@@ -37,6 +43,7 @@ internal static class Program
         NativeParityCases.Run(test);
         NativeSettingsCases.Run(test);
         NativeWindowSmokeCases.Run(test);
+        StatisticsWindowCases.Run(test);
         UpdateInstallCases.Run(test);
         DesktopHttpCase.Run(test);
         Console.WriteLine("RESULT " + passed + " passed; " + failed + " failed"); return failed == 0 ? 0 : 1;

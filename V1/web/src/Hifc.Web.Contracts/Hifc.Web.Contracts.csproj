@@ -1,4 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>netstandard2.0</TargetFramework><AssemblyName>Hifc.Web.Contracts</AssemblyName></PropertyGroup>
   <PropertyGroup Condition="'$(HifcWebAcceptanceSuffix)' != ''"><AssemblyName>Hifc.Web.Contracts.$(HifcWebAcceptanceSuffix)</AssemblyName></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../src/Hifc.Reference.Core/BuildingAreaStatisticsInput.cs" Link="Statistics/BuildingAreaStatisticsInput.cs" />
+    <Compile Include="../../../src/Hifc.Reference.Core/BuildingAreaStatisticsModels.cs" Link="Statistics/BuildingAreaStatisticsModels.cs" />
+    <Compile Include="../../../src/Hifc.Reference.Core/SiteStatisticsModels.cs" Link="Statistics/SiteStatisticsModels.cs" />
+  </ItemGroup>
 </Project>

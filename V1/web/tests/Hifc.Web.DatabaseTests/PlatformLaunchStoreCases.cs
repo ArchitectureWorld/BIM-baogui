@@ -13,8 +13,13 @@ internal static class PlatformLaunchStoreCases
             async Task<(AccountInfo Account, PlatformLaunchRequest Request, ExportPlan Plan, ExportReceipt Receipt)> Fixture()
             {
                 var account = await accounts.TryCreateOrdinaryAsync("139" + Random.Shared.NextInt64(10000000, 100000000), "平台许可测试");
-                var plan = new ExportPlan { Id = Guid.NewGuid().ToString("N"), Context = new RequestContext { DocumentSessionId = Guid.NewGuid().ToString("N") } }; plan.Hash = Canonical.ExportHash(plan);
-                var receipt = new ExportReceipt { PlanId = plan.Id, DocumentSessionId = plan.Context.DocumentSessionId, IfcHash = new string('a', 64), SnapshotBefore = "snapshot", SnapshotAfter = "snapshot", Exported = true, SourceRestored = true };
+                var validation = new Hifc.Reference.RequiredInputValidation {
+                    rule_profile_id = Hifc.Reference.PlatformRules.ProfileId, model_kind = "总图", complete = true, checked_objects = 1, checked_fields = 1
+                };
+                var proof = System.Text.Json.JsonSerializer.Deserialize<RequiredInputProof>(System.Text.Json.JsonSerializer.Serialize(validation));
+                var plan = new ExportPlan { InputValidation = proof, Id = Guid.NewGuid().ToString("N"), Context = new RequestContext {
+                    RuleVersion = new Hifc.Web.RuleEngine.RuleAdapter().RuleVersion, DocumentSessionId = Guid.NewGuid().ToString("N") } }; plan.Hash = Canonical.ExportHash(plan);
+                var receipt = new ExportReceipt { InputValidation = proof, PlanId = plan.Id, DocumentSessionId = plan.Context.DocumentSessionId, IfcHash = new string('a', 64), SnapshotBefore = "snapshot", SnapshotAfter = "snapshot", Exported = true, SourceRestored = true };
                 return (account, new PlatformLaunchRequest { ExportPlanId = plan.Id, DocumentSessionId = receipt.DocumentSessionId, ProjectId = "project", TargetModelId = "model", TargetGeneration = "generation", IfcSha256 = receipt.IfcHash, RunId = Guid.NewGuid().ToString(), MainReleaseId = "0.5.0-dev-20261029T000000Z", MainSourceCommit = new string('b', 40), ConfirmedReplacement = true }, plan, receipt);
             }
             async Task Reject(Func<Task> action) { try { await action(); } catch (InvalidOperationException) { return; } throw new Exception("Replayed launch was accepted."); }

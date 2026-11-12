@@ -20,6 +20,7 @@ internal static class NativeWindowSmokeCases
         test("calculation underground and materials windows render LiquidGlass labels and usable columns without a Revit host", () => {
             Exception failure = null;
             var worker = new Thread(() => {
+                Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => {
                 try {
                     var root = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "V1", "web", ".local", "native-window-smoke")); Directory.CreateDirectory(root);
                     var result = new CheckResult { ModelKind = "单体建筑", RuleProfiles = new[] { new RuleProfileInfo { Id = "test-profile", Title = "平台规则方案（离线界面夹具）", Scope = "用于构造界面，不代表服务器业务验收。" } },
@@ -65,6 +66,9 @@ internal static class NativeWindowSmokeCases
                     finally { redline.Close(); }
                     if (Directory.GetFiles(root, "*.png").Any(p => new FileInfo(p).Length < 1024)) throw new Exception("A window rendering was empty.");
                 } catch (Exception ex) { failure = ex; }
+                finally { Dispatcher.CurrentDispatcher.BeginInvokeShutdown(DispatcherPriority.Background); }
+                }));
+                Dispatcher.Run();
             });
             worker.SetApartmentState(ApartmentState.STA); worker.IsBackground = true; worker.Start();
             if (!worker.Join(30000)) throw new Exception("Window construction did not finish in 30 seconds.");

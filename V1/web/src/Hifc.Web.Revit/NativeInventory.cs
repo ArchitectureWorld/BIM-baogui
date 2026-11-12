@@ -57,6 +57,8 @@ namespace Hifc.Web.Revit
             }
         }
         public static ElementRecord[] Read(Document document, IDictionary<string, string> assigned = null)
+            => Read(document, assigned, true);
+        internal static ElementRecord[] Read(Document document, IDictionary<string, string> assigned, bool fullGeometryEvidence)
         {
             if (document == null || !document.IsValidObject || document.IsFamilyDocument) throw new InvalidOperationException("请打开 Revit 项目模型。");
             var rows = new FilteredElementCollector(document).WhereElementIsNotElementType().Where(Included).Select(element => {
@@ -69,7 +71,7 @@ namespace Hifc.Web.Revit
                     Building = string.IsNullOrWhiteSpace(document.ProjectInformation.BuildingName) ? document.Title : document.ProjectInformation.BuildingName,
                     LevelUniqueId = level?.UniqueId, LevelElevationM = level == null ? (double?)null : UnitUtils.ConvertFromInternalUnits(level.ProjectElevation, DisplayUnitType.DUT_METERS),
                     ProjectionKey = NativeGeometry.ProjectionKey(element), ProjectedAreaM2 = NativeGeometry.ProjectedAreaM2(element),
-                    GeometryFingerprint = element.Category?.CategoryType == CategoryType.Model && !(element is RevitLinkInstance) ? NativeRedlineGeometry.Fingerprint(document, element) : null };
+                    GeometryFingerprint = fullGeometryEvidence && element.Category?.CategoryType == CategoryType.Model && !(element is RevitLinkInstance) ? NativeRedlineGeometry.Fingerprint(document, element) : null };
                 if (assigned != null && assigned.TryGetValue(element.UniqueId, out var slot)) row.AssignedSlot = slot;
                 try { row.Entity = Entity(document, element); row.SourceEntity = element is Floor ? "IfcSlab" : row.Entity; row.DeclaredSlot = Effective(document, element, "类目"); }
                 catch (InvalidOperationException ex) { row.CoverageNote = ex.Message; }
@@ -83,7 +85,7 @@ namespace Hifc.Web.Revit
                 }
                 return row;
             }).OrderBy(row => row.UniqueId, StringComparer.Ordinal).ToArray();
-            NativeGeometry.CheckAggregation(document, rows);
+            if (fullGeometryEvidence) NativeGeometry.CheckAggregation(document, rows);
             return rows;
         }
         public static ParameterValue[] ReadValues(Document document, CaptureTarget[] targets)

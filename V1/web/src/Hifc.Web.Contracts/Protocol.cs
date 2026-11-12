@@ -57,10 +57,11 @@ namespace Hifc.Web.Contracts
             return items.Length == 0 ? ValuesHash(values) : Hash(Pack("HIFC-WEB-CAPTURE-2", ValuesHash(values),
                 string.Concat(items.OrderBy(d => d.Source, StringComparer.Ordinal).ThenBy(d => d.ParameterId).Select(d => Pack(DefinitionHash(d))))));
         }
-        public static string ExportHash(ExportPlan plan) => Hash(Pack("HIFC-WEB-EXPORT-2", ContextKey(plan.Context), plan.Id, plan.CaptureHash, plan.ExpiresAtUtc,
-            plan.FileName, plan.MappingText, plan.ExpectedDataHash, Structured(plan.TemporaryChanges), Structured(plan.Native), Structured(plan.Routes), Structured(plan.SuppressParameterNames), Structured(plan.Options)));
+        public static string ExportHash(ExportPlan plan) => Hash(Pack("HIFC-WEB-EXPORT-3", ContextKey(plan.Context), plan.Id, plan.CaptureHash, plan.ExpiresAtUtc,
+            plan.FileName, plan.MappingText, plan.ExpectedDataHash, Structured(plan.TemporaryChanges), Structured(plan.Native), Structured(plan.Routes), Structured(plan.SuppressParameterNames), Structured(plan.Options), Structured(plan.InputValidation), Structured(plan.Notices)));
         // Length-prefixed, culture-independent data encoding shared by net48 and net10.
         // Only contract POCOs are passed here; executable type metadata is never serialized.
+        public static string DataHash(object value) => Hash(Structured(value));
         private static string Structured(object value, int depth = 0)
         {
             if (depth > 20) throw new InvalidOperationException("协议数据嵌套过深。");
@@ -82,7 +83,7 @@ namespace Hifc.Web.Contracts
     {
         public static void Match(RequestContext expected, RequestContext actual)
         {
-            if (expected == null || actual == null || expected.ProtocolMajor != 2 || actual.ProtocolMajor != 2 || Canonical.ContextKey(expected) != Canonical.ContextKey(actual))
+            if (expected == null || actual == null || expected.ProtocolMajor != 3 || actual.ProtocolMajor != 3 || Canonical.ContextKey(expected) != Canonical.ContextKey(actual))
                 throw new InvalidOperationException("响应的协议、文档、扫描或快照已不匹配，请重新检查。");
         }
         private static void Pages(int[] indexes, int[] counts, int total, int actual)

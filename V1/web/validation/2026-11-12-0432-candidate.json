@@ -1,0 +1,28 @@
+{
+  "schema": "hifc.web.0432-candidate/1",
+  "status": "awaiting-native-publisher-confirmation",
+  "sourceBaseline": "bbdb70b24c2c6efde780012771e66d3e843d35a5",
+  "localReference": "0.4.32",
+  "webProduct": "0.5.0",
+  "protocolMajor": 3,
+  "ruleVersion": "reference-0.4.32-web3",
+  "componentVersion": "0.2.1-web.1",
+  "nodeVersion": "25.4.0",
+  "automated": {
+    "core": 353,
+    "web": 90,
+    "parity": 55,
+    "database": 42,
+    "desktop": 28,
+    "workbook": 31,
+    "redline": 33,
+    "components": 16,
+    "cli": 11
+  },
+  "reviewFindingsClosed": 3,
+  "nativeAcceptancePassed": false,
+  "productionDeployed": false,
+  "verifiedUtc": "2026-11-12T13:47:40.6700197Z",
+  "evidenceDirectory": ".local/sync-0432-20261112",
+  "nativeRun": ".local/full-experience-20261112-212405"
+}

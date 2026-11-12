@@ -124,7 +124,7 @@ public sealed partial class RuleAdapter
             OwnerId=f.OwnerId,OwnerUniqueId=f.OwnerUniqueId,Slot=ReferenceCatalog.LegacySlot(f.PropertySet),PropertySet=f.PropertySet,Property=f.Property,Binding=f.Binding,Source=f.Source,
             SourceGuid=(IsBooleanSource(f.Source,f.RuleProfileId)?BooleanPolicy.SourceGuid(f.Source):ReferencePolicy.SourceGuid(f.Source)).ToString("D"),RawType=f.RawType,
             State=f.State,Value=f.Value,DisplayValue=f.DisplayValue,SuggestedValue=f.SuggestedValue,SuggestionUnit=f.SuggestionUnit??current.FirstOrDefault()?.Unit,Detail=f.SuggestionReason??f.Detail,
-            Editable=f.Editable,AllowedEmpty=f.AllowedEmpty,ManualInputRequired=f.ManualInputRequired,SourceSignature=f.SourceSignature,InputUnit=PropertyUnits.Canonical(f.Property,f.RawType),
+            Editable=f.Editable,AllowedEmpty=f.AllowedEmpty,ManualInputRequired=f.RequiredForSubmission,SourceSignature=f.SourceSignature,InputUnit=PropertyUnits.Canonical(f.Property,f.RawType),
             AffectedInstances=f.Binding=="类型"?elements.Count(e=>e.TypeUniqueId==f.OwnerUniqueId):1,RuleProfileId=f.RuleProfileId,RequiredValue=f.RequiredValue,MetricValue=f.MetricValue,
             FloorAreaOverride=f.FloorAreaOverride,DefinitionType=current.Length==1?current[0].DefinitionType:null,InputKind=f.RawType=="Boolean"?"boolean":custom?"editable-choice":choices.Length>0?"choice":f.RawType=="Real"||f.RawType=="Integer"?"number":"text",
             Options=choices,ParentProperty=ClassificationInputs.IsChild(f.Property)?f.Property=="子功能类别"?"主功能类别":"公建大类":null};

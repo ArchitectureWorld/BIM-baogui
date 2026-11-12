@@ -41,6 +41,7 @@ public static class BusinessEndpoints
         group.MapPost("/export-plans", async (ExportRequest request, WorkflowStore workflow, HttpContext context) => Results.Ok(await workflow.PreviewExportAsync(Actor(context), request, context.RequestAborted)));
         group.MapPost("/export-receipts", async (ExportReceipt receipt, WorkflowStore workflow, HttpContext context) => { await workflow.ExportReceiptAsync(Actor(context), receipt, context.RequestAborted); return Results.NoContent(); });
         PlatformLaunchEndpoints.Map(group);
+        StatisticsEndpoints.Map(group);
         group.MapPost("/edit-plans/{plan}/authorize", async (string plan, AuthorizeRequest request, WorkflowStore workflow, HttpContext context) => Results.Ok(await workflow.AuthorizeAsync(Actor(context), plan, request, context.RequestAborted)));
         group.MapPost("/write-receipts", async (WriteReceipt receipt, WorkflowStore workflow, HttpContext context) => {
             await workflow.ReceiptAsync(Actor(context), receipt, context.RequestAborted); return Results.NoContent();

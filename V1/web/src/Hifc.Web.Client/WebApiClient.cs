@@ -15,7 +15,7 @@ namespace Hifc.Web.Client
         public string Code { get; }
         public WebApiException(string code, string message) : base(message) { Code = code; }
     }
-    public sealed class WebApiClient : IDisposable
+    public sealed partial class WebApiClient : IDisposable
     {
         private readonly HttpClient http;
         private readonly TimeSpan requestTimeout;
@@ -94,8 +94,8 @@ namespace Hifc.Web.Client
         }
         public async Task<Compatibility> CompatibilityAsync(CancellationToken ct)
         {
-            var result = await Request<Compatibility>(HttpMethod.Get, "compatibility?protocol=2", null, ct, false).ConfigureAwait(false);
-            if (result == null || result.ProtocolMajor != 2 || string.IsNullOrWhiteSpace(result.RuleVersion) || result.SigningKey == null)
+            var result = await Request<Compatibility>(HttpMethod.Get, "compatibility?protocol=3", null, ct, false).ConfigureAwait(false);
+            if (result == null || result.ProtocolMajor != 3 || string.IsNullOrWhiteSpace(result.RuleVersion) || result.SigningKey == null)
                 throw new InvalidOperationException("服务器协议、规则版本或签名信息不完整。");
             compatibility = result; serverTime = DateTime.SpecifyKind(result.ServerTimeUtc, DateTimeKind.Utc); clockStart = Stopwatch.GetTimestamp(); return result;
         }

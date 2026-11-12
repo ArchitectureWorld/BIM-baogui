@@ -17,7 +17,7 @@ Test("metadata changes invalidate inventory hash", () => { var a = Element("a");
 Test("unset zero false and empty string stay distinct", () => { var p = new ParameterValue { OwnerUniqueId = "a", Source = "flag", Exists = true, HasValue = false, StorageType = "Integer" }; var unset = Canonical.ValuesHash(new[] { p }); p.HasValue = true; p.RawValue = "0"; var zero = Canonical.ValuesHash(new[] { p }); p.StorageType = "String"; p.RawValue = ""; Require(unset != zero && zero != Canonical.ValuesHash(new[] { p }), "Value states collapsed"); });
 Test("a delayed response for another document is refused", () => Reject(() => ProtocolGuard.Match(Context(), Context("other-doc"))));
 Test("a delayed response for an earlier scan is refused", () => Reject(() => ProtocolGuard.Match(Context(), Context(scan: "old-scan"))));
-Test("an incompatible protocol is refused", () => { var actual = Context(); actual.ProtocolMajor = 3; Reject(() => ProtocolGuard.Match(Context(), actual)); });
+Test("an incompatible protocol is refused", () => { foreach (var version in new[] { 1, 2, 4 }) { var actual = Context(); actual.ProtocolMajor = version; Reject(() => ProtocolGuard.Match(Context(), actual)); } });
 Test("missing inventory page cannot yield a writable scan", () => Reject(() => ProtocolGuard.InventoryPages(new[] { Page(0, 2, Element("a")) })));
 Test("duplicate inventory page is refused", () => Reject(() => ProtocolGuard.InventoryPages(new[] { Page(0, 2, Element("a")), Page(0, 2, Element("b")) })));
 Test("valid out-of-order inventory pages are accepted", () => ProtocolGuard.InventoryPages(new[] { Page(1, 2, Element("b")), Page(0, 2, Element("a")) }));

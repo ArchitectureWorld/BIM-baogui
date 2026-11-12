@@ -16,20 +16,26 @@ public sealed partial class RuleAdapter
         // Linux. Path.GetInvalidFileNameChars on the service OS is not this contract.
         if(string.IsNullOrWhiteSpace(name)||name.Any(c=>c<' ')||name.IndexOfAny(new[]{'/','\\',':','<','>','"','|','?','*'})>=0||name.Length>180)
             throw new InvalidOperationException("导出文件名只能是有效的 Windows 文件名，不能包含控制字符或目录。");
-        var match=Regex.Match(name,@"^OUT_(.+)_(报规)_(.+)_([0-9]{8})_V([0-9]+)\.ifc$",RegexOptions.CultureInvariant);
-        if(!match.Success||!DateTime.TryParseExact(match.Groups[4].Value,"yyyyMMdd",CultureInfo.InvariantCulture,DateTimeStyles.None,out var date)
-            ||!long.TryParse(match.Groups[5].Value,out var revision)||revision<1)throw new InvalidOperationException("请确认项目、单体、日期和版本，使用 OUT_项目_报规_单体_yyyyMMdd_V1.ifc 文件名。");
-        var stem=ExportFileNaming.StemForNames(match.Groups[1].Value,match.Groups[3].Value,basis.Stage,basis.ModelKind,date);
-        if(name!=stem+"_V"+revision+".ifc")throw new InvalidOperationException("导出文件名与模型阶段/类型不一致。");
+        var match=Regex.Match(name,@"^OUT_(.+)_报规_([0-9]{8})_V([0-9]+)\.ifc$",RegexOptions.CultureInvariant);
+        if(!match.Success || !DateTime.TryParseExact(match.Groups[2].Value,"yyyyMMdd",CultureInfo.InvariantCulture,DateTimeStyles.None,out var date)
+            || !long.TryParse(match.Groups[3].Value,out var revision) || revision<1)
+            throw new InvalidOperationException("请确认主体、项目、日期和版本，使用 OUT_单体或总图_项目_报规_yyyyMMdd_V1.ifc 文件名。");
+        var parsed=ExportFileNaming.SuggestNames(null,name,basis.ModelKind);
+        var projectName=request.ProjectName ?? parsed.ProjectName;
+        var buildingName=request.BuildingName ?? parsed.BuildingName;
+        var stem=ExportFileNaming.StemForNames(projectName,buildingName,basis.Stage,basis.ModelKind,date);
+        if(name!=stem+"_V"+revision+".ifc")throw new InvalidOperationException("导出文件名与已确认的主体、项目或模型类型不一致。");
         if(basis.Elements.Any(e=>!string.IsNullOrEmpty(e.Element.AssignedSlot)&&e.Element.AssignedSlot!=e.Element.DeclaredSlot))throw new InvalidOperationException("分类尚未写入模型，请先提交并复检。");
         var rows=CoreRows(basis);CheckOverlaps(rows,basis.Elements.Select(e=>e.Element).ToArray());
         var rowsById=rows.ToDictionary(r=>r.UniqueId,StringComparer.Ordinal);
         var fieldsByElement=basis.Fields.ToLookup(f=>f.ElementUniqueId,StringComparer.Ordinal);
         var valueLookup=values.ToLookup(v=>v.OwnerUniqueId+"|"+v.Source,StringComparer.Ordinal);
         var definitionLookup=basis.Definitions.ToLookup(d=>d.Source,StringComparer.Ordinal);
-        var duplicate=PlanningInputs.DuplicateLandIssues(rows);if(duplicate.Length>0)throw new InvalidOperationException(string.Join("；",duplicate));
-        var floors=FloorAreaPolicy.Build(rows,Planning(basis.Settings));if(floors.Issues.Length>0)throw new InvalidOperationException(string.Join("；",floors.Issues));
-        if(floors.Allocations.Any(a=>string.IsNullOrEmpty(basis.Elements.Single(e=>e.Element.UniqueId==a.UniqueId).Element.DeclaredSlot)))throw new InvalidOperationException("楼层面积同步包含尚未写入分类的建筑区域。");
+        var floors=FloorAreaExportPolicy.Build(rows,Planning(basis.Settings));
+        var inputReview=PlatformInputReview.Build(rows,basis.Settings.RuleProfileId).Concat(SiteBoundaryPolicy.Review(rows,basis.ModelKind,basis.Settings.RuleProfileId)).Concat(floors.Notices).ToArray();
+        var blockers=inputReview.Where(item=>item.BlocksExport).ToArray();
+        if(blockers.Length>0)throw new InvalidOperationException(string.Join("；",blockers.Select(item=>item.ElementId+" / "+item.Property+"："+item.Detail)));
+        var validation=RequiredInputValidation.Create(rows,basis.Settings.RuleProfileId,basis.ModelKind,basis.Complete,inputReview);
         var selected=new List<(ReferenceProperty Property,ElementRecord Element,FieldResult Field)>();
         var profile=basis.Settings.RuleProfileId;
         foreach(var element in basis.Elements.Select(e=>e.Element)) {
@@ -62,14 +68,14 @@ public sealed partial class RuleAdapter
                 if(!raw[0].Exists&&legacy!=null&&valueLookup[owner+"|"+legacy].Any(v=>v.Exists))throw new InvalidOperationException("旧布尔别名需要先在属性管理中核验并写入："+legacy);
                 value=string.IsNullOrWhiteSpace(value)?DefaultBoolean(basis,p.SourceParameter,element.Name,owner):BooleanPolicy.Normalize(value);
             }
-            value=CaseExportPolicy.ValueForExport(p,value,profile,parent);
+            value=PlatformNativeEncoding.Value(p,CaseExportPolicy.ValueForExport(p,value,profile,parent),profile);
             var bridge=ReferencePolicy.BridgeName(p);var guid=ReferencePolicy.BridgeGuid(p).ToString("D");
             var existing=definitionLookup[bridge].SelectMany(d=>d.Values).Where(v=>v.OwnerUniqueId==owner).ToArray();
             if(existing.Length>1)throw new InvalidOperationException("导出临时参数来源不唯一。");
             var baseline=existing.SingleOrDefault()??new ParameterValue{OwnerId=p.Binding=="类型"?element.TypeId:element.Id,OwnerUniqueId=owner,Source=bridge,Origin=p.Binding=="类型"?"type":"instance",Exists=false};
             changes.Add(new WriteChange{FieldKey=f.Key,OwnerId=baseline.OwnerId,OwnerUniqueId=owner,Source=bridge,SourceGuid=guid,Origin=baseline.Origin,PropertySet=p.PropertySet,RawType="Text",DefinitionType="Text",
                 ExpectedSignature=Canonical.ValuesHash(new[]{baseline}),ExpectedValue=baseline.RawValue,Value=value??"",Action=baseline.Exists?"Set":"Create",Reason=allocation?.Reason??"本轮已保存模型值的隔离导出映射",Unit=null,AffectedInstances=f.AffectedInstances});
-            routes.Add(new NativeExportRoute{PropertySet=p.PropertySet,Entity=CaseWorkflow.ClassificationEntity(Row(element),element.DeclaredSlot),Origin=p.Binding=="类型"?"type":"instance",ExactOwnerFilter=p.Binding=="类型"||PlatformRules.IsActive(profile)&&p.PropertySet=="Pset_窗信息属性集",OwnerUniqueIds=new[]{owner},Properties=new[]{new NativeExportProperty{Property=p.Property,BridgeName=bridge,BridgeGuid=guid,ExportType=p.ExportType}}});
+            routes.Add(new NativeExportRoute{PropertySet=p.PropertySet,Entity=CaseWorkflow.ClassificationEntity(Row(element),element.DeclaredSlot),Origin=p.Binding=="类型"?"type":"instance",ExactOwnerFilter=p.Binding=="类型"||PlatformRules.IsActive(profile)&&new[]{"Pset_窗信息属性集","Pset_阳台信息属性集","Pset_架空信息属性集"}.Contains(p.PropertySet),OwnerUniqueIds=new[]{owner},Properties=new[]{new NativeExportProperty{Property=p.Property,BridgeName=bridge,BridgeGuid=guid,ExportType=PlatformNativeEncoding.ConfigurationProperty(p,profile).ExportType}}});
         }
         var overrides=new List<WriteChange>();
         foreach(var e in basis.Elements.Select(e=>e.Element).Where(e=>(e.SourceEntity??e.Entity)=="IfcSlab"&&e.DeclaredSlot=="规划控制线"))
@@ -80,9 +86,13 @@ public sealed partial class RuleAdapter
             }
         var unique=changes.GroupBy(c=>c.OwnerUniqueId+"|"+c.Source).Select(g=>{if(g.Select(c=>c.Value).Distinct().Count()!=1)throw new InvalidOperationException("类型导出值冲突。");return g.First();}).ToArray();
         var properties=selected.Select(x=>x.Property).ToArray();
-        bool Exact(ReferenceProperty p)=>p.Binding=="类型"||PlatformRules.IsActive(profile)&&p.PropertySet=="Pset_窗信息属性集";
+        bool Exact(ReferenceProperty p)=>p.Binding=="类型"||PlatformRules.IsActive(profile)&&new[]{"Pset_窗信息属性集","Pset_阳台信息属性集","Pset_架空信息属性集"}.Contains(p.PropertySet);
         var plan=new ExportPlan{Context=basis.Context,Id=Guid.NewGuid().ToString("N"),CaptureHash=basis.CaptureHash,ExpiresAtUtc=nowUtc.AddMinutes(2),FileName=name,
-            MappingText=ReferenceCatalog.FromEmbeddedBaseline().BuildSelectedExportConfiguration(properties.Where(p=>!Exact(p))),TemporaryChanges=unique.Concat(overrides).ToArray(),
+            InputValidation=new RequiredInputProof { schema=validation.schema,rule_profile_id=validation.rule_profile_id,rule_revision=validation.rule_revision,
+                rule_evidence_sha256=validation.rule_evidence_sha256,complete=validation.complete,model_kind=validation.model_kind,
+                checked_objects=validation.checked_objects,checked_fields=validation.checked_fields,blocking_count=validation.blocking_count },
+            Notices=inputReview.Select(item=>new ExportNotice {ElementId=item.ElementId,Property=item.Property,Code=item.Code,Detail=item.Detail,BlocksExport=item.BlocksExport}).ToArray(),
+            MappingText=ReferenceCatalog.FromEmbeddedBaseline().BuildSelectedExportConfiguration(properties.Where(p=>!Exact(p)).Select(p=>PlatformNativeEncoding.ConfigurationProperty(p,profile))),TemporaryChanges=unique.Concat(overrides).ToArray(),
             Native=new NativeOperations{Definitions=DefinitionOperations(basis,unique,true).Concat(DefinitionOperations(basis,overrides.ToArray())).ToArray()},ExpectedDataHash=Canonical.ProjectDataHash(basis.ProjectData),
             Routes=MergeExportRoutes(routes),
             SuppressParameterNames=properties.Where(p=>!Exact(p)&&(p.ExportType=="Real"||p.ExportType=="Boolean")).Select(p=>p.Property).Distinct().ToArray(),

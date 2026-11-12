@@ -37,7 +37,7 @@ internal static class Program
                 var version = Run(node.EntryPoint, "--version", node.Directory).Trim();
                 if (version != "v25.4.0") throw new InvalidOperationException("Installed node version mismatch.");
                 var help = Run(node.EntryPoint, "\"" + sync.EntryPoint + "\" help", sync.Directory);
-                if (!help.Contains("\"version\":\"0.2.0\"") && !help.Contains("\"version\":\"0.2.0-web.1\"")) throw new InvalidOperationException("Installed CLI version mismatch.");
+                if (!help.Contains("\"version\":\"0.2.0\"") && !help.Contains("\"version\":\"0.2.1-web.1\"")) throw new InvalidOperationException("Installed CLI version mismatch.");
                 var workerStart = new ProcessStartInfo(node.EntryPoint, "-e \"setTimeout(()=>{},60000)\"") { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = node.Directory };
                 workerStart.EnvironmentVariables.Remove("NODE_OPTIONS"); workerStart.EnvironmentVariables.Remove("NODE_PATH");
                 using (var worker = Process.Start(workerStart)) {

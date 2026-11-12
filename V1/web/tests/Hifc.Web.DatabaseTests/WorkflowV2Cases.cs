@@ -39,9 +39,9 @@ internal static class WorkflowV2Cases
         });
         await test("protocol2 exported receipts are bound to plan actor and restored source",async()=>{
             var scene=await Scene();
-            var plan=(ExportPlan)await Invoke("PreviewExportAsync",scene.Actor,new ExportRequest{Context=scene.Result.Context,FileName="OUT_测试_报规_总图_20261029_V1.ifc"},CancellationToken.None);
+            var plan=(ExportPlan)await Invoke("PreviewExportAsync",scene.Actor,new ExportRequest{Context=scene.Result.Context,ProjectName="测试",BuildingName="总图",FileName="OUT_总图_测试_报规_20261029_V1.ifc"},CancellationToken.None);
             Require(!string.IsNullOrEmpty(plan.Signature)&&plan.Hash==Canonical.ExportHash(plan),"Export plan was not signed.");
-            var receipt=new ExportReceipt{PlanId=plan.Id,DocumentSessionId="doc",IfcPath="C:/isolated/result.ifc",IfcHash=new string('a',64),Exported=true,SourceRestored=false,SnapshotBefore="before",SnapshotAfter="after",CompletedUtc=DateTime.UtcNow};
+            var receipt=new ExportReceipt{InputValidation=plan.InputValidation,PlanId=plan.Id,DocumentSessionId="doc",IfcPath="C:/isolated/result.ifc",IfcHash=new string('a',64),Exported=true,SourceRestored=false,SnapshotBefore="before",SnapshotAfter="after",CompletedUtc=DateTime.UtcNow};
             await Reject(()=>Invoke("ExportReceiptAsync",scene.Actor,receipt,CancellationToken.None));
             receipt.SourceRestored=true;receipt.SnapshotAfter="before";
             await Invoke("ExportReceiptAsync",scene.Actor,receipt,CancellationToken.None);

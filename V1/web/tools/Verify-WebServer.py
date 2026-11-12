@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--phase", choices=("before", "after"), default="before")
 parser.add_argument("--accounts-enabled", action="store_true")
 parser.add_argument("--expected-revision")
-parser.add_argument("--expected-rule", default="reference-0.4.20-web2")
+parser.add_argument("--expected-rule", default="reference-0.4.32-web3")
 args = parser.parse_args()
 web = pathlib.Path(__file__).resolve().parent.parent
 ca = web / ".local/certificates/hifc-web-root-ca.crt"
@@ -40,9 +40,9 @@ live = json.loads(body)
 assert status == 200 and live["authenticationConfigured"] is args.accounts_enabled
 if args.expected_revision:
     assert live["buildRevision"] == args.expected_revision, "Running source revision differs from the candidate"
-status, body = request("/api/v1/compatibility?protocol=2")
+status, body = request("/api/v1/compatibility?protocol=3")
 compatibility = json.loads(body)
-assert status == 200 and compatibility["protocolMajor"] == 2 and compatibility["ruleVersion"] == args.expected_rule, "Protocol compatibility failed"
+assert status == 200 and compatibility["protocolMajor"] == 3 and compatibility["ruleVersion"] == args.expected_rule, "Protocol compatibility failed"
 signing_key = compatibility["signingKey"]
 assert signing_key["modulus"] and signing_key["exponent"], "Public signing key is absent"
 status, body = request("/")

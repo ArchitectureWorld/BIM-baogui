@@ -38,8 +38,25 @@ try{
     }
     Copy-Item -LiteralPath (Join-Path $webRoot '.local/certificates/hifc-web-root-ca.crt') -Destination (Join-Path $package 'hifc-web-root-ca.crt')
     Add-Type -AssemblyName System.Net.Http
-    $handler=New-Object Net.Http.HttpClientHandler; $handler.UseProxy=$false; $http=New-Object Net.Http.HttpClient($handler)
-    try{$public=($http.GetStringAsync('https://192.168.6.45:8443/api/v1/compatibility?protocol=2').GetAwaiter().GetResult()|ConvertFrom-Json).signingKey}finally{$http.Dispose()}
+    $handler=New-Object Net.Http.HttpClientHandler; $handler.UseProxy=$false; $handler.AllowAutoRedirect=$false
+    $http=New-Object Net.Http.HttpClient($handler); $http.Timeout=[TimeSpan]::FromSeconds(20)
+    $public=$null
+    try{
+        foreach($protocol in @(3,2)){
+            $response=$http.GetAsync('https://192.168.6.45:8443/api/v1/compatibility?protocol='+$protocol).GetAwaiter().GetResult()
+            try{
+                $body=$response.Content.ReadAsStringAsync().GetAwaiter().GetResult()|ConvertFrom-Json
+                if($response.IsSuccessStatusCode){
+                    if($body.protocolMajor -ne $protocol){throw 'Signing-key response has an unexpected protocol.'}
+                    $public=$body.signingKey;break
+                }
+                if([int]$response.StatusCode -ne 409 -or $body.code -ne 'CLIENT_UPDATE_REQUIRED'){
+                    throw ('The zetta signing-key request failed: HTTP '+[int]$response.StatusCode)
+                }
+            }finally{$response.Dispose()}
+        }
+    }finally{$http.Dispose()}
+    if($null -eq $public){throw 'The current zetta signing identity could not be read.'}
     if([Convert]::FromBase64String($public.modulus).Length -lt 256){throw 'The zetta update signing key is unavailable.'}
     $public|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $package 'update-public-key.json') -Encoding utf8
     [ordered]@{version='0.5.0-Web';addInId='53ef39d3-a187-4fb5-90f8-29e91d747602';releaseId=$ReleaseId;sourceCommit=$sourceCommit;componentsRequired=$true;createdUtc=[DateTime]::UtcNow.ToString('O');files=$files}|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $package 'package.json') -Encoding utf8

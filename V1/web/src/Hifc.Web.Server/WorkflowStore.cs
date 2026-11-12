@@ -73,7 +73,7 @@ public sealed partial class WorkflowStore(NpgsqlDataSource source, RuleAdapter r
         var stored = await command.ExecuteScalarAsync(ct) as string;
         if (stored == null && !create) throw new InvalidOperationException("检查记录不存在，或不属于当前账号。");
         var state = stored == null ? new ScanState() : JsonSerializer.Deserialize<ScanState>(stored);
-        if (active && state.Context != null && (state.Context.ProtocolMajor != 2 || state.Context.RuleVersion != rules.RuleVersion))
+        if (active && state.Context != null && (state.Context.ProtocolMajor != 3 || state.Context.RuleVersion != rules.RuleVersion))
             throw new WebOperationException("CLIENT_UPDATE_REQUIRED", 409, "服务规则已升级，请关闭并重新打开 Revit 完成自动更新，再重新全面检查；已有草稿保留。");
         var result = operation(state, account);
         if (save)
@@ -95,7 +95,7 @@ public sealed partial class WorkflowStore(NpgsqlDataSource source, RuleAdapter r
     }
     public Task<CapturePlan> StartAsync(Guid actor, InventoryPage page, CancellationToken ct = default)
     {
-        if (page?.Context != null && (page.Context.ProtocolMajor != 2 || page.Context.RuleVersion != rules.RuleVersion))
+        if (page?.Context != null && (page.Context.ProtocolMajor != 3 || page.Context.RuleVersion != rules.RuleVersion))
             throw new WebOperationException("CLIENT_UPDATE_REQUIRED", 409, "服务规则已升级，请关闭并重新打开 Revit 完成自动更新，再重新全面检查；已有草稿保留。");
         if (page?.Context == null || page.Elements == null || page.Elements.Length > 256 || page.PageCount < 1 || page.PageCount > 10000
             || page.PageIndex < 0 || page.PageIndex >= page.PageCount || page.TotalElements < 0 || page.TotalElements > 2000000 || page.Elements.Any(e => e == null)

@@ -22,10 +22,12 @@ namespace Hifc.Web.Revit
         public string SessionId { get; } = Guid.NewGuid().ToString("N");
         public string DocumentKey { get; }
         public string Title { get; }
-        public NativeModelAccess(UIApplication application)
+        public string ModelPath => path;
+        public NativeModelAccess(UIApplication application) : this(application, false) { }
+        internal NativeModelAccess(UIApplication application, bool statisticsOnly)
         {
             document = application.ActiveUIDocument?.Document ?? throw new InvalidOperationException("请先打开项目模型副本。");
-            if (document.IsFamilyDocument || document.IsLinked || document.IsReadOnly) throw new InvalidOperationException("请打开可编辑的项目模型副本。");
+            if (document.IsFamilyDocument || document.IsLinked || document.IsReadOnly && !statisticsOnly) throw new InvalidOperationException("请打开可编辑的项目模型副本。");
             path = document.PathName; Title = document.Title;
             DocumentKey = Canonical.Hash((path ?? "").ToLowerInvariant() + "|" + document.ProjectInformation.UniqueId);
             external = ExternalEvent.Create(this);
@@ -51,6 +53,9 @@ namespace Hifc.Web.Revit
         public Task<ParameterValue[]> ValuesAsync(CaptureTarget[] targets) => Run((ui, doc) => NativeInventory.ReadValues(doc, targets));
         public Task<NativeDefinitionSnapshot[]> DefinitionsAsync(string[] sources) => Run((ui, doc) => NativeInventory.ReadDefinitions(doc, sources));
         public Task<ProjectDataRecord[]> ProjectDataAsync() => Run((ui, doc) => NativeProjectData.Read(doc));
+        public Task OpenStatisticsAsync(WebModelSession session, string kind) => Run((ui, doc) => {
+            NativeStatisticsController.Open(ui, session.NewStatisticsSession(ui), kind); return true;
+        });
         public Task<NativeRedlineEvidence> RedlineEvidenceAsync(string[] uniqueIds) => Run((ui, doc) => NativeRedlineGeometry.Capture(doc, uniqueIds));
         public Task<Tuple<string, string>> DocumentIdentityAsync() => Run((ui, doc) => Tuple.Create(doc.PathName, doc.ProjectInformation.UniqueId));
         public Task<EditDraft[]> NormalizeDraftsAsync(EditDraft[] drafts, FieldResult[] fields) => Run((ui, doc) => drafts.Select(draft => {

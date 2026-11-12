@@ -40,7 +40,7 @@ if((Get-Item -LiteralPath $NodeLicensePath).Length -lt 1000 -or !(Select-String 
 $npm=Join-Path (Split-Path -Parent $NodePath) 'node_modules/npm/bin/npm-cli.js'
 if(!(Test-Path -LiteralPath $npm)){throw 'Build-machine npm CLI was not found beside the verified Node runtime.'}
 $sourcePackage=Get-Content -LiteralPath (Join-Path $SyncSourceDirectory 'package.json') -Raw | ConvertFrom-Json
-if($sourcePackage.version -ne '0.2.0-web.1' -or $sourcePackage.name -ne 'hifc-web-platform-sync'){throw 'Only the authorized Web 0.2.0-web.1 CLI can be published as a Web component.'}
+if($sourcePackage.version -ne '0.2.1-web.1' -or $sourcePackage.name -ne 'hifc-web-platform-sync'){throw 'Only the authorized Web 0.2.1-web.1 CLI can be published as a Web component.'}
 New-Item -ItemType Directory -Path $OutputDirectory | Out-Null
 Add-Type -AssemblyName System.IO.Compression
 function Write-Json([string]$Path,$Value){[IO.File]::WriteAllText($Path,($Value|ConvertTo-Json -Depth 12)+"`n",(New-Object Text.UTF8Encoding($false)))}
@@ -97,14 +97,14 @@ Write-Json (Join-Path $nodeStage 'provenance.json') ([ordered]@{component='node'
 $syncStage=Join-Path $OutputDirectory 'platform-sync-runtime';New-Item -ItemType Directory -Path $syncStage | Out-Null
 Copy-Tree (Join-Path $build 'dist/src') (Join-Path $syncStage 'dist/src')
 Copy-Tree (Join-Path $build 'node_modules') (Join-Path $syncStage 'node_modules')
-Write-Json (Join-Path $syncStage 'package.json') ([ordered]@{name='hifc-web-platform-sync';version='0.2.0-web.1';private=$true;type='module';engines=@{node='25.4.0'};dependencies=$sourcePackage.dependencies})
-Write-Json (Join-Path $syncStage 'provenance.json') ([ordered]@{component='platform-sync';version='0.2.0-web.1';sourceVersion=$sourcePackage.version;mainSourceCommit=$SourceCommit;packageLockSha256=$lockHash;build='npm ci --ignore-scripts; tsc; npm prune --omit=dev --ignore-scripts';sources=$sourceHashes})
+Write-Json (Join-Path $syncStage 'package.json') ([ordered]@{name='hifc-web-platform-sync';version='0.2.1-web.1';private=$true;type='module';engines=@{node='25.4.0'};dependencies=$sourcePackage.dependencies})
+Write-Json (Join-Path $syncStage 'provenance.json') ([ordered]@{component='platform-sync';version='0.2.1-web.1';sourceVersion=$sourcePackage.version;mainSourceCommit=$SourceCommit;packageLockSha256=$lockHash;build='npm ci --ignore-scripts; tsc; npm prune --omit=dev --ignore-scripts';sources=$sourceHashes})
 $help=((& (Join-Path $nodeStage 'node.exe') (Join-Path $syncStage 'dist/src/cli.js') help) -join '').Trim()
 if($LASTEXITCODE -ne 0){throw 'Packaged runtime CLI probe failed.'}
 $helpResult=$help|ConvertFrom-Json
-if($helpResult.version -ne '0.2.0-web.1' -or !$helpResult.commands -or !$helpResult.launch_authorization){throw 'Packaged runtime CLI did not report Web launch authorization/version.'}
+if($helpResult.version -ne '0.2.1-web.1' -or !$helpResult.commands -or !$helpResult.launch_authorization){throw 'Packaged runtime CLI did not report Web launch authorization/version.'}
 $locks=@()
-foreach($item in @(@{id='node';version='25.4.0';stage=$nodeStage;entry='node.exe'},@{id='platform-sync';version='0.2.0-web.1';stage=$syncStage;entry='dist/src/cli.js'})){
+foreach($item in @(@{id='node';version='25.4.0';stage=$nodeStage;entry='node.exe'},@{id='platform-sync';version='0.2.1-web.1';stage=$syncStage;entry='dist/src/cli.js'})){
     $published=Join-Path $OutputDirectory ('components/'+$ReleaseId+'/'+$item.id+'/'+$item.version)
     New-Item -ItemType Directory -Path $published -Force | Out-Null
     $archive=Join-Path $published 'archive.zip';Zip-Reproducible $item.stage $archive
@@ -112,7 +112,7 @@ foreach($item in @(@{id='node';version='25.4.0';stage=$nodeStage;entry='node.exe
     $repeat=Join-Path $OutputDirectory ($item.id+'-repro.zip');Zip-Reproducible $item.stage $repeat
     $hash=Hash $archive
     if($hash -ne (Hash $repeat)){throw 'Component archive was not reproducible.'}
-    $lock=[ordered]@{mainReleaseId=$ReleaseId;mainSourceCommit=$SourceCommit;componentId=$item.id;version=$item.version;runtimeIdentifier='windows-x64';protocolMajor=2;archiveSha256=$hash;archiveLength=(Get-Item -LiteralPath $archive).Length;entryPoint=$item.entry}
+    $lock=[ordered]@{mainReleaseId=$ReleaseId;mainSourceCommit=$SourceCommit;componentId=$item.id;version=$item.version;runtimeIdentifier='windows-x64';protocolMajor=3;archiveSha256=$hash;archiveLength=(Get-Item -LiteralPath $archive).Length;entryPoint=$item.entry}
     if($lock.archiveLength -gt 256MB){throw 'Component archive exceeds client safety limit.'}
     Write-Json (Join-Path $published 'lock.json') $lock
     $locks+=@($lock)

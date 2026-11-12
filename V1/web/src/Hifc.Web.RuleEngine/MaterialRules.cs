@@ -90,7 +90,14 @@ public sealed partial class RuleAdapter
     {
         if(basis?.Complete!=true)throw new InvalidOperationException("请先全面检查模型。");
         var directory=Path.Combine(Path.GetTempPath(),"hifc-web-template-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
-        try {var path=Path.Combine(directory,"template.xlsx");ReportingWorkbookTemplate.Write(path,basis.Elements.Where(e=>e.Element.Entity=="IfcBuilding").Select(e=>e.Element.Building??e.Element.Name),basis.ModelKind=="总图");return File.ReadAllBytes(path);}
+        try {
+            var path=Path.Combine(directory,"template.xlsx");
+            var building=basis.Fields.FirstOrDefault(f=>f.PropertySet=="Pset_建筑技术信息属性集"&&f.Property=="建筑名称"&&!string.IsNullOrWhiteSpace(f.Value))?.Value
+                ??basis.Elements.FirstOrDefault(e=>e.Element.Entity=="IfcBuilding")?.Element.Building;
+            ReportingWorkbookTemplate.WriteForModel(path,basis.ModelKind,building,
+                ReportingWorkbookTemplate.ActualLevelNames(CoreRows(basis),Planning(basis.Settings)));
+            return File.ReadAllBytes(path);
+        }
         finally {Directory.Delete(directory,true);}
     }
     private static FieldResult FindField(CheckResult basis,ReportingWorkbookChange c) => basis.Fields.Single(f=>f.ElementUniqueId==c.ElementUniqueId&&f.OwnerUniqueId==c.OwnerUniqueId&&f.PropertySet==c.PropertySet&&f.Source==c.Source&&f.Binding==c.Binding);

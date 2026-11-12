@@ -28,7 +28,7 @@ namespace Hifc.Web.Update
             if (locks == null || locks.Length != 2 || locks.Select(x => x?.ComponentId).Distinct().Count() != 2) throw new InvalidOperationException("Web 运行组件锁必须包含 Node 和平台同步程序。");
             foreach (var item in locks) ComponentTrust.ValidateLock(item);
             if (!locks.Any(x => x.ComponentId == "node" && x.Version == "25.4.0" && x.EntryPoint == "node.exe")
-                || !locks.Any(x => x.ComponentId == "platform-sync" && x.Version == "0.2.0-web.1" && x.EntryPoint == "dist/src/cli.js")
+                || !locks.Any(x => x.ComponentId == "platform-sync" && x.Version == "0.2.1-web.1" && x.EntryPoint == "dist/src/cli.js")
                 || locks.Any(x => x.MainReleaseId != locks[0].MainReleaseId || x.MainSourceCommit != locks[0].MainSourceCommit)) throw new InvalidOperationException("Web 运行组件版本或主包来源不一致。");
         }
         public static void ValidatePackage(ComponentLock[] locks, string installationRoot, string candidatePackagePath = null)

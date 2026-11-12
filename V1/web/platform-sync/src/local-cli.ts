@@ -14,7 +14,7 @@ function output(value:unknown){process.stdout.write(JSON.stringify(sanitize(valu
 function resultCode(r:Run){return r.state==='UNKNOWN_RESULT'?5:r.state==='NEEDS_LOGIN'?3:['BLOCKED','PAUSED'].includes(r.state)?4:r.state==='FAILED'?6:0;}
 async function stdin(){let text='';for await(const part of process.stdin){text+=part.toString();if(text.length>16000)throw new SyncError('CONFIG','Credential input is too long.');}return text.trim();}
 export async function runLocalCli(input:string[], webCli:string){runtimeIdentity();const {command,options:o}=args(input);
- if(command==='help'){output({version:'0.2.0-web.1',commands:['setup','inspect','bind','plan','start --apply (background)','run --apply','status','resume (model-readonly; report may download)','report-start (background)','report (download/retry only)','rollback --apply (fixture only)'],real_platform:'single-model live acceptance completed; report is independent'});return;}
+ if(command==='help'){output({version:'0.2.1-web.1',commands:['setup','inspect','bind','plan','start --apply (background)','run --apply','status','resume (model-readonly; report may download)','report-start (background)','report (download/retry only)','rollback --apply (fixture only)'],real_platform:'single-model live acceptance completed; report is independent'});return;}
  const file=typeof o.config==='string'?resolve(o.config):undefined;if(!file)throw new SyncError('CONFIG','--config is required.');
  if(command==='watch')throw new SyncError('BLOCKED','watch/batch/unattended operation is deferred in this preview.');
  if(!['setup','inspect','bind','plan','start','run','status','resume','rollback','report','report-start'].includes(command))throw new SyncError('CONFIG','Unknown command.');

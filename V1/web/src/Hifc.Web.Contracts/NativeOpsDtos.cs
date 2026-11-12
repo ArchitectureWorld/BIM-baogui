@@ -101,6 +101,8 @@ namespace Hifc.Web.Contracts
         public RequestContext Context { get; set; }
         public string FileName { get; set; }
         public bool HasPendingMaterials { get; set; }
+        public string ProjectName { get; set; }
+        public string BuildingName { get; set; }
     }
     public sealed class NativeExportProperty
     {
@@ -128,6 +130,8 @@ namespace Hifc.Web.Contracts
         public string Signature { get; set; }
         public string FileName { get; set; }
         public string MappingText { get; set; }
+        public RequiredInputProof InputValidation { get; set; }
+        public ExportNotice[] Notices { get; set; } = new ExportNotice[0];
         public WriteChange[] TemporaryChanges { get; set; } = new WriteChange[0];
         public NativeOperations Native { get; set; } = new NativeOperations();
         public NativeExportRoute[] Routes { get; set; } = new NativeExportRoute[0];
@@ -142,6 +146,7 @@ namespace Hifc.Web.Contracts
         public string IfcPath { get; set; }
         public string IfcHash { get; set; }
         public string ReceiptPath { get; set; }
+        public RequiredInputProof InputValidation { get; set; }
         public string SnapshotBefore { get; set; }
         public string SnapshotAfter { get; set; }
         public bool SourceRestored { get; set; }

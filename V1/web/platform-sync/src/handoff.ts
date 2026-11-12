@@ -1,4 +1,4 @@
-import {normalize,receiptIdentity} from './web-runtime.js';
+import {normalize,receiptIdentity,type RequiredInputProof} from './web-runtime.js';
 import {readFileSync,writeFileSync,copyFileSync,mkdirSync,renameSync,lstatSync} from 'node:fs';
 import {dirname,join,resolve,isAbsolute,win32} from 'node:path';
 import {randomUUID} from 'node:crypto';
@@ -11,6 +11,15 @@ export function assertIfc(bytes:Buffer):void {
  const text=bytes.toString('utf8'),header=/HEADER\s*;([\s\S]*?)ENDSEC\s*;/i.exec(text);
  if(!header||!/FILE_SCHEMA\s*\(\s*\(\s*'IFC(?:2X3|4)[A-Z0-9_]*'\s*\)\s*\)\s*;/i.test(header[1]!)||! /DATA\s*;[\s\S]*#\d+\s*=\s*IFCPROJECT\s*\([\s\S]*ENDSEC\s*;\s*END-ISO-10303-21\s*;\s*$/i.test(text))fail('Backup/payload lacks an IFC schema or complete IFC project data section.');
 }
+export function assertRequiredInputValidation(value:unknown):asserts value is RequiredInputProof {
+ const proof=value as Partial<RequiredInputProof>|null;
+ if(!proof||proof.schema!=='hifc.required-input-review/1'||proof.rule_profile_id!=='hubei-420626-planning-20261020'
+  ||proof.rule_revision!=='hbbim-420626-required-20261105'||proof.rule_evidence_sha256!=='19f623d8d8309d13eb8b40e581f375813d3afd1aa35115f7898689213394d335'
+  ||proof.complete!==true||!['总图','单体建筑'].includes(String(proof.model_kind))
+  ||!Number.isInteger(proof.checked_objects)||Number(proof.checked_objects)<=0
+  ||!Number.isInteger(proof.checked_fields)||Number(proof.checked_fields)<=0||proof.blocking_count!==0)
+  fail('缺少当前规则的完整必填检查通过记录，请重新检查、补齐属性并导出后再同步。');
+}
 export function verifyHandoff(manifestPath:string):{handoff:Handoff;ifcPath:string;receiptPath:string} {
  try{
   if(lstatSync(manifestPath).isSymbolicLink())fail('Manifest links are forbidden.');
@@ -22,7 +31,8 @@ export function verifyHandoff(manifestPath:string):{handoff:Handoff;ifcPath:stri
   const bytes=readFileSync(ifcPath),receipt=readFileSync(receiptPath);
   if(hash(bytes)!==h.ifc_sha256||hash(receipt)!==h.receipt_sha256)fail('Frozen file SHA256 hash mismatch.');
   assertIfc(bytes);
-  const r=normalize<{planId:string;documentSessionId:string;ifcHash:string;snapshotBefore:string;snapshotAfter:string;sourceRestored:boolean;exported:boolean}>(JSON.parse(receipt.toString('utf8').replace(/^\uFEFF/,'')));
+  const r=normalize<{planId:string;documentSessionId:string;ifcHash:string;snapshotBefore:string;snapshotAfter:string;sourceRestored:boolean;exported:boolean;inputValidation?:RequiredInputProof}>(JSON.parse(receipt.toString('utf8').replace(/^\uFEFF/,'')));
+  assertRequiredInputValidation(r.inputValidation);
   if(!h.web||h.web.schema!=='hifc.web-platform-export/1'||r.planId!==h.export_id||r.documentSessionId!==h.web.document_session_id||r.ifcHash!==h.ifc_sha256||!r.snapshotBefore||r.snapshotBefore!==r.snapshotAfter||r.sourceRestored!==true||r.exported!==true||receiptIdentity(r)!==h.web.receipt_identity_hash)fail('Only a complete Web native export receipt is accepted.');
   return {handoff:h,ifcPath,receiptPath};
  }catch(e){if(e instanceof SyncError)throw e;return fail('Cannot verify export handoff files.');}

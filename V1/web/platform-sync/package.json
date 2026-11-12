@@ -1,6 +1,6 @@
 {
   "name": "hifc-web-platform-sync",
-  "version": "0.2.0-web.1",
+  "version": "0.2.1-web.1",
   "private": true,
   "type": "module",
   "engines": {

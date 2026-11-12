@@ -10,13 +10,15 @@ using Hifc.Web.Contracts;
 
 namespace Hifc.Web.Revit
 {
-    public sealed class WebModelSession : IDisposable, INativeMaterialSession
+    public sealed partial class WebModelSession : IDisposable, INativeMaterialSession
     {
         private readonly NativeModelAccess model;
         private readonly ProfileStore profiles;
         private readonly WorkspaceStore workspaces;
         private readonly CancellationTokenSource cancellation = new CancellationTokenSource();
         private readonly WebApiClient api;
+        private readonly Uri server;
+        private readonly string stateRoot;
         private Compatibility compatibility;
         private CapturePlan capture;
         private AccountSession identity;
@@ -30,6 +32,8 @@ namespace Hifc.Web.Revit
         public DateTime ServerNowUtc => api.ServerNowUtc;
         public AccountInfo Account => identity?.Account;
         public string Title => model.Title;
+        public string ModelPath => model.ModelPath;
+        public string DocumentKey => model.DocumentKey;
         public string ActivePhone => profiles.Current?.Phone ?? profiles.LegacyPhone;
         public string ActiveName => profiles.Current?.RealName ?? "";
         public string Status { get; private set; } = "连接服务器后开始全面检查；已有草稿可离线编辑。";
@@ -43,7 +47,7 @@ namespace Hifc.Web.Revit
         public event Action Changed;
         public WebModelSession(NativeModelAccess model, Uri server, string stateRoot)
         {
-            this.model = model; api = new WebApiClient(server);
+            this.model = model; this.server = server; this.stateRoot = stateRoot; api = new WebApiClient(server);
             profiles = new ProfileStore(Path.Combine(stateRoot, "accounts")); workspaces = new WorkspaceStore(Path.Combine(stateRoot, "drafts"));
             Workspace = workspaces.Load(model.DocumentKey); Result = Workspace.LastCheck;
             if (Result != null) Status = "已恢复上次检查与人工草稿；写入前会重新全面检查。";
@@ -162,12 +166,12 @@ namespace Hifc.Web.Revit
             catch (Exception ex) { Say("模型写入与本机回读成功；全面复检或回执尚未完成。" + ex.Message + " 请恢复连接后重新检查；不要重复写入。"); }
         }
         public Task LocateAsync(int[] ids) => model.LocateAsync(ids);
-        public async Task PreviewExportAsync(string fileName)
+        public async Task PreviewExportAsync(string fileName, string projectName = null, string buildingName = null)
         {
             await EnsureIdentity(); if (!LiveCheck) await ScanAsync();
             if (Workspace.Drafts.Length != 0 || Workspace.Materials.Length != 0 || Workspace.SettingsDirty || Workspace.SettingsConflict || Plan != null) throw new InvalidOperationException("仍有未写入的属性、资料或计算设置，请先核对、写入并复检后再导出。");
             await SyncMaterialsAsync();
-            ExportPlan = await api.PreviewExportAsync(new ExportRequest { Context = Result.Context, FileName = fileName }, cancellation.Token);
+            ExportPlan = await api.PreviewExportAsync(new ExportRequest { Context = Result.Context, FileName = fileName, ProjectName = projectName, BuildingName = buildingName }, cancellation.Token);
             Say("导出前核对已完成，确认后按服务器签名方案执行原生 IFC 导出。");
         }
         public async Task ExportAsync(string directory)

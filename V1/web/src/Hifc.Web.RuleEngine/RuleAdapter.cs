@@ -14,7 +14,7 @@ public sealed partial class RuleAdapter
             throw new InvalidOperationException("已确认的基底楼层被删除或替换，请重新确认后写入/导出是否属性。");
         return BooleanPolicy.DefaultValue(source,name,owner,baseId);
     }
-    public string RuleVersion => "reference-0.4.20-web2";
+    public string RuleVersion => "reference-0.4.32-web3";
     public RuleProfileInfo[] Profiles => new[] { new RuleProfileInfo { Id = "", Title = "参考成功案例", Scope = "报规" }, new RuleProfileInfo { Id = PlatformRules.ProfileId, Title = PlatformRules.Title, Scope = "报规 / 保康县 420626" } };
     private static PlanningSettings Planning(ModelSettings settings) => new() { RuleProfileId = settings.RuleProfileId,
         Roles = (settings.Roles ?? []).Select(r => new PlanningRoleChoice { UniqueId = r.UniqueId, Slot = r.Slot, Identity = r.Identity }).ToArray(),

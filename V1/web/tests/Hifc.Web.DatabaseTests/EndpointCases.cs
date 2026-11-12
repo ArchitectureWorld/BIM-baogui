@@ -32,7 +32,7 @@ internal static class EndpointCases
             await test("zetta publishes a signed update manifest and its exact package through the actual HTTP server", async () => {
                 using var reply = await http.GetAsync("updates/latest"); Require(reply.IsSuccessStatusCode, "Update manifest endpoint is unavailable.");
                 var update = JsonWire.Deserialize<ClientUpdateManifest>(await reply.Content.ReadAsStringAsync());
-                using var compatibility = await http.GetAsync("api/v1/compatibility?protocol=2"); var key = JsonWire.Deserialize<Compatibility>(await compatibility.Content.ReadAsStringAsync()).SigningKey;
+                using var compatibility = await http.GetAsync("api/v1/compatibility?protocol=3"); var key = JsonWire.Deserialize<Compatibility>(await compatibility.Content.ReadAsStringAsync()).SigningKey;
                 UpdateTrust.Validate(update, key); Require(update.PackageUrl.StartsWith(UpdateTrust.Server, StringComparison.Ordinal), "Update source points away from zetta.");
                 using var package = await http.GetAsync(new Uri(update.PackageUrl).AbsolutePath);
                 Require(package.IsSuccessStatusCode && (await package.Content.ReadAsByteArrayAsync()).SequenceEqual(archive), "Update download differs from the signed manifest.");
@@ -124,6 +124,7 @@ internal static class EndpointCases
                     Require(!html.Contains(member.Account.Phone) && html.Contains("删除"), "Account list did not persist deletion or has no delete action.");
                 } finally { await using var cleanup = source.CreateCommand("DELETE FROM hifc_web.admin_passwords WHERE account_id=@id"); cleanup.Parameters.AddWithValue("id", Guid.Parse(administrator.Id)); await cleanup.ExecuteNonQueryAsync(); }
             });
+            await StatisticsEndpointCases.Run(test, Register, address, source);
         }
         finally { await app.StopAsync(); await app.DisposeAsync(); }
     }

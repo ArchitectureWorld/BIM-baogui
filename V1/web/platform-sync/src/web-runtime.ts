@@ -4,7 +4,7 @@ import {join,resolve,dirname} from 'node:path';
 import {SyncError,type Run,type Config} from './types.js';
 import {getCACertificates,setDefaultCACertificates} from 'node:tls';
 
-export const WEB_VERSION='0.2.0-web.1',NODE_VERSION='25.4.0',WEB_SERVER='https://192.168.6.45:8443/';
+export const WEB_VERSION='0.2.1-web.1',NODE_VERSION='25.4.0',WEB_SERVER='https://192.168.6.45:8443/';
 export type WebIdentity={schemaVersion:1;minimumReaderVersion:1;accountId:string;componentVersion:string;nodeVersion:string;mainReleaseId:string;mainSourceCommit:string;serverClockOffsetSeconds?:number};
 export type WebConfig=Config&{web:WebIdentity};
 export type Permit={exportPlanId:string;documentSessionId:string;projectId:string;targetModelId:string;targetGeneration:string;ifcSha256:string;runId:string;mainReleaseId:string;mainSourceCommit:string;componentVersion:string;nodeVersion:string;confirmedReplacement:boolean;id:string;accountId:string;exportPlanHash:string;receiptIdentityHash:string;issuedAtUnixSeconds:number;expiresAtUnixSeconds:number;signature:string};
@@ -42,7 +42,14 @@ export function permitPayload(x:Permit){return ['HIFC-WEB-PLATFORM-LAUNCH-1',req
 export function consumptionPayload(x:Consumption){return ['HIFC-WEB-PLATFORM-CONSUME-1',x.permitId,x.permitHash,x.accountId,x.runId,x.consumerNonce,String(x.consumedAtUnixSeconds)].join('\n');}
 export function verifySignature(payload:string,signature:string,key:Key){try{const jwk={kty:'RSA',n:Buffer.from(key.modulus,'base64').toString('base64url'),e:Buffer.from(key.exponent,'base64').toString('base64url')};if(Buffer.from(key.modulus,'base64').length<256||!verify('RSA-SHA256',Buffer.from(payload),createPublicKey({key:jwk,format:'jwk'}),Buffer.from(signature,'base64')))fail('Web authorization signature is invalid.');}catch{fail('Web authorization signature is invalid.');}}
 function installationKey(){return readJson<Key>(join(process.env.LOCALAPPDATA!,'HIFC','0.5.0-Web','Revit2020','update-public-key.json'));}
-export function receiptIdentity(r:{planId:string;documentSessionId:string;ifcHash:string;snapshotBefore:string;snapshotAfter:string;sourceRestored:boolean;exported:boolean}){return sha(['HIFC-WEB-EXPORT-RECEIPT-2',r.planId,r.documentSessionId,r.ifcHash,r.snapshotBefore,r.snapshotAfter,r.sourceRestored?'1':'0',r.exported?'1':'0'].join('\n'));}
+export type RequiredInputProof={schema:string;rule_profile_id:string;rule_revision:string;rule_evidence_sha256:string;complete:boolean;model_kind:string;checked_objects:number;checked_fields:number;blocking_count:number};
+export function inputProofIdentity(proof?:RequiredInputProof):string {
+ if(!proof)return sha('');
+ return sha([proof.schema,proof.rule_profile_id,proof.rule_revision,proof.rule_evidence_sha256,proof.complete?'1':'0',proof.model_kind,String(proof.checked_objects),String(proof.checked_fields),String(proof.blocking_count)].join('\n'));
+}
+export function receiptIdentity(r:{planId:string;documentSessionId:string;ifcHash:string;snapshotBefore:string;snapshotAfter:string;sourceRestored:boolean;exported:boolean;inputValidation?:RequiredInputProof}) {
+ return sha(['HIFC-WEB-EXPORT-RECEIPT-3',r.planId,r.documentSessionId,r.ifcHash,r.snapshotBefore,r.snapshotAfter,r.sourceRestored?'1':'0',r.exported?'1':'0',inputProofIdentity(r.inputValidation)].join('\n'));
+}
 export function validatePermit(permit:Permit,run:Run,key:Key,now=Math.floor(Date.now()/1000)){
  validateRun(run);const current=runtimeIdentity();const h=run.handoff.web;
  if(!permit||permit.confirmedReplacement!==true||!Number.isSafeInteger(permit.issuedAtUnixSeconds)||!Number.isSafeInteger(permit.expiresAtUnixSeconds)||!/^[a-f0-9-]{32,36}$/i.test(permit.id)||!/^[a-f0-9]{64}$/.test(permit.exportPlanHash)||!/^[a-f0-9]{64}$/.test(permit.receiptIdentityHash))fail('Web launch permit field types or identity are invalid.');

@@ -55,8 +55,8 @@ namespace Hifc.Web.Revit
                 var segments=new List<string>();
                 Func<XYZ,string> point=p=>(p.X*.3048).ToString("0.000000",CultureInfo.InvariantCulture)+","+(p.Y*.3048).ToString("0.000000",CultureInfo.InvariantCulture);
                 foreach(var reference in HostObjectUtils.GetTopFaces(floor)) {
-                    if(!(element.GetGeometryObjectFromReference(reference) is PlanarFace face)||Math.Abs(face.FaceNormal.Z)<.999999)return null;
-                    foreach(var loop in face.GetEdgesAsCurveLoops())
+                    if(!(element.GetGeometryObjectFromReference(reference) is Face face))return null;
+                    foreach(var loop in ProjectionLoops(face))
                         foreach(var curve in loop) {
                             if(!curve.IsBound)return null;
                             var ends=new[]{point(curve.GetEndPoint(0)),point(curve.GetEndPoint(1))}.OrderBy(p=>p,StringComparer.Ordinal);
@@ -65,6 +65,7 @@ namespace Hifc.Web.Revit
                 }
                 return segments.Count==0?null:Canonical.Hash(string.Join("\n",segments.OrderBy(s=>s,StringComparer.Ordinal)));
             } catch(Autodesk.Revit.Exceptions.ApplicationException){return null;}
+              catch(InvalidOperationException){return null;}
         }
         internal static void CheckAggregation(Document doc,ElementRecord[] rows)
         {
@@ -93,20 +94,54 @@ namespace Hifc.Web.Revit
             }
             foreach(var row in rows)row.ProjectionOverlaps=evidence[row.UniqueId].OrderBy(e=>e.OtherUniqueId,StringComparer.Ordinal).ToArray();
         }
-        static Solid[] ProjectionSolids(Element element)
+        internal static IList<CurveLoop> ProjectionLoops(Face face)
+        {
+            var planar=face as PlanarFace;
+            if(planar!=null&&Math.Abs(planar.FaceNormal.Z)<1e-9)throw new InvalidOperationException("顶面没有有效水平投影");
+            var source=face.GetEdgesAsCurveLoops();
+            // Retain analytic arcs/ellipses for horizontal faces. A rigid translation
+            // cannot flatten a sloped face; straight edges need an XY projection.
+            if(planar!=null&&Math.Abs(planar.FaceNormal.Z)>1-1e-12) {
+                var translation=Transform.CreateTranslation(new XYZ(0,0,-planar.Origin.Z));
+                return source.Select(l=>CurveLoop.CreateViaTransform(l,translation)).ToList();
+            }
+            var result=new List<CurveLoop>();
+            foreach(var loop in source) {
+                var projected=new CurveLoop();
+                foreach(var curve in loop) {
+                    if(!(curve is Line)||!curve.IsBound)throw new InvalidOperationException("斜面曲线边界的精确投影尚不支持");
+                    var a=curve.GetEndPoint(0);var b=curve.GetEndPoint(1);
+                    projected.Append(Line.CreateBound(new XYZ(a.X,a.Y,0),new XYZ(b.X,b.Y,0)));
+                }
+                result.Add(projected);
+            }
+            return result;
+        }
+        internal static Solid[] ProjectionSolids(Element element)
         {
             if(!(element is Floor floor))return null;
             var solids=new List<Solid>();
             try {
                 foreach(var reference in HostObjectUtils.GetTopFaces(floor)) {
-                    if(!(element.GetGeometryObjectFromReference(reference) is PlanarFace face)||Math.Abs(face.FaceNormal.Z)<.999999)throw new InvalidOperationException("顶面不是水平平面");
-                    var translation=Transform.CreateTranslation(new XYZ(0,0,-face.Origin.Z));
-                    var loops=face.GetEdgesAsCurveLoops().Select(l=>CurveLoop.CreateViaTransform(l,translation)).ToList();
-                    try { solids.Add(GeometryCreationUtilities.CreateExtrusionGeometry(loops,XYZ.BasisZ,1)); }
-                    finally { foreach(var loop in loops)loop.Dispose(); }
+                    if(!(element.GetGeometryObjectFromReference(reference) is Face face))throw new InvalidOperationException("顶面不可读取");
+                    var projected=GeometryCreationUtilities.CreateExtrusionGeometry(ProjectionLoops(face),XYZ.BasisZ,1);
+                    solids.Add(projected);
+                    // Revit may represent a shape-edited floor as a RuledFace even
+                    // with straight boundary loops. Accept it only when its actual
+                    // projected mesh agrees with the exact boundary extrusion and
+                    // converges; folds or ambiguous projections remain blocked.
+                    if(!(face is PlanarFace)) {
+                        double measured=MeshArea(face.Triangulate(1));
+                        double tolerance=1e-7/(.3048*.3048)+Math.Abs(measured)*1e-10;
+                        if(Math.Abs(projected.Volume-measured)>tolerance||Math.Abs(MeshArea(face.Triangulate(.8))-measured)>tolerance)
+                            throw new InvalidOperationException("顶面投影与边界或网格收敛校验不一致");
+                    }
                 }
                 return solids.ToArray();
-            } catch { foreach(var solid in solids)solid.Dispose();throw; }
+            }catch {
+                foreach(var solid in solids)solid.Dispose();
+                throw;
+            }
         }
     }
 }

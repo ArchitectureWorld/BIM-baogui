@@ -41,6 +41,8 @@ public sealed partial class WorkflowStore
             plan = JsonSerializer.Deserialize<ExportPlan>(reader.GetString(0)); prior = reader.IsDBNull(1) ? null : JsonSerializer.Deserialize<ExportReceipt>(reader.GetString(1));
         }
         if (receipt.DocumentSessionId != plan.Context.DocumentSessionId || plan.Hash != Canonical.ExportHash(plan)) throw new InvalidOperationException("导出回执不属于当前文档或签名方案。");
+        if (RequiredInputProof.Identity(receipt.InputValidation) != RequiredInputProof.Identity(plan.InputValidation))
+            throw new InvalidOperationException("导出回执中的必填检查记录与签名方案不一致。");
         if (prior != null && JsonSerializer.Serialize(prior) != JsonSerializer.Serialize(receipt)) throw new InvalidOperationException("导出回执已经登记，不能更改已冻结的 IFC。");
         command.CommandText = "UPDATE hifc_web.exports SET receipt=@receipt,updated_at=clock_timestamp() WHERE id=@id AND actor_id=@actor";
         command.Parameters.AddWithValue("receipt", NpgsqlDbType.Jsonb, JsonSerializer.Serialize(receipt)); await command.ExecuteNonQueryAsync(ct);

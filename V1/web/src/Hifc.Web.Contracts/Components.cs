@@ -13,7 +13,7 @@ namespace Hifc.Web.Contracts
         public string ComponentId { get; set; }
         public string Version { get; set; }
         public string RuntimeIdentifier { get; set; } = "windows-x64";
-        public int ProtocolMajor { get; set; } = 2;
+        public int ProtocolMajor { get; set; } = 3;
         public string ArchiveSha256 { get; set; }
         public long ArchiveLength { get; set; }
         public string EntryPoint { get; set; }
@@ -36,7 +36,7 @@ namespace Hifc.Web.Contracts
                 || !Regex.IsMatch(value.MainSourceCommit ?? "", "^[a-f0-9]{40}$")
                 || !Regex.IsMatch(value.ComponentId ?? "", "^[a-z][a-z0-9-]{0,47}$")
                 || !Regex.IsMatch(value.Version ?? "", "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[a-z0-9]+(?:[.-][a-z0-9]+)*)?$")
-                || value.RuntimeIdentifier != "windows-x64" || value.ProtocolMajor != 2
+                || value.RuntimeIdentifier != "windows-x64" || value.ProtocolMajor != 3
                 || !Regex.IsMatch(value.ArchiveSha256 ?? "", "^[a-f0-9]{64}$")
                 || value.ArchiveLength < 1 || value.ArchiveLength > MaximumArchiveBytes
                 || string.IsNullOrEmpty(value.EntryPoint) || value.EntryPoint.Length > 180

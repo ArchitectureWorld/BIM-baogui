@@ -24,6 +24,7 @@ public sealed class PlatformLaunchStore(NpgsqlDataSource source, PlanSigner sign
     }
     public async Task<PlatformLaunchPermit> IssueAsync(PlatformLaunchRequest request, AccountInfo actor, ExportPlan plan, ExportReceipt receipt, CancellationToken ct = default)
     {
+        Hifc.Web.RuleEngine.RuleAdapter.RequirePlatformExport(plan, receipt);
         var account = await accounts.GetAsync(Guid.Parse(actor.Id), ct);
         var permit = signer.IssuePlatformLaunch(request, account, account?.ServerTimeUtc ?? DateTime.UtcNow, plan, receipt);
         await using var command = source.CreateCommand("""
