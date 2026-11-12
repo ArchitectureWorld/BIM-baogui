@@ -82,8 +82,10 @@ try{
 }finally{$certificate.Dispose()}
 '@
 $windowsPowerShell=Join-Path $env:SystemRoot 'System32/WindowsPowerShell/v1.0/powershell.exe'
+$childPath=Join-Path $run 'verify-certificate.ps1'
+[IO.File]::WriteAllText($childPath,$child,[Text.UTF8Encoding]::new($true))
 $start=New-Object Diagnostics.ProcessStartInfo
-$start.FileName=$windowsPowerShell;$start.Arguments='-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand '+[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($child))
+$start.FileName=$windowsPowerShell;$start.Arguments='-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "'+$childPath+'"'
 $start.UseShellExecute=$false;$start.CreateNoWindow=$true;$start.RedirectStandardOutput=$true;$start.RedirectStandardError=$true
 $start.StandardOutputEncoding=[Text.UTF8Encoding]::new($false);$start.StandardErrorEncoding=[Text.UTF8Encoding]::new($false)
 $start.EnvironmentVariables['HIFC_CERT_TEST_PACKAGE']=$packagePath;$start.EnvironmentVariables['HIFC_CERT_TEST_PREFIX']=$storePrefix
@@ -98,7 +100,7 @@ try{
     [IO.File]::WriteAllText((Join-Path $run 'result.log'),$output,[Text.UTF8Encoding]::new($false))
     $count=if($WithInstallation){7}else{6}
     if($WithInstallation -and ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){$count++}
-    if($process.ExitCode -ne 0 -or @([regex]::Matches($output,'(?m)^PASS certificate ')).Count -ne $count){Write-Output $output;throw ('Certificate trust tests failed: '+$run)}
+    if($process.ExitCode -ne 0 -or @([regex]::Matches($output,'(?m)^PASS certificate ')).Count -ne $count){Write-Output $output;throw ('Certificate trust tests failed (exit '+$process.ExitCode+', output length '+$output.Length+'): '+$run)}
     Write-Output (($output -split '\r?\n'|Where-Object {$_ -like 'PASS certificate *'}) -join [Environment]::NewLine)
 }finally{
     $process.Dispose()
