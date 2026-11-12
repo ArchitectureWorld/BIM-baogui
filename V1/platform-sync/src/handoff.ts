@@ -10,6 +10,11 @@ export function assertIfc(bytes:Buffer):void {
  const text=bytes.toString('utf8'),header=/HEADER\s*;([\s\S]*?)ENDSEC\s*;/i.exec(text);
  if(!header||!/FILE_SCHEMA\s*\(\s*\(\s*'IFC(?:2X3|4)[A-Z0-9_]*'\s*\)\s*\)\s*;/i.test(header[1]!)||! /DATA\s*;[\s\S]*#\d+\s*=\s*IFCPROJECT\s*\([\s\S]*ENDSEC\s*;\s*END-ISO-10303-21\s*;\s*$/i.test(text))fail('Backup/payload lacks an IFC schema or complete IFC project data section.');
 }
+export function assertRequiredInputValidation(value:unknown):void {
+ const v=value as Record<string,unknown>|null;
+ if(!v||v.schema!=='hifc.required-input-review/1'||v.rule_profile_id!=='hubei-420626-planning-20261020'||v.rule_revision!=='hbbim-420626-required-20261104'||v.rule_evidence_sha256!=='ea0f70c4a5870f3a911799d079aa7ed6c08be24f294542676a5b17a0b09dfbbe'||v.complete!==true||!['总图','单体建筑'].includes(String(v.model_kind))||!Number.isInteger(v.checked_objects)||Number(v.checked_objects)<=0||!Number.isInteger(v.checked_fields)||Number(v.checked_fields)<=0||v.blocking_count!==0)
+  fail('缺少当前规则的完整必填检查通过记录；请在插件中补齐属性并重新导出，不能上传旧的未检验成果。');
+}
 export function verifyHandoff(manifestPath:string):{handoff:Handoff;ifcPath:string;receiptPath:string} {
  try{
   if(lstatSync(manifestPath).isSymbolicLink())fail('Manifest links are forbidden.');
@@ -22,7 +27,8 @@ export function verifyHandoff(manifestPath:string):{handoff:Handoff;ifcPath:stri
   if(hash(bytes)!==h.ifc_sha256||hash(receipt)!==h.receipt_sha256)fail('Frozen file SHA256 hash mismatch.');
   assertIfc(bytes);
   const r=JSON.parse(receipt.toString('utf8').replace(/^\uFEFF/,''));
-  if(!['hifc.native-export-receipt/1.5','hifc.native-export-receipt/1.6'].includes(r.schema_version)||r.export_id!==h.export_id||r.ifc_sha256!==h.ifc_sha256||!r.source_snapshot_before||r.source_snapshot_before!==r.source_snapshot_after||r.model_transaction!=='RolledBack'||r.export_scope!=='CURRENT_PROJECT'||r.doc_export_calls!==1||r.ifc_postprocessed!==false||r.original_export_server_restored!==true||r.temporary_type_schedules_rolled_back!==true)fail('Incomplete or mismatched native export receipt.');
+  assertRequiredInputValidation(r.input_validation);
+  if(r.schema_version!=='hifc.native-export-receipt/1.7'||r.export_id!==h.export_id||r.ifc_sha256!==h.ifc_sha256||!r.source_snapshot_before||r.source_snapshot_before!==r.source_snapshot_after||r.model_transaction!=='RolledBack'||r.export_scope!=='CURRENT_PROJECT'||r.doc_export_calls!==1||r.ifc_postprocessed!==false||r.original_export_server_restored!==true||r.temporary_type_schedules_rolled_back!==true)fail('Incomplete or mismatched native export receipt.');
   return {handoff:h,ifcPath,receiptPath};
  }catch(e){if(e instanceof SyncError)throw e;return fail('Cannot verify export handoff files.');}
 }

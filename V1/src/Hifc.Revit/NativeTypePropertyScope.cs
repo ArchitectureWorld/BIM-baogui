@@ -16,7 +16,7 @@ namespace Hifc.Revit
     // Revit 2020 matches user Psets to both members of an instance/type pair,
     // even when the TSV declares T. Use the native exporter's schedule-owner
     // filter to allow only the exact Revit types. The scoped platform's window
-    // Pset also checks exact instance owners in a calculator: the native type
+    // balcony and open-ground Psets also check exact instance owners in a calculator: the native type
     // property writer bypasses the schedule filter. No IFC is rewritten.
     internal sealed class NativeTypePropertyScope : IDisposable
     {
@@ -36,7 +36,10 @@ namespace Hifc.Revit
         internal int[] FloorGeometryIds => exporter?.FloorGeometry.WrittenIds ?? new int[0];
 
         internal static bool FiltersInstanceProperty(ReferenceProperty property, string profileId)
-            => PlatformRules.IsActive(profileId) && property.Binding == "实例" && property.PropertySet == "Pset_窗信息属性集";
+            => PlatformRules.IsActive(profileId) && property.Binding == "实例"
+                && (property.PropertySet == "Pset_窗信息属性集"
+                    || property.PropertySet == "Pset_阳台信息属性集"
+                    || property.PropertySet == "Pset_架空信息属性集");
 
         internal NativeTypePropertyScope(Document doc, Element[] elements, SingleServerService nativeService, Element[] geometryElements = null)
         {
@@ -62,7 +65,8 @@ namespace Hifc.Revit
                 var properties=group.Select(x=>x.Property).GroupBy(p=>p.Property).Select(g=>g.First()).ToArray();
                 foreach(var property in properties)
                 {
-                    var propertyType=(PropertyType)Enum.Parse(typeof(PropertyType),property.ExportType);
+                    var configuredProperty = isType ? property : PlatformNativeEncoding.ConfigurationProperty(property, profileId);
+                    var propertyType=(PropertyType)Enum.Parse(typeof(PropertyType),configuredProperty.ExportType);
                     var entry=isType
                         ? new PropertySetEntry(propertyType,ReferencePolicy.BridgeName(property))
                         : new PropertySetEntry(propertyType,property.Property,new PropertySetEntryMap(
@@ -74,7 +78,8 @@ namespace Hifc.Revit
                 evidence.Add(new {property_set=group.Key.PropertySet,entity=group.Key.Entity+(isType ? "Type" : ""),binding=group.Key.Binding,
                     allowed_type_ids=isType ? ownerIds.Select(id=>id.IntegerValue).OrderBy(id=>id).ToArray() : new int[0],
                     allowed_instance_ids=isType ? new int[0] : ownerIds.Select(id=>id.IntegerValue).OrderBy(id=>id).ToArray(),
-                    properties=properties.Select(p=>new{property=p.Property,source=ReferencePolicy.BridgeName(p),export_type=p.ExportType}).ToArray()});
+                    properties=properties.Select(p=>new{property=p.Property,source=ReferencePolicy.BridgeName(p),
+                        export_type=isType ? p.ExportType : PlatformNativeEncoding.ConfigurationProperty(p,profileId).ExportType}).ToArray()});
             }
             Evidence=evidence.ToArray();
             // Revit's built-in server is a native facade, not the managed Exporter
@@ -111,8 +116,8 @@ namespace Hifc.Revit
             double number;
             internal InstanceBridgeCalculator(HashSet<ElementId> allowedOwners, ReferenceProperty property, PropertyType propertyType)
             {
-                if(propertyType!=PropertyType.Real && propertyType!=PropertyType.Text)
-                    throw new InvalidOperationException("实例窗属性不支持当前导出类型："+property.ExportType);
+                if(propertyType!=PropertyType.Real && propertyType!=PropertyType.Text && propertyType!=PropertyType.Label)
+                    throw new InvalidOperationException("实例属性不支持当前导出类型："+propertyType);
                 this.allowedOwners=allowedOwners;
                 bridgeGuid=ReferencePolicy.BridgeGuid(property);
                 this.propertyType=propertyType;
@@ -129,7 +134,7 @@ namespace Hifc.Revit
                 text=parameter.AsString();
                 if(string.IsNullOrEmpty(text))return false;
                 // Bridges already contain the validated export value in metres.
-                return propertyType==PropertyType.Text || (double.TryParse(text,NumberStyles.Float,CultureInfo.InvariantCulture,out number)
+                return propertyType==PropertyType.Text || propertyType==PropertyType.Label || (double.TryParse(text,NumberStyles.Float,CultureInfo.InvariantCulture,out number)
                     && !double.IsNaN(number) && !double.IsInfinity(number));
             }
             public override string GetStringValue()=>text;

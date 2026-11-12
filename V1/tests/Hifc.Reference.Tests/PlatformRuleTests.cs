@@ -56,7 +56,7 @@ internal static class PlatformRuleTests
         check("platform_display_name_lookup_does_not_export_the_internal_field_name", () => {
             var field = PlatformRules.Fields("绿地").Single(x => x.Name == "绿地类型");
             Assert(field.InternalName == "类型", "original internal name not retained");
-            Assert(PlatformRules.Choices("绿地", "绿地类型").Length == 8, "display name cannot resolve choices");
+            Assert(PlatformRules.Choices("绿地", "绿地类型").Length == 9, "current display-name choices do not include the dated addition");
             Same(PlatformRules.Choices("绿地", "绿地类型"), PlatformRules.Choices("绿地", "类型"), "exact internal-name fallback lost");
             Assert(PlatformRules.ValueError("绿地", "类型", "错误类别") != null, "internal-name fallback bypassed enum validation");
             Assert(PlatformRules.Fields("建筑区域").Any(x => x.Name == "构件类型" && !x.ShowProperty), "missing display name did not fall back to internal name");
@@ -94,20 +94,20 @@ internal static class PlatformRuleTests
         });
         check("platform_building_classification_and_usage_keep_distinct_enumerations", () => {
             Same(new[] { "住宅", "公建", "中小学等", "幼儿园等" }, PlatformRules.Choices("建筑技术", "建筑类型名称"), "building nature mixed with major function");
-            Same(new[] { "裙房", "塔楼", "中学" }, PlatformRules.Choices("建筑技术", "建筑用途名称"), "verified school usage missing from effective options");
+            Same(new[] { "裙房", "塔楼" }, PlatformRules.Choices("建筑技术", "建筑用途名称"), "function words leaked into current shape enum");
             Same(new[] { "裙房", "塔楼" }, PlatformRules.Fields("建筑技术").Single(f => f.Name == "建筑用途名称").Items, "original platform snapshot was rewritten");
             Assert(PlatformRules.ValueError("建筑技术", "建筑类型名称", "厂房") != null, "out-of-snapshot building nature accepted");
             Assert(PlatformRules.ValueError("建筑技术", "建筑用途名称", "学校") != null, "function category became building usage");
         });
-        check("platform_verified_middle_school_usage_is_scoped_to_building_usage", () => {
-            Assert(PlatformRules.ValueError("Pset_建筑技术信息属性集", "建筑用途名称", "中学") == null, "verified usage is blocked by the old enum");
+        check("platform_historical_middle_school_value_does_not_waive_current_enum", () => {
+            Assert(PlatformRules.ValueError("Pset_建筑技术信息属性集", "建筑用途名称", "中学") != null, "historical trial bypassed current enum");
             Assert(PlatformRules.ValueError("建筑技术", "建筑类别", "中学") != null, "usage evidence weakened the separate category enum");
             Assert(PlatformRules.ValueError("建筑技术", "建筑用途名称", "学校") != null, "unverified usage was accepted");
             Assert(PlatformRules.Choices("不存在的类目", "建筑用途名称").Length == 0, "compatibility option leaked into another Pset");
         });
         check("platform_duplicate_enum_ids_do_not_remove_different_labels", () => {
             var choices = PlatformRules.Choices("建筑技术", "建筑类别");
-            Assert(choices.Length == 32 && choices.Contains("门卫房") && choices.Contains("配电房"), "duplicate ID 33 removed a label");
+            Assert(choices.Length == 33 && choices.Contains("门卫房") && choices.Contains("配电房")&&choices.Contains("门诊楼"), "duplicate IDs or current addition removed a label");
             Assert(PlatformRules.ValueError("建筑技术", "建筑类别", "门卫房") == null && PlatformRules.ValueError("建筑技术", "建筑类别", "配电房") == null, "valid same-ID labels rejected");
         });
         check("platform_enum_text_containing_comma_remains_one_choice", () => {

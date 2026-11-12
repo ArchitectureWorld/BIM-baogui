@@ -52,7 +52,7 @@ namespace Hifc.Revit.Management
                 session.Classify((string)SlotSelector.SelectedItem);
             };
             Configure(FieldGrid,false);FieldGrid.RowHeight=double.NaN;FieldGrid.MinRowHeight=34;FieldGrid.SelectionUnit=DataGridSelectionUnit.CellOrRowHeader;
-            FieldGrid.Columns.Add(Column("属性","Property",200,false));
+            FieldGrid.Columns.Add(Column("属性（* 必填）","DisplayProperty",200,false));
             var value=new ValueColumn {Header="值（单击修改）",MinWidth=180,Binding=new Binding("Value") {Mode=BindingMode.TwoWay,UpdateSourceTrigger=UpdateSourceTrigger.LostFocus,ValidatesOnExceptions=true},Width=new DataGridLength(1,DataGridLengthUnitType.Star)};
             var cellStyle=new Style(typeof(DataGridCell));cellStyle.Setters.Add(new Setter(Control.BackgroundProperty,new Binding("Background")));cellStyle.Setters.Add(new Setter(ToolTipProperty,new Binding("AreaHint")));value.CellStyle=cellStyle;FieldGrid.Columns.Add(value);
             FieldGrid.Columns.Add(Column("状态","State",110,false));FieldGrid.Columns.Add(Column("来源 / 说明","Detail",230,false));

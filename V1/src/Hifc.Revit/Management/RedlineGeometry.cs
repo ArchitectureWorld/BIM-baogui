@@ -30,7 +30,7 @@ namespace Hifc.Revit.Management
                     var role=RedlineRoles.Resolve(row);
                     if(role!=null)candidates.Add(new Candidate{Element=element,Role=role});
                     else if((element.Name??"").Contains("用地红线")||(element.Name??"").Contains("净用地")||row.Fields.Any(f=>f.Value==RedlineRoles.Control))
-                        issues.Add(element.Id.IntegerValue+" / "+element.Name+"：规划控制线的名称、红线类型需同时精确为“净用地控制红线”，当前未作为已确认载体。");
+                        issues.Add(element.Id.IntegerValue+" / "+element.Name+"：配对需名称为“净用地控制红线”，红线类型为“红线”（兼容旧值“净用地控制红线”），当前未作为已确认载体。");
                 }catch(Exception ex)when(ex is InvalidOperationException||ex is Autodesk.Revit.Exceptions.ApplicationException) {
                     // Do not skip an unreadable classification and then claim a unique pair.
                     issues.Add(element.Id.IntegerValue+" / "+element.Name+"：分类或属性来源无法可靠读取："+ex.Message);

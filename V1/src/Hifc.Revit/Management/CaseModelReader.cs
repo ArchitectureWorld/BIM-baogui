@@ -83,6 +83,7 @@ namespace Hifc.Revit.Management
         internal ModelSnapshot Snapshot(Document doc)
         {
             if (!Complete) throw new InvalidOperationException("扫描尚未完整完成。");
+            PlatformContext.SetKind(doc,kind);
             if(!calculated && stage=="报规") {
                 ModelGeometry.CheckAggregation(doc,rows.ToArray());
                 PlanningInputs.Populate(rows.ToArray(),planning,settings);
@@ -161,6 +162,32 @@ namespace Hifc.Revit.Management
         internal static void ReadFieldsWithContext(Document doc, Element element, ModelElementCheck row, CaseRule[] rules, string kind, UndergroundResult underground)
             =>ReadFieldsWithPlanning(doc,element,row,rules,kind,underground,null);
         internal static void ReadFieldsWithPlanning(Document doc, Element element, ModelElementCheck row, CaseRule[] rules, string kind, UndergroundResult underground, PlanningSettings planning)
+            => ReadFieldsCore(doc, element, row, rules, kind, underground, planning, false);
+        internal static int ReadWorkbookLevelFields(Document doc, ModelSnapshot snapshot)
+        {
+            if (snapshot.Stage != "报规" || snapshot.ModelKind != "单体建筑") return 0;
+            var actualNames = new HashSet<string>(ReportingWorkbookTemplate.ActualLevelNames(snapshot.Elements, snapshot.Planning), StringComparer.Ordinal);
+            var rules = CaseWorkflow.ForModel(snapshot.Stage, snapshot.ModelKind, snapshot.Planning?.RuleProfileId);
+            int added = 0;
+            foreach (var row in snapshot.Elements.Where(r => r.Entity == "IfcBuildingStorey" && actualNames.Contains(r.Name) &&
+                !r.Fields.Any(f => f.PropertySet == FloorAreaPolicy.FloorSet && f.Property == "楼层面积")))
+            {
+                var level = doc.GetElement(new ElementId(row.Id)) as Level;
+                if (level == null || level.UniqueId != row.UniqueId)
+                    throw new InvalidOperationException("报规表楼层已被替换，请重新全面检查。");
+                var source = InventoryForDetection(doc, level);
+                ReadFieldsCore(doc, level, source, rules, snapshot.ModelKind, null, snapshot.Planning, true);
+                var area = source.Fields.SingleOrDefault(f => f.PropertySet == FloorAreaPolicy.FloorSet && f.Property == "楼层面积");
+                if (area == null) continue;
+                row.Fields = row.Fields.Concat(new[] { area }).ToArray();
+                row.Slots = row.Slots.Concat(source.Slots).Distinct().ToArray();
+                row.Classified = true; row.InventoryOnly = false;
+                row.Recognition = "报规表采用已确认楼层及明确计量载体所属楼层，保留该标高的原名称和面积属性来源。";
+                added++;
+            }
+            return added;
+        }
+        private static void ReadFieldsCore(Document doc, Element element, ModelElementCheck row, CaseRule[] rules, string kind, UndergroundResult underground, PlanningSettings planning, bool allowWorkbookLevel)
         {
             planning = planning ?? PlatformContext.Settings(doc);
             var profileId = PlatformContext.ProfileForStage(PlatformContext.Stage(doc), planning.RuleProfileId);
@@ -169,7 +196,7 @@ namespace Hifc.Revit.Management
             {row.CoverageNote="该报规区域类目需要面积（Area）载体，请核对模型；不将其他构件强制改为 IfcSpace。";return;}
             try
             {
-                if (element is Level level && PlatformRules.IsActive(profileId) && !PlatformContext.IsBuildingLevel(doc, level))
+                if (element is Level level && PlatformRules.IsActive(profileId) && !allowWorkbookLevel && !PlatformContext.IsBuildingLevel(doc, level))
                 {
                     row.Fields = new FieldCheck[0]; row.Slots = new string[0]; row.Slot = null;
                     row.SuggestedSlots = new string[0]; row.Candidates = new ClassificationCandidate[0];

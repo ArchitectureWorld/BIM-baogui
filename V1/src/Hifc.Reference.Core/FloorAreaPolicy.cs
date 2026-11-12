@@ -20,6 +20,7 @@ namespace Hifc.Reference
     {
         public FloorAreaAllocation[] Allocations { get; set; } = new FloorAreaAllocation[0];
         public string[] Issues { get; set; } = new string[0];
+        public InputReviewItem[] Notices { get; set; } = new InputReviewItem[0];
     }
     public static class FloorAreaPolicy
     {
@@ -40,7 +41,7 @@ namespace Hifc.Reference
         }
         public static FloorAreaPlan Build(ModelElementCheck[] rows,PlanningSettings settings)
         {
-            var changes=new List<FloorAreaAllocation>();var issues=new List<string>();
+            var changes=new List<FloorAreaAllocation>();var issues=new List<string>();var notices=new List<InputReviewItem>();
             settings=settings??new PlanningSettings();
             var selected=settings.LevelsConfirmed?settings.BuildingLevelUniqueIds:PlanningInputs.DefaultBuildingLevels(rows,settings.RuleProfileId);
             var levels=rows.Where(r=>r.Entity=="IfcBuildingStorey"&&(selected??new string[0]).Contains(r.UniqueId)).ToArray();
@@ -61,6 +62,24 @@ namespace Hifc.Reference
                 var total=weights.Sum(w=>w.Value);
                 // Ignore source/export floating-point noise, but preserve a real manual override.
                 if(Math.Abs(total-target.Value)<.005m&&regions.All(r=>Number(r.Fields.Single(f=>f.PropertySet==RegionSet&&f.Property=="投影面积")).HasValue))continue;
+                // User-approved local export tolerance for the current county
+                // workflow; this is not an asserted regulatory requirement.
+                // Preserve both saved values; unclassified geometry is not added
+                // to the calculation or silently assigned a business category.
+                var difference=Math.Abs(total-target.Value);
+                if(PlatformRules.IsActive(settings.RuleProfileId)&&difference/total<=.05m&&
+                    regions.All(r=>Number(r.Fields.Single(f=>f.PropertySet==RegionSet&&f.Property=="投影面积")).HasValue))
+                {
+                    notices.Add(new InputReviewItem{ElementId=level.Id,Name=level.Name,PropertySet=FloorSet,
+                        Property="楼层面积",Value=target.Value.ToString(CultureInfo.InvariantCulture),
+                        Code="FLOOR_AREA_WITHIN_TOLERANCE",BlocksExport=false,
+                        Detail=level.Name+"：已填写楼层面积 "+target.Value.ToString(CultureInfo.InvariantCulture)+
+                            "㎡，已分类区域投影面积合计 "+total.ToString(CultureInfo.InvariantCulture)+
+                            "㎡，相差 "+difference.ToString(CultureInfo.InvariantCulture)+"㎡（"+
+                            (difference/total*100m).ToString("F2",CultureInfo.InvariantCulture)+
+                            "%），在5%容差内。本次仅提示，保留各项原值，不自动分摊；未分类几何未纳入合计。"});
+                    continue;
+                }
                 // Unconfirmed candidates block redistribution, not export of already matching saved values.
                 var pending=rows.Any(r=>r.LevelUniqueId==level.UniqueId&&string.IsNullOrEmpty(PlanningInputs.EffectiveSlot(r))&&r.Candidates.Any(c=>c.Slot=="建筑区域"));
                 if(pending)
@@ -83,7 +102,7 @@ namespace Hifc.Reference
                         Reason="按已填写楼层面积 "+level.Name+" / "+target.Value.ToString(CultureInfo.InvariantCulture)+" m²，按区域原面积比例同步；几何不变"});
                 }
             }
-            return new FloorAreaPlan{Allocations=changes.ToArray(),Issues=issues.ToArray()};
+            return new FloorAreaPlan{Allocations=changes.ToArray(),Issues=issues.ToArray(),Notices=notices.ToArray()};
         }
         public static FloorAreaPlan Populate(ModelElementCheck[] rows,PlanningSettings settings)
         {

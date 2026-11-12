@@ -20,7 +20,7 @@ namespace Hifc.Revit.Management
         private Action<UIApplication> pending;
         private CaseScanJob scan;
         private ModelSnapshot snapshot;
-        private bool closed, cancelled, disposed;
+        private bool closed, cancelled, disposed, importWorkbookAfterScan;
         private long epoch, scanEpoch, previewEpoch;
         private Action<ModelSnapshot,string,string> selectionCheckCompleted;
         internal ManagerWindow Window { get; }
@@ -49,6 +49,30 @@ namespace Hifc.Revit.Management
             if (Windows.TryGetValue(doc, out var current) && !current.closed) { if(!current.Window.IsVisible)current.Window.Show(); current.Window.Activate(); return; }
             var controller = new ManagerController(ui); Windows[doc] = controller; controller.Window.Show();
             if (controller.Window.HasRememberedStage) controller.Scan();
+        }
+        internal static void OpenWorkbookImport(UIApplication ui)
+        {
+            var doc = ui.ActiveUIDocument?.Document ?? throw new InvalidOperationException("请先打开需要导入报规表的项目。");
+            if (doc.IsFamilyDocument) throw new InvalidOperationException("请打开项目后导入报规表。");
+            FinishStateTransfer(doc);
+            if (!Windows.TryGetValue(doc, out var controller) || controller.closed)
+            {
+                controller = new ManagerController(ui);
+                Windows[doc] = controller;
+            }
+            if (!controller.Window.IsVisible) controller.Window.Show();
+            controller.Window.Activate();
+            if (controller.pending != null) throw new InvalidOperationException("已有任务执行中，请完成后再导入报规表。");
+            if (controller.Window.SelectedStage != "报规" && controller.Window.SelectedStage != "施工图")
+                controller.Window.StageSelector.SelectedItem = "报规";
+            if (controller.scan == null && controller.Window.Current && controller.snapshot != null && controller.epoch == controller.scanEpoch &&
+                controller.snapshot.Stage == controller.Window.SelectedStage && controller.snapshot.RequestedKind == controller.Window.RequestedKind)
+                controller.ShowWorkbookImport(ui);
+            else
+            {
+                controller.importWorkbookAfterScan = true;
+                if (controller.scan == null) controller.StartScan(ui);
+            }
         }
         internal static void EnsureExportReady(Document doc)
         {
@@ -154,25 +178,31 @@ namespace Hifc.Revit.Management
             if(dialog.ShowDialog()!=true)return;
             Window.SetPlanningSettings(dialog.Result);StartScan(ui);
         });
-        private void ImportWorkbook()=>Queue(ui=>{
+        private void ImportWorkbook()=>Queue(ShowWorkbookImport);
+        private void ShowWorkbookImport(UIApplication ui)
+        {
             RequireCurrent();
+            if (CaseModelReader.ReadWorkbookLevelFields(document, snapshot) > 0) Window.Accept(snapshot);
             var dialog=new ReportingWorkbookWindow(snapshot.Elements,snapshot.ModelKind,ReportingWorkbookProjectStorage.Load(document).Select(e=>e.Import).ToArray());
             if(Window.IsVisible)dialog.Owner=Window;else new System.Windows.Interop.WindowInteropHelper(dialog).Owner=ui.MainWindowHandle;
             if(dialog.ShowDialog()==true)Window.StageWorkbook(dialog.Decision);
-        });
+        }
         private void Tick(object sender, IdlingEventArgs args)
         {
             var ui = sender as UIApplication ?? owner;
             try
             {
-                if (closed || cancelled) { StopScan(ui);var callback=selectionCheckCompleted;selectionCheckCompleted=null;callback?.Invoke(null,null,"扫描已取消，请重新全面检查。"); if (!closed) { Window.SetBusy(false, "扫描已取消，未生成新的完整结果。"); Window.MarkStale("扫描已取消，请重新扫描后处理。"); } return; }
+                if (closed || cancelled) { StopScan(ui);importWorkbookAfterScan=false;var callback=selectionCheckCompleted;selectionCheckCompleted=null;callback?.Invoke(null,null,"扫描已取消，请重新全面检查。"); if (!closed) { Window.SetBusy(false, "扫描已取消，未生成新的完整结果。"); Window.MarkStale("扫描已取消，请重新扫描后处理。"); } return; }
                 Guard(ui);
                 if (epoch != scanEpoch) throw new InvalidOperationException("扫描期间模型发生变化，结果已丢弃，请重新扫描。");
                 scan.ReadNext(document, 75);
                 Window.SetBusy(true, "正在扫描 " + scan.Position + " / " + scan.Total + " 个构件…", scan.Position, scan.Total);
                 if (scan.Complete)
                 {
-                    var result = scan.Snapshot(document); StopScan(ui); snapshot = result; Window.Accept(result);
+                    var result = scan.Snapshot(document); StopScan(ui);
+                    if (importWorkbookAfterScan || Window.PendingWorkbooks.Any(d => d.Changes.Any(c => c.PropertySet == Hifc.Reference.FloorAreaPolicy.FloorSet && c.Property == "楼层面积")))
+                        CaseModelReader.ReadWorkbookLevelFields(document, result);
+                    snapshot = result; Window.Accept(result);
                     EditPreview batchPreview = null;
                     if (result.Stage == "报规" && Hifc.Reference.CaseWorkflow.ForModel(result.Stage, result.ModelKind,result.Planning?.RuleProfileId).Length > 0)
                     {
@@ -193,10 +223,11 @@ namespace Hifc.Revit.Management
                         var callback=selectionCheckCompleted;selectionCheckCompleted=null;callback?.Invoke(result,reportPath,null);
                     }
                     catch (Exception ex) { Window.SetStatus("扫描完成，但本地检测记录保存失败：" + ex.Message, true);var callback=selectionCheckCompleted;selectionCheckCompleted=null;callback?.Invoke(result,null,ex.Message); }
+                    if (importWorkbookAfterScan) { importWorkbookAfterScan = false; ShowWorkbookImport(ui); }
                 }
                 else args.SetRaiseWithoutDelay();
             }
-            catch (Exception ex) { StopScan(ui);var callback=selectionCheckCompleted;selectionCheckCompleted=null;callback?.Invoke(null,null,ex.Message); if (!closed) { Window.SetBusy(false, ex.Message); Window.MarkStale(ex.Message); } }
+            catch (Exception ex) { StopScan(ui);importWorkbookAfterScan=false;var callback=selectionCheckCompleted;selectionCheckCompleted=null;callback?.Invoke(null,null,ex.Message); if (!closed) { Window.SetBusy(false, ex.Message); Window.MarkStale(ex.Message); } }
         }
         private void StopScan(UIApplication ui) { ui.Idling -= Tick; scan = null; }
         public void Cancel() { cancelled = true; }

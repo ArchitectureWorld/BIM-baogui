@@ -52,7 +52,7 @@ namespace Hifc.Revit.Management
             var open = new Button { Content = "添加 Excel（可多文件）", Margin = new Thickness(0, 0, 10, 0) };
             open.Click += (s, e) => { var dialog = new OpenFileDialog { Filter = "Excel 报规表 (*.xlsx)|*.xlsx", Multiselect = true }; if (dialog.ShowDialog(this) == true) Try(() => LoadFiles(dialog.FileNames)); };
             toolbar.Children.Add(open);
-            var template = new Button { Content = "导出一栋一表模板" };
+            var template = new Button { Content = "导出通用空白模板" };
             template.Click += (s, e) => Try(ExportTemplate); toolbar.Children.Add(template); intro.Children.Add(toolbar); root.Children.Add(intro);
             var choices = new Grid { Margin = new Thickness(0, 12, 0, 0) };
             choices.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); choices.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(320) });

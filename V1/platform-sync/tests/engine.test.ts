@@ -7,7 +7,8 @@ import {randomUUID,createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {Store} from '../src/store.js';
 import {SyncEngine} from '../src/engine.js';
-import {verifyHandoff,freezeHandoff,assertIfc} from '../src/handoff.js';
+import {verifyHandoff,freezeHandoff,assertIfc,assertRequiredInputValidation} from '../src/handoff.js';
+import {passedInputFixture} from './required-input-fixture.js';
 import {redact} from '../src/security.js';
 import type {PlatformAdapter,Model,Snapshot,Operation,Progress,Handoff} from '../src/types.js';
 
@@ -16,7 +17,7 @@ const ifc=(name:string)=>Buffer.from(`ISO-10303-21;\nHEADER;FILE_DESCRIPTION(('$
 function handoff(root:string,name='new.ifc',doc='C:\\Models\\school.rvt') {
   const dir=join(root,randomUUID()); mkdirSync(dir,{recursive:true});
   const bytes=ifc(name); const id=randomUUID();
-  const receipt=Buffer.from(JSON.stringify({schema_version:'hifc.native-export-receipt/1.5',export_id:id,ifc_sha256:sha(bytes),
+  const receipt=Buffer.from(JSON.stringify({schema_version:'hifc.native-export-receipt/1.7',input_validation:passedInputFixture(),export_id:id,ifc_sha256:sha(bytes),
     source_snapshot_before:'abc',source_snapshot_after:'abc',model_transaction:'RolledBack',export_scope:'CURRENT_PROJECT',
     doc_export_calls:1,ifc_postprocessed:false,original_export_server_restored:true,temporary_type_schedules_rolled_back:true}));
   const h:Handoff={schema:'hifc.platform-sync-handoff/1',export_id:id,created_utc:new Date().toISOString(),document_path:doc,project_unique_id:'project-guid',
@@ -39,6 +40,19 @@ class Remote implements PlatformAdapter {
 }
 function setup(){const root=mkdtempSync(join(tmpdir(),'hifc-sync-'));const remote=new Remote();const store=new Store(join(root,'state'));const engine=new SyncEngine(store,remote,{pollMs:1,timeoutMs:30});const manifest=handoff(root);return {root,remote,store,engine,manifest};}
 async function bound(c:ReturnType<typeof setup>){return c.engine.bind('m1',c.manifest,{project_id:'p1',project_code:'C1',project_name:'School'});}
+
+test('required-input evidence rejects missing, stale, partial and failed checks',()=>{
+ assert.doesNotThrow(()=>assertRequiredInputValidation(passedInputFixture()));
+ for(const value of [undefined,null,{}, {...passedInputFixture(),complete:false},{...passedInputFixture(),blocking_count:1},{...passedInputFixture(),rule_revision:'old'},{...passedInputFixture(),checked_fields:0}])
+  assert.throws(()=>assertRequiredInputValidation(value),/必填/);
+});
+test('old successful export without required checks never reaches platform writes',async()=>{
+ const c=setup();try{
+  const h=JSON.parse(readFileSync(c.manifest,'utf8')),folder=join(c.manifest,'..'),rp=join(folder,h.receipt_file),r=JSON.parse(readFileSync(rp,'utf8'));
+  delete r.input_validation;r.schema_version='hifc.native-export-receipt/1.5';const bytes=Buffer.from(JSON.stringify(r));writeFileSync(rp,bytes);h.receipt_sha256=sha(bytes);writeFileSync(c.manifest,JSON.stringify(h));
+  await assert.rejects(()=>bound(c),/必填/);assert.deepEqual(c.remote.writes,[]);
+ }finally{c.store.close();}
+});
 
 test('explicit real mode still blocks an uneditable project before deletion',async()=>{
  const c=setup();try{Object.defineProperty(c.remote,'mode',{value:'real'});c.remote.snap.writable=false;const b=await bound(c),p=await c.engine.plan(b.id,c.manifest);const r=await c.engine.run(p.id);assert.equal(r.state,'BLOCKED');assert.match(r.reason,/editable|可编辑/);assert.deepEqual(c.remote.writes,[]);}finally{c.store.close();}

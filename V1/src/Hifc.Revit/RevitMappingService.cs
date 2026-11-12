@@ -107,7 +107,8 @@ namespace Hifc.Revit
             if(element is ProjectInfo || element is Level)
             {
                 var names=element is ProjectInfo?new[]{"Pset_申报信息属性集","Pset_建筑技术信息属性集"}:new[]{"Pset_建筑楼层信息属性集"};
-                return CaseWorkflow.ForModel(Management.PlatformContext.Stage(doc) ?? "报规","单体建筑",profileId).SelectMany(r=>r.Properties).Where(p=>!p.NativeGroup && p.Binding=="实例" && names.Contains(p.PropertySet))
+                var kind=Management.PlatformContext.Kind(doc)=="总图"?"总图":"单体建筑";
+                return CaseWorkflow.ForModel(Management.PlatformContext.Stage(doc) ?? "报规",kind,profileId).SelectMany(r=>r.Properties).Where(p=>!p.NativeGroup && p.Binding=="实例" && names.Contains(p.PropertySet))
                     .GroupBy(p=>ReferencePolicy.BridgeGuid(p)).Select(g=>g.First()).ToArray();
             }
             var slot = Slot(doc, element);
@@ -284,6 +285,8 @@ namespace Hifc.Revit
                     var owner = property.Binding == "类型" ? doc.GetElement(element.GetTypeId()) : element;
                     if (owner == null) throw new InvalidOperationException("类型属性缺少类型载体：" + element.Id);
                     var value = ResolvedExportValue(doc,element,property,floorAreas,out var read,out var allocation);
+                    var sourceValue=value;
+                    value=PlatformNativeEncoding.Value(property,value,profileId);
                     var parameter = owner.get_Parameter(ReferencePolicy.BridgeGuid(property));
                     if (parameter == null || parameter.StorageType != StorageType.String || parameter.IsReadOnly)
                         throw new InvalidOperationException("临时导出参数不可写：" + property.PropertySet + "/" + property.Property);
@@ -301,7 +304,10 @@ namespace Hifc.Revit
                     }
                     writes.Add(new { element_id = element.Id.IntegerValue, unique_id = element.UniqueId, property_set = property.PropertySet,
                         binding = property.Binding, owner_id = owner.Id.IntegerValue,
-                        property = property.Property, raw_type = property.RawType, export_type=property.ExportType, source_parameter = property.SourceParameter,
+                        property = property.Property, raw_type = property.RawType, export_type=PlatformNativeEncoding.ConfigurationProperty(property,profileId).ExportType,
+                        source_export_type=property.ExportType, source_value=sourceValue,
+                        native_encoding=PlatformNativeEncoding.UsesLocalizedBoolean(property,profileId)?PlatformNativeEncoding.PolicyId:null,
+                        source_parameter = property.SourceParameter,
                         source_origin = read?.Origin, floor_area_derivation=allocation, value, status = value == null ? "MISSING" : "MATERIALIZED" });
                 }
             }

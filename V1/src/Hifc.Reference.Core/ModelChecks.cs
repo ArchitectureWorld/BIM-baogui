@@ -35,6 +35,8 @@ namespace Hifc.Reference
         public bool FireRoadWidth { get; set; }
         public bool BuildingUsage => PropertySet == "Pset_建筑技术信息属性集" && Property == "建筑用途名称";
         public bool ManualInputRequired => BuildingUsage || FireRoadWidth && PropertySet == "Pset_道路边界线信息属性集" && Property == "道路宽度";
+        public bool RequiredForSubmission => ManualInputRequired || PlatformRules.IsActive(RuleProfileId) && !AllowedEmpty && PlatformRules.RequiredFields(PropertySet).Contains(Property);
+        public bool NeedsInputAttention => RequiredForSubmission && !Valid || PlatformRules.IsActive(RuleProfileId) && (State=="值非法"||State=="有歧义"||State=="类型待核验");
     }
     public sealed class ModelElementCheck
     {
@@ -83,8 +85,9 @@ namespace Hifc.Reference
         public int Candidates { get; set; }
         public int MissingFields { get; set; }
         public int MissingManualFields { get; set; }
+        public int MissingSubmissionFields { get; set; }
         public int IncompleteObjects { get; set; }
-        public bool NeedsAttention => MissingManualFields > 0;
+        public bool NeedsAttention => MissingManualFields > 0 || MissingSubmissionFields > 0;
         public string State { get; set; }
     }
     public sealed class ModelSummary

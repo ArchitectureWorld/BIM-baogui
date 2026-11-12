@@ -57,7 +57,10 @@ namespace Hifc.Reference
             if(ReferenceCatalog.LegacySlot(row.Slot??"")==NetLand)return NetLand;
             if(ReferenceCatalog.LegacySlot(row.Slot??"")!="规划控制线")return null;
             var fields=(row.Fields??new FieldCheck[0]).Where(f=>f.PropertySet==ControlLinePolicy.PropertySet).ToArray();
-            return new[]{"名称","红线类型"}.All(name=>fields.Count(f=>f.Property==name)==1&&fields.Single(f=>f.Property==name).Value==Control)?Control:null;
+            if (!new[]{"名称","红线类型"}.All(name=>fields.Count(f=>f.Property==name)==1)) return null;
+            var nameValue=fields.Single(f=>f.Property=="名称").Value;
+            var typeValue=fields.Single(f=>f.Property=="红线类型").Value;
+            return nameValue==Control&&(typeValue=="红线"||typeValue==Control)?Control:null;
         }
     }
     public static class RedlineComparison

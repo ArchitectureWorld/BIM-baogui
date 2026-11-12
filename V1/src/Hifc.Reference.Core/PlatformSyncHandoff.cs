@@ -64,7 +64,8 @@ namespace Hifc.Reference
                 var receiptHash = Sha256(receipt);
                 var data = Serializer().Deserialize<Dictionary<string, object>>(File.ReadAllText(receipt, Encoding.UTF8));
                 Require(data != null);
-                Require(new[] { "hifc.native-export-receipt/1.5", "hifc.native-export-receipt/1.6" }.Contains(Text(data, "schema_version")));
+                RequiredInputValidation.RequireReceipt(Value(data,"input_validation"));
+                Require(Text(data,"schema_version")=="hifc.native-export-receipt/1.7");
                 Require(Guid.TryParse(Text(data, "export_id"), out var actualId) && actualId == id);
                 Require(string.Equals(Absolute(Text(data, "ifc_path")), ifc, StringComparison.OrdinalIgnoreCase));
                 Require(!string.IsNullOrWhiteSpace(Text(data, "source_snapshot_before")) && Text(data, "source_snapshot_before") == Text(data, "source_snapshot_after"));

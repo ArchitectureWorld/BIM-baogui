@@ -19,6 +19,7 @@ namespace Hifc.Revit
     internal sealed class ProjectExportScope
     {
         internal string ReceiptPath { get; set; }
+        internal RequiredInputValidation InputValidation { get; set; }
         internal Element[] Elements { get; private set; }
         internal Element[] MappedElements { get; private set; }
         internal ProjectExportIssue[] Issues { get; private set; }
@@ -85,7 +86,7 @@ namespace Hifc.Revit
             var profileId=Management.PlatformContext.ProfileId(doc);
             var inputRows=mapped.Concat(elements.Where(e=>e is ProjectInfo||e is Level level&&Management.PlatformContext.IsBuildingLevel(doc,level)))
                 .GroupBy(e=>e.Id.IntegerValue).Select(g=>ReadInputs(doc,g.First(),profileId)).ToArray();
-            var review=PlatformInputReview.Build(inputRows,profileId);
+            var review=PlatformInputReview.Build(inputRows,profileId,Management.PlatformContext.Kind(doc));
             foreach(var item in review.Where(i=>i.Code=="HIFC_PLATFORM_DEFAULT_RISK"||i.Code=="FIRE_ROAD_WIDTH_REQUIRED"))
                 issues.Add(new ProjectExportIssue{element_id=item.ElementId,name=item.Name,property_set=item.PropertySet,property=item.Property,code=item.Code,detail=item.Detail});
             return new ProjectExportScope { Elements = elements, MappedElements = mapped.ToArray(), Issues = issues.ToArray(),InputReview=review };

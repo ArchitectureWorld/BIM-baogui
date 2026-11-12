@@ -49,7 +49,7 @@ public sealed partial class CustomerProjectAcceptanceHost
                 var detection=Static("Hifc.Revit.ExportDestinationPicker","Detect",doc);Write(key+"-detection.json",detection);
                 var kind=(string)model["kind"];check(key+"_model_content_detection_available",detection!=null);
                 var date=DateTime.Today;var first=(string)Static("Hifc.Revit.ExportDestinationPicker","DefaultPath",doc,kind,date);
-                var expectedName="OUT_"+(string)model["project_name"]+"_报规_"+(kind=="总图"?"总图":(string)model["building_name"])+"_"+date.ToString("yyyyMMdd")+"_V1.ifc";
+                var expectedName="OUT_"+(kind=="总图"?"总图":(string)model["building_name"])+"_"+(string)model["project_name"]+"_报规_"+date.ToString("yyyyMMdd")+"_V1.ifc";
                 check(key+"_default_beside_rvt",Path.GetDirectoryName(first)==Path.GetDirectoryName(copy));
                 check(key+"_canonical_filename",Path.GetFileName(first)==expectedName);
                 var exports=new List<string>();var receipts=new List<string>();var captured=Static("Hifc.Revit.RevitMappingService","Capture",doc,Carriers(doc));

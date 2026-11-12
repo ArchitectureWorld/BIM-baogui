@@ -46,8 +46,9 @@ namespace Hifc.Reference
                 result.Add(new CaseRule { Slot = slot, Binding = "实例", Properties = properties,
                     Entities = properties.SelectMany(p => p.Entity.Split(',')).Distinct().ToArray(),
                     EmptyAllowed = properties.Where(p => !requiredFields.Contains(p.Property)).Select(p => p.Property).ToArray(),
-                    Required = kind == "总图" ? slot == "规划净用地" : new[] { "建筑技术", "建筑楼层", "建筑区域" }.Contains(slot),
-                    ReferenceSupplement = true, Sources = new[] { PlatformRules.Title } });
+                    Required = kind == "总图" ? slot == "规划净用地" || slot == SiteBoundaryPolicy.Slot : new[] { "建筑技术", "建筑楼层", "建筑区域" }.Contains(slot),
+                    ReferenceSupplement = true, Sources = slot==SiteBoundaryPolicy.Slot
+                        ? new[] {PlatformRules.Title,"2026-11-10 用户确认：总图边界分段线必须恰好 4 个，东南西北各 1 个"} : new[] { PlatformRules.Title } });
             }
             return result.OrderBy(r => r.Slot, StringComparer.Ordinal).ToArray();
         }
@@ -223,7 +224,7 @@ namespace Hifc.Reference
         public static ModelSummary Summarize(string stage, string kind, ModelElementCheck[] elements) => Summarize(stage, kind, elements, "");
         public static ModelSummary Summarize(string stage, string kind, ModelElementCheck[] elements, string profileId)
         {
-            PlatformInputReview.ApplyManualPolicy(elements);
+            PlanningInputs.ValidateRuleFields(elements);
             var rules = ForModel(stage, kind, profileId);
             var suggestions = new Dictionary<ModelElementCheck, string[]>();
             Func<ModelElementCheck, string[]> suggestionsFor = row => {
@@ -244,9 +245,11 @@ namespace Hifc.Reference
                 var manualMissing = elements.SelectMany(e => e.Fields.Where(f => f.PropertySet == rule.Properties.FirstOrDefault()?.PropertySet && f.ManualInputRequired && !f.Valid)
                     .Select(f => new { Row=e, Field=f })).GroupBy(x => (x.Field.OwnerUniqueId ?? x.Row.UniqueId) + "|" + x.Field.Source).Count();
                 var incomplete = rows.Count(e => !string.IsNullOrEmpty(e.CoverageNote) || !string.IsNullOrEmpty(e.Issue));
+                var submissionMissing=fields.Count(x=>x.Field.NeedsInputAttention);
+                var boundaryIssues=rule.Slot==SiteBoundaryPolicy.Slot?SiteBoundaryPolicy.Review(elements,kind,profileId).Length:0;
                 return new RoleCoverage { Slot = rule.Slot, Mode = rule.Required ? "必要" : rule.ReferenceSupplement ? "参考补充" : "案例补充", Count = count, Candidates = candidates,
-                    MissingFields = missing, MissingManualFields = manualMissing, IncompleteObjects = incomplete,
-                    State = manualMissing > 0 ? (rule.Slot=="建筑技术"?"建筑用途名称待填写 ":"消防道路宽度待手填 ") + manualMissing + " 项" : count > 0 ? incomplete > 0 ? "模型待核对 " + incomplete + " 项" : missing > 0 ? "已识别 · 属性可查看" : "本轮属性已齐" : candidates > 0 ? "待确认分类" : rule.Required ? "参考项未找到" : "案例差异项 · 按实际适用" };
+                    MissingFields = missing, MissingManualFields = manualMissing, MissingSubmissionFields=submissionMissing, IncompleteObjects = incomplete,
+                    State = boundaryIssues>0?"四方位检查不通过（"+boundaryIssues+" 项）":manualMissing > 0 ? (rule.Slot=="建筑技术"?"建筑用途名称必填待修正 ":"消防道路宽度必填待修正 ") + manualMissing + " 项" : submissionMissing>0?"必填/取值待修正 "+submissionMissing+" 项":count > 0 ? incomplete > 0 ? "模型待核对 " + incomplete + " 项" : missing > 0 ? "已识别 · 属性可查看" : "本轮属性已齐" : candidates > 0 ? "待确认分类" : rule.Required ? "参考项未找到" : "案例差异项 · 按实际适用" };
             }).ToArray();
             var fields = elements.SelectMany(e => e.Fields.Select(f => new { Row = e, Field = f }))
                 .GroupBy(x => (x.Field.OwnerUniqueId ?? x.Row.UniqueId) + "|" + x.Field.PropertySet + "|" + x.Field.Binding + "|" + x.Field.Property).Select(g => g.First()).ToArray();

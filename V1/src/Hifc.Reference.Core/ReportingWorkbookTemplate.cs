@@ -16,14 +16,50 @@ namespace Hifc.Reference
         static readonly XNamespace PackageRel = "http://schemas.openxmlformats.org/package/2006/relationships";
         public static void Write(string path, IEnumerable<string> buildingNames, bool includeSite = true)
         {
-            if (string.IsNullOrWhiteSpace(path) || !string.Equals(Path.GetExtension(path), ".xlsx", StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("模板文件应使用 .xlsx 扩展名。");
+            ValidatePath(path);
             var names = (buildingNames ?? new string[0]).Select(n => (n ?? "").Trim()).Distinct(StringComparer.Ordinal).ToArray();
             if (names.Length == 0) names = new[] { "" };
             if (names.Length > 100) throw new InvalidOperationException("模板楼栋超过 100 栋，请分批导出。");
             var sheets = new List<Tuple<string, XDocument>>(); var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             if (includeSite) { used.Add("总图"); sheets.Add(Tuple.Create("总图", SiteSheet())); }
             foreach (var name in names) sheets.Add(Tuple.Create(SheetName(name, used), BuildingSheet(name)));
+            WriteSheets(path, sheets, Styles());
+        }
+        public static void WriteForModel(string path, string kind, string buildingName, IEnumerable<string> levelNames)
+        {
+            ValidatePath(path);
+            if (kind != "总图" && kind != "单体建筑")
+                throw new InvalidOperationException("请确认当前模型属于总图或单体建筑后导出报规表。");
+            var sheets = new List<Tuple<string, XDocument>>();
+            if (kind == "总图") sheets.Add(Tuple.Create("总图", SiteSheet()));
+            else
+            {
+                var name = (buildingName ?? "").Trim();
+                var levels = (levelNames ?? new string[0]).Where(n => !string.IsNullOrWhiteSpace(n)).Distinct(StringComparer.Ordinal).ToArray();
+                sheets.Add(Tuple.Create(SheetName(name, new HashSet<string>(StringComparer.OrdinalIgnoreCase)), BuildingSheet(name, levels)));
+            }
+            WriteSheets(path, sheets, Styles());
+        }
+        public static string[] ActualLevelNames(ModelElementCheck[] elements, PlanningSettings settings)
+        {
+            var rows = elements ?? new ModelElementCheck[0];
+            var selected = new HashSet<string>(settings?.LevelsConfirmed == true
+                ? settings.BuildingLevelUniqueIds ?? new string[0] : new string[0], StringComparer.Ordinal);
+            var measurementSlots = BuildingAreaStatistics.Slots.Concat(new[] { "室内停车场" }).ToArray();
+            foreach (var row in rows.Where(r => r.Classified && measurementSlots.Contains(r.Slot) &&
+                string.IsNullOrEmpty(r.Issue) && string.IsNullOrEmpty(r.CoverageNote) && !string.IsNullOrEmpty(r.LevelUniqueId)))
+                selected.Add(row.LevelUniqueId);
+            return rows.Where(r => r.Entity == "IfcBuildingStorey" && selected.Contains(r.UniqueId) && !string.IsNullOrWhiteSpace(r.Name))
+                .OrderBy(r => r.LevelElevationM ?? double.MaxValue).ThenBy(r => r.Id)
+                .Select(r => r.Name).Distinct(StringComparer.Ordinal).ToArray();
+        }
+        static void ValidatePath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path) || !string.Equals(Path.GetExtension(path), ".xlsx", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("模板文件应使用 .xlsx 扩展名。");
+        }
+        internal static void WriteSheets(string path, IList<Tuple<string, XDocument>> sheets, XDocument styles)
+        {
             // CreateNew also protects an original source file if a caller bypasses the save dialog.
             using (var file = new FileStream(Path.GetFullPath(path), FileMode.CreateNew, FileAccess.Write, FileShare.None))
             using (var zip = new ZipArchive(file, ZipArchiveMode.Create))
@@ -40,7 +76,7 @@ namespace Hifc.Reference
                     new XElement(Main + "sheets", sheets.Select((s, i) => new XElement(Main + "sheet", new XAttribute("name", s.Item1), new XAttribute("sheetId", i + 1), new XAttribute(Rel + "id", "rId" + (i + 1))))))));
                 WritePart(zip, "xl/_rels/workbook.xml.rels", new XDocument(new XElement(PackageRel + "Relationships",
                     sheets.Select((s, i) => Relationship("rId" + (i + 1), "worksheet", "worksheets/sheet" + (i + 1) + ".xml")), Relationship("styles", "styles", "styles.xml"))));
-                WritePart(zip, "xl/styles.xml", Styles());
+                WritePart(zip, "xl/styles.xml", styles);
                 for (int i = 0; i < sheets.Count; i++) WritePart(zip, "xl/worksheets/sheet" + (i + 1) + ".xml", sheets[i].Item2);
             }
         }
@@ -59,13 +95,14 @@ namespace Hifc.Reference
             while (!used.Add(candidate)) { var tail = "_" + (++suffix); candidate = text.Substring(0, Math.Min(text.Length, 31 - tail.Length)) + tail; }
             return candidate;
         }
-        static XDocument BuildingSheet(string building)
+        static XDocument BuildingSheet(string building, string[] levelNames = null)
         {
             var fields = ReferenceCatalog.FromEmbeddedBaseline().Properties.Where(p => !p.NativeGroup && p.Binding == "实例" && p.Entity == "IfcBuilding")
                 .GroupBy(p => p.Property).Select(g => g.First()).ToArray();
-            var rows = fields.Select(p => new[] { "", p.Property, p.Property == "建筑名称" ? building : "", Unit(p), "" }).ToList();
-            rows.Add(new[] { "（填写实际楼层名称）", "楼层面积", "", "m²", "每个实际楼层一行；复制此行，不填写组合值。" });
-            return Sheet("单体建筑", building, "一栋一张表；空白保留模型现值，已有值冲突需在导入预览中逐项选择。楼层名称须与模型一致。", rows);
+            var rows = fields.Select(p => new[] { "", p.Property, "", Unit(p), "" }).ToList();
+            foreach (var level in levelNames ?? new[] { "（填写实际楼层名称）" })
+                rows.Add(new[] { level, "楼层面积", "", "m²", levelNames == null ? "每个实际楼层一行；复制此行，不填写组合值。" : "填写此来源楼层的申报面积，保留原楼层名称。" });
+            return Sheet("单体建筑", building, "一栋一张表；请由设计师填写值列。空白保留模型现值，已有值冲突需在导入预览中逐项选择。楼层名称须与模型一致。", rows);
         }
         static string Unit(ReferenceProperty property)
             => PropertyUnits.Canonical(property.Property,property.ExportType)??"";

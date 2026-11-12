@@ -14,6 +14,7 @@ namespace Hifc.Reference
         public string DefaultValue { get; set; }
         public string Code { get; set; }
         public string Detail { get; set; }
+        public bool BlocksExport { get; set; }
         public string CurrentText => string.IsNullOrWhiteSpace(Value) ? "未填写" : Value;
         public string DefaultText => string.IsNullOrWhiteSpace(DefaultValue) ? "无已知默认值" : DefaultValue;
     }
@@ -22,10 +23,10 @@ namespace Hifc.Reference
     public static class PlatformInputReview
     {
         const string RoadSet="Pset_道路边界线信息属性集";
-        const string BuildingUsageHint="建筑用途名称必填：请按实际用途确认并写入 Revit；缺失可能导致平台按住宅匹配法规。";
+        const string BuildingUsageHint="建筑用途名称必填：请核实裙房或塔楼；养老、办公等实际功能应按对应的建筑类别和区域功能核对。";
         public static string RequiredInputHint(FieldCheck field) => field.BuildingUsage
             ? BuildingUsageHint
-            : "消防道路宽度需人工填写并写入 Revit。";
+            : field.FireRoadWidth ? "消防道路宽度需人工填写并写入 Revit。" : field.Property+"为当前平台必填项；请核对资料并写入 Revit，默认显示不算已填写。";
         public static void ApplyManualPolicy(ModelElementCheck[] rows)
         {
             foreach(var row in rows)
@@ -68,15 +69,30 @@ namespace Hifc.Reference
             return values.Length==1?values[0]:"取决于室内/室外等计算分支";
         }
 
+        public static InputReviewItem[] Build(ModelElementCheck[] rows,string profileId,string modelKind)
+            => Build(rows,profileId).Concat(SiteBoundaryPolicy.Review(rows,modelKind,profileId)).ToArray();
+
         public static InputReviewItem[] Build(ModelElementCheck[] rows,string profileId)
         {
             var result=new List<InputReviewItem>();
             ApplyManualPolicy(rows);
             foreach(var row in rows)
             {
+                if (PlatformRules.IsActive(profileId) && IsUnconfirmedInstanceCandidate(row))
+                {
+                    var candidates = row.Candidates.Select(candidate => candidate.Slot)
+                        .Concat(row.SuggestedSlots)
+                        .Where(slot => !string.IsNullOrWhiteSpace(slot))
+                        .Distinct().ToArray();
+                    result.Add(Item(row, null, "业务分类", null, null,
+                        "HIFC_UNCONFIRMED_CLASSIFICATION",
+                        "业务类目待确认，候选为“" + string.Join("、", candidates)
+                        + "”。本次按当前已写属性和几何导出，确认分类后检查该类目的必填项。"));
+                    continue;
+                }
                 foreach(var field in row.Fields.Where(f=>f.ManualInputRequired&&!f.Valid))
                     result.Add(Item(row,field.PropertySet,field.Property,field.Value,null,
-                        field.BuildingUsage?"BUILDING_USAGE_REQUIRED":"FIRE_ROAD_WIDTH_REQUIRED",RequiredInputHint(field)));
+                        field.BuildingUsage?"BUILDING_USAGE_REQUIRED":"FIRE_ROAD_WIDTH_REQUIRED",RequiredInputHint(field),true));
                 if(!PlatformRules.IsActive(profileId))continue;
                 // Success-case 04 exposed mapped fields absent from the platform's
                 // visible-field list. Report these separately; no defaults, manual
@@ -92,14 +108,14 @@ namespace Hifc.Reference
                     var fields=group.ToArray();
                     if(PlanningInputs.IsComputeExcluded(fields,group.Key))continue;
                     var parent=PlanningInputs.ParentValue(fields,group.Key);
-                    foreach(var rule in PlatformRules.Fields(group.Key).Where(f=>f.ShowProperty))
+                    foreach(var rule in PlatformRules.InputFields(group.Key).Where(f=>f.ShowProperty))
                     {
                         var field=fields.FirstOrDefault(f=>f.Property==rule.Name);
                         var value=field?.Value;
                         if(field?.ManualInputRequired==true&&!field.Valid)continue;
                         if(field?.State=="有歧义")
                         {
-                            result.Add(Item(row,group.Key,rule.Name,value,null,"HIFC_PLATFORM_SOURCE_CONFLICT",field.Detail));
+                            result.Add(Item(row,group.Key,rule.Name,value,null,"HIFC_PLATFORM_SOURCE_CONFLICT",field.Detail,true));
                             continue;
                         }
                         var fallback=DefaultFor(group.Key,rule.Name,parent,fields);
@@ -108,13 +124,13 @@ namespace Hifc.Reference
                             if(rule.DisplayRequired||!string.IsNullOrEmpty(fallback))
                                 result.Add(Item(row,group.Key,rule.Name,value,fallback,
                                     string.IsNullOrEmpty(fallback)?"HIFC_PLATFORM_INPUT_MISSING":"HIFC_PLATFORM_DEFAULT_RISK",
-                                    string.IsNullOrEmpty(fallback)?"缺少平台计算输入；请核对来源后写入。":DefaultHint(profileId,group.Key,rule.Name,value,parent,fields)));
+                                    (rule.DisplayRequired?"必填项未写入。":"")+(string.IsNullOrEmpty(fallback)?"缺少平台计算输入；请核对来源后写入。":DefaultHint(profileId,group.Key,rule.Name,value,parent,fields)),rule.DisplayRequired));
                         }
                         else
                         {
                             var error=PlatformRules.ValueError(group.Key,rule.Name,value,parent);
                             if(error!=null||field!=null&&!field.Valid)
-                                result.Add(Item(row,group.Key,rule.Name,value,null,"HIFC_PLATFORM_INPUT_REVIEW",error??field.Detail??"当前值需核对。"));
+                                result.Add(Item(row,group.Key,rule.Name,value,null,"HIFC_PLATFORM_INPUT_REVIEW",error??field.Detail??"当前值需核对。",true));
                         }
                     }
                 }
@@ -122,7 +138,16 @@ namespace Hifc.Reference
             return result.GroupBy(i=>i.ElementId+"|"+i.PropertySet+"|"+i.Property).Select(g=>g.First()).ToArray();
         }
 
-        static InputReviewItem Item(ModelElementCheck row,string pset,string property,string value,string fallback,string code,string detail)
-            => new InputReviewItem{ElementId=row.Id,Name=row.Name,PropertySet=pset,Property=property,Value=value,DefaultValue=fallback,Code=code,Detail=detail};
+        static bool IsUnconfirmedInstanceCandidate(ModelElementCheck row)
+        {
+            if (row.Classified || !string.IsNullOrWhiteSpace(row.Slot) || row.Slots.Length > 0)
+                return false;
+            if (row.Entity == "IfcBuilding" || row.Entity == "IfcBuildingStorey" || row.Entity == "IfcSite")
+                return false;
+            return row.Candidates.Length > 0 || row.SuggestedSlots.Length > 0;
+        }
+
+        static InputReviewItem Item(ModelElementCheck row,string pset,string property,string value,string fallback,string code,string detail,bool blocks=false)
+            => new InputReviewItem{ElementId=row.Id,Name=row.Name,PropertySet=pset,Property=property,Value=value,DefaultValue=fallback,Code=code,Detail=detail,BlocksExport=blocks};
     }
 }

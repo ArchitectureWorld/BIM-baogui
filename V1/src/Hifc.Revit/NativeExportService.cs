@@ -15,11 +15,14 @@ namespace Hifc.Revit
     {
         internal static Management.ExportReviewData ReviewProject(Document doc)
         {
+            var snapshot=ReadSubmissionInputs(doc);
             var scope=ProjectExportScope.Read(doc);
             var profile=Management.PlatformContext.ProfileId(doc);
-            var inputs=scope.InputReview.Concat(scope.Issues.Where(i=>!scope.InputReview.Any(r=>r.ElementId==i.element_id&&r.PropertySet==i.property_set&&r.Property==i.property))
+            var requiredInputs=PlatformInputReview.Build(snapshot.Elements,profile,snapshot.ModelKind);
+            var inputs=requiredInputs.Concat(scope.Issues.Where(i=>!requiredInputs.Any(r=>r.ElementId==i.element_id&&r.PropertySet==i.property_set&&r.Property==i.property))
                 .Select(i=>new InputReviewItem{ElementId=i.element_id,Name=i.name,PropertySet=i.property_set,Property=i.property??"映射 / 几何",Code=i.code,Detail=i.detail})).ToList();
             var blockers=new List<string>();
+            blockers.AddRange(requiredInputs.Where(i=>i.BlocksExport).Select(i=>i.ElementId+" / "+i.Property+"："+i.Detail));
             try { Management.CaseEdits.ValidateNetLand(doc); }
             catch(InvalidOperationException error) {
                 blockers.Add(error.Message);
@@ -28,6 +31,7 @@ namespace Hifc.Revit
             FloorAreaPlan plan=null;string areaPlanError=null;
             try { plan=Management.FloorAreaSynchronization.ForExport(doc,scope.MappedElements); }
             catch(InvalidOperationException error) { areaPlanError=error.Message;blockers.Add(error.Message); }
+            if(plan!=null)inputs.AddRange(plan.Notices);
             var areas=new List<Management.ExportAreaReviewItem>();
             foreach(var element in scope.MappedElements)
                 foreach(var property in RevitMappingService.Properties(doc,element).Where(p=>
@@ -42,24 +46,41 @@ namespace Hifc.Revit
                         if(areaPlanError!=null&&(property.PropertySet==FloorAreaPolicy.RegionSet||property.PropertySet==FloorAreaPolicy.FloorSet))
                         {
                             item.ExportValue="无法确定";item.Reason=areaPlanError;
-                            inputs.Add(new InputReviewItem{ElementId=item.ElementId,Name=item.Name,PropertySet=property.PropertySet,Property=property.Property,Code="FLOOR_AREA_REVIEW",Detail=areaPlanError});
+                            inputs.Add(new InputReviewItem{ElementId=item.ElementId,Name=item.Name,PropertySet=property.PropertySet,Property=property.Property,Value=item.SourceValue,Code="FLOOR_AREA_REVIEW",Detail=areaPlanError});
                         }
                     }catch(InvalidOperationException error) {
                         blockers.Add(error.Message);item.SourceValue="需核对来源";item.ExportValue="无法确定";item.Reason=error.Message;
                         if(!inputs.Any(i=>i.ElementId==item.ElementId&&i.PropertySet==property.PropertySet&&i.Property==property.Property))
-                            inputs.Add(new InputReviewItem{ElementId=item.ElementId,Name=item.Name,PropertySet=property.PropertySet,Property=property.Property,Code="EXPORT_AREA_REVIEW",Detail=error.Message});
+                            inputs.Add(new InputReviewItem{ElementId=item.ElementId,Name=item.Name,PropertySet=property.PropertySet,Property=property.Property,Value=item.SourceValue,Code="EXPORT_AREA_REVIEW",Detail=error.Message});
                     }
                     areas.Add(item);
                 }
             if(areaPlanError!=null&&!inputs.Any(i=>i.Code=="FLOOR_AREA_REVIEW"))
                 inputs.Add(new InputReviewItem{ElementId=doc.ProjectInformation.Id.IntegerValue,Name="楼层面积同步",Property="区域范围",Code="FLOOR_AREA_REVIEW",Detail=areaPlanError});
-            return new Management.ExportReviewData{Title=doc.Title,ProfileId=profile,Inputs=inputs.ToArray(),Areas=areas.ToArray(),BlockingReasons=blockers.Distinct().ToArray()};
+            return new Management.ExportReviewData{Title=doc.Title,ProfileId=profile,Inputs=inputs.ToArray(),Areas=areas.ToArray(),BlockingReasons=blockers.Distinct().ToArray(),
+                InputValidation=RequiredInputValidation.Create(snapshot.Elements,profile,snapshot.ModelKind,snapshot.Complete,requiredInputs)};
+        }
+        static Management.ModelSnapshot ReadSubmissionInputs(Document doc)
+        {
+            var stage=Management.PlatformContext.Stage(doc);var profile=Management.PlatformContext.ProfileId(doc);
+            if(stage!="报规"||!PlatformRules.IsActive(profile))throw new InvalidOperationException("请先在模型管理中确认报规阶段及适用的平台规则，再进行必填必检和导出。");
+            var job=new Management.CaseScanJob(doc,stage,Management.PlatformContext.Kind(doc));
+            while(!job.Complete){var before=job.Position;job.ReadNext(doc,1000);if(job.Position<=before&&!job.Complete)throw new InvalidOperationException("完整属性检查未完成，不能导出。");}
+            var snapshot=job.Snapshot(doc);
+            if(!new[]{"总图","单体建筑"}.Contains(snapshot.ModelKind))throw new InvalidOperationException("请先确认模型属于总图或单体建筑，不能跳过适用范围检查。");
+            return snapshot;
         }
         internal static ProjectExportScope ExportProject(Document doc, string ifcPath)
         {
             PlatformSync.PlatformSyncRegistry.BeginExport(doc);
+            // Recheck the live document even when called without the confirmation UI.
+            var review=ReviewProject(doc);
+            var blockers=review.BlockingInputs;
+            if(blockers.Length>0)throw new InvalidOperationException("导出前核对未通过，IFC 未生成。\n"+
+                string.Join("\n",blockers.Take(15).Select(Management.ExportReviewData.BlockingDescription)));
             Management.CaseEdits.ValidateNetLand(doc);
             var scope = ProjectExportScope.Read(doc);
+            scope.InputValidation=review.InputValidation;
             ExportCore(doc, scope.Elements, scope.MappedElements, ifcPath, scope);
             return scope;
         }
@@ -100,7 +121,7 @@ namespace Hifc.Revit
             // pair. Type Psets use an exact owner filter in NativeTypePropertyScope.
             var profileId = Management.PlatformContext.ProfileId(doc);
             File.WriteAllText(configPath, RevitMappingService.Catalog.BuildSelectedExportConfiguration(selectedProperties.Where(p=>p.Binding!="类型"
-                && !NativeTypePropertyScope.FiltersInstanceProperty(p, profileId))), new UTF8Encoding(false));
+                && !NativeTypePropertyScope.FiltersInstanceProperty(p, profileId)).Select(p=>PlatformNativeEncoding.ConfigurationProperty(p,profileId))), new UTF8Encoding(false));
             var before = SnapshotHash(doc, mappedElements);
             // IfcSpace has no Tag attribute. Keep Revit's native export identity so
             // the read-only IFC audit can resolve an Area without guessing by name.
@@ -172,7 +193,9 @@ namespace Hifc.Revit
             var ifcHash=Evidence.FileHash(artifacts.StagedIfcPath);
             var receipt = new
             {
-                schema_version = "hifc.native-export-receipt/1.5", export_id = exportId, ifc_path = path, ifc_sha256 = ifcHash,
+                schema_version = "hifc.native-export-receipt/1.7", export_id = exportId, ifc_path = path, ifc_sha256 = ifcHash,
+                input_validation=project?.InputValidation,
+                native_value_encoding_policy=PlatformRules.IsActive(profileId)?PlatformNativeEncoding.PolicyId:null,
                 receipt_path=artifacts.ReceiptPath, internal_artifact_directory=artifacts.DirectoryPath,
                 configuration_path = configPath, configuration_sha256 = Evidence.FileHash(configPath),
                 doc_export_calls = 1, ifc_postprocessed = false, source_snapshot_before = before, source_snapshot_after = after,
@@ -266,8 +289,8 @@ namespace Hifc.Revit
             // Type Psets are already restricted to exact type owners by the native
             // schedule filter; unrelated instance built-ins cannot leak into them.
             var profileId = Management.PlatformContext.ProfileId(doc);
-            // These window fields are exported only through an exact instance-owner
-            // description. Their peer windows' built-in dimensions are safe to retain.
+            // Owner-filtered window/balcony fields use calculator-only entries.
+            // Their peers' built-in dimensions and level references remain native data.
             var numeric=properties.Where(p=>p.Binding!="类型" && !NativeTypePropertyScope.FiltersInstanceProperty(p, profileId)
                 && (p.ExportType=="Real"||p.ExportType=="Boolean")).ToArray();
             if (numeric.Length == 0) return new string[0];

@@ -83,6 +83,37 @@ namespace Hifc.Revit
     }
 
     [Transaction(TransactionMode.ReadOnly)]
+    public sealed class BuildingAreaStatisticsCommand : IExternalCommand
+    {
+        public Result Execute(ExternalCommandData data, ref string message, ElementSet set)
+        {
+            try { Management.BuildingAreaStatisticsController.Open(data.Application); return Result.Succeeded; }
+            catch (Exception ex) { return CommandScope.Failure(ex, ref message); }
+        }
+    }
+
+    [Transaction(TransactionMode.ReadOnly)]
+    public sealed class SiteStatisticsCommand : IExternalCommand
+    {
+        public Result Execute(ExternalCommandData data, ref string message, ElementSet set)
+        { try { Management.SiteStatisticsController.Open(data.Application); return Result.Succeeded; } catch(Exception ex) { return CommandScope.Failure(ex,ref message); } }
+    }
+
+    [Transaction(TransactionMode.ReadOnly)]
+    public sealed class ReportingWorkbookExportCommand : IExternalCommand
+    {
+        public Result Execute(ExternalCommandData data, ref string message, ElementSet set)
+        { try { return Management.ReportingWorkbookController.Export(data.Application)?Result.Succeeded:Result.Cancelled; } catch(Exception ex) { return CommandScope.Failure(ex,ref message); } }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    public sealed class ReportingWorkbookImportCommand : IExternalCommand
+    {
+        public Result Execute(ExternalCommandData data, ref string message, ElementSet set)
+        { try { Management.ManagerController.OpenWorkbookImport(data.Application); return Result.Succeeded; } catch(Exception ex) { return CommandScope.Failure(ex,ref message); } }
+    }
+
+    [Transaction(TransactionMode.ReadOnly)]
     public sealed class AboutCommand : IExternalCommand
     {
         public Result Execute(ExternalCommandData data, ref string message, ElementSet set)

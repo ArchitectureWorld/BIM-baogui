@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-26",
+  "scope": "candidate_ui_only",
+  "formal_version": "0.4.19",
+  "installed_plugin_unchanged": true,
+  "ui_tests": {
+    "failed": 0,
+    "passed": 149,
+    "log": "validation/ui-style-final/stdout.log"
+  },
+  "standalone_smoke": {
+    "state": "PLANNED",
+    "real_platform_contacted": false,
+    "passed": true,
+    "model_writes": 0,
+    "log": "validation/sync-demo-style-green/standalone-smoke.json"
+  },
+  "release_build": {
+    "warnings": 0,
+    "log": "validation/sync-style-revit-build.log",
+    "errors": 0
+  },
+  "screenshot": "docs/images/platform-sync-unified-20261026.png",
+  "screenshot_sha256": "2d9413a25ea39f7029b18dc34953db8038baa93fa826cee61dccf392ef6df957",
+  "visual_checks": [
+    "ready",
+    "review-state",
+    "running",
+    "failed",
+    "missing-config",
+    "stale-config",
+    "940px-window",
+    "150-percent-layout-scale",
+    "technical-details"
+  ],
+  "limits": [
+    "Screenshots use synthetic UI data.",
+    "150 percent uses WPF layout scaling, not a Windows per-monitor DPI change.",
+    "No candidate Revit host installation or real upload performed."
+  ]
+}

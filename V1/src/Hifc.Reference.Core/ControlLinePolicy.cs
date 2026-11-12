@@ -21,6 +21,22 @@ namespace Hifc.Reference
                 fields.Any(f => NetLandName(f.Value) || f.RequiredValue == NetLandLabel))) return;
             foreach (var field in fields)
             {
+                if (PlatformRules.IsActive(field.RuleProfileId))
+                {
+                    // The name describes the carrier; the line type is a platform enum.
+                    // Preserve written values and let required/enum validation decide validity.
+                    field.RequiredValue = null;
+                    field.AllowedEmpty = !PlatformRules.RequiredFields(PropertySet).Contains(field.Property);
+                    field.SuggestedValue = null;
+                    field.SuggestionReason = null;
+                    if (!string.IsNullOrWhiteSpace(field.Value) ||
+                        !(field.State == "缺参数" || field.State == "未填写")) continue;
+                    field.SuggestedValue = field.Property == "名称" ? NetLandLabel : "红线";
+                    field.SuggestionReason = field.Property == "名称"
+                        ? "已确认净用地控制红线载体的名称，可人工调整"
+                        : "净用地控制红线的类型采用平台“红线”选项，可人工调整";
+                    continue;
+                }
                 field.RequiredValue = NetLandLabel;
                 field.AllowedEmpty = false;
                 if (!field.RequiresRuleWrite || !(field.State == "缺参数" || field.State == "未填写" ||

@@ -1,0 +1,2 @@
+// Synthetic receipt metadata for transport tests; never used to export a real model.
+export const passedInputFixture=()=>({schema:'hifc.required-input-review/1',rule_profile_id:'hubei-420626-planning-20261020',rule_revision:'hbbim-420626-required-20261104',rule_evidence_sha256:'ea0f70c4a5870f3a911799d079aa7ed6c08be24f294542676a5b17a0b09dfbbe',complete:true,model_kind:'总图',checked_objects:1,checked_fields:3,blocking_count:0});

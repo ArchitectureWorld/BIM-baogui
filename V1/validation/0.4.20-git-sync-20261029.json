@@ -1,0 +1,36 @@
+{
+  "schema": "hifc.git-sync-verification/1",
+  "date": "2026-10-29",
+  "branch": "main",
+  "plugin_version": "0.4.20",
+  "platform_sync_version": "0.2.0",
+  "scope": "Fresh local checks before synchronizing source, tests, tools and public documentation; no deployment or platform mutation",
+  "tests": {
+    "reference_core": 267,
+    "wpf": 151,
+    "workbook": 21,
+    "redline": 33,
+    "platform_sync": 80,
+    "python": 34,
+    "total_passed": 586,
+    "final_failures": 0
+  },
+  "revit_release_build": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "python_environment": {
+    "version": "3.12.14",
+    "ifcopenshell_binary": "cp312-win_amd64",
+    "note": "The initial Python 3.14 run could not import the local cp312 dependency; all 34 tests passed with the matching interpreter. No business source change was needed."
+  },
+  "review": {
+    "staged_whitespace_passed": true,
+    "credential_scan_findings": 0,
+    "packaging_script_matches_deployed_source": true,
+    "customer_models_credentials_runtime_databases_excluded": true,
+    "decompiled_files_unchanged": true
+  },
+  "local_evidence_directory": "../outputs/sync-0.4.20-20261029",
+  "ci_note": "GitHub Actions status is recorded by the workflow attached to the pushed commit; this file records pre-push local verification only."
+}
