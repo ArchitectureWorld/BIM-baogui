@@ -75,6 +75,7 @@ public static class AdminPortal
         <title>
         """ + E(title) + """
         </title><style>*{box-sizing:border-box}body{margin:0;background:#f2f5f8;color:#18324c;font:15px/1.75 system-ui,"Microsoft YaHei",sans-serif}main{max-width:1180px;margin:45px auto;padding:35px;background:white;border-radius:16px;box-shadow:0 12px 50px #18344b12}nav{display:flex;gap:22px;border-bottom:1px solid #dbe4ed;padding-bottom:18px;margin-bottom:30px}h1{font-size:32px;margin:12px 0}small,.muted{color:#62788b}a{color:#245e8f}button,.button{display:inline-block;background:#245e8f;color:white;text-decoration:none;border:0;border-radius:6px;padding:10px 17px;cursor:pointer;font:inherit}input{font:inherit;padding:8px 10px;border:1px solid #c8d6e4;border-radius:6px;max-width:100%}label{display:block;margin:16px 0 5px}form{margin:10px 0}.login{max-width:420px}.login input{width:100%}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #e4eaf0;padding:14px 10px;vertical-align:top}td form{display:flex;gap:7px;flex-wrap:wrap}td input{width:155px}.danger{background:#b53e49}.delete-link{color:#b53e49}.notice{padding:12px 16px;background:#edf8f2;border-radius:8px;color:#186347}.active{color:#186347}.expired{color:#ae3f42}.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:35px 0}.step{background:#eef4f8;border-radius:9px;padding:20px}.scroll{overflow:auto}code{word-break:break-all}textarea{width:100%;font:16px monospace;padding:14px}@media(max-width:800px){main{margin:14px;padding:22px}.steps{grid-template-columns:1fr 1fr}h1{font-size:26px}}</style>
+        <style>.extension{min-width:320px}.extension form{align-items:flex-end}.extension label{display:grid;gap:4px;margin:0;font-size:13px}.extension button{white-space:nowrap}.extension small{display:block}</style>
         <main><nav><b>HIFC 0.5.0-Web</b><a href="/">客户端入口</a><a href="/admin">账号管理</a></nav>
         """ + content + "</main></html>";
     public static string Home() => Page("HIFC Web · 客户端入口", "<small>Revit 2020 · 开发体验版</small><h1>检查、编辑，并验证模型写入结果</h1><p>安装独立 Web 插件，在 Revit 中完成报规模型属性管理。模型保留在本机，服务器提供本轮检查与写入方案。</p><p><a class=\"button\" href=\"/downloads/HIFC-0.5.0-Web.zip\">下载 Web 插件与安装器</a></p><div class=\"steps\"><div class=\"step\">01<br><b>登记与连接</b><br>手机号、真实姓名</div><div class=\"step\">02<br><b>全面检查</b><br>盘点当前文档与字段</div><div class=\"step\">03<br><b>编辑与预览</b><br>草稿自动保留在本机</div><div class=\"step\">04<br><b>写入与复检</b><br>回读验证后自行保存</div></div><h2>开始体验</h2><p>解压后双击“安装 Web 版.cmd”，按安装器核对证书。打开模型副本，在 Revit 的独立“HIFC-V1-Web”页签中点击“模型检查 / 属性管理”。</p><p class=\"muted\">普通账号首次登记有效 168 小时。重装或换机保留原期限；需要延期时联系管理员。Web 版使用独立安装目录和入口。</p>");
@@ -93,9 +94,22 @@ public static class AdminPortal
             {
                 var path = "/admin/accounts/" + row.Id; var hidden = Hidden(token) + "<input type=\"hidden\" name=\"version\" value=\"" + row.RowVersion + "\">";
                 string Date(DateTime utc) => new DateTimeOffset(utc).ToOffset(TimeSpan.FromHours(8)).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
-                html.Append("<tr><td>").Append(E(row.RealName)).Append("<br>").Append(E(row.Phone)).Append("</td><td>").Append(Date(row.RegisteredAtUtc)).Append("<br>").Append(Date(row.ExpiresAtUtc)).Append("</td><td class=\"").Append(row.IsActive ? "active\">有效" : "expired\">已到期").Append("</td><td><a class=\"delete-link\" href=\"").Append(path).Append("/delete\">删除</a></td></tr>");
+                var earliestDate = new DateTimeOffset(row.ExpiresAtUtc > row.ServerTimeUtc ? row.ExpiresAtUtc : row.ServerTimeUtc)
+                    .ToOffset(TimeSpan.FromHours(8)).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                html.Append("<tr><td>").Append(E(row.RealName)).Append("<br>").Append(E(row.Phone))
+                    .Append("</td><td>").Append(Date(row.RegisteredAtUtc)).Append("<br>").Append(Date(row.ExpiresAtUtc))
+                    .Append("</td><td class=\"").Append(row.IsActive ? "active\">有效" : "expired\">已到期")
+                    .Append("</td><td class=\"extension\"><form method=\"post\" action=\"").Append(path).Append("/extend\">").Append(hidden)
+                    .Append("<label>延期天数<input type=\"number\" name=\"days\" min=\"1\" max=\"36500\" step=\"1\" required></label><button type=\"submit\">按天延期</button></form>")
+                    .Append("<form method=\"post\" action=\"").Append(path).Append("/extend\">").Append(hidden)
+                    .Append("<label>到期日期<input type=\"date\" name=\"untilDate\" min=\"").Append(earliestDate)
+                    .Append("\" required></label><button type=\"submit\">按日期延期</button></form><small>指定日期包含当天，按北京时间计算。</small>")
+                    .Append("</td><td><a class=\"delete-link\" href=\"").Append(path).Append("/delete\">删除</a></td></tr>");
             }
-            html.Append("</table></div>"); if (context.Request.Query["deleted"] == "1") html.Insert(0, "<p class=\"notice\" role=\"status\">账号已删除，登录凭证和服务器检查数据已清除。</p>"); return Html(context, "账号管理", html.ToString());
+            html.Append("</table></div>");
+            if (context.Request.Query["extended"] == "1") html.Insert(0, "<p class=\"notice\" role=\"status\">延期已保存，请核对更新后的到期时间。</p>");
+            if (context.Request.Query["deleted"] == "1") html.Insert(0, "<p class=\"notice\" role=\"status\">账号已删除，登录凭证和服务器检查数据已清除。</p>");
+            return Html(context, "账号管理", html.ToString());
         }).RequireAuthorization();
         app.MapGet("/admin/accounts/{id:guid}/delete", async (Guid id, HttpContext context, AccountStore accounts) => {
             var account = await accounts.GetAsync(id, context.RequestAborted);
@@ -112,7 +126,7 @@ public static class AdminPortal
         app.MapPost("/admin/accounts/{id:guid}/extend", async (Guid id, HttpContext context, AccountStore accounts) => {
             var form = await Form(context); if (!long.TryParse(form["version"], out var version)) throw new InvalidOperationException("页面版本已失效，请刷新。");
             int? days = string.IsNullOrEmpty(form["days"]) ? null : int.TryParse(form["days"], out var number) ? number : throw new InvalidOperationException("延期天数无效。");
-            await accounts.ExtendAsync(Guid.Parse(Actor(context)), id, version, days, string.IsNullOrEmpty(form["untilDate"]) ? null : form["untilDate"].ToString(), context.RequestAborted); return Results.Redirect("/admin");
+            await accounts.ExtendAsync(Guid.Parse(Actor(context)), id, version, days, string.IsNullOrEmpty(form["untilDate"]) ? null : form["untilDate"].ToString(), context.RequestAborted); return Results.Redirect("/admin?extended=1");
         }).RequireAuthorization();
         app.MapPost("/admin/logout", async (HttpContext context) => { await Form(context); await context.SignOutAsync(Scheme); context.Response.Cookies.Delete(CsrfCookie, new CookieOptions { Path = "/", Secure = true, SameSite = SameSiteMode.Strict }); return Results.Redirect("/admin/login"); }).RequireAuthorization();
     }

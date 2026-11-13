@@ -8,6 +8,8 @@ using Npgsql;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Globalization;
 
 internal static class EndpointCases
 {
@@ -98,24 +100,51 @@ internal static class EndpointCases
                     Require(signedIn.StatusCode is HttpStatusCode.Redirect or HttpStatusCode.SeeOther, "Administrator password did not establish a cookie session.");
                     using var dashboard = await Send(HttpMethod.Get, "admin"); token = Csrf(await dashboard.Content.ReadAsStringAsync()); Require(dashboard.StatusCode == HttpStatusCode.OK && token.Length > 20, "Administrator dashboard is unavailable.");
                     var member = await Register(); var path = "admin/accounts/" + member.Account.Id + "/extend";
+                    static string[] Cells(string page, string phone)
+                    {
+                        var row = Regex.Matches(page, "<tr>.*?</tr>", RegexOptions.Singleline).Cast<Match>().Single(m => m.Value.Contains(phone)).Value;
+                        return Regex.Matches(row, "<td\\b[^>]*>(.*?)</td>", RegexOptions.Singleline).Cast<Match>().Select(m => m.Groups[1].Value).ToArray();
+                    }
+                    using var memberPage = await Send(HttpMethod.Get, "admin");
+                    var cells = Cells(await memberPage.Content.ReadAsStringAsync(), member.Account.Phone);
+                    Require(cells.Length == 5, "An account row does not align with all five dashboard columns.");
+                    var forms = Regex.Matches(cells[3], "<form\\b.*?</form>", RegexOptions.Singleline).Cast<Match>().Select(m => m.Value).ToArray();
+                    Require(forms.Length == 2 && forms.All(form => form.Contains("action=\"/" + path + "\"") && Csrf(form).Length > 20 && form.Contains("name=\"version\" value=\"1\"")), "The extension cell lacks its two authenticated versioned forms.");
+                    Require(forms.Any(form => form.Contains("type=\"number\"") && form.Contains("name=\"days\"") && form.Contains("min=\"1\"") && !form.Contains("name=\"untilDate\"")), "The dashboard has no independent custom-day input.");
+                    Require(forms.Any(form => form.Contains("type=\"date\"") && form.Contains("name=\"untilDate\"") && !form.Contains("name=\"days\"")), "The dashboard has no independent custom-date input.");
+                    Require(cells[4].Contains("/" + path.Replace("/extend", "/delete")) && !cells[3].Contains("delete-link"), "Deletion is displayed under the extension column.");
+                    token = Csrf(forms[0]);
                     using var forged = await Send(HttpMethod.Post, path, new Dictionary<string, string> { ["days"] = "2", ["version"] = "1" }); Require(forged.StatusCode == HttpStatusCode.BadRequest, "A missing CSRF token changed an account.");
                     using var extended = await Send(HttpMethod.Post, path, new Dictionary<string, string> { ["days"] = "2", ["version"] = "1", ["csrf"] = token });
                     Require(extended.StatusCode is HttpStatusCode.Redirect or HttpStatusCode.SeeOther, "A valid administrator form was rejected.");
                     Require((await new AccountStore(source).GetAsync(Guid.Parse(member.Account.Id))).ExpiresAtUtc == member.Account.ExpiresAtUtc.AddDays(2), "Browser form did not persist the intended extension.");
+                    Require(extended.Headers.Location?.OriginalString == "/admin?extended=1", "The extension does not return visible success feedback.");
+                    using var afterDays = await Send(HttpMethod.Get, extended.Headers.Location.OriginalString);
+                    var afterDaysHtml = WebUtility.HtmlDecode(await afterDays.Content.ReadAsStringAsync());
+                    cells = Cells(afterDaysHtml, member.Account.Phone);
+                    Require(afterDaysHtml.Contains("延期已保存") && cells[3].Contains("name=\"version\" value=\"2\""), "Refreshing the saved extension did not show the new version and confirmation.");
+                    var untilDate = member.Account.ExpiresAtUtc.AddDays(30).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    using var dated = await Send(HttpMethod.Post, path, new Dictionary<string, string> { ["untilDate"] = untilDate, ["version"] = "2", ["csrf"] = Csrf(cells[3]) });
+                    Require(dated.StatusCode is HttpStatusCode.Redirect or HttpStatusCode.SeeOther, "The custom-date form was rejected.");
+                    var expected = DateTime.SpecifyKind(DateTime.ParseExact(untilDate, "yyyy-MM-dd", CultureInfo.InvariantCulture).AddDays(1).AddHours(-8), DateTimeKind.Utc);
+                    Require((await new AccountStore(source).GetAsync(Guid.Parse(member.Account.Id))).ExpiresAtUtc == expected, "The custom Beijing date was not saved through the browser endpoint.");
+                    using var afterDate = await Send(HttpMethod.Get, "admin");
+                    var dateCells = Cells(WebUtility.HtmlDecode(await afterDate.Content.ReadAsStringAsync()), member.Account.Phone);
+                    Require(dateCells[1].Contains(expected.AddHours(8).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)) && dateCells[3].Contains("name=\"version\" value=\"3\""), "A fresh account page did not retain the selected expiry date.");
                     path = "admin/accounts/" + member.Account.Id + "/delete";
                     using var confirmation = await Send(HttpMethod.Get, path);
                     var html = WebUtility.HtmlDecode(await confirmation.Content.ReadAsStringAsync());
                     Require(confirmation.StatusCode == HttpStatusCode.OK && html.Contains(member.Account.Phone) && html.Contains(member.Account.RealName) && html.Contains("确认删除"), "Account deletion lacks an identifiable confirmation page.");
                     Require(await new AccountStore(source).GetAsync(Guid.Parse(member.Account.Id)) != null, "Opening confirmation deleted the account.");
                     token = Csrf(html);
-                    using var noCsrf = await Send(HttpMethod.Post, path, new Dictionary<string, string> { ["version"] = "2", ["confirm"] = "delete" });
+                    using var noCsrf = await Send(HttpMethod.Post, path, new Dictionary<string, string> { ["version"] = "3", ["confirm"] = "delete" });
                     Require(noCsrf.StatusCode == HttpStatusCode.BadRequest, "Deletion accepted a missing CSRF token.");
-                    using var noConfirmation = await Send(HttpMethod.Post, path, new Dictionary<string, string> { ["version"] = "2", ["csrf"] = token });
+                    using var noConfirmation = await Send(HttpMethod.Post, path, new Dictionary<string, string> { ["version"] = "3", ["csrf"] = token });
                     Require(noConfirmation.StatusCode == HttpStatusCode.BadRequest, "Deletion accepted a missing confirmation.");
                     using var stale = await Send(HttpMethod.Post, path, new Dictionary<string, string> { ["version"] = "1", ["csrf"] = token, ["confirm"] = "delete" });
                     Require(stale.StatusCode == HttpStatusCode.Conflict, "Deletion accepted stale account details.");
                     Require(await new AccountStore(source).GetAsync(Guid.Parse(member.Account.Id)) != null, "A rejected form deleted the account.");
-                    using var deleted = await Send(HttpMethod.Post, path, new Dictionary<string, string> { ["version"] = "2", ["csrf"] = token, ["confirm"] = "delete" });
+                    using var deleted = await Send(HttpMethod.Post, path, new Dictionary<string, string> { ["version"] = "3", ["csrf"] = token, ["confirm"] = "delete" });
                     Require(deleted.StatusCode is HttpStatusCode.Redirect or HttpStatusCode.SeeOther, "Confirmed account deletion was rejected.");
                     Require(await new AccountStore(source).GetAsync(Guid.Parse(member.Account.Id)) == null, "Deleted account remained in storage.");
                     using var oldSession = new HttpRequestMessage(HttpMethod.Get, "api/v1/me"); oldSession.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", member.AccessToken);
