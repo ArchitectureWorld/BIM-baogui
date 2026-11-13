@@ -76,10 +76,11 @@ public static class AdminPortal
         """ + E(title) + """
         </title><style>*{box-sizing:border-box}body{margin:0;background:#f2f5f8;color:#18324c;font:15px/1.75 system-ui,"Microsoft YaHei",sans-serif}main{max-width:1180px;margin:45px auto;padding:35px;background:white;border-radius:16px;box-shadow:0 12px 50px #18344b12}nav{display:flex;gap:22px;border-bottom:1px solid #dbe4ed;padding-bottom:18px;margin-bottom:30px}h1{font-size:32px;margin:12px 0}small,.muted{color:#62788b}a{color:#245e8f}button,.button{display:inline-block;background:#245e8f;color:white;text-decoration:none;border:0;border-radius:6px;padding:10px 17px;cursor:pointer;font:inherit}input{font:inherit;padding:8px 10px;border:1px solid #c8d6e4;border-radius:6px;max-width:100%}label{display:block;margin:16px 0 5px}form{margin:10px 0}.login{max-width:420px}.login input{width:100%}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #e4eaf0;padding:14px 10px;vertical-align:top}td form{display:flex;gap:7px;flex-wrap:wrap}td input{width:155px}.danger{background:#b53e49}.delete-link{color:#b53e49}.notice{padding:12px 16px;background:#edf8f2;border-radius:8px;color:#186347}.active{color:#186347}.expired{color:#ae3f42}.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:35px 0}.step{background:#eef4f8;border-radius:9px;padding:20px}.scroll{overflow:auto}code{word-break:break-all}textarea{width:100%;font:16px monospace;padding:14px}@media(max-width:800px){main{margin:14px;padding:22px}.steps{grid-template-columns:1fr 1fr}h1{font-size:26px}}</style>
         <style>
+        nav{align-items:center}nav a{text-decoration:none;font-size:13px;color:#708398}nav a:hover{color:#2e66a0}
         .account-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:4px 0 24px}
         .account-heading h1{font-size:28px;line-height:1.35;margin:0 0 6px;letter-spacing:-.5px}.account-heading p{margin:0;color:#7a8998;font-size:13px}.account-heading form{margin:0}
         .secondary-button{background:white;color:#52687d;border:1px solid #dce5ee;padding:7px 14px;font-size:13px}
-        .account-table{border:1px solid #e3e9f0;border-radius:12px;overflow:auto}.account-table table{min-width:760px}
+        .account-table{border:1px solid #e3e9f0;border-radius:12px;overflow:auto}.account-table table{min-width:0}
         .account-table th{background:#f7f9fc;color:#738499;font-size:12px;font-weight:500;padding:13px 20px;white-space:nowrap}
         .account-table td{padding:17px 20px;vertical-align:middle;border-color:#edf1f5}.account-table tr:last-child td{border-bottom:0}.account-table th:last-child{text-align:right}
         .member-name{display:block;font-size:14px;font-weight:600;color:#243e57}.member-phone{display:block;margin-top:2px;font-size:12px;color:#8b99a8;font-variant-numeric:tabular-nums}
@@ -94,6 +95,7 @@ public static class AdminPortal
         .extension-panel:has(.mode-days:checked) .date-pane,.extension-panel:has(.mode-date:checked) .days-pane{display:none}
         .extension-panel form{margin:0}.extension-panel .field-label{margin:0 0 8px;font-size:13px;color:#52687e}.extension-panel .field-input{display:block;width:100%;height:46px;border-color:#d9e3ed;border-radius:8px;padding:10px 12px;outline:none}.extension-panel .field-input:focus{border-color:#4383bc;box-shadow:0 0 0 3px #4083bb16}
         .extension-help{font-size:12px;color:#8b99a7;line-height:1.7;margin:10px 0 24px}.extension-footer{display:flex;justify-content:flex-end;gap:9px}.extension-footer button{font-size:13px;padding:8px 18px;border-radius:7px}.extension-footer .secondary-button{border:1px solid #dce5ee}
+        @media(max-width:900px){.account-table th,.account-table td{padding:13px 12px}.date-cell{font-size:12px}.date-cell .clock{display:block;color:#8b99a8;font-size:12px}.account-actions{gap:6px}.extend-button{padding:6px 10px}.account-actions .delete-link{padding:6px 3px;font-size:12px}}
         </style>
         <main><nav><b>HIFC 0.5.0-Web</b><a href="/">客户端入口</a><a href="/admin">账号管理</a></nav>
         """ + content + "</main></html>";
@@ -114,13 +116,13 @@ public static class AdminPortal
             foreach (var row in rows.Where(a => !a.IsAdmin))
             {
                 var path = "/admin/accounts/" + row.Id; var hidden = Hidden(token) + "<input type=\"hidden\" name=\"version\" value=\"" + row.RowVersion + "\">";
-                string Date(DateTime utc) => new DateTimeOffset(utc).ToOffset(TimeSpan.FromHours(8)).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+                string Date(DateTime utc, string format = "yyyy-MM-dd HH:mm") => new DateTimeOffset(utc).ToOffset(TimeSpan.FromHours(8)).ToString(format, CultureInfo.InvariantCulture);
                 var earliestDate = new DateTimeOffset(row.ExpiresAtUtc > row.ServerTimeUtc ? row.ExpiresAtUtc : row.ServerTimeUtc)
                     .ToOffset(TimeSpan.FromHours(8)).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
                 var editorId = "extension-" + row.Id;
                 html.Append($$"""
                     <tr><td><span class="member-name">{{E(row.RealName)}}</span><span class="member-phone">{{E(row.Phone)}}</span></td>
-                    <td class="date-cell">{{Date(row.RegisteredAtUtc)}}</td><td class="date-cell">{{Date(row.ExpiresAtUtc)}}</td>
+                    <td class="date-cell"><span>{{Date(row.RegisteredAtUtc, "yyyy-MM-dd")}}</span> <span class="clock">{{Date(row.RegisteredAtUtc, "HH:mm")}}</span></td><td class="date-cell"><span>{{Date(row.ExpiresAtUtc, "yyyy-MM-dd")}}</span> <span class="clock">{{Date(row.ExpiresAtUtc, "HH:mm")}}</span></td>
                     <td><span class="account-status {{(row.IsActive ? "active" : "expired")}}">{{(row.IsActive ? "有效" : "已到期")}}</span></td>
                     <td><div class="account-actions"><button type="button" class="extend-button" popovertarget="{{editorId}}">延期</button><a class="delete-link" href="{{path}}/delete">删除</a></div></td></tr>
                     """);

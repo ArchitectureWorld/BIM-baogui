@@ -144,7 +144,7 @@ internal static class EndpointCases
                     using var afterDate = await Send(HttpMethod.Get, "admin");
                     var afterDateHtml = WebUtility.HtmlDecode(await afterDate.Content.ReadAsStringAsync());
                     var dateCells = Cells(afterDateHtml, member.Account.Phone);
-                    Require(dateCells[2].Contains(expected.AddHours(8).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)) && Editor(afterDateHtml, member.Account.Id).Contains("name=\"version\" value=\"3\""), "A fresh account page did not retain the selected expiry date.");
+                    Require(Regex.Replace(dateCells[2], "<[^>]+>", "").Contains(expected.AddHours(8).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)) && Editor(afterDateHtml, member.Account.Id).Contains("name=\"version\" value=\"3\""), "A fresh account page did not retain the selected expiry date.");
                     path = "admin/accounts/" + member.Account.Id + "/delete";
                     using var confirmation = await Send(HttpMethod.Get, path);
                     var html = WebUtility.HtmlDecode(await confirmation.Content.ReadAsStringAsync());
