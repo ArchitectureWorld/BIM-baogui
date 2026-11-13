@@ -75,7 +75,26 @@ public static class AdminPortal
         <title>
         """ + E(title) + """
         </title><style>*{box-sizing:border-box}body{margin:0;background:#f2f5f8;color:#18324c;font:15px/1.75 system-ui,"Microsoft YaHei",sans-serif}main{max-width:1180px;margin:45px auto;padding:35px;background:white;border-radius:16px;box-shadow:0 12px 50px #18344b12}nav{display:flex;gap:22px;border-bottom:1px solid #dbe4ed;padding-bottom:18px;margin-bottom:30px}h1{font-size:32px;margin:12px 0}small,.muted{color:#62788b}a{color:#245e8f}button,.button{display:inline-block;background:#245e8f;color:white;text-decoration:none;border:0;border-radius:6px;padding:10px 17px;cursor:pointer;font:inherit}input{font:inherit;padding:8px 10px;border:1px solid #c8d6e4;border-radius:6px;max-width:100%}label{display:block;margin:16px 0 5px}form{margin:10px 0}.login{max-width:420px}.login input{width:100%}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #e4eaf0;padding:14px 10px;vertical-align:top}td form{display:flex;gap:7px;flex-wrap:wrap}td input{width:155px}.danger{background:#b53e49}.delete-link{color:#b53e49}.notice{padding:12px 16px;background:#edf8f2;border-radius:8px;color:#186347}.active{color:#186347}.expired{color:#ae3f42}.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:35px 0}.step{background:#eef4f8;border-radius:9px;padding:20px}.scroll{overflow:auto}code{word-break:break-all}textarea{width:100%;font:16px monospace;padding:14px}@media(max-width:800px){main{margin:14px;padding:22px}.steps{grid-template-columns:1fr 1fr}h1{font-size:26px}}</style>
-        <style>.extension{min-width:320px}.extension form{align-items:flex-end}.extension label{display:grid;gap:4px;margin:0;font-size:13px}.extension button{white-space:nowrap}.extension small{display:block}</style>
+        <style>
+        .account-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:4px 0 24px}
+        .account-heading h1{font-size:28px;line-height:1.35;margin:0 0 6px;letter-spacing:-.5px}.account-heading p{margin:0;color:#7a8998;font-size:13px}.account-heading form{margin:0}
+        .secondary-button{background:white;color:#52687d;border:1px solid #dce5ee;padding:7px 14px;font-size:13px}
+        .account-table{border:1px solid #e3e9f0;border-radius:12px;overflow:auto}.account-table table{min-width:760px}
+        .account-table th{background:#f7f9fc;color:#738499;font-size:12px;font-weight:500;padding:13px 20px;white-space:nowrap}
+        .account-table td{padding:17px 20px;vertical-align:middle;border-color:#edf1f5}.account-table tr:last-child td{border-bottom:0}.account-table th:last-child{text-align:right}
+        .member-name{display:block;font-size:14px;font-weight:600;color:#243e57}.member-phone{display:block;margin-top:2px;font-size:12px;color:#8b99a8;font-variant-numeric:tabular-nums}
+        .date-cell{font-size:13px;color:#607489;white-space:nowrap;font-variant-numeric:tabular-nums}.account-status{display:inline-block;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:500;white-space:nowrap}
+        .account-status.active{background:#edf8f1;color:#26764d}.account-status.expired{background:#fff1ef;color:#af564c}
+        .account-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px}.extend-button{background:#edf4fc;color:#2e66a0;padding:6px 15px;font-size:13px;border:1px solid #dce9f8;border-radius:7px;white-space:nowrap}
+        .account-actions .delete-link{padding:6px 8px;color:#a76b70;text-decoration:none;font-size:13px;white-space:nowrap}.account-actions .delete-link:hover{color:#b33444;background:#fff4f5;border-radius:7px}
+        .extension-panel{width:min(440px,calc(100vw - 32px));padding:26px;border:1px solid #dfe7ef;border-radius:18px;color:#243e57;box-shadow:0 24px 80px #16314b35}
+        .extension-panel::backdrop{background:#132e4933;backdrop-filter:blur(2px)}.extension-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}.extension-header h2{margin:0;font-size:20px;letter-spacing:-.4px}
+        .close-panel{background:transparent;color:#8494a4;padding:0 6px;line-height:1.3;font-size:26px}.extension-person{padding:14px 16px;background:#f7f9fc;border:1px solid #e8eef5;border-radius:10px;margin-bottom:20px}.extension-person strong{font-size:15px}.extension-person span{margin-left:10px;font-size:12px;color:#8494a4}.extension-person p{margin:6px 0 0;font-size:12px;color:#708398}
+        .extension-mode{display:flex;gap:4px;border:0;padding:4px;margin:0 0 22px;background:#f0f4f8;border-radius:9px}.extension-mode label{flex:1;margin:0;padding:8px;text-align:center;font-size:13px;border-radius:6px;cursor:pointer;color:#7c8b9a}.extension-mode label:has(input:checked){background:white;color:#2d6096;box-shadow:0 1px 4px #16314b12}.extension-mode input{width:auto;margin:0 6px 0 0;accent-color:#336da5}
+        .extension-panel:has(.mode-days:checked) .date-pane,.extension-panel:has(.mode-date:checked) .days-pane{display:none}
+        .extension-panel form{margin:0}.extension-panel .field-label{margin:0 0 8px;font-size:13px;color:#52687e}.extension-panel .field-input{display:block;width:100%;height:46px;border-color:#d9e3ed;border-radius:8px;padding:10px 12px;outline:none}.extension-panel .field-input:focus{border-color:#4383bc;box-shadow:0 0 0 3px #4083bb16}
+        .extension-help{font-size:12px;color:#8b99a7;line-height:1.7;margin:10px 0 24px}.extension-footer{display:flex;justify-content:flex-end;gap:9px}.extension-footer button{font-size:13px;padding:8px 18px;border-radius:7px}.extension-footer .secondary-button{border:1px solid #dce5ee}
+        </style>
         <main><nav><b>HIFC 0.5.0-Web</b><a href="/">客户端入口</a><a href="/admin">账号管理</a></nav>
         """ + content + "</main></html>";
     public static string Home() => Page("HIFC Web · 客户端入口", "<small>Revit 2020 · 开发体验版</small><h1>检查、编辑，并验证模型写入结果</h1><p>安装独立 Web 插件，在 Revit 中完成报规模型属性管理。模型保留在本机，服务器提供本轮检查与写入方案。</p><p><a class=\"button\" href=\"/downloads/HIFC-0.5.0-Web.zip\">下载 Web 插件与安装器</a></p><div class=\"steps\"><div class=\"step\">01<br><b>登记与连接</b><br>手机号、真实姓名</div><div class=\"step\">02<br><b>全面检查</b><br>盘点当前文档与字段</div><div class=\"step\">03<br><b>编辑与预览</b><br>草稿自动保留在本机</div><div class=\"step\">04<br><b>写入与复检</b><br>回读验证后自行保存</div></div><h2>开始体验</h2><p>解压后双击“安装 Web 版.cmd”，按安装器核对证书。打开模型副本，在 Revit 的独立“HIFC-V1-Web”页签中点击“模型检查 / 属性管理”。</p><p class=\"muted\">普通账号首次登记有效 168 小时。重装或换机保留原期限；需要延期时联系管理员。Web 版使用独立安装目录和入口。</p>");
@@ -89,24 +108,43 @@ public static class AdminPortal
             return Results.Redirect("/admin");
         }).RequireRateLimiting("identity");
         app.MapGet("/admin", async (HttpContext context, AccountStore accounts) => {
-            var token = Token(context); var rows = await accounts.ListForAdministratorAsync(Guid.Parse(Actor(context)), context.RequestAborted); var html = new StringBuilder("<h1>账号管理</h1><p>期限按北京时间显示；普通账号只有“有效 / 已到期”。</p><form method=\"post\" action=\"/admin/logout\">" + Hidden(token) + "<button>退出管理后台</button></form><div class=\"scroll\"><table><tr><th>成员</th><th>登记 / 到期时间</th><th>状态</th><th>自定义延期</th><th>删除</th></tr>");
+            var token = Token(context); var rows = await accounts.ListForAdministratorAsync(Guid.Parse(Actor(context)), context.RequestAborted);
+            var html = new StringBuilder("<div class=\"account-heading\"><div><h1>账号管理</h1><p>账号期限均按北京时间显示</p></div><form method=\"post\" action=\"/admin/logout\">" + Hidden(token) + "<button class=\"secondary-button\">退出登录</button></form></div><div class=\"account-table\"><table><tr><th>成员</th><th>登记时间</th><th>到期时间</th><th>状态</th><th>操作</th></tr>");
+            var editors = new StringBuilder();
             foreach (var row in rows.Where(a => !a.IsAdmin))
             {
                 var path = "/admin/accounts/" + row.Id; var hidden = Hidden(token) + "<input type=\"hidden\" name=\"version\" value=\"" + row.RowVersion + "\">";
                 string Date(DateTime utc) => new DateTimeOffset(utc).ToOffset(TimeSpan.FromHours(8)).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
                 var earliestDate = new DateTimeOffset(row.ExpiresAtUtc > row.ServerTimeUtc ? row.ExpiresAtUtc : row.ServerTimeUtc)
                     .ToOffset(TimeSpan.FromHours(8)).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-                html.Append("<tr><td>").Append(E(row.RealName)).Append("<br>").Append(E(row.Phone))
-                    .Append("</td><td>").Append(Date(row.RegisteredAtUtc)).Append("<br>").Append(Date(row.ExpiresAtUtc))
-                    .Append("</td><td class=\"").Append(row.IsActive ? "active\">有效" : "expired\">已到期")
-                    .Append("</td><td class=\"extension\"><form method=\"post\" action=\"").Append(path).Append("/extend\">").Append(hidden)
-                    .Append("<label>延期天数<input type=\"number\" name=\"days\" min=\"1\" max=\"36500\" step=\"1\" required></label><button type=\"submit\">按天延期</button></form>")
-                    .Append("<form method=\"post\" action=\"").Append(path).Append("/extend\">").Append(hidden)
-                    .Append("<label>到期日期<input type=\"date\" name=\"untilDate\" min=\"").Append(earliestDate)
-                    .Append("\" required></label><button type=\"submit\">按日期延期</button></form><small>指定日期包含当天，按北京时间计算。</small>")
-                    .Append("</td><td><a class=\"delete-link\" href=\"").Append(path).Append("/delete\">删除</a></td></tr>");
+                var editorId = "extension-" + row.Id;
+                html.Append($$"""
+                    <tr><td><span class="member-name">{{E(row.RealName)}}</span><span class="member-phone">{{E(row.Phone)}}</span></td>
+                    <td class="date-cell">{{Date(row.RegisteredAtUtc)}}</td><td class="date-cell">{{Date(row.ExpiresAtUtc)}}</td>
+                    <td><span class="account-status {{(row.IsActive ? "active" : "expired")}}">{{(row.IsActive ? "有效" : "已到期")}}</span></td>
+                    <td><div class="account-actions"><button type="button" class="extend-button" popovertarget="{{editorId}}">延期</button><a class="delete-link" href="{{path}}/delete">删除</a></div></td></tr>
+                    """);
+                editors.Append($$"""
+                    <section id="{{editorId}}" class="extension-panel" popover aria-labelledby="{{editorId}}-title">
+                    <div class="extension-header"><h2 id="{{editorId}}-title">调整使用期限</h2><button type="button" class="close-panel" aria-label="关闭延期面板" popovertarget="{{editorId}}" popovertargetaction="hide">×</button></div>
+                    <div class="extension-person"><strong>{{E(row.RealName)}}</strong><span>{{E(row.Phone)}}</span><p>当前到期时间 {{Date(row.ExpiresAtUtc)}}</p></div>
+                    <fieldset class="extension-mode" aria-label="延期方式">
+                    <label><input type="radio" class="mode-days" name="mode-{{row.Id}}" value="days" checked>按天数</label>
+                    <label><input type="radio" class="mode-date" name="mode-{{row.Id}}" value="date">指定日期</label>
+                    </fieldset>
+                    <div class="days-pane"><form method="post" action="{{path}}/extend">{{hidden}}
+                    <label class="field-label" for="{{editorId}}-days">延期天数</label><input class="field-input" id="{{editorId}}-days" type="number" name="days" min="1" max="36500" step="1" placeholder="输入天数" required>
+                    <p class="extension-help">有效账号从现有期限顺延，已到期账号从当前时间起算。</p>
+                    <div class="extension-footer"><button type="button" class="secondary-button" popovertarget="{{editorId}}" popovertargetaction="hide">取消</button><button type="submit">确认延期</button></div>
+                    </form></div>
+                    <div class="date-pane"><form method="post" action="{{path}}/extend">{{hidden}}
+                    <label class="field-label" for="{{editorId}}-date">到期日期</label><input class="field-input" id="{{editorId}}-date" type="date" name="untilDate" min="{{earliestDate}}" required>
+                    <p class="extension-help">包含所选日期当天，按北京时间计算。</p>
+                    <div class="extension-footer"><button type="button" class="secondary-button" popovertarget="{{editorId}}" popovertargetaction="hide">取消</button><button type="submit">确认延期</button></div>
+                    </form></div></section>
+                    """);
             }
-            html.Append("</table></div>");
+            html.Append("</table></div>").Append(editors);
             if (context.Request.Query["extended"] == "1") html.Insert(0, "<p class=\"notice\" role=\"status\">延期已保存，请核对更新后的到期时间。</p>");
             if (context.Request.Query["deleted"] == "1") html.Insert(0, "<p class=\"notice\" role=\"status\">账号已删除，登录凭证和服务器检查数据已清除。</p>");
             return Html(context, "账号管理", html.ToString());
